@@ -1,5 +1,9 @@
-const SignIn = () => {
-  return <section className="flex-center size-full max-sm:px-6">Sign In</section>;
-};
+import React from 'react'
 
-export default SignIn;
+const SignIn = () => {
+  return (
+    <div>Sign In</div>
+  )
+}
+
+export default SignIn 
