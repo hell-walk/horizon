@@ -13,7 +13,6 @@ const Sidebar = ({ user }: SidebarProps) => {
             alt="Horizon logo"
             className="size-[24px] max-xl:size-14"
           />
-          <h1 className="sidebar-logo">Horizon</h1>
         </Link>
       </nav>
     </section>
