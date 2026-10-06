@@ -21,13 +21,13 @@ const MobileNav = ({ user }: MobileNavProps) => {
         <SheetTrigger>
           <Image
             src="/icons/hamburger.svg"
-            width={30}
-            height={30}
+            width={20}
+            height={20}
             alt="menu icon"
             className="cursor-pointer"
           />
         </SheetTrigger>
-        <SheetContent side="left" className="border-none bg-white">
+        <SheetContent  >
           <Link href="/" className="mb-12 flex cursor-pointer items-center gap-2">
             <Image
               src="/icons/logo.svg"
@@ -36,7 +36,7 @@ const MobileNav = ({ user }: MobileNavProps) => {
               alt="Horizon logo"
               className="size-[24px] max-xl:size-14"
             />
-            <h1 className="sidebar-logo">Horizon</h1>
+            
           </Link>
 
           <div className="mobilenav-sheet">
