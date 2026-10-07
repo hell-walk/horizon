@@ -1,14 +1,17 @@
 import Sidebar from "@/components/sidebar";
 import Image from "next/image";
 import MobileNav from "@/components/mobileNav";
+import { getLoggedInUser } from "@/lib/actions/userAction";
+import { redirect } from "next/navigation";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Mock user until auth is wired up; cast keeps the Sidebar props typed as User.
-  const loggedIn = { firstName: "Aaditya", lastName: "Pandey" } as User;
+  const loggedIn = await getLoggedInUser();
+
+  if (!loggedIn) redirect("/sign-in");
 
   return (
     <main className="flex h-screen w-full font-inter">
