@@ -1,6 +1,6 @@
 'use server';
 
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../server/appwrite";
 import { cookies } from "next/headers";
 import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
@@ -83,16 +83,47 @@ export const signUp = async (userData: SignUpParams) => {
         return parseStringify(newUser)
     } catch (error) {
         console.error('Error', error)
+
+        // Roll back the auth account so a failed sign-up can be retried with the same email.
+        if (newUserAccount) {
+            try {
+                const { user } = await createAdminClient();
+                await user.delete(newUserAccount.$id);
+            } catch (cleanupError) {
+                console.error('Could not remove the partially created user', cleanupError);
+            }
+        }
     }
 }
 
 // ... your initilization functions
 
+export const getUserInfo = async ({ userId }: getUserInfoProps) => {
+    try {
+        const { database } = await createAdminClient();
+
+        const user = await database.listDocuments(
+            DATABASE_ID!,
+            USER_COLLECTION_ID!,
+            [Query.equal("userId", [userId])]
+        );
+
+        return parseStringify(user.documents[0]);
+    } catch (error) {
+        console.error("Error fetching user info", error);
+    }
+};
+
 export async function getLoggedInUser() {
     try {
         const { account } = await createSessionClient();
-        const user = await account.get();
-        return parseStringify(user)
+        const result = await account.get();
+
+        // Merge the auth account (name, email) with the profile document
+        // (firstName, lastName, dwolla ids). $id becomes the profile document id.
+        const user = await getUserInfo({ userId: result.$id });
+
+        return parseStringify({ ...result, ...user });
     } catch (error) {
         return null;
     }
@@ -113,7 +144,7 @@ export const createLinkToken = async (user: User) => {
             user: {
                 client_user_id: user.$id
             },
-            client_name: user.name,
+            client_name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name,
             products: ['auth'] as Products[],
             language: 'en',
             country_codes: ['US'] as CountryCode[],
