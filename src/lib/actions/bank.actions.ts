@@ -9,11 +9,22 @@ import {
   TransferType,
 } from "plaid";
 
+import { cache } from "react";
+
 import { plaidClient } from "../plaid";
 import { parseStringify } from "../utils";
+import { cached, TTL } from "../cache";
 
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.action";
+
+// Plaid account data for one item. Shared by getAccounts and getAccount and cached
+// for a minute so navigating between pages does not hit Plaid every time.
+const getPlaidAccounts = (accessToken: string) =>
+  cached(`plaid:accounts:${accessToken}`, TTL.minute, async () => {
+    const response = await plaidClient.accountsGet({ access_token: accessToken });
+    return response.data;
+  });
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
@@ -24,14 +35,12 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
     const accounts = await Promise.all(
       banks?.map(async (bank: Bank) => {
         // get each account info from plaid
-        const accountsResponse = await plaidClient.accountsGet({
-          access_token: bank.accessToken,
-        });
-        const accountData = accountsResponse.data.accounts[0];
+        const accountsData = await getPlaidAccounts(bank.accessToken);
+        const accountData = accountsData.accounts[0];
 
         // get institution info from plaid
         const institution = await getInstitution({
-          institutionId: accountsResponse.data.item.institution_id!,
+          institutionId: accountsData.item.institution_id!,
         });
 
         const account = {
@@ -63,8 +72,9 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
   }
 };
 
-// Get one bank account
-export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
+// Get one bank account. cache() dedupes it within a request: the transactions list
+// and the right sidebar both need it.
+const loadAccount = cache(async (appwriteItemId: string) => {
   try {
     // get bank from db
     const bank = await getBank({ documentId: appwriteItemId });
@@ -73,16 +83,13 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       return null;
     }
 
-    // get account info from plaid
-    const accountsResponse = await plaidClient.accountsGet({
-      access_token: bank.accessToken,
-    });
-    const accountData = accountsResponse.data.accounts[0];
-
-    // get transfer transactions from appwrite
-    const transferTransactionsData = await getTransactionsByBankId({
-      bankId: bank.$id,
-    });
+    // Plaid balances, Plaid transactions and Appwrite transfers are independent: fetch them together.
+    const [accountsData, transferTransactionsData, transactions] = await Promise.all([
+      getPlaidAccounts(bank.accessToken),
+      getTransactionsByBankId({ bankId: bank.$id }),
+      getTransactions({ accessToken: bank.accessToken }),
+    ]);
+    const accountData = accountsData.accounts[0];
 
     const transferTransactions = (transferTransactionsData?.documents ?? []).map(
       (transferData: Transaction) => ({
@@ -98,11 +105,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 
     // get institution info from plaid
     const institution = await getInstitution({
-      institutionId: accountsResponse.data.item.institution_id!,
-    });
-
-    const transactions = await getTransactions({
-      accessToken: bank?.accessToken,
+      institutionId: accountsData.item.institution_id!,
     });
 
     const account = {
@@ -130,19 +133,23 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   } catch (error) {
     console.error("An error occurred while getting the account:", error);
   }
-};
+});
+
+export const getAccount = async ({ appwriteItemId }: getAccountProps) => loadAccount(appwriteItemId);
 
 // Get bank info
 export const getInstitution = async ({
   institutionId,
 }: getInstitutionProps) => {
   try {
-    const institutionResponse = await plaidClient.institutionsGetById({
-      institution_id: institutionId,
-      country_codes: ["US"] as CountryCode[],
+    // Institution details never change, so cache them for a day.
+    const intitution = await cached(`plaid:institution:${institutionId}`, TTL.day, async () => {
+      const response = await plaidClient.institutionsGetById({
+        institution_id: institutionId,
+        country_codes: ["US"] as CountryCode[],
+      });
+      return response.data.institution;
     });
-
-    const intitution = institutionResponse.data.institution;
 
     return parseStringify(intitution);
   } catch (error) {
@@ -154,11 +161,12 @@ export const getInstitution = async ({
 export const getTransactions = async ({
   accessToken,
 }: getTransactionsProps) => {
-  let hasMore = true;
-  let cursor: string | undefined = undefined;
-  let transactions: any[] = [];
-
   try {
+    const transactions = await cached(`plaid:transactions:${accessToken}`, TTL.minute, async () => {
+    let hasMore = true;
+    let cursor: string | undefined = undefined;
+    let transactions: any[] = [];
+
     // Walk every page of the sync feed; the cursor marks where the last page ended.
     while (hasMore) {
       const response = await plaidClient.transactionsSync({
@@ -172,9 +180,10 @@ export const getTransactions = async ({
         id: transaction.transaction_id,
         name: transaction.name,
         paymentChannel: transaction.payment_channel,
-        type: transaction.payment_channel,
+        // Plaid reports outflows as positive amounts and inflows as negative ones.
+        type: transaction.amount > 0 ? 'debit' : 'credit',
         accountId: transaction.account_id,
-        amount: transaction.amount,
+        amount: Math.abs(transaction.amount),
         pending: transaction.pending,
         category: transaction.category ? transaction.category[0] : "",
         date: transaction.date,
@@ -185,6 +194,9 @@ export const getTransactions = async ({
       cursor = data.next_cursor;
       hasMore = data.has_more;
     }
+
+    return transactions;
+    });
 
     return parseStringify(transactions);
   } catch (error) {

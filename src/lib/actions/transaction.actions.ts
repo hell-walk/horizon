@@ -3,6 +3,7 @@
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";
 import { parseStringify } from "../utils";
+import { cached, invalidate, TTL } from "../cache";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -24,6 +25,8 @@ export const createTransaction = async (transaction: CreateTransactionProps) => 
       }
     )
 
+    invalidate("transfers:");
+
     return parseStringify(newTransaction);
   } catch (error) {
     console.log(error);
@@ -34,16 +37,15 @@ export const getTransactionsByBankId = async ({bankId}: getTransactionsByBankIdP
   try {
     const { database } = await createAdminClient();
 
-    const senderTransactions = await database.listDocuments(
-      DATABASE_ID!,
-      TRANSACTION_COLLECTION_ID!,
-      [Query.equal('senderBankId', bankId)],
-    )
-
-    const receiverTransactions = await database.listDocuments(
-      DATABASE_ID!,
-      TRANSACTION_COLLECTION_ID!,
-      [Query.equal('receiverBankId', bankId)],
+    // The two queries are independent, so they run together and are cached briefly.
+    const [senderTransactions, receiverTransactions] = await cached(
+      `transfers:${bankId}`,
+      TTL.short,
+      () =>
+        Promise.all([
+          database.listDocuments(DATABASE_ID!, TRANSACTION_COLLECTION_ID!, [Query.equal('senderBankId', bankId)]),
+          database.listDocuments(DATABASE_ID!, TRANSACTION_COLLECTION_ID!, [Query.equal('receiverBankId', bankId)]),
+        ])
     );
 
     const transactions = {
