@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 import { Inter, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-ibm-plex-serif",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

@@ -6,7 +6,13 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "./footer";
-import PlaidLink from "./plaidLink";
+import dynamic from "next/dynamic";
+
+// react-plaid-link and the Plaid script only load once the sidebar mounts.
+const PlaidLink = dynamic(() => import("./plaidLink"), {
+  ssr: false,
+  loading: () => <div className="h-14 w-full animate-pulse rounded-lg bg-gray-100" />,
+});
 
 const Sidebar = ({ user }: SidebarProps) => {
   const pathname = usePathname();

@@ -7,6 +7,8 @@ import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
 import { AccountType, CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 import { plaidClient } from "../plaid";
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
+import { cached, invalidate, TTL } from "../cache";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.action";
 
 const {
@@ -115,7 +117,8 @@ export const signUp = async (userData: SignUpParams) => {
 
 // ... your initilization functions
 
-export async function getLoggedInUser() {
+// React cache() dedupes this within one request: the layout and the page both call it.
+const loadLoggedInUser = cache(async () => {
     try {
         const { account } = await createSessionClient();
         const result = await account.get();
@@ -128,7 +131,12 @@ export async function getLoggedInUser() {
     } catch (error) {
         return null;
     }
+});
+
+export async function getLoggedInUser() {
+    return loadLoggedInUser();
 }
+
 export const logoutAccount = async () => {
     try {
         const { account } = await createSessionClient();
@@ -229,23 +237,27 @@ export const createBankAccount = async ({
             { userId, bankId, accountId, accessToken, fundingSourceUrl, sharableId }
         );
 
+        invalidate("banks:");
+
         return parseStringify(bankAccount);
     } catch (error) {
         console.error("An error occurred while creating the bank account", error);
     }
 };
 
-export const getBanks =async ({userId}: getBanksProps)=>{
+export const getBanks = async ({ userId }: getBanksProps) => {
     try {
-        const { database }= await createAdminClient()
+        const banks = await cached(`banks:${userId}`, TTL.short, async () => {
+            const { database } = await createAdminClient();
+            const result = await database.listDocuments(
+                DATABASE_ID!,
+                BANK_COLLECTION_ID!,
+                [Query.equal('userId', [userId])]
+            );
+            return result.documents;
+        });
 
-        const banks = await database.listDocuments(
-            DATABASE_ID!,
-            BANK_COLLECTION_ID!,
-            [Query.equal('userId',[userId])]
-        )
-
-        return parseStringify(banks.documents);
+        return parseStringify(banks);
         
     } catch (error) {
         console.error(error)

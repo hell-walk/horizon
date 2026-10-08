@@ -1,15 +1,18 @@
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import RightSideBar from "@/components/rightSideBar";
-import { getLoggedInUser } from "@/lib/actions/user.action";
-import { redirect } from "next/navigation";
-import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import RecentTransaction from "@/components/recentTransaction";
+import { RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/skeletons";
+import { getLoggedInUser } from "@/lib/actions/user.action";
+import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 
 const Home = async ({ searchParams }: SearchParamProps) => {
   const { id, page } = await searchParams;
-  const currentPage= Number(page as string) || 1
-  
+  const currentPage = Number(page as string) || 1;
+
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
@@ -18,8 +21,6 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
   const accountsData = accounts?.data;
   const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
-  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
-  
 
   return (
     <section className="home">
@@ -29,7 +30,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             type="greeting"
             title="Welcome"
             user={loggedIn?.name || "Guest"}
-            subtext="Access and manage your account transactions effeciently"
+            subtext="Access and manage your account transactions efficiently"
           />
           <TotalBalanceBox
             accounts={accountsData}
@@ -37,20 +38,63 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             totalCurrentBalance={accounts?.totalCurrentBalance}
           />
         </header>
-       <RecentTransaction  
-        accounts={accountsData}
-        transactions={account?.transactions}
-        appwriteItemId={appwriteItemId}
-        page={currentPage}
-       />
+
+        {/* Transactions need Plaid's sync feed, the slowest call. Stream them in
+            so the greeting and balance appear first. */}
+        <Suspense fallback={<RecentTransactionsSkeleton />}>
+          <RecentTransactionsSection
+            accounts={accountsData}
+            appwriteItemId={appwriteItemId}
+            page={currentPage}
+          />
+        </Suspense>
       </div>
-      <RightSideBar
-        user={loggedIn}
-        transactions={account?.transactions}
-        banks={accountsData?.slice(0, 2)}
-      />
+
+      <Suspense fallback={<RightSideBarSkeleton />}>
+        <RightSideBarSection
+          user={loggedIn}
+          banks={accountsData?.slice(0, 2)}
+          appwriteItemId={appwriteItemId}
+        />
+      </Suspense>
     </section>
   );
 };
+
+// Both sections call getAccount; it is deduped per request, so Plaid is hit once.
+async function RecentTransactionsSection({
+  accounts,
+  appwriteItemId,
+  page,
+}: {
+  accounts: Account[];
+  appwriteItemId?: string;
+  page: number;
+}) {
+  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
+
+  return (
+    <RecentTransaction
+      accounts={accounts}
+      transactions={account?.transactions}
+      appwriteItemId={appwriteItemId ?? ""}
+      page={page}
+    />
+  );
+}
+
+async function RightSideBarSection({
+  user,
+  banks,
+  appwriteItemId,
+}: {
+  user: User;
+  banks: RightSidebarProps["banks"];
+  appwriteItemId?: string;
+}) {
+  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
+
+  return <RightSideBar user={user} transactions={account?.transactions} banks={banks} />;
+}
 
 export default Home;
