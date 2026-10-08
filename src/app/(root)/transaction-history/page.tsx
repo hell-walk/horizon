@@ -43,7 +43,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
             </div>
               <div className="transactions-account-balance">
                 <p className="text-14">Current Balance</p>
-                <p className="text-24 text-center font-bold ">{formatAmount(account?.data.currentBalance, account?.data.currency)}</p>
+                <p className="text-24 text-center font-bold ">{formatAmount(account?.data.currentBalance)}</p>
               </div>
       </div>
       <section className="flex w-full flex-col gap-6">

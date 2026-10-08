@@ -61,11 +61,7 @@ declare type Account = {
   subtype: string;
   appwriteItemId: string;
   sharableId: string;
-  currency: string; // ISO 4217, e.g. USD or INR
-  provider: BankProvider;
 };
-
-declare type BankProvider = "plaid" | "setu";
 
 declare type Transaction = {
   id: string;
@@ -84,20 +80,16 @@ declare type Transaction = {
   channel: string;
   senderBankId: string;
   receiverBankId: string;
-  currency?: string;
 };
 
 declare type Bank = {
   $id: string;
-  accountId: string; // Plaid account_id, or Setu linkRefNumber
-  bankId: string; // Plaid item_id, or Setu consent id
-  accessToken: string; // Plaid access token, or Setu consent id
-  fundingSourceUrl?: string; // Dwolla funding source (Plaid banks only)
+  accountId: string;
+  bankId: string;
+  accessToken: string;
+  fundingSourceUrl: string;
   userId: string;
   sharableId: string;
-  provider?: BankProvider; // missing on rows created before Setu support = plaid
-  dataSessionId?: string; // Setu: latest data session
-  currency?: string;
 };
 
 declare type AccountTypes =
@@ -215,8 +207,6 @@ declare interface TotlaBalanceBoxProps {
   accounts: Account[];
   totalBanks: number;
   totalCurrentBalance: number;
-  totalsByCurrency?: Record<string, number>;
-  primaryCurrency?: string;
 }
 
 declare interface FooterProps {
@@ -323,11 +313,8 @@ declare interface createBankAccountProps {
   userId: string;
   accountId: string;
   bankId: string;
-  fundingSourceUrl?: string;
+  fundingSourceUrl: string;
   sharableId: string;
-  provider?: BankProvider;
-  currency?: string;
-  dataSessionId?: string;
 }
 
 declare interface getBanksProps {

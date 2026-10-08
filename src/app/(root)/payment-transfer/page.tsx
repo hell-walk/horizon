@@ -11,8 +11,7 @@ const PaymentTransfer = async () => {
 
     const accounts = await getAccounts({ userId: loggedIn.$id });
     if (!accounts) return;
-    // Dwolla moves money between US accounts only, so Setu-linked banks cannot be a source.
-    const accountsData = (accounts?.data as Account[]).filter((account) => account.provider !== "setu");
+    const accountsData = accounts?.data;
   return (
     <section className="payment-transfer">
       <HeaderBox title="Payment Transfer" subtext="Please Provide any specific details or notes related to the payment transfer" />

@@ -59,13 +59,6 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
       });
       const senderBank = await getBank({ documentId: data.senderBank });
 
-      if (!receiverBank?.fundingSourceUrl) {
-        form.setError("sharableId", {
-          message: "This bank cannot receive transfers yet. Only Plaid-linked US accounts are supported.",
-        });
-        return;
-      }
-
       const transferParams = {
         sourceFundingSourceUrl: senderBank.fundingSourceUrl,
         destinationFundingSourceUrl: receiverBank.fundingSourceUrl,

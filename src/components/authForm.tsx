@@ -14,7 +14,6 @@ import CustomInput from "./customInput";
 import { authFormSchema } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import PlaidLink from "./plaidLink";
-import SetuLink from "./setuLink";
 
 const AuthForm = ({ type }: { type: string }) => {
     const router = useRouter()
@@ -99,7 +98,6 @@ const AuthForm = ({ type }: { type: string }) => {
             {user ? (
                 <div className="flex flex-col gap-4">
                     <PlaidLink user={user} variant='primary' />
-                    <SetuLink user={user} variant="primary" />
                 </div>
             ) : (
                 <>
