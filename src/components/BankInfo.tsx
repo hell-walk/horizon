@@ -64,7 +64,7 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
         </div>
 
         <p className={`text-16 font-medium text-blue-700 ${colors.subText}`}>
-          {formatAmount(account.currentBalance)}
+          {formatAmount(account.currentBalance, account.currency)}
         </p>
       </div>
     </div>

@@ -226,6 +226,9 @@ export const createBankAccount = async ({
     accessToken,
     fundingSourceUrl,
     sharableId,
+    provider = "plaid",
+    currency,
+    dataSessionId,
 }: createBankAccountProps) => {
     try {
         const { database } = await createAdminClient();
@@ -234,7 +237,17 @@ export const createBankAccount = async ({
             DATABASE_ID!,
             BANK_COLLECTION_ID!,
             ID.unique(),
-            { userId, bankId, accountId, accessToken, fundingSourceUrl, sharableId }
+            {
+                userId,
+                bankId,
+                accountId,
+                accessToken,
+                fundingSourceUrl: fundingSourceUrl ?? "",
+                sharableId,
+                provider,
+                ...(currency ? { currency } : {}),
+                ...(dataSessionId ? { dataSessionId } : {}),
+            }
         );
 
         invalidate("banks:");
