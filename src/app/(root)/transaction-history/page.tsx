@@ -1,8 +1,49 @@
+import TransactionsTable from '@/components/transactionTable';
+import HeaderBox from '@/components/ui/headerBox'
+import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import { getLoggedInUser } from "@/lib/actions/user.action";
+import { formatAmount } from '@/lib/utils';
+import { redirect } from "next/navigation";
 import React from 'react'
 
-const TransactionHistory = () => {
+const TransactionHistory = async ({searchParams:{id,page}}:SearchParamProps) => {
+  const currentPage= Number(page as string) || 1
+    
+    const loggedIn = await getLoggedInUser();
+    if (!loggedIn) redirect("/sign-in");
+  
+    const accounts = await getAccounts({ userId: loggedIn.$id });
+    if (!accounts) return;
+  
+    const accountsData = accounts?.data;
+    const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+    const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
   return (
-    <div>TransactionHistory</div>
+    <div className="transactions">
+      <div className="transactions-header">
+         <HeaderBox title="Transactions History" subtext="See Your Bank Details And Transactions"/>
+      </div>
+    
+    <div className="space-y-6">
+      <div className="transactions-account">
+        <div className="flex flex-col gap2">
+          <h2 className="text-18 font-bold text-white">{account?.data.name}</h2>
+          <p className="text-14 text-blue-25">{account?.data.officialName}</p>
+            <p className="text-14 font-semibold tracking-[1.1px] text-white">
+              ●●●● ●●●● ●●●● <span className="text-16">{account.mask || "0000"}</span>
+            </p>
+            </div>
+              <div className="transactions-account-balance">
+                <p className="text-14">Current Balance</p>
+                <p className="text-24 text-center font-bold ">{formatAmount(account?.data.currentBalance)}</p>
+              </div>
+      </div>
+      <section className="flex w-full flex-col gap-6">
+        <TransactionsTable 
+        transactions={account?.transactions} />
+      </section>
+    </div>
+    </div>
   )
 }
 

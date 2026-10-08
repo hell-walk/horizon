@@ -132,11 +132,15 @@ export async function getLoggedInUser() {
 export const logoutAccount = async () => {
     try {
         const { account } = await createSessionClient();
-        cookies().delete('banking-session')
-        await account.deleteSession('current')
+        await account.deleteSession('current');
     } catch (error) {
-        return null
+        // The session may already be invalid; clearing the cookie below still logs the user out.
+        console.error('Error deleting the Appwrite session', error);
     }
+
+    cookies().delete('banking-session');
+
+    return true;
 }
 
 export const createLinkToken = async (user: User) => {
@@ -146,16 +150,18 @@ export const createLinkToken = async (user: User) => {
                 client_user_id: user.$id
             },
             client_name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name,
-            products: ['auth'] as Products[],
+            products: ['auth', 'transactions'] as Products[],
             language: 'en',
             country_codes: ['US'] as CountryCode[],
 
         }
+        console.log("[createLinkToken] calling Plaid for", tokenParam.client_name);
         const response = await plaidClient.linkTokenCreate(tokenParam)
+        console.log("[createLinkToken] Plaid responded");
 
         return parseStringify({ linkToken: response.data.link_token })
-    } catch (error) {
-        console.log(error)
+    } catch (error: any) {
+        console.error("[createLinkToken] failed:", error?.code, error?.message, error?.response?.data ?? "");
     }
 }
 
