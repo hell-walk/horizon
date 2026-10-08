@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
@@ -8,6 +9,11 @@ import RecentTransaction from "@/components/recentTransaction";
 import { RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/skeletons";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Your balances and recent transactions across every linked bank.",
+};
 
 const Home = async ({ searchParams }: SearchParamProps) => {
   const { id, page } = await searchParams;

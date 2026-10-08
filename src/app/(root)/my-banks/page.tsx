@@ -1,5 +1,11 @@
 import HeaderBox from '@/components/ui/headerBox'
+import type { Metadata } from "next";
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "My Banks",
+  description: "Every bank account linked to Horizon.",
+};
 import { /*getAccount*/ getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { redirect } from "next/navigation";
@@ -13,7 +19,7 @@ const MyBanks = async() => {
   return (
     <section>
       <div className="my-banks">
-        <HeaderBox title="My Bank Account" subtext="Effortlesly Manage Your Banking Activities" />
+        <HeaderBox title="My Bank Account" subtext="Effortlessly Manage Your Banking Activities" />
         <div className="space-y-4">
           <h2 className="header-2">Your Cards</h2>
           <div className="flex flex-wrap gap-6">

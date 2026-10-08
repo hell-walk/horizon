@@ -21,6 +21,7 @@ const AuthForm = ({ type }: { type: string }) => {
     const router = useRouter()
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const formSchema = authFormSchema(type);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -32,7 +33,12 @@ const AuthForm = ({ type }: { type: string }) => {
     });
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        // Honeypot: real users never fill the hidden field, bots usually do.
+        const trap = (document.getElementById("company-website") as HTMLInputElement | null)?.value;
+        if (trap) return;
+
         setIsLoading(true);
+        setErrorMessage(null);
 
         try {
             // Sigh Up With Appwrite & create plaid token
@@ -53,6 +59,7 @@ const AuthForm = ({ type }: { type: string }) => {
                 }
                 const newUser = await signUp(userData)
 
+                if (!newUser) setErrorMessage("We could not create your account. Check the details and try again.");
                 setUser(newUser)
             }
             if (type === 'sign-in') {
@@ -62,10 +69,12 @@ const AuthForm = ({ type }: { type: string }) => {
                 })
 
                 if (response) router.push('/')
+                else setErrorMessage("Invalid email or password.");
 
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
+            setErrorMessage("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -179,6 +188,22 @@ const AuthForm = ({ type }: { type: string }) => {
                                 label="Password"
                                 placeholder="Enter your password"
                             />
+
+                            <input
+                                id="company-website"
+                                name="company-website"
+                                type="text"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                                className="hidden"
+                            />
+
+                            {errorMessage && (
+                                <p className="form-message" role="alert">
+                                    {errorMessage}
+                                </p>
+                            )}
 
                             <div className="flex flex-col gap-4">
                                 <Button type="submit" disabled={isLoading} className="form-btn">

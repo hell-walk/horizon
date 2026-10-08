@@ -1,5 +1,11 @@
 import HeaderBox from '@/components/ui/headerBox'
+import type { Metadata } from "next";
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "Transfer funds",
+  description: "Send money between linked bank accounts.",
+};
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { redirect } from "next/navigation";
 import {/* getAccount,*/ getAccounts } from "@/lib/actions/bank.actions";

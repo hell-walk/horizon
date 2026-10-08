@@ -11,12 +11,29 @@ const ibmPlexSerif = IBM_Plex_Serif({
   display: "swap",
 });
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  title: "Horizon",
-  description: "Horizon is a modern banking platform for everyone.",
-  icons: {
-    icon: "/icons/logo.svg",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Horizon",
+    template: "%s | Horizon",
   },
+  description: "All your bank accounts, balances and transactions in one place.",
+  applicationName: "Horizon",
+  openGraph: {
+    type: "website",
+    siteName: "Horizon",
+    title: "Horizon",
+    description: "All your bank accounts, balances and transactions in one place.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Horizon",
+    description: "All your bank accounts, balances and transactions in one place.",
+  },
+  // Private app: individual pages are noindex, the public entry pages opt back in.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
