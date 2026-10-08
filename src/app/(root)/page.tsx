@@ -36,8 +36,6 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             accounts={accountsData}
             totalBanks={accounts?.totalBanks}
             totalCurrentBalance={accounts?.totalCurrentBalance}
-            totalsByCurrency={accounts?.totalsByCurrency}
-            primaryCurrency={accounts?.primaryCurrency}
           />
         </header>
 

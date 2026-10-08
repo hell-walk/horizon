@@ -66,18 +66,14 @@ export const formatDateTime = (dateString: Date) => {
   };
 };
 
-// Locale per currency so grouping and symbol placement follow the money, not the viewer.
-const CURRENCY_LOCALES: Record<string, string> = { INR: "en-IN", USD: "en-US", GBP: "en-GB", EUR: "de-DE" };
-
-export function formatAmount(amount: number | string, currency: string = "USD"): string {
-  const code = currency || "USD";
-  const formatter = new Intl.NumberFormat(CURRENCY_LOCALES[code] ?? "en-US", {
+export function formatAmount(amount: number): string {
+  const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: code,
+    currency: "USD",
     minimumFractionDigits: 2,
   });
 
-  return formatter.format(typeof amount === "string" ? parseFloat(amount) || 0 : amount);
+  return formatter.format(amount);
 }
 
 export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value));
