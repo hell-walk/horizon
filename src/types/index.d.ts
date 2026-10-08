@@ -65,7 +65,7 @@ declare type Account = {
   provider: BankProvider;
 };
 
-declare type BankProvider = "plaid" | "setu";
+declare type BankProvider = "plaid" | "setu" | "manual";
 
 declare type Transaction = {
   id: string;
@@ -98,6 +98,9 @@ declare type Bank = {
   provider?: BankProvider; // missing on rows created before Setu support = plaid
   dataSessionId?: string; // Setu: latest data session
   currency?: string;
+  institutionName?: string; // manual: bank name typed or detected from the statement
+  accountMask?: string; // manual: last 4 digits
+  currentBalance?: number; // manual: closing balance of the last statement
 };
 
 declare type AccountTypes =
@@ -328,6 +331,9 @@ declare interface createBankAccountProps {
   provider?: BankProvider;
   currency?: string;
   dataSessionId?: string;
+  institutionName?: string;
+  accountMask?: string;
+  currentBalance?: number;
 }
 
 declare interface getBanksProps {

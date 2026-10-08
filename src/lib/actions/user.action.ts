@@ -229,6 +229,9 @@ export const createBankAccount = async ({
     provider = "plaid",
     currency,
     dataSessionId,
+    institutionName,
+    accountMask,
+    currentBalance,
 }: createBankAccountProps) => {
     try {
         const { database } = await createAdminClient();
@@ -247,6 +250,9 @@ export const createBankAccount = async ({
                 provider,
                 ...(currency ? { currency } : {}),
                 ...(dataSessionId ? { dataSessionId } : {}),
+                ...(institutionName ? { institutionName } : {}),
+                ...(accountMask ? { accountMask } : {}),
+                ...(currentBalance !== undefined ? { currentBalance } : {}),
             }
         );
 
