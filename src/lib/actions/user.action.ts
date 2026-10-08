@@ -36,7 +36,7 @@ export const signIn = async ({ email, password }: signInProps) => {
         const { account } = await createAdminClient();
         const session = await account.createEmailPasswordSession(email, password);
 
-        cookies().set("banking-session", session.secret, {
+        (await cookies()).set("banking-session", session.secret, {
             path: "/",
             httpOnly: true,
             sameSite: "strict",
@@ -90,7 +90,7 @@ export const signUp = async (userData: SignUpParams) => {
             )
 
         const session = await account.createEmailPasswordSession(email, password);
-        cookies().set("banking-session", session.secret, {
+        (await cookies()).set("banking-session", session.secret, {
             path: "/",
             httpOnly: true,
             sameSite: "strict",
@@ -138,7 +138,7 @@ export const logoutAccount = async () => {
         console.error('Error deleting the Appwrite session', error);
     }
 
-    cookies().delete('banking-session');
+    (await cookies()).delete('banking-session');
 
     return true;
 }
