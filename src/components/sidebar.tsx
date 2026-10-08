@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "./footer";
 import dynamic from "next/dynamic";
+import SetuLink from "./setuLink";
 
 // react-plaid-link and the Plaid script only load once the sidebar mounts.
 const PlaidLink = dynamic(() => import("./plaidLink"), {
@@ -57,6 +58,7 @@ const Sidebar = ({ user }: SidebarProps) => {
         })}
 
         <PlaidLink user={user} />
+        <SetuLink user={user} />
       </nav>
 
       <Footer user={user} />
