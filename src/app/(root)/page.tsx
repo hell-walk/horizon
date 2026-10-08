@@ -4,8 +4,11 @@ import RightSideBar from "@/components/rightSideBar";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { redirect } from "next/navigation";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import RecentTransaction from "@/components/recentTransaction";
 
 const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
+  const currentPage= Number(page as string) || 1
+  
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
@@ -15,6 +18,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
   const accountsData = accounts?.data;
   const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
+  
 
   return (
     <section className="home">
@@ -32,11 +36,16 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
             totalCurrentBalance={accounts?.totalCurrentBalance}
           />
         </header>
-        recent transactions
+       <RecentTransaction  
+        accounts={accountsData}
+        transactions={account?.transactions}
+        appwriteItemId={appwriteItemId}
+        page={currentPage}
+       />
       </div>
       <RightSideBar
         user={loggedIn}
-        transactions={[accounts?.transactions]}
+        transactions={account?.transactions}
         banks={accountsData?.slice(0, 2)}
       />
     </section>
