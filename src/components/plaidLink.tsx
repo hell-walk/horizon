@@ -10,7 +10,7 @@ import {
 } from "react-plaid-link";
 
 import { Button } from "./ui/button";
-import { createLinkToken, exchangePublicToken } from "@/lib/actions/userAction";
+import { createLinkToken, exchangePublicToken } from "@/lib/actions/user.action";
 
 const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
   const router = useRouter();
