@@ -5,7 +5,13 @@ import { getLoggedInUser } from "@/lib/actions/user.action";
 import { formatAmount } from '@/lib/utils';
 import { redirect } from "next/navigation";
 import { Pagination } from '@/components/Pagination';
+import type { Metadata } from "next";
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "Transaction history",
+  description: "Browse every transaction on a linked bank account.",
+};
 
 const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
     const { id, page } = await searchParams;

@@ -33,14 +33,14 @@ const BankCard = ({ account, userName, showBalance = true }: CreditCardProps) =>
           src="/icons/Paypass.svg"
           width={20}
           height={24}
-          alt="pay"
+          alt="Contactless payment"
           className="ml-5"
           />
           <Image 
           src="/icons/mastercard.svg"
           width={45}
           height={32}
-          alt="mastercard"
+          alt="Mastercard"
           className="ml-5"
           />
         </div>
@@ -48,7 +48,7 @@ const BankCard = ({ account, userName, showBalance = true }: CreditCardProps) =>
          src="/icons/lines.png"
          width={316}
          height={190}
-         alt="lines"
+         alt=""
          className="absolute top-0 left-0"
          />
 

@@ -1,6 +1,11 @@
-'use client'
-
+import type { Metadata } from "next";
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to Horizon to see your accounts, balances and transactions.",
+  robots: { index: true, follow: true },
+};
 import AuthForm from '@/components/authForm'
 const SignIn = () => {
   return (
