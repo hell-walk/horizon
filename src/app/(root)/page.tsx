@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import RecentTransaction from "@/components/recentTransaction";
 
-const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
+const Home = async ({ searchParams }: SearchParamProps) => {
+  const { id, page } = await searchParams;
   const currentPage= Number(page as string) || 1
   
   const loggedIn = await getLoggedInUser();

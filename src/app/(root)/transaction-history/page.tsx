@@ -7,7 +7,8 @@ import { redirect } from "next/navigation";
 import { Pagination } from '@/components/Pagination';
 import React from 'react'
 
-const TransactionHistory = async ({searchParams:{id , page}}:SearchParamProps) => {
+const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
+    const { id, page } = await searchParams;
     const currentPage= Number(page as string) || 1
     const loggedIn = await getLoggedInUser();
     if (!loggedIn) redirect("/sign-in");

@@ -4,6 +4,9 @@ import MobileNav from "@/components/mobileNav";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { redirect } from "next/navigation";
 
+// Every page in this group depends on the session cookie, so never prerender them.
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
