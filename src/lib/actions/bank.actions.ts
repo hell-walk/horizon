@@ -6,29 +6,30 @@ import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.action";
 import { saveSetuSessionId } from "./setu.action";
-import {
-  getPlaidInstitution,
-  getPlaidTransactions,
-  toPlaidAccount,
-} from "../providers/plaid";
+import { getPlaidInstitution, getPlaidTransactions, toPlaidAccount } from "../providers/plaid";
 import {
   findSessionAccount,
-  institutionName,
+  institutionName as setuInstitutionName,
   loadSessionForConsent,
   SETU_PROVIDER,
   toAccount as toSetuAccount,
   toTransactions as toSetuTransactions,
 } from "../providers/setu";
+import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
 
-// Every bank row carries a provider; rows created before the column existed are Plaid.
-const providerOf = (bank: Bank) => (bank.provider === SETU_PROVIDER ? SETU_PROVIDER : "plaid");
+// Three ways a bank can be linked:
+//   plaid  - Plaid Link (US banks; sandbox for the demo)
+//   setu   - Setu Account Aggregator (Indian banks; sandbox for the demo)
+//   manual - a statement export imported by the user (real data, stays in-app)
+// Rows created before the provider column existed are Plaid.
+const providerOf = (bank: Bank): BankProvider =>
+  bank.provider === SETU_PROVIDER || bank.provider === MANUAL_PROVIDER ? bank.provider : "plaid";
 
 /* ------------------------------------------------------------------ */
-/* Provider-neutral account loading                                    */
+/* Provider-specific loaders, all returning the app's own shapes       */
 /* ------------------------------------------------------------------ */
 
-/** Account + transactions for one Setu bank row (one linked account under a consent). */
-async function loadSetuAccount(bank: Bank) {
+async function loadSetu(bank: Bank) {
   const session = await loadSessionForConsent(bank.bankId, bank.dataSessionId, (sessionId) =>
     saveSetuSessionId({ consentId: bank.bankId, sessionId })
   );
@@ -40,18 +41,48 @@ async function loadSetuAccount(bank: Bank) {
   }
 
   const account = toSetuAccount({ fipId: match.fipId, account: match.account, bank });
-  const transactions = toSetuTransactions(match.account, account.currency);
+  const transactions = toSetuTransactions(match.account, account.currency) as unknown as Transaction[];
   return { account, transactions };
 }
 
-/** Account for any bank row, whichever provider it came from. */
-async function loadAccountForBank(bank: Bank): Promise<Account | null> {
+async function loadManual(bank: Bank) {
+  const account = toManualAccount(bank);
+  const transactions = await getStatementTransactions(bank);
+  return { account, transactions };
+}
+
+async function loadPlaid(bank: Bank) {
+  // Plaid balances and Plaid transactions are independent: fetch them together.
+  const [account, transactions] = await Promise.all([
+    toPlaidAccount(bank),
+    getPlaidTransactions(bank.accessToken),
+  ]);
+  return { account, transactions };
+}
+
+/** Account + transactions for any bank row. */
+async function loadBank(bank: Bank) {
+  switch (providerOf(bank)) {
+    case SETU_PROVIDER:
+      return loadSetu(bank);
+    case MANUAL_PROVIDER:
+      return loadManual(bank);
+    default:
+      return loadPlaid(bank);
+  }
+}
+
+/** Account only (no transactions) for the overview; cheaper for Plaid. */
+async function loadAccountOnly(bank: Bank): Promise<Account | null> {
   try {
-    if (providerOf(bank) === SETU_PROVIDER) {
-      const loaded = await loadSetuAccount(bank);
-      return loaded?.account ?? null;
+    switch (providerOf(bank)) {
+      case SETU_PROVIDER:
+        return (await loadSetu(bank))?.account ?? null;
+      case MANUAL_PROVIDER:
+        return toManualAccount(bank);
+      default:
+        return await toPlaidAccount(bank);
     }
-    return await toPlaidAccount(bank);
   } catch (error) {
     console.error(`An error occurred while loading bank ${bank.$id} (${providerOf(bank)}):`, error);
     return null;
@@ -67,7 +98,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
   try {
     const banks: Bank[] = (await getBanks({ userId })) ?? [];
 
-    const accounts = (await Promise.all(banks.map(loadAccountForBank))).filter(
+    const accounts = (await Promise.all(banks.map(loadAccountOnly))).filter(
       (account): account is Account => account !== null
     );
 
@@ -101,27 +132,14 @@ const loadAccount = cache(async (appwriteItemId: string) => {
     }
 
     // Transfers made inside Horizon live in Appwrite regardless of provider.
-    const transfersPromise = getTransactionsByBankId({ bankId: bank.$id });
+    const [loaded, transferTransactionsData] = await Promise.all([
+      loadBank(bank),
+      getTransactionsByBankId({ bankId: bank.$id }),
+    ]);
+    if (!loaded) return null;
 
-    let account: Account;
-    let providerTransactions: Transaction[];
+    const { account, transactions: providerTransactions } = loaded;
 
-    if (providerOf(bank) === SETU_PROVIDER) {
-      const loaded = await loadSetuAccount(bank);
-      if (!loaded) return null;
-      account = loaded.account;
-      providerTransactions = loaded.transactions as unknown as Transaction[];
-    } else {
-      // Plaid balances and Plaid transactions are independent: fetch them together.
-      const [plaidAccount, plaidTransactions] = await Promise.all([
-        toPlaidAccount(bank),
-        getPlaidTransactions(bank.accessToken),
-      ]);
-      account = plaidAccount;
-      providerTransactions = plaidTransactions;
-    }
-
-    const transferTransactionsData = await transfersPromise;
     const transferTransactions = (transferTransactionsData?.documents ?? []).map(
       (transferData: Transaction) => ({
         id: transferData.$id,
@@ -148,11 +166,14 @@ const loadAccount = cache(async (appwriteItemId: string) => {
 
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => loadAccount(appwriteItemId);
 
-// Get bank info. Plaid institutions come from Plaid; Setu FIP ids are readable as-is.
+// Get bank info. Only Plaid institutions need a lookup; the others carry their name.
 export const getInstitution = async ({ institutionId }: getInstitutionProps) => {
   try {
+    if (institutionId.startsWith("manual:")) {
+      return parseStringify({ institution_id: institutionId, name: institutionId.slice("manual:".length) });
+    }
     if (institutionId.endsWith("-fip") || institutionId.startsWith("setu")) {
-      return parseStringify({ institution_id: institutionId, name: institutionName(institutionId) });
+      return parseStringify({ institution_id: institutionId, name: setuInstitutionName(institutionId) });
     }
     const institution = await getPlaidInstitution(institutionId);
     return parseStringify(institution);
