@@ -37,7 +37,6 @@ const BankShowcase = ({
         <Suspense fallback={<SpendingThinSkeleton />}>
           <SpendingThin spending={spending} accountId={account.appwriteItemId} />
         </Suspense>
-        {accounts.length > 1 && <p className="eyebrow text-center">Tap a card behind to bring it forward</p>}
       </section>
 
       <section className="panel">
