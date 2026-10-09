@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "@/components/allocationPanel";
 import CategoryPanel from "@/components/categoryPanel";
+import TopPayees from "@/components/topPayees";
 import QuickActions from "@/components/quickActions";
 import RecentTransaction from "@/components/recentTransaction";
 import RightSideBar from "@/components/rightSideBar";
@@ -89,11 +90,14 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 async function CategorySection({ appwriteItemId }: { appwriteItemId?: string }) {
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
   return (
-    <CategoryPanel
-      transactions={account?.transactions}
-      currency={account?.data?.currency}
-      accountName={account?.data?.name}
-    />
+    <>
+      <CategoryPanel
+        transactions={account?.transactions}
+        currency={account?.data?.currency}
+        accountName={account?.data?.name}
+      />
+      <TopPayees transactions={account?.transactions} currency={account?.data?.currency} appwriteItemId={appwriteItemId} />
+    </>
   );
 }
 
