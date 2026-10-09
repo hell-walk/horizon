@@ -10,10 +10,10 @@ import { THEME_SWITCH_VARIANT } from "@/constants";
 
 const subscribe = () => () => {};
 
-// The switch starts moving first; a beat later the new theme sweeps out from
-// the switch in a circle (View Transitions API + ::view-transition-new in
-// globals.css). The old page stays underneath until it is covered, so no
-// colour ever passes through grey.
+// The switch starts moving first; a beat later the theme flips inside a view
+// transition (globals.css): going dark, the dark page grows out of the switch
+// in a circle; going light, the dark page shrinks back into the switch. Pixels
+// are old or new, never blended, so nothing passes through grey.
 const FLIP_DELAY_MS = 120;
 
 const OPTIONS: [ToggleOption<"light">, ToggleOption<"dark">] = [
@@ -75,11 +75,14 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
       root.style.setProperty("--theme-y", `${y}px`);
       root.style.setProperty("--theme-r", `${r}px`);
 
+      // Direction picks the animation: grow the new page, or shrink the old one.
+      root.dataset.themeFlip = night ? "dark" : "light";
+
       // The browser skips the animation in a hidden tab (the class still
       // applies); swallow that rejection so it does not surface as an error.
       const transition = doc.startViewTransition(apply);
       transition.ready.catch(() => {});
-      transition.finished.catch(() => {});
+      transition.finished.catch(() => {}).finally(() => delete root.dataset.themeFlip);
     }, FLIP_DELAY_MS);
   };
 
