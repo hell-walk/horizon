@@ -4,6 +4,9 @@ import { Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+// Slow, soft slide for both discs. Inline so no utility class can be dropped.
+const SLIDE: React.CSSProperties = { transitionDuration: "600ms", transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)" };
+
 interface ThemeToggleProps {
   isDark: boolean;
   onChange: (isDark: boolean) => void;
@@ -22,10 +25,11 @@ export function ThemeToggle({ isDark, onChange, className }: ThemeToggleProps) {
   return (
     <div
       className={cn(
-        "flex h-8 w-16 cursor-pointer rounded-full border p-1 transition-colors duration-500",
+        "flex h-8 w-16 cursor-pointer rounded-full border p-1 transition-colors",
         isDark ? "border-line bg-surface-lowest" : "border-line bg-card",
         className
       )}
+      style={SLIDE}
       onClick={toggle}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -41,17 +45,19 @@ export function ThemeToggle({ isDark, onChange, className }: ThemeToggleProps) {
       <div className="flex w-full items-center justify-between">
         <div
           className={cn(
-            "flex size-6 items-center justify-center rounded-full transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+            "flex size-6 items-center justify-center rounded-full transition-transform",
             isDark ? "translate-x-0 bg-surface-high" : "translate-x-8 bg-primary"
           )}
+          style={SLIDE}
         >
           {isDark ? <Moon className="size-4 text-ink" strokeWidth={1.5} /> : <Sun className="size-4 text-primary-foreground" strokeWidth={1.5} />}
         </div>
         <div
           className={cn(
-            "flex size-6 items-center justify-center rounded-full transition-transform duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+            "flex size-6 items-center justify-center rounded-full transition-transform",
             isDark ? "translate-x-0" : "-translate-x-8"
           )}
+          style={SLIDE}
         >
           {isDark ? <Sun className="size-4 text-ink-faint" strokeWidth={1.5} /> : <Moon className="size-4 text-ink-faint" strokeWidth={1.5} />}
         </div>
