@@ -9,7 +9,7 @@ import Copy from "./Copy";
 
 // Right column on Home. Pinned while the main column scrolls: it holds the
 // card deck, the profile and the account switcher, which are all actionable.
-const RightSideBar = ({ user, banks, selected }: RightSidebarProps) => {
+const RightSideBar = ({ user, banks, selected, spending }: RightSidebarProps) => {
   const current = banks.find((b) => b.appwriteItemId === selected) ?? banks[0];
 
   return (
@@ -21,6 +21,8 @@ const RightSideBar = ({ user, banks, selected }: RightSidebarProps) => {
           {banks.length > 1 && <p className="eyebrow text-center">Tap a card behind to bring it forward</p>}
         </section>
       )}
+
+      {spending}
 
       <section className="panel">
         <header className="panel-head">

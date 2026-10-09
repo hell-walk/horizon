@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "@/components/allocationPanel";
 import CategoryPanel from "@/components/categoryPanel";
-import TopPayees from "@/components/topPayees";
+import SpendingStrip from "@/components/spendingStrip";
 import QuickActions from "@/components/quickActions";
 import RecentTransaction from "@/components/recentTransaction";
 import RightSideBar from "@/components/rightSideBar";
@@ -79,7 +79,16 @@ const Home = async ({ searchParams }: SearchParamProps) => {
         </div>
 
         <Suspense fallback={<RightSideBarSkeleton />}>
-          <RightSideBar user={loggedIn} banks={accountsData} selected={appwriteItemId} />
+          <RightSideBar
+            user={loggedIn}
+            banks={accountsData}
+            selected={appwriteItemId}
+            spending={
+              <Suspense fallback={<div className="h-[118px] animate-pulse rounded-lg bg-surface-container" />}>
+                <SpendingSection appwriteItemId={appwriteItemId} />
+              </Suspense>
+            }
+          />
         </Suspense>
       </div>
     </section>
@@ -90,16 +99,21 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 async function CategorySection({ appwriteItemId }: { appwriteItemId?: string }) {
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
   return (
-    <>
-      <CategoryPanel
-        transactions={account?.transactions}
-        currency={account?.data?.currency}
-        accountName={account?.data?.name}
-        href={`/transaction-history?id=${appwriteItemId ?? ""}&from=chart#payees`}
-      />
-      <TopPayees transactions={account?.transactions} currency={account?.data?.currency} appwriteItemId={appwriteItemId} />
-    </>
+    <CategoryPanel
+      transactions={account?.transactions}
+      currency={account?.data?.currency}
+      accountName={account?.data?.name}
+      href={breakdownHref(appwriteItemId)}
+    />
   );
+}
+
+const breakdownHref = (appwriteItemId?: string) => `/transaction-history?id=${appwriteItemId ?? ""}&from=chart#payees`;
+
+// The short strip under the bank card; same data as the category doughnut.
+async function SpendingSection({ appwriteItemId }: { appwriteItemId?: string }) {
+  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
+  return <SpendingStrip transactions={account?.transactions} currency={account?.data?.currency} href={breakdownHref(appwriteItemId)} />;
 }
 
 async function RecentTransactionsSection({

@@ -1,5 +1,6 @@
 import { CHART_COLOR_CLASSES } from "@/constants";
-import { cn, formatAmount, sumTransactionCategories } from "@/lib/utils";
+import { groupBySpendType } from "@/lib/spending";
+import { cn, formatAmount } from "@/lib/utils";
 
 import CategoryChartLink from "./categoryChartLink";
 
@@ -15,7 +16,8 @@ const CategoryPanel = ({
   accountName?: string;
   href: string; // the full breakdown the chart opens
 }) => {
-  const categories = sumTransactionCategories(transactions, 5);
+  // Same buckets, order and colours as the strip under the bank card.
+  const categories = groupBySpendType(transactions, 5);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
   return (
