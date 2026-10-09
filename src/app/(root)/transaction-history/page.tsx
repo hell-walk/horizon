@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 
 import { BankTabItem } from "@/components/BankTabItem";
 import { Pagination } from "@/components/Pagination";
+import PayeePanel from "@/components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
+import { groupByPayee } from "@/lib/payees";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { cn, formatAmount, maskLabel, summarizeTransactions } from "@/lib/utils";
@@ -93,6 +95,10 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
               count={all.length}
               tone={summary.net < 0 ? "danger" : "success"}
             />
+          </div>
+
+          <div id="payees" className="scroll-mt-6">
+            <PayeePanel groups={groupByPayee(all, 8)} currency={currency} />
           </div>
 
           <section className="panel">
