@@ -112,8 +112,12 @@ export function isPersonPayment(raw: string): boolean {
   if (ALIASES.some(([pattern]) => pattern.test(raw))) return false;
   const name = payeeName(raw);
   if (name === "Other" || NOT_PERSON.test(name)) return false;
-  const words = name.split(" ");
-  return words.length >= 1 && words.length <= 3 && words.every((w) => /^[A-Za-z][A-Za-z.']*$/.test(w) && w.length >= 2);
+  // Usernames carry numbers and separators ("aaditya02", "aaditya.02"); judge the letters.
+  const words = name
+    .split(" ")
+    .map((w) => w.replace(/[\d._]+$/g, "").replace(/[._]/g, ""))
+    .filter(Boolean);
+  return words.length >= 1 && words.length <= 3 && words.every((w) => /^[A-Za-z][A-Za-z']*$/.test(w) && w.length >= 2);
 }
 
 export const PEOPLE_GROUP = "UPI payments";
