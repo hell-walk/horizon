@@ -103,3 +103,25 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
     },
   ];
 }
+
+export type UpiSplit = {
+  people: { amount: number; count: number };
+  shops: { amount: number; count: number };
+};
+
+/**
+ * What sits inside "UPI payments": money sent to people (a bare name) versus
+ * UPI payments to shops and services the app does not recognise.
+ */
+export function splitUpi(transactions: Transaction[] = []): UpiSplit {
+  const split: UpiSplit = { people: { amount: 0, count: 0 }, shops: { amount: 0, count: 0 } };
+  for (const t of transactions) {
+    const amount = Math.abs(Number(t.amount) || 0);
+    const isDebit = t.type === "debit" || Number(t.amount) < 0;
+    if (!isDebit || amount === 0 || spendType(t) !== PEOPLE_GROUP) continue;
+    const side = isPersonPayment(t.name || "") ? split.people : split.shops;
+    side.amount += amount;
+    side.count += 1;
+  }
+  return split;
+}

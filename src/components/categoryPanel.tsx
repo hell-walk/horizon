@@ -1,5 +1,6 @@
 import { chartColorClass } from "@/constants";
-import { groupBySpendType } from "@/lib/spending";
+import { PEOPLE_GROUP } from "@/lib/payees";
+import { groupBySpendType, splitUpi } from "@/lib/spending";
 import { cn, formatAmount } from "@/lib/utils";
 
 import CategoryChartLink from "./categoryChartLink";
@@ -18,6 +19,7 @@ const CategoryPanel = ({
 }) => {
   // Same buckets, order and colours as the strip under the bank card.
   const categories = groupBySpendType(transactions, 5);
+  const upi = splitUpi(transactions);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
   return (
@@ -62,6 +64,22 @@ const CategoryPanel = ({
                   style={{ width: `${Math.max(category.share * 100, 2)}%`, animationDelay: `${150 + i * 90}ms` }}
                 />
               </div>
+              {category.name === PEOPLE_GROUP && (upi.people.count > 0 || upi.shops.count > 0) && (
+                <div className="flex flex-wrap gap-x-5 gap-y-1 pl-[22px]">
+                  {upi.people.count > 0 && (
+                    <span className="text-12 text-ink-muted">
+                      To people <span className="amount font-semibold text-ink">{formatAmount(upi.people.amount, currency)}</span>
+                      <span className="eyebrow"> ×{upi.people.count}</span>
+                    </span>
+                  )}
+                  {upi.shops.count > 0 && (
+                    <span className="text-12 text-ink-muted">
+                      To shops &amp; services <span className="amount font-semibold text-ink">{formatAmount(upi.shops.amount, currency)}</span>
+                      <span className="eyebrow"> ×{upi.shops.count}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </li>
           ))}
           {categories.length === 0 && (
