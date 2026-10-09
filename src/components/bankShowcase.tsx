@@ -13,8 +13,18 @@ import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./sp
 
 // My Banks: the card deck on the left, the selected account's details on the
 // right. Clicking a card behind swaps it forward and the details follow.
-const BankShowcase = ({ accounts, holder, spending }: { accounts: Account[]; holder: string; spending: Promise<SpendingByAccount> }) => {
-  const [selectedId, setSelectedId] = useState(accounts[0]?.appwriteItemId);
+const BankShowcase = ({
+  accounts,
+  holder,
+  spending,
+  initialId,
+}: {
+  accounts: Account[];
+  holder: string;
+  spending: Promise<SpendingByAccount>;
+  initialId?: string; // the app-wide active account
+}) => {
+  const [selectedId, setSelectedId] = useState(initialId ?? accounts[0]?.appwriteItemId);
   const account = accounts.find((a) => a.appwriteItemId === selectedId) ?? accounts[0];
   if (!account) return null;
 

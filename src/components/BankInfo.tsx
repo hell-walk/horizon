@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { PROVIDER_LABELS } from "@/constants";
+import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";
 
 // One account row. Clicking it selects that account on the current page.
@@ -13,6 +14,7 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
   const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
 
   const handleBankChange = () => {
+    rememberAccount(account?.appwriteItemId);
     const newUrl = formUrlQuery({ params: searchParams.toString(), key: "id", value: account?.appwriteItemId });
     router.push(newUrl, { scroll: false });
   };

@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, maskLabel } from "@/lib/utils";
 
 // Chip-style tab for switching the selected account.
@@ -11,6 +12,7 @@ export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
   const isActive = appwriteItemId === account?.appwriteItemId;
 
   const handleBankChange = () => {
+    rememberAccount(account?.appwriteItemId);
     const newUrl = formUrlQuery({ params: searchParams.toString(), key: "id", value: account?.appwriteItemId });
     router.push(newUrl, { scroll: false });
   };
