@@ -26,6 +26,8 @@
     "next": "^16.4.0",
     "next-themes": "^0.4.6",
     "node-appwrite": "^29.1.0",
+    "officecrypto-tool": "^0.0.19",
+    "pdfjs-dist": "^6.4.299",
     "plaid": "^48.0.0",
     "query-string": "^9.0.0",
     "react": "^19.3.0",

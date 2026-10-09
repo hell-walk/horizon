@@ -7,7 +7,7 @@ import { createAdminClient } from "../server/appwrite";
 import { encryptId } from "../utils";
 import { invalidate } from "../cache";
 import { MANUAL_PROVIDER } from "../providers/manual";
-import { categorize, parseStatement, StatementParseError, transactionHash } from "../statements/parse";
+import { categorize, parseStatement, StatementParseError, StatementPasswordError, transactionHash } from "../statements/parse";
 import { createBankAccount, getLoggedInUser } from "./user.action";
 
 const {
@@ -16,12 +16,20 @@ const {
   APPWRITE_STATEMENT_COLLECTION_ID: STATEMENT_COLLECTION_ID,
 } = process.env;
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // PDFs with embedded fonts run bigger than CSV exports
 const INSERT_BATCH = 10;
 
 export type ImportResult =
   | { ok: true; bankId: string; institution: string; mask: string; imported: number; skipped: number; total: number }
-  | { ok: false; error: string };
+  | { ok: false; error: string; needsPassword?: boolean };
+
+const MAX_PASSWORD_LENGTH = 64;
+
+// The password only ever lives in this request: it opens the file, then it is gone.
+const passwordFrom = (formData: FormData) => {
+  const value = formData.get("password");
+  return typeof value === "string" && value.length > 0 ? value.slice(0, MAX_PASSWORD_LENGTH) : undefined;
+};
 
 /**
  * Imports a CSV/XLSX statement export for the signed-in user. Creates the bank on
@@ -34,12 +42,13 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
-  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 5 MB." };
+  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 10 MB." };
 
   let parsed;
   try {
-    parsed = await parseStatement({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()) });
+    parsed = await parseStatement({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()), password: passwordFrom(formData) });
   } catch (error) {
+    if (error instanceof StatementPasswordError) return { ok: false, error: error.message, needsPassword: true };
     if (error instanceof StatementParseError) return { ok: false, error: error.message };
     console.error("[statement] parse failed", error);
     return { ok: false, error: "The file could not be read. Export it again as CSV or XLSX and retry." };
@@ -147,7 +156,7 @@ export type PreviewResult =
       headers: string[];
       rows: PreviewRow[];
     }
-  | { ok: false; error: string };
+  | { ok: false; error: string; needsPassword?: boolean };
 
 const PREVIEW_ROWS = 6;
 
@@ -161,10 +170,10 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
-  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 5 MB." };
+  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 10 MB." };
 
   try {
-    const parsed = await parseStatement({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()) });
+    const parsed = await parseStatement({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()), password: passwordFrom(formData) });
     if (parsed.transactions.length === 0) {
       return {
         ok: false,
@@ -190,6 +199,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
       })),
     };
   } catch (error) {
+    if (error instanceof StatementPasswordError) return { ok: false, error: error.message, needsPassword: true };
     if (error instanceof StatementParseError) return { ok: false, error: error.message };
     console.error("[statement] preview failed", error);
     return { ok: false, error: "The file could not be read. Export it again as CSV or XLSX and retry." };

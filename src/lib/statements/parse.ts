@@ -1,4 +1,4 @@
-// Parses bank statement exports (CSV or Excel) into normalised transactions.
+// Parses bank statement exports (CSV, Excel or PDF) into normalised transactions.
 //
 // Indian net-banking exports differ per bank, but nearly all of them are a table
 // with a date, a narration/description, either separate debit and credit columns
@@ -7,6 +7,10 @@
 
 import ExcelJS from "exceljs";
 import { createHash } from "node:crypto";
+
+import { decryptXlsx, isEncryptedXlsx, parsePdfRows, StatementPasswordError } from "./unlock";
+
+export { StatementPasswordError };
 
 export type ParsedTransaction = {
   date: string; // YYYY-MM-DD
@@ -34,18 +38,29 @@ const MAX_HEADER_SCAN_ROWS = 60;
 /* Entry point                                                         */
 /* ------------------------------------------------------------------ */
 
-export async function parseStatement({ name, buffer }: { name: string; buffer: Buffer }): Promise<ParsedStatement> {
+export async function parseStatement({
+  name,
+  buffer,
+  password,
+}: {
+  name: string;
+  buffer: Buffer;
+  password?: string; // for protected PDFs and encrypted Excel files; used once, never stored
+}): Promise<ParsedStatement> {
   const ext = name.toLowerCase().split(".").pop() ?? "";
 
   let rows: Cell[][];
   if (ext === "csv" || ext === "txt") {
     rows = parseCsv(buffer.toString("utf8"));
   } else if (ext === "xlsx") {
-    rows = await parseXlsx(buffer);
+    const unlocked = (await isEncryptedXlsx(buffer)) ? await decryptXlsx(buffer, password) : buffer;
+    rows = await parseXlsx(unlocked);
+  } else if (ext === "pdf") {
+    rows = await parsePdfRows(buffer, password);
   } else if (ext === "xls") {
-    throw new StatementParseError("Old .xls files are not supported. Export the statement as .xlsx or .csv instead.");
+    throw new StatementParseError("Old .xls files are not supported. Export the statement as .xlsx, .csv or .pdf instead.");
   } else {
-    throw new StatementParseError("Unsupported file type. Upload a .csv or .xlsx statement export.");
+    throw new StatementParseError("Unsupported file type. Upload a .csv, .xlsx or .pdf statement.");
   }
 
   const header = findHeaderRow(rows);
@@ -87,7 +102,7 @@ export function transactionHash(bankId: string, t: ParsedTransaction) {
 /* File readers                                                        */
 /* ------------------------------------------------------------------ */
 
-type Cell = string | number | Date | null;
+export type Cell = string | number | Date | null;
 
 function parseCsv(text: string): Cell[][] {
   const rows: Cell[][] = [];
