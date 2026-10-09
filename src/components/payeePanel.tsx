@@ -7,8 +7,10 @@ import { Doughnut } from "react-chartjs-2";
 
 import { chartColorClass } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
-import { payeeName, type PayeeSpend } from "@/lib/payees";
+import { PEOPLE_GROUP, payeeName, type PayeeSpend } from "@/lib/payees";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
+
+import UpiBreakdown from "./upiBreakdown";
 
 ChartJS.register(ArcElement, Tooltip);
 
@@ -156,19 +158,23 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
               <X className="size-3.5" /> Clear
             </button>
           </div>
-          <ul className="divide-y divide-line">
-            {listed.map(({ t, payee }) => (
-              <li key={t.id} className="row-debit flex items-center justify-between gap-3 px-4 py-2.5">
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-14 font-semibold text-ink">{t.name}</span>
-                  <span className="eyebrow">
-                    {formatDateTime(new Date(t.date)).dateOnly} · {showAll ? payee : t.category || "Other"}
+          {active?.name === PEOPLE_GROUP ? (
+            <UpiBreakdown transactions={active.transactions} currency={currency} />
+          ) : (
+            <ul className="divide-y divide-line">
+              {listed.map(({ t, payee }) => (
+                <li key={t.id} className="row-debit flex items-center justify-between gap-3 px-4 py-2.5">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-14 font-semibold text-ink">{t.name}</span>
+                    <span className="eyebrow">
+                      {formatDateTime(new Date(t.date)).dateOnly} · {showAll ? payee : t.category || "Other"}
+                    </span>
                   </span>
-                </span>
-                <span className="amount shrink-0 text-14 font-semibold text-danger">-{formatAmount(Math.abs(Number(t.amount) || 0), t.currency ?? currency)}</span>
-              </li>
-            ))}
-          </ul>
+                  <span className="amount shrink-0 text-14 font-semibold text-danger">-{formatAmount(Math.abs(Number(t.amount) || 0), t.currency ?? currency)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </section>
