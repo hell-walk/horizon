@@ -13,6 +13,8 @@ import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { activeAccountId } from "@/lib/server/selectedAccount";
+import RememberAccount from "@/components/rememberAccount";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -37,10 +39,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   if (!accounts) return;
 
   const accountsData: Account[] = accounts.data;
-  const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+  const appwriteItemId = await activeAccountId(accountsData, id);
 
   return (
     <section className="page">
+      <RememberAccount id={appwriteItemId} />
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <HeaderBox

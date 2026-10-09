@@ -10,6 +10,7 @@ import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import type { SpendingByAccount } from "@/components/spendingThin";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { activeAccountId } from "@/lib/server/selectedAccount";
 import { groupBySpendType } from "@/lib/spending";
 
 export const metadata: Metadata = {
@@ -90,7 +91,7 @@ const MyBanks = async () => {
             </Link>
           </div>
         ) : (
-          <BankShowcase accounts={accountsData} holder={holder} spending={spending} />
+          <BankShowcase accounts={accountsData} holder={holder} spending={spending} initialId={await activeAccountId(accountsData)} />
         )}
       </div>
 

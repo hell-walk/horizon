@@ -6,6 +6,7 @@ import PaymentTransferForm from "@/components/PaymentTransferForm";
 import HeaderBox from "@/components/ui/headerBox";
 import { getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { activeAccountId } from "@/lib/server/selectedAccount";
 
 export const metadata: Metadata = {
   title: "Transfer funds",
@@ -37,7 +38,7 @@ const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
           </Link>
         </div>
       ) : (
-        <PaymentTransferForm accounts={accountsData} initialId={typeof id === "string" ? id : undefined} />
+        <PaymentTransferForm accounts={accountsData} initialId={await activeAccountId(accountsData, id)} />
       )}
     </section>
   );

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { PROVIDER_LABELS } from "@/constants";
+import { rememberAccount } from "@/lib/selectedAccount";
 import { formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";
 
 export const BankDropdown = ({ accounts = [], setValue, otherStyles, initialId }: BankDropdownProps) => {
@@ -15,6 +16,7 @@ export const BankDropdown = ({ accounts = [], setValue, otherStyles, initialId }
   const handleBankChange = (id: string) => {
     const account = accounts.find((a) => a.appwriteItemId === id)!;
     setSelected(account);
+    rememberAccount(id);
 
     const newUrl = formUrlQuery({ params: searchParams.toString(), key: "id", value: id });
     router.push(newUrl, { scroll: false });

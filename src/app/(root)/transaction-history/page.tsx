@@ -11,6 +11,8 @@ import { PROVIDER_LABELS } from "@/constants";
 import { groupByPayee } from "@/lib/payees";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { activeAccountId } from "@/lib/server/selectedAccount";
+import RememberAccount from "@/components/rememberAccount";
 import { cn, formatAmount, maskLabel, summarizeTransactions } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -37,7 +39,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   if (!accounts) return;
 
   const accountsData: Account[] = accounts.data;
-  const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+  const appwriteItemId = await activeAccountId(accountsData, id);
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
 
   const all: Transaction[] = account?.transactions ?? [];
@@ -58,6 +60,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
 
   return (
     <section className="page">
+      <RememberAccount id={appwriteItemId} />
       <HeaderBox
         eyebrow="Audit // transaction history"
         title="Transaction history"

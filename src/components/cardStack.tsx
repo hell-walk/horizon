@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery } from "@/lib/utils";
 
 import BankCard from "./bankCard";
@@ -47,6 +48,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
   const bringForward = (id: string) => {
     if (id === front) return;
     setFront(id);
+    rememberAccount(id); // the whole app follows the card in front
     onChange?.(id);
     if (mode === "url") {
       router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
