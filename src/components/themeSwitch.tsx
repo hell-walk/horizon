@@ -7,13 +7,15 @@ import SkyToggle from "@/components/ui/sky-toggle";
 import { ThemeToggle as PillToggle } from "@/components/ui/theme-toggle";
 import Toggle, { type ToggleOption } from "@/components/ui/toggle";
 import { THEME_SWITCH_VARIANT } from "@/constants";
+import { cn } from "@/lib/utils";
 
 const subscribe = () => () => {};
 
-// How long the switch gets to animate before the page theme flips. Flipping
-// the theme restyles the whole page, which stalls any transition running at
-// that moment, so the switch moves first and the page follows.
-const FLIP_DELAY_MS = 420;
+// The switch starts moving first; a beat later the theme flips with every
+// colour easing over the same 600 ms curve (see .theme-transition in
+// globals.css), so the page fades in step with the disc.
+const FLIP_DELAY_MS = 120;
+const FADE_MS = 600;
 
 const OPTIONS: [ToggleOption<"light">, ToggleOption<"dark">] = [
   { value: "light", label: "Light" },
@@ -40,15 +42,20 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
   const flip = (night: boolean) => {
     if (night === shownDark) return;
     setPending(night);
-    window.setTimeout(() => setTheme(night ? "dark" : "light"), FLIP_DELAY_MS);
+    const root = document.documentElement;
+    window.setTimeout(() => {
+      root.classList.add("theme-transition");
+      setTheme(night ? "dark" : "light");
+      window.setTimeout(() => root.classList.remove("theme-transition"), FADE_MS + 100);
+    }, FLIP_DELAY_MS);
   };
 
   if (THEME_SWITCH_VARIANT === "pill") {
-    return <PillToggle isDark={shownDark} onChange={flip} className={className} />;
+    return <PillToggle isDark={shownDark} onChange={flip} className={cn("no-theme-transition", className)} />;
   }
 
   if (THEME_SWITCH_VARIANT === "sky") {
-    return <SkyToggle checked={shownDark} onChange={flip} ariaLabel="Dark mode" className={className} />;
+    return <SkyToggle checked={shownDark} onChange={flip} ariaLabel="Dark mode" className={cn("no-theme-transition", className)} />;
   }
 
   return (
@@ -58,7 +65,7 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
       options={OPTIONS}
       ariaLabel="Colour scheme"
       compact={compact}
-      className={className}
+      className={cn("no-theme-transition", className)}
     />
   );
 };

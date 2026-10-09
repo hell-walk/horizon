@@ -548,3 +548,29 @@
     transition: none !important;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Theme flip: while <html> carries .theme-transition (added by the      */
+/* theme switch for the length of the flip) every colour eases instead  */
+/* of snapping, on the same curve as the switch. The switch itself is   */
+/* excluded so its own transform transition is untouched.               */
+/* ------------------------------------------------------------------ */
+html.theme-transition,
+html.theme-transition *:not(.no-theme-transition):not(.no-theme-transition *),
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    fill 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    stroke 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition * {
+    transition: none !important;
+  }
+}
