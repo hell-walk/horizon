@@ -85,8 +85,8 @@ const Navbar = ({ className }: { className?: string }) => {
         {line && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[3px] h-[2px] rounded-full bg-lime transition-[left,width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
-            style={{ left: line.left, width: line.width }}
+            className="pointer-events-none absolute bottom-[3px] h-[2px] rounded-full bg-lime transition-[left,width] duration-300"
+            style={{ left: line.left, width: line.width, transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
           />
         )}
       </div>
