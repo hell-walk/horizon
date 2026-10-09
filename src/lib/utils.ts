@@ -199,9 +199,11 @@ export const authFormSchema = (type: string) => {
       lastName: signUp ? z.string().min(2, "Enter your last name") : optional(),
       address1: signUp ? z.string().min(3, "Enter your street address").max(50) : optional(),
       city: signUp ? z.string().min(2, "Enter your city").max(20) : optional(),
-      state: signUp ? z.string().min(2, "Two-letter code").max(15) : optional(),
-      postalCode: signUp ? z.string().min(3, "Enter your postal code").max(8) : optional(),
-      dob: signUp ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD") : optional(),
+      state: signUp ? z.string().min(2, "Enter your state").max(30) : optional(),
+      postalCode: signUp ? z.string().regex(/^[A-Za-z0-9 -]{3,10}$/, "Enter a valid postal code") : optional(),
+      dob: signUp
+        ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").refine((v) => !Number.isNaN(Date.parse(v)) && new Date(v) < new Date(), "Enter a real date in the past")
+        : optional(),
       ssn: signUp ? z.string().min(4, "Last 4 digits at least") : optional(),
     })
     .refine((data) => !signUp || data.password === data.confirmPassword, {

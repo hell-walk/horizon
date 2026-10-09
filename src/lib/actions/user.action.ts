@@ -52,6 +52,10 @@ export const signIn = async ({ email, password }: signInProps) => {
     }
 }
 
+const US_STATES = new Set(("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC").split(" "));
+const isUsAddress = (state: string, postalCode: string) =>
+    US_STATES.has(state.trim().toUpperCase()) && /^\d{5}(-\d{4})?$/.test(postalCode.trim());
+
 export const signUp = async (userData: SignUpParams) => {
     const { email, password, firstName, lastName, ...profile } = userData
     let newUserAccount;
@@ -68,13 +72,21 @@ export const signUp = async (userData: SignUpParams) => {
 
         if(!newUserAccount) throw Error('Error In Creating User')
 
-            const dwollaCustomerUrl = await createDwollaCustomer({
-                ...userData,
-                type:'personal'
-            })
-            if(!dwollaCustomerUrl) throw Error('Error Creating Dwolla Customer')
-
-            const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
+        // Dwolla (US transfers) only accepts US addresses. Everyone else signs up
+        // without a Dwolla customer: they can still link banks and import
+        // statements, only transfers stay unavailable.
+        const dwolla: { dwollaCustomerId?: string; dwollaCustomerUrl?: string } = {};
+        if (isUsAddress(profile.state, profile.postalCode)) {
+            try {
+                const dwollaCustomerUrl = await createDwollaCustomer({ ...userData, type: 'personal' });
+                if (dwollaCustomerUrl) {
+                    dwolla.dwollaCustomerUrl = dwollaCustomerUrl;
+                    dwolla.dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
+                }
+            } catch (dwollaError) {
+                console.warn('Dwolla customer not created; continuing without transfers', dwollaError);
+            }
+        }
 
             const newUser=await database.createDocument(
                 DATABASE_ID!,
@@ -86,8 +98,7 @@ export const signUp = async (userData: SignUpParams) => {
                     firstName,
                     lastName,
                     userId: newUserAccount.$id,
-                    dwollaCustomerId,
-                    dwollaCustomerUrl
+                    ...dwolla,
                 }
             )
 
@@ -184,23 +195,28 @@ export const exchangePublicToken = async ({ publicToken, user }: exchangePublicT
         const accountsResponse = await plaidClient.accountsGet({ access_token: accessToken });
         const accountData = accountsResponse.data.accounts[0];
 
-        // Create a processor token for Dwolla
-        const request: ProcessorTokenCreateRequest = {
-            access_token: accessToken,
-            account_id: accountData.account_id,
-            processor: "dwolla" as ProcessorTokenCreateRequestProcessorEnum,
-        };
-        const processorTokenResponse = await plaidClient.processorTokenCreate(request);
-        const processorToken = processorTokenResponse.data.processor_token;
+        // Attach the bank to the user's Dwolla customer as a funding source so it
+        // can send and receive transfers. Users without a Dwolla customer (non-US
+        // address) still get the bank, just without transfers.
+        let fundingSourceUrl = "";
+        if (user.dwollaCustomerId) {
+            const request: ProcessorTokenCreateRequest = {
+                access_token: accessToken,
+                account_id: accountData.account_id,
+                processor: "dwolla" as ProcessorTokenCreateRequestProcessorEnum,
+            };
+            const processorTokenResponse = await plaidClient.processorTokenCreate(request);
+            const processorToken = processorTokenResponse.data.processor_token;
 
-        // Attach the bank to the user's Dwolla customer as a funding source
-        const fundingSourceUrl = await addFundingSource({
-            dwollaCustomerId: user.dwollaCustomerId,
-            processorToken,
-            bankName: accountData.name,
-        });
+            fundingSourceUrl =
+                (await addFundingSource({
+                    dwollaCustomerId: user.dwollaCustomerId,
+                    processorToken,
+                    bankName: accountData.name,
+                })) ?? "";
 
-        if (!fundingSourceUrl) throw Error("Funding source was not created");
+            if (!fundingSourceUrl) throw Error("Funding source was not created");
+        }
 
         await createBankAccount({
             userId: user.$id,
