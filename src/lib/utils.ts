@@ -105,39 +105,6 @@ export function formUrlQuery({ params, key, value }: UrlQueryParams) {
   );
 }
 
-// Spend per category for one account (debits only), largest first.
-export type CategorySpend = { name: string; amount: number; count: number; share: number };
-
-export function sumTransactionCategories(transactions: Transaction[] = [], limit = 5): CategorySpend[] {
-  const totals: Record<string, { amount: number; count: number }> = {};
-  let total = 0;
-
-  for (const t of transactions) {
-    const amount = Math.abs(Number(t.amount) || 0);
-    const isDebit = t.type === "debit" || Number(t.amount) < 0;
-    if (!isDebit || amount === 0) continue;
-
-    const name = t.category || "Other";
-    totals[name] = { amount: (totals[name]?.amount ?? 0) + amount, count: (totals[name]?.count ?? 0) + 1 };
-    total += amount;
-  }
-
-  const sorted = Object.entries(totals)
-    .map(([name, { amount, count }]) => ({ name, amount, count, share: total ? amount / total : 0 }))
-    .sort((a, b) => b.amount - a.amount);
-
-  if (sorted.length <= limit) return sorted;
-
-  // Fold the tail into one "Other" entry so the chart stays readable.
-  const head = sorted.slice(0, limit - 1);
-  const rest = sorted.slice(limit - 1);
-  const other = rest.reduce(
-    (acc, c) => ({ name: "Other", amount: acc.amount + c.amount, count: acc.count + c.count, share: acc.share + c.share }),
-    { name: "Other", amount: 0, count: 0, share: 0 }
-  );
-  return [...head, other];
-}
-
 // Inflow, outflow and net for a list of transactions in one currency.
 export function summarizeTransactions(transactions: Transaction[] = []) {
   let inflow = 0;

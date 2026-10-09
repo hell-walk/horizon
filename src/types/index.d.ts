@@ -235,6 +235,7 @@ declare interface RightSidebarProps {
   user: User;
   banks: Account[];
   selected?: string;
+  spending?: React.ReactNode; // the strip under the bank card, streamed in
 }
 
 declare interface SidebarProps {
