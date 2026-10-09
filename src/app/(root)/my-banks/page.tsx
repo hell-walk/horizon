@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   description: "Every bank account linked to Horizon.",
 };
 
+const isThisMonth = (date: string) => {
+  const d = new Date(date);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+};
+
 const MyBanks = async () => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
@@ -31,11 +37,15 @@ const MyBanks = async () => {
     accountsData.map(async (a) => {
       try {
         const account = await getAccount({ appwriteItemId: a.appwriteItemId });
-        const buckets = groupBySpendType(account?.transactions ?? [], 5);
+        const all: Transaction[] = account?.transactions ?? [];
+        const monthBuckets = groupBySpendType(all.filter((t) => isThisMonth(t.date)), 5);
+        // This month when there is spending in it; statements cover past months, so fall back to all of it.
+        const thisMonth = monthBuckets.length > 0;
+        const buckets = thisMonth ? monthBuckets : groupBySpendType(all, 5);
         const total = buckets.reduce((s, b) => s + b.amount, 0);
-        return [a.appwriteItemId, { buckets, total, currency: a.currency || "USD" }] as const;
+        return [a.appwriteItemId, { buckets, total, currency: a.currency || "USD", period: thisMonth ? "month" : "all" }] as const;
       } catch {
-        return [a.appwriteItemId, { buckets: [], total: 0, currency: a.currency || "USD" }] as const;
+        return [a.appwriteItemId, { buckets: [], total: 0, currency: a.currency || "USD", period: "all" }] as const;
       }
     })
   ).then((entries) => Object.fromEntries(entries));
