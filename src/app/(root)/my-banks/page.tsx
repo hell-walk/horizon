@@ -7,8 +7,10 @@ import AccountsTable from "@/components/accountsTable";
 import BankShowcase from "@/components/bankShowcase";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
-import { getAccounts } from "@/lib/actions/bank.actions";
+import type { SpendingByAccount } from "@/components/spendingThin";
+import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { groupBySpendType } from "@/lib/spending";
 
 export const metadata: Metadata = {
   title: "My Banks",
@@ -22,6 +24,21 @@ const MyBanks = async () => {
   const accounts = await getAccounts({ userId: loggedIn.$id });
   const accountsData: Account[] = accounts?.data ?? [];
   const holder = `${loggedIn.firstName} ${loggedIn.lastName}`;
+
+  // Each account's spending, in the same buckets as the Home doughnut. Not
+  // awaited: the cards render now and the thin strip under them streams in.
+  const spending: Promise<SpendingByAccount> = Promise.all(
+    accountsData.map(async (a) => {
+      try {
+        const account = await getAccount({ appwriteItemId: a.appwriteItemId });
+        const buckets = groupBySpendType(account?.transactions ?? [], 5);
+        const total = buckets.reduce((s, b) => s + b.amount, 0);
+        return [a.appwriteItemId, { buckets, total, currency: a.currency || "USD" }] as const;
+      } catch {
+        return [a.appwriteItemId, { buckets: [], total: 0, currency: a.currency || "USD" }] as const;
+      }
+    })
+  ).then((entries) => Object.fromEntries(entries));
 
   return (
     <section className="page">
@@ -63,7 +80,7 @@ const MyBanks = async () => {
             </Link>
           </div>
         ) : (
-          <BankShowcase accounts={accountsData} holder={holder} />
+          <BankShowcase accounts={accountsData} holder={holder} spending={spending} />
         )}
       </div>
 

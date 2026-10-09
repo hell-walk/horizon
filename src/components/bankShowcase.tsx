@@ -2,17 +2,18 @@
 
 import { ArrowLeftRight, ReceiptText } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { PROVIDER_LABELS } from "@/constants";
 import { formatAmount, maskLabel } from "@/lib/utils";
 
 import CardStack from "./cardStack";
 import Copy from "./Copy";
+import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
 
 // My Banks: the card deck on the left, the selected account's details on the
 // right. Clicking a card behind swaps it forward and the details follow.
-const BankShowcase = ({ accounts, holder }: { accounts: Account[]; holder: string }) => {
+const BankShowcase = ({ accounts, holder, spending }: { accounts: Account[]; holder: string; spending: Promise<SpendingByAccount> }) => {
   const [selectedId, setSelectedId] = useState(accounts[0]?.appwriteItemId);
   const account = accounts.find((a) => a.appwriteItemId === selectedId) ?? accounts[0];
   if (!account) return null;
@@ -23,6 +24,9 @@ const BankShowcase = ({ accounts, holder }: { accounts: Account[]; holder: strin
     <div className="grid gap-6 lg:grid-cols-[minmax(0,400px)_1fr] lg:items-start">
       <section className="flex flex-col gap-3">
         <CardStack accounts={accounts} selected={selectedId} userName={holder} onChange={setSelectedId} />
+        <Suspense fallback={<SpendingThinSkeleton />}>
+          <SpendingThin spending={spending} accountId={account.appwriteItemId} />
+        </Suspense>
         {accounts.length > 1 && <p className="eyebrow text-center">Tap a card behind to bring it forward</p>}
       </section>
 
