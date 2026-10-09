@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..900&family=Space+Grotesk:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-tertiary":"#470083","secondary-container":"#c0f500","surface-container-low":"#191c21","primary-fixed":"#31fed4","on-secondary-fixed":"#161f00","surface-variant":"#32353b","surface-bright":"#37393f","error":"#ffb4ab","surface-dim":"#111319","on-secondary-container":"#546d00","surface-container-highest":"#32353b","on-primary-fixed":"#002019","error-container":"#93000a","outline-variant":"#3a4a45","tertiary-fixed":"#efdbff","primary":"#c7ffec","surface-container-lowest":"#0c0e13","surface-tint":"#00e0b9","on-tertiary-fixed":"#2b0052","secondary":"#ffffff","surface-container":"#1d2025","tertiary":"#fbf0ff","tertiary-container":"#e7cdff","on-surface-variant":"#b9cac3","primary-fixed-dim":"#00e0b9","on-error-container":"#ffdad6","inverse-surface":"#e1e2ea","on-tertiary-fixed-variant":"#6600b7","tertiary-fixed-dim":"#dbb8ff","secondary-fixed-dim":"#a8d700","on-background":"#e1e2ea","on-primary-fixed-variant":"#005142","inverse-primary":"#006b58","background":"#111319","secondary-fixed":"#c0f500","inverse-on-surface":"#2e3036","on-error":"#690005","surface":"#111319","on-primary":"#00382d","primary-container":"#0df2c9","outline":"#84948e","on-surface":"#e1e2ea","on-primary-container":"#006a56","on-tertiary-container":"#7e2fcf","on-secondary-fixed-variant":"#3b4d00","surface-container-high":"#282a30","on-secondary":"#273500"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"3rem","margin":"3rem","gutter":"1.5rem","gutter-sm":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-md":"1rem","space-lg":"1.75rem","margin-mobile":"1.25rem"},"fontFamily":{"body-lg":["Space Grotesk"],"label-data-lg":["JetBrains Mono"],"label-data-md":["JetBrains Mono"],"headline-sm":["Space Grotesk"],"headline-lg":["Space Grotesk"],"display-hero-mobile":["Space Grotesk"],"display-hero":["Space Grotesk"],"body-md":["Space Grotesk"],"headline-md":["Space Grotesk"],"headline-lg-mobile":["Space Grotesk"],"label-caps":["JetBrains Mono"]},"fontSize":{"body-lg":["1rem",{"lineHeight":"1.6rem","letterSpacing":"-0.01em","fontWeight":"400"}],"label-data-lg":["1.125rem",{"lineHeight":"1.375rem","letterSpacing":"-0.02em","fontWeight":"500"}],"label-data-md":["0.875rem",{"lineHeight":"1.125rem","letterSpacing":"-0.01em","fontWeight":"500"}],"headline-sm":["1.125rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"500"}],"headline-lg":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.03em","fontWeight":"500"}],"display-hero-mobile":["2.5rem",{"lineHeight":"2.75rem","letterSpacing":"-0.03em","fontWeight":"600"}],"display-hero":["3.75rem",{"lineHeight":"4rem","letterSpacing":"-0.04em","fontWeight":"600"}],"body-md":["0.875rem",{"lineHeight":"1.4rem","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["1.5rem",{"lineHeight":"2rem","letterSpacing":"-0.02em","fontWeight":"500"}],"headline-lg-mobile":["1.75rem",{"lineHeight":"2.25rem","letterSpacing":"-0.02em","fontWeight":"500"}],"label-caps":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.08em","fontWeight":"600"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest flex flex-col z-50 justify-between"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm uppercase tracking-tight text-on-surface font-bold">HORIZON // 01</span><span class="px-space-xs py-0.5 rounded-DEFAULT bg-secondary-fixed text-on-secondary-fixed font-label-caps text-label-caps">LIVE</span></div></div><div class="px-gutter pt-space-md pb-space-xs"><span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Institutional Vault</span></div><nav class="flex flex-col px-space-sm gap-space-xs" data-active-classes="bg-surface-container-high text-secondary-fixed font-medium"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="home" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Home</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-DEFAULT transition-colors bg-surface-container-high text-secondary-fixed font-medium" data-path="my-banks" href="#"><span class="material-symbols-outlined text-[20px]">account_balance</span><span>My Banks</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="transaction-history" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span>Transaction History</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="payment-transfer" href="#"><span class="material-symbols-outlined text-[20px]">sync_alt</span><span>Payment Transfer</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="connect-bank" href="#"><span class="material-symbols-outlined text-[20px]">add_link</span><span>Connect Bank</span></a></nav></div><div class="flex flex-col"><div class="mx-gutter p-space-md rounded-DEFAULT bg-surface-container-low mb-space-md flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-outline">TELEMETRY NODE</span><span class="h-2 w-2 rounded-full bg-secondary-fixed"></span></div><div class="flex items-baseline justify-between"><span class="font-label-data-md text-label-data-md text-on-surface-variant">LATENCY</span><span class="font-label-data-md text-label-data-md text-secondary-fixed">12ms SYN</span></div><div class="flex items-baseline justify-between"><span class="font-label-data-md text-label-data-md text-on-surface-variant">LEDGER PROTOCOL</span><span class="font-label-data-md text-label-data-md text-primary">v4.8-STABLE</span></div></div><div class="px-gutter py-space-md bg-surface-container flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-DEFAULT bg-surface-container-highest flex items-center justify-center font-label-data-md text-label-data-md text-secondary-fixed font-bold">VS</div><div class="flex flex-col"><span class="font-body-md text-body-md text-on-surface font-medium leading-none">Vikram Sharma</span><span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1 leading-none">Keswani Group</span></div></div><a class="p-space-xs rounded-DEFAULT text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" data-path="sign-in" href="#" title="Terminate Session"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl z-40 flex items-center justify-between px-margin"><div class="flex items-center gap-space-lg"><div class="hidden xl:flex items-center gap-space-lg font-label-data-md text-label-data-md"><div class="flex items-center gap-space-xs"><span class="text-outline">USD/INR</span><span class="text-on-surface font-semibold">83.92</span><span class="text-secondary-fixed text-[11px]">+0.04%</span></div><div class="flex items-center gap-space-xs"><span class="text-outline">EUR/INR</span><span class="text-on-surface font-semibold">91.45</span><span class="text-error text-[11px]">-0.12%</span></div><div class="flex items-center gap-space-xs"><span class="text-outline">GBP/INR</span><span class="text-on-surface font-semibold">107.18</span><span class="text-secondary-fixed text-[11px]">+0.21%</span></div></div><div class="relative flex items-center w-64 lg:w-80"><span class="material-symbols-outlined absolute left-space-sm text-outline text-[18px]">search</span><input class="w-full bg-surface-container-low text-on-surface placeholder:text-outline pl-9 pr-space-md py-1.5 rounded-DEFAULT font-body-md text-body-md focus:outline-none focus:bg-surface-container" placeholder="Query accounts, transactions, or routing..." type="text"/></div></div><div class="flex items-center gap-space-md"><button class="relative p-space-xs rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-secondary-fixed rounded-full"></span></button><div class="h-4 w-px bg-surface-container-high"></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden sm:flex flex-col text-right"><span class="font-label-caps text-label-caps text-secondary-fixed uppercase">Primary Node</span><span class="font-label-data-md text-label-data-md text-on-surface">IN-MUM-01</span></div></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-margin py-margin"><div class="flex flex-col w-full">
+<!-- Top Telemetry & Title Bar -->
+<div class="flex flex-col xl:flex-row xl:items-end justify-between pb-space-lg mb-space-lg bg-surface-container-low p-space-lg rounded-DEFAULT">
+<div class="flex flex-col max-w-3xl">
+<div class="flex items-center gap-space-sm mb-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">TELEMETRY REGISTRY // MODULE_02</span>
+<span class="text-outline text-label-caps font-label-caps">/</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed">REAL-TIME MULTI-CURRENCY VAULT</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg uppercase text-on-surface tracking-tight font-medium">MY BANKS & ACCOUNTS</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+        Manage all 6 connected banking endpoints across US and India with real-time balance tracking, cross-border treasury valuation, and granular telemetry protocols.
+      </p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm mt-space-md xl:mt-0">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md" type="button">
+<span class="material-symbols-outlined text-[16px] text-outline">download</span>
+<span>EXPORT STATEMENT</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md" id="refreshBalancesBtn" type="button">
+<span class="material-symbols-outlined text-[16px] text-outline" id="refreshIcon">refresh</span>
+<span>REFRESH BALANCES</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-DEFAULT bg-secondary-fixed text-on-secondary-fixed font-headline-sm text-label-data-md font-semibold hover:bg-secondary-fixed-dim transition-colors shadow-none" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>CONNECT NEW BANK</span>
+</button>
+</div>
+</div>
+<!-- 4-Metric Overview Strip -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-xl">
+<!-- Metric 1: USD Aggregate -->
+<div class="flex flex-col p-space-md bg-surface-container-low rounded-DEFAULT justify-between">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">TOTAL USD BALANCE</span>
+<span class="font-label-caps text-label-caps px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-highest text-primary">USD DOMICILE</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg">$24,850.40</span>
+</div>
+<div class="flex items-center gap-space-xs pt-space-xs bg-surface-container-lowest/40 px-space-xs py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-secondary-fixed text-[14px]">trending_up</span>
+<span class="font-label-data-md text-label-data-md text-secondary-fixed">+4.2%</span>
+<span class="font-body-md text-[11px] text-on-surface-variant">MoM vs prev 30d window</span>
+</div>
+</div>
+<!-- Metric 2: INR Aggregate -->
+<div class="flex flex-col p-space-md bg-surface-container-low rounded-DEFAULT justify-between">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">TOTAL INR BALANCE</span>
+<span class="font-label-caps text-label-caps px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-highest text-secondary-fixed">INR DOMICILE</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg">₹14,82,600.00</span>
+</div>
+<div class="flex items-center gap-space-xs pt-space-xs bg-surface-container-lowest/40 px-space-xs py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-secondary-fixed text-[14px]">arrow_downward</span>
+<span class="font-label-data-md text-label-data-md text-secondary-fixed">+₹1,45,200</span>
+<span class="font-body-md text-[11px] text-on-surface-variant">MTD Inflow surplus</span>
+</div>
+</div>
+<!-- Metric 3: Active Linked Accounts -->
+<div class="flex flex-col p-space-md bg-surface-container-low rounded-DEFAULT justify-between">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">ACTIVE LINKED ACCOUNTS</span>
+<span class="font-label-caps text-label-caps text-outline">CAPACITY: 10</span>
+</div>
+<div class="flex items-baseline justify-between my-space-xs">
+<span class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg">6 <span class="text-outline text-headline-sm font-normal">/ 10</span></span>
+<span class="font-label-data-md text-label-data-md text-secondary-fixed">60% LOAD</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-DEFAULT overflow-hidden mt-space-xs">
+<div class="bg-secondary-fixed h-full w-[60%]"></div>
+</div>
+</div>
+<!-- Metric 4: Telemetry State -->
+<div class="flex flex-col p-space-md bg-surface-container-low rounded-DEFAULT justify-between">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">TELEMETRY STATE</span>
+<span class="flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ALL GREEN
+        </span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-headline-md text-headline-md font-medium text-on-surface font-label-data-lg">SYNCED 2M AGO</span>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-[11px] font-label-caps text-on-surface-variant">
+<span>SETU AA (IN): OK</span>
+<span class="text-outline">•</span>
+<span>PLAID CORE (US): OK</span>
+</div>
+</div>
+</div>
+<!-- 2x3 Bank Cards Matrix -->
+<div class="mb-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-caps text-label-caps uppercase text-outline">DOMICILED ASSETS</span>
+<span class="text-outline">/</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">6 Connected Vault Nodes</span>
+</div>
+<div class="flex items-center gap-space-xs text-outline font-label-caps text-label-caps">
+<span>SORT: SETTLED CAPITAL</span>
+<span class="material-symbols-outlined text-[14px]">tune</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg mb-space-xl">
+<!-- Card 1: Chase Checking -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-primary font-bold">
+              JPMC
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">Chase Premier Checking</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 8912</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-primary font-label-caps text-label-caps">PLAID CONNECTED</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">AVAILABLE SETTLED BALANCE</span>
+<span class="font-label-caps text-label-caps text-primary">USD</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            $18,450.40
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>ROUTING: 021000021</span>
+<span>TYPE: CHECKING</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          VIEW LEDGER
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-highest text-secondary-fixed hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          TRANSFER
+        </button>
+</div>
+</div>
+<!-- Card 2: ICICI Wealth MGMT -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-secondary-fixed font-bold">
+              ICICI
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">ICICI Wealth MGMT</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 1092</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-secondary-fixed font-label-caps text-label-caps">SETU AA VERIFIED</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">TIER 1 WEALTH SAVINGS</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed">INR</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            ₹8,90,000.00
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>IFSC: ICIC0000004</span>
+<span>RECONCILED: YES</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          VIEW LEDGER
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-highest text-secondary-fixed hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          TRANSFER
+        </button>
+</div>
+</div>
+<!-- Card 3: HDFC Imperia -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-on-surface font-bold">
+              HDFC
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">HDFC Imperia Banking</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 4821</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-secondary-fixed font-label-caps text-label-caps">SETU AA VERIFIED</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">COMMERCIAL CURRENT ACCOUNT</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed">INR</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            ₹4,20,600.00
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>IFSC: HDFC0000060</span>
+<span>CLASS: CURRENT</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          VIEW LEDGER
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-highest text-secondary-fixed hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          TRANSFER
+        </button>
+</div>
+</div>
+<!-- Card 4: Amex Centurion -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-on-surface font-bold">
+              AMEX
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">Amex Centurion Line</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 3004</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-primary font-label-caps text-label-caps">PLAID CONNECTED</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">CURRENT DRAWN BALANCE</span>
+<span class="font-label-caps text-label-caps text-primary">USD</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            $4,400.00
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>CREDIT LIMIT: NO HARD CEILING</span>
+<span>CYCLE: DAY 18</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          PAY BILL
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          DETAILS
+        </button>
+</div>
+</div>
+<!-- Card 5: Axis Burgundy -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-secondary-fixed font-bold">
+              AXIS
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">Axis Burgundy Private</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 9214</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-outline font-label-caps text-label-caps">STATEMENT SYNC</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">HIGH YIELD SAVINGS</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed">INR</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            ₹1,72,000.00
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>IFSC: UTIB0000005</span>
+<span>APY: 6.85%</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          UPLOAD OFX
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          LEDGER
+        </button>
+</div>
+</div>
+<!-- Card 6: Plaid Escrow Sandbox -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center font-label-data-lg text-outline font-bold">
+              DEV
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium leading-tight">Plaid Escrow Sandbox</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">•••• 0000</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-outline font-label-caps text-label-caps">DEVELOPER NODE</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-caps text-label-caps text-outline uppercase">SYNTHETIC LIQUIDITY</span>
+<span class="font-label-caps text-label-caps text-outline">USD RECONCILED</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-medium text-on-surface font-label-data-lg tracking-tight">
+            $2,000.00
+          </div>
+<div class="flex items-center justify-between mt-space-xs pt-space-xs font-label-caps text-label-caps text-on-surface-variant">
+<span>TARGET: SANDBOX_TEST_ENV</span>
+<span>MOCK TX: ENABLED</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          TEST TRANSFER
+        </button>
+<button class="flex-1 py-1.5 px-space-sm rounded-DEFAULT bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors font-label-data-md text-label-data-md text-center" type="button">
+          RESET
+        </button>
+</div>
+</div>
+</div>
+<!-- Bottom Modules: Split Architecture -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Module Left: Aggregate Asset Distribution -->
+<div class="lg:col-span-5 flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">AGGREGATE ASSET DISTRIBUTION</span>
+<span class="font-headline-md text-headline-md font-medium text-on-surface mt-1">CROSS-BORDER EXPOSURE</span>
+</div>
+<span class="font-label-caps text-label-caps px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-secondary-fixed">USD EQ. VALUATION</span>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-DEFAULT mb-space-lg">
+<div class="flex items-baseline justify-between mb-space-sm">
+<span class="font-label-caps text-label-caps text-outline">TOTAL COMBINED NAV</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-label-data-lg font-semibold">$42,516.48</span>
+</div>
+<!-- Distribution Bar -->
+<div class="w-full h-3 rounded-DEFAULT overflow-hidden flex mb-space-xs">
+<div class="bg-primary h-full w-[58.4%]" title="USD: 58.4%"></div>
+<div class="bg-secondary-fixed h-full w-[41.6%]" title="INR: 41.6%"></div>
+</div>
+<div class="flex items-center justify-between font-label-caps text-label-caps text-outline">
+<span>58.4% USD</span>
+<span>41.6% INR</span>
+</div>
+</div>
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between p-space-sm rounded-DEFAULT bg-surface-container">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-DEFAULT bg-primary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium leading-none">USD Denominated Liquid</span>
+<span class="font-label-caps text-[11px] text-outline mt-1 leading-none">Chase Premier + Escrow Sandbox</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-data-md text-label-data-md text-on-surface font-semibold">$24,850.40</div>
+<div class="font-label-caps text-[10px] text-outline">58.4% OF PORTFOLIO</div>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm rounded-DEFAULT bg-surface-container">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-DEFAULT bg-secondary-fixed"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium leading-none">INR Denominated Liquid</span>
+<span class="font-label-caps text-[11px] text-outline mt-1 leading-none">ICICI + HDFC + Axis [₹14,82,600]</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-data-md text-label-data-md text-on-surface font-semibold">$17,666.08</div>
+<div class="font-label-caps text-[10px] text-outline">41.6% OF PORTFOLIO</div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-md bg-surface-container-lowest/50 p-space-sm rounded-DEFAULT flex items-center justify-between font-label-caps text-label-caps text-outline">
+<span>FX INDEX: USD/INR 83.92</span>
+<span class="text-secondary-fixed">LAST FED FIXING: 16:00 EST</span>
+</div>
+</div>
+<!-- Module Right: Endpoint Connectivity Status -->
+<div class="lg:col-span-7 flex flex-col bg-surface-container-low rounded-DEFAULT p-space-lg">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">TELEMETRY DIAGNOSTICS</span>
+<span class="font-headline-md text-headline-md font-medium text-on-surface mt-1">ENDPOINT CONNECTIVITY STATUS</span>
+</div>
+<span class="font-label-caps text-label-caps px-space-xs py-0.5 rounded-DEFAULT bg-surface-container-highest text-secondary-fixed">ALL PROTOCOLS NOMINAL</span>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container-lowest text-outline font-label-caps text-label-caps">
+<th class="py-2.5 px-space-md">INSTITUTION</th>
+<th class="py-2.5 px-space-md">PROTOCOL</th>
+<th class="py-2.5 px-space-md">LAST SYNC</th>
+<th class="py-2.5 px-space-md">STATUS</th>
+<th class="py-2.5 px-space-md text-right">ACTION</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">JPMorgan Chase</span>
+<span class="font-label-data-md text-[11px] text-outline">••8912</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Plaid US Core</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">2m ago</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">ICICI Wealth</span>
+<span class="font-label-data-md text-[11px] text-outline">••1092</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Setu AA v2</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">4m ago</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">HDFC Imperia</span>
+<span class="font-label-data-md text-[11px] text-outline">••4821</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Setu AA v2</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">12m ago</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">American Express</span>
+<span class="font-label-data-md text-[11px] text-outline">••3004</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Plaid US Core</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">1m ago</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">Axis Burgundy</span>
+<span class="font-label-data-md text-[11px] text-outline">••9214</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Manual OFX Sync</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">2h ago</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-medium text-on-surface">Plaid Dev Sandbox</span>
+<span class="font-label-data-md text-[11px] text-outline">••0000</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Synthetic Webhook</td>
+<td class="py-space-sm px-space-md font-label-data-md text-label-data-md text-on-surface-variant">Instant</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span> ACTIVE
+                </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="text-outline hover:text-on-surface transition-colors p-1" title="Node Diagnostics" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction for Refresh Balances button
+  const refreshBtn = document.getElementById('refreshBalancesBtn');
+  const refreshIcon = document.getElementById('refreshIcon');
+  if (refreshBtn && refreshIcon) {
+    refreshBtn.addEventListener('click', () => {
+      refreshIcon.classList.add('animate-spin');
+      setTimeout(() => {
+        refreshIcon.classList.remove('animate-spin');
+      }, 900);
+    });
+  }
+</script></main></div></body></html>

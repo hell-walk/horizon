@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary":"#000000","surface-container":"#eeeeea","on-tertiary":"#ffffff","on-secondary-fixed":"#171e00","inverse-on-surface":"#f1f1ed","surface-dim":"#dadad6","surface-bright":"#faf9f5","error-container":"#ffdad6","tertiary-fixed-dim":"#ffb5a0","tertiary-container":"#3b0900","surface-container-highest":"#e2e3df","background":"#faf9f5","outline":"#77777b","primary-fixed":"#e3e2e6","secondary-fixed":"#caf300","on-secondary-container":"#576a00","on-background":"#1a1c1a","inverse-primary":"#c7c6ca","on-surface":"#1a1c1a","on-tertiary-fixed-variant":"#862200","surface-tint":"#5e5e62","on-secondary-fixed-variant":"#3e4c00","on-surface-variant":"#46464b","on-secondary":"#ffffff","outline-variant":"#c7c6cb","on-primary-fixed-variant":"#46464a","inverse-surface":"#2f312e","on-tertiary-fixed":"#3b0900","surface-variant":"#e2e3df","secondary-fixed-dim":"#b0d500","secondary":"#536600","on-primary":"#ffffff","secondary-container":"#c7ef00","on-primary-fixed":"#1b1b1f","primary-fixed-dim":"#c7c6ca","primary-container":"#1b1b1f","surface":"#faf9f5","surface-container-high":"#e8e8e4","on-error":"#ffffff","surface-container-lowest":"#ffffff","on-error-container":"#93000a","tertiary":"#000000","tertiary-fixed":"#ffdbd1","on-primary-container":"#848387","on-tertiary-container":"#f24400","error":"#ba1a1a","surface-container-low":"#f4f4f0"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"gutter-desktop":"2rem","gutter":"1rem","margin-desktop":"4rem","space-xs":"0.25rem","space-xl":"2.5rem","space-md":"1rem","space-sm":"0.5rem","gutter-tablet":"1.5rem","space-lg":"1.5rem","margin":"1rem","margin-tablet":"2rem"},"fontFamily":{"body-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"display-xl":["Space Grotesk"],"numeric-md":["JetBrains Mono"],"numeric-hero":["JetBrains Mono"],"numeric-hero-mobile":["JetBrains Mono"],"body-md":["Plus Jakarta Sans"],"label-mono-xs":["JetBrains Mono"],"display-xl-mobile":["Space Grotesk"],"headline-lg-mobile":["Space Grotesk"],"headline-sm":["Space Grotesk"],"label-mono-sm":["JetBrains Mono"],"headline-lg":["Space Grotesk"]},"fontSize":{"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"400"}],"display-xl":["64px",{"lineHeight":"72px","letterSpacing":"-0.04em","fontWeight":"600"}],"numeric-md":["16px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"500"}],"numeric-hero":["48px",{"lineHeight":"52px","letterSpacing":"-0.03em","fontWeight":"500"}],"numeric-hero-mobile":["32px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"22px","letterSpacing":"-0.005em","fontWeight":"400"}],"label-mono-xs":["9px",{"lineHeight":"12px","letterSpacing":"0.12em","fontWeight":"600"}],"display-xl-mobile":["40px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"600"}],"headline-lg-mobile":["28px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"500"}],"headline-sm":["22px",{"lineHeight":"28px","letterSpacing":"-0.02em","fontWeight":"500"}],"label-mono-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"500"}],"headline-lg":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"500"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low flex flex-col z-50"><div class="p-space-lg"><div class="flex items-center gap-space-xs text-on-surface font-numeric-md text-numeric-md tracking-tight font-semibold"><span class="w-2 h-2 bg-primary inline-block"></span><span>HORIZON // 01</span></div><div class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase mt-space-xs tracking-wider">MULTI-CURRENCY LEDGER</div></div><div class="px-space-md py-space-xs font-label-mono-xs text-label-mono-xs uppercase text-on-surface-variant tracking-widest">NAVIGATION CORE</div><nav class="flex flex-col gap-space-xs px-space-md" data-active-classes="bg-primary text-on-primary font-body-md text-body-md"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-colors bg-primary text-on-primary font-body-md text-body-md" data-path="home" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Home</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="my-banks" href="#"><span class="material-symbols-outlined text-[18px]">account_balance</span><span class="font-body-md text-body-md">My Banks</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="transaction-history" href="#"><span class="material-symbols-outlined text-[18px]">receipt_long</span><span class="font-body-md text-body-md">Transaction History</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="payment-transfer" href="#"><span class="material-symbols-outlined text-[18px]">swap_horiz</span><span class="font-body-md text-body-md">Payment Transfer</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="connect-bank" href="#"><span class="material-symbols-outlined text-[18px]">add_link</span><span class="font-body-md text-body-md">Connect Bank</span></a></nav><div class="mt-space-lg px-space-md py-space-xs font-label-mono-xs text-label-mono-xs uppercase text-on-surface-variant tracking-widest">INTEGRATION ENCLAVES</div><div class="flex flex-col gap-space-xs px-space-md mt-space-xs"><div class="flex items-center justify-between p-space-sm bg-surface-container-lowest"><span class="font-label-mono-sm text-label-mono-sm text-on-surface">Plaid Enclave</span><div class="flex items-center gap-space-xs bg-surface px-space-xs py-[2px]"><span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span><span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">SYNCED</span></div></div><div class="flex items-center justify-between p-space-sm bg-surface-container-lowest"><span class="font-label-mono-sm text-label-mono-sm text-on-surface">Setu AA Node</span><div class="flex items-center gap-space-xs bg-surface px-space-xs py-[2px]"><span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span><span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">ACTIVE</span></div></div><div class="flex items-center justify-between p-space-sm bg-surface-container-lowest"><span class="font-label-mono-sm text-label-mono-sm text-on-surface">OFX/CSV Parse</span><div class="flex items-center gap-space-xs bg-surface px-space-xs py-[2px]"><span class="w-1.5 h-1.5 rounded-full bg-surface-tint"></span><span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">READY</span></div></div></div><div class="mt-auto p-space-md bg-surface-container"><div class="flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-body-md text-body-md font-semibold text-on-surface leading-tight">Vikram Sharma</span><span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">Keswani Group</span></div></div><a class="text-on-surface-variant hover:text-error transition-colors p-space-xs" href="#" title="Logout"><span class="material-symbols-outlined text-[18px]">logout</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs"><span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">TELEMETRY // FX</span><span class="font-numeric-md text-numeric-md text-on-surface">1 USD = 83.92 INR</span><span class="font-label-mono-xs text-label-mono-xs text-secondary">+0.04%</span></div><div class="hidden lg:flex items-center gap-space-xs text-on-surface-variant"><span class="font-label-mono-xs text-label-mono-xs">EUR/INR 91.24</span><span class="text-outline-variant">•</span><span class="font-label-mono-xs text-label-mono-xs">GBP/INR 106.80</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">search</span><span class="font-body-sm text-body-sm">Search ledger...</span><span class="bg-surface px-space-xs py-[1px] font-label-mono-xs text-label-mono-xs text-on-surface">⌘K</span></div><button class="p-space-xs text-on-surface-variant hover:text-on-surface transition-colors relative" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-error"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 min-h-screen bg-surface px-gutter-desktop py-space-xl"><div class="flex flex-col w-full">
+<!-- TOP TELEMETRY & COMMAND BAR -->
+<section class="flex flex-col gap-space-md mb-space-lg">
+<div class="flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-secondary-container"></span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface uppercase tracking-wider">
+          TELEMETRY_NODE // 0X7F14 • [SECURE MESH ACTIVE]
+        </span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">
+          CLUSTER: ASIA-SOUTH1 // US-EAST-VIRGINIA
+        </span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface bg-surface-container-high px-space-xs py-[2px]">
+          TLS 1.3 / E2E ENCRYPTED
+        </span>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md bg-surface-container-lowest p-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-widest">
+<span>CONSOLE ROOT</span>
+<span>/</span>
+<span>OVERVIEW // PORTFOLIO CONSOLIDATED</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          OVERVIEW // PORTFOLIO CONSOLIDATED
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Welcome back, Vikram Keswani / Node synchronized 2m ago across 6 custodial endpoints.
+        </p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="bg-primary text-on-primary px-space-md py-space-sm font-label-mono-sm text-label-mono-sm uppercase tracking-wider hover:bg-surface-tint transition-colors flex items-center gap-space-xs" type="button">
+<span>+</span>
+<span>NEW TRANSACTION</span>
+</button>
+<button class="bg-surface-container text-on-surface px-space-md py-space-sm font-label-mono-sm text-label-mono-sm uppercase tracking-wider hover:bg-surface-container-high transition-colors flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span>SYNC ALL LEDGERS</span>
+</button>
+<button class="bg-surface-container text-on-surface px-space-md py-space-sm font-label-mono-sm text-label-mono-sm uppercase tracking-wider hover:bg-surface-container-high transition-colors flex items-center gap-space-xs" type="button">
+<span>↓</span>
+<span>EXPORT AUDIT</span>
+</button>
+</div>
+</div>
+</section>
+<!-- QUICK ACTION STRIP -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-space-xs mb-space-lg">
+<div class="bg-surface-container-lowest p-space-md flex items-center justify-between group hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">// ACTION 01</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Transfer Funds [→]</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">north_east</span>
+</div>
+<div class="bg-surface-container-lowest p-space-md flex items-center justify-between group hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">// ACTION 02</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Request Liquidity [→]</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">swap_calls</span>
+</div>
+<div class="bg-surface-container-lowest p-space-md flex items-center justify-between group hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">// ACTION 03</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Import CSV / OFX [↑]</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">file_upload</span>
+</div>
+</section>
+<!-- TOP ASSET RESERVES (MODULE_01) -->
+<section class="flex flex-col gap-space-xs mb-space-lg">
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-wider">
+        MODULE_01 // ASSET RESERVES &amp; MULTI-JURISDICTION VAULTS
+      </span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">
+        AGGREGATE CONSOLIDATED: $42,514.80 USD EQV
+      </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-xs">
+<!-- USD Primary Vault -->
+<div class="bg-surface-container-lowest p-space-lg flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">JURISDICTION // USA (FEDWIRE/ACH)</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold mt-space-xs">USD Primary Vault</span>
+</div>
+<span class="bg-surface-container-high px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface uppercase font-medium">
+            Plaid US Core
+          </span>
+</div>
+<div class="my-space-lg">
+<div class="flex items-baseline gap-space-sm">
+<span class="font-numeric-hero text-numeric-hero text-on-surface font-semibold">$24,850.40</span>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary bg-surface-container-low px-space-xs py-[2px]">
+              +4.2% MoM
+            </span>
+</div>
+<div class="flex items-center gap-space-md mt-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">+$1,804.22 Net Flow</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Fed Fund Rate Benchmark: 5.33%</span>
+</div>
+</div>
+<div class="pt-space-md bg-surface-container-low/50 -mx-space-lg -mb-space-lg px-space-lg pb-space-md flex items-center justify-between">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface uppercase">FDIC INSURED // $250,000 ESCROW</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">ENDPOINT: JPM-CHASE-NA</span>
+</div>
+</div>
+<!-- INR Onshore Reserve -->
+<div class="bg-surface-container-lowest p-space-lg flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">JURISDICTION // INDIA (RBI / RTGS / IMPS)</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold mt-space-xs">INR Onshore Reserve</span>
+</div>
+<span class="bg-surface-container-high px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface uppercase font-medium">
+            Setu AA Verified
+          </span>
+</div>
+<div class="my-space-lg">
+<div class="flex items-baseline gap-space-sm">
+<span class="font-numeric-hero text-numeric-hero text-on-surface font-semibold">₹14,82,600.00</span>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary bg-surface-container-low px-space-xs py-[2px]">
+              +₹1,45,200 MTD
+            </span>
+</div>
+<div class="flex items-center gap-space-md mt-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">11.8% Sovereign Yield Target</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Equiv. $17,664.40 USD</span>
+</div>
+</div>
+<div class="pt-space-md bg-surface-container-low/50 -mx-space-lg -mb-space-lg px-space-lg pb-space-md flex items-center justify-between">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface uppercase">RBI REGISTERED AA // NBFC PROTOCOL</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">ENDPOINT: ICICI-TREASURY-01</span>
+</div>
+</div>
+</div>
+</section>
+<!-- MAIN 2-COLUMN DASHBOARD GRID -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg mb-space-lg">
+<!-- LEFT 8 COLUMNS: DUAL DOUGHNUTS & AUDIT ARRAYS -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- CRITICAL REQUIREMENT 3A: BANK LIQUIDITY BREAKDOWN DOUGHNUT CHART -->
+<section class="bg-surface-container-lowest p-space-lg flex flex-col gap-space-md">
+<div class="flex flex-wrap items-center justify-between pb-space-sm bg-surface-container-low px-space-md py-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface font-semibold uppercase">
+              // ALLOCATION RADIAL CALIBRATION
+            </span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase">
+              6 CUSTODIAL NODES
+            </span>
+</div>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface bg-surface px-space-xs py-[1px]">
+            PARITY RATE: 83.9200
+          </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-center">
+<!-- Doughnut Graphic Display -->
+<div class="md:col-span-5 flex flex-col items-center justify-center p-space-sm">
+<div class="relative w-64 h-64 flex items-center justify-center">
+<!-- Inline SVG Multi-Bank Proportional Doughnut Chart -->
+<svg class="w-full h-full -rotate-90" viewbox="0 0 200 200">
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#E2E3DF" stroke-width="20"></circle>
+<!-- Chase Checking 34.2% (circumference = 439.82, arc = 150.41) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#000000" stroke-dasharray="150.4 439.8" stroke-dashoffset="0" stroke-width="20"></circle>
+<!-- ICICI Wealth PMS 26.1% (arc = 114.79) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#536600" stroke-dasharray="114.8 439.8" stroke-dashoffset="-150.4" stroke-width="20"></circle>
+<!-- HDFC Imperia 18.4% (arc = 80.92) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#46464B" stroke-dasharray="80.9 439.8" stroke-dashoffset="-265.2" stroke-width="20"></circle>
+<!-- Amex Centurion 11.3% (arc = 49.70) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#BA1A1A" stroke-dasharray="49.7 439.8" stroke-dashoffset="-346.1" stroke-width="20"></circle>
+<!-- Axis Burgundy Direct 6.8% (arc = 29.90) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#77777B" stroke-dasharray="29.9 439.8" stroke-dashoffset="-395.8" stroke-width="20"></circle>
+<!-- Plaid Sandbox Escrow 3.2% (arc = 14.07) -->
+<circle cx="100" cy="100" fill="transparent" r="70" stroke="#CAF300" stroke-dasharray="14.1 439.8" stroke-dashoffset="-425.7" stroke-width="20"></circle>
+</svg>
+<!-- Center Hub -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-wider">// TOTAL VAULT</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">6 NODES</span>
+<span class="font-label-mono-xs text-label-mono-xs text-secondary mt-1 bg-surface-container px-space-xs">[ACTIVE SYNC]</span>
+</div>
+</div>
+</div>
+<!-- Breakdown List -->
+<div class="md:col-span-7 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-primary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Chase Checking</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••8912 • JPMORGAN USA</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">$18,450.40</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">34.2% ALLOCATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-secondary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">ICICI Wealth PMS</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••1092 • MUMBAI PRIVATE</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">₹8,90,000.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">26.1% ALLOCATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-on-surface-variant"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">HDFC Imperia</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••4821 • CORPORATE SETTLEMENT</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">₹4,20,600.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">18.4% ALLOCATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-error"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Amex Centurion Line</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••3004 • ESCROW CREDIT</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">$4,400.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">11.3% ALLOCATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-outline"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Axis Burgundy Direct</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••6219 • TREASURY NODE</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">₹1,72,000.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">6.8% ALLOCATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 bg-secondary-fixed"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Plaid Sandbox Escrow</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">••0000 • DEVEP TEST NODE</span>
+</div>
+</div>
+<div class="text-right flex flex-col">
+<span class="font-numeric-md text-numeric-md font-medium text-on-surface">$2,000.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">3.2% ALLOCATED</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CRITICAL REQUIREMENT 3B: CATEGORY EXPENDITURE DOUGHNUT CHART -->
+<section class="bg-surface-container-lowest p-space-lg flex flex-col gap-space-md">
+<div class="flex flex-wrap items-center justify-between pb-space-sm bg-surface-container-low px-space-md py-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface font-semibold uppercase">
+              // RUN-RATE METRICS // CATEGORY EXPENDITURE
+            </span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-xs text-label-mono-xs text-error uppercase">
+              BUDGET DRIFT: +1.4% VS OCT TARGET
+            </span>
+</div>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface bg-surface px-space-xs py-[1px]">
+            [AUDIT LOG]
+          </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-center">
+<!-- Concentric Architectural Radar Rings Doughnut Chart -->
+<div class="md:col-span-5 flex flex-col items-center justify-center p-space-sm">
+<div class="relative w-64 h-64 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 240 240">
+<!-- Outer Radial Crosshair Axis -->
+<line stroke="#E2E3DF" stroke-dasharray="3 3" stroke-width="1" x1="120" x2="120" y1="10" y2="230"></line>
+<line stroke="#E2E3DF" stroke-dasharray="3 3" stroke-width="1" x1="10" x2="230" y1="120" y2="120"></line>
+<!-- Ring 1: Cloud & Infrastructure (r=95, circum=596.9) 42% -> 250.7 -->
+<circle cx="120" cy="120" fill="none" r="95" stroke="#E8E8E4" stroke-width="10"></circle>
+<circle cx="120" cy="120" fill="none" r="95" stroke="#000000" stroke-dasharray="250.7 596.9" stroke-linecap="butt" stroke-width="10"></circle>
+<!-- Ring 2: Sovereign Investments (r=75, circum=471.2) 28% -> 131.9 -->
+<circle cx="120" cy="120" fill="none" r="75" stroke="#E8E8E4" stroke-width="10"></circle>
+<circle cx="120" cy="120" fill="none" r="75" stroke="#536600" stroke-dasharray="131.9 471.2" stroke-linecap="butt" stroke-width="10"></circle>
+<!-- Ring 3: Travel & Logistics (r=55, circum=345.5) 18% -> 62.2 -->
+<circle cx="120" cy="120" fill="none" r="55" stroke="#E8E8E4" stroke-width="10"></circle>
+<circle cx="120" cy="120" fill="none" r="55" stroke="#77777B" stroke-dasharray="62.2 345.5" stroke-linecap="butt" stroke-width="10"></circle>
+<!-- Ring 4: Advisory & Retainers (r=35, circum=219.9) 12% -> 26.4 -->
+<circle cx="120" cy="120" fill="none" r="35" stroke="#E8E8E4" stroke-width="10"></circle>
+<circle cx="120" cy="120" fill="none" r="35" stroke="#BA1A1A" stroke-dasharray="26.4 219.9" stroke-linecap="butt" stroke-width="10"></circle>
+</svg>
+<!-- Central Telemetry Center -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-tight">EXPENDITURE</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-on-surface">$19,050</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">/ MONTH</span>
+</div>
+</div>
+</div>
+<!-- Category Metrics & Legend -->
+<div class="md:col-span-7 flex flex-col gap-space-sm">
+<div class="p-space-sm bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 bg-primary"></span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Cloud &amp; Infrastructure</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-numeric-md text-numeric-md font-semibold text-on-surface">$8,420.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">42%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 overflow-hidden">
+<div class="bg-primary h-full w-[42%]"></div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 bg-secondary"></span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Sovereign Investments</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-numeric-md text-numeric-md font-semibold text-on-surface">$5,600.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">28%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 overflow-hidden">
+<div class="bg-secondary h-full w-[28%]"></div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 bg-outline"></span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Travel &amp; Strategic Logistics</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-numeric-md text-numeric-md font-semibold text-on-surface">$3,150.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">18%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 overflow-hidden">
+<div class="bg-outline h-full w-[18%]"></div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 bg-error"></span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Advisory &amp; Legal Retainers</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-numeric-md text-numeric-md font-semibold text-on-surface">$1,880.00</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">12%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 overflow-hidden">
+<div class="bg-error h-full w-[12%]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- RIGHT 4 COLUMNS: PHYSICAL SLAB, IDENTITY & INTEGRATIONS -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- S-TIER OBSIDIAN PHYSICAL SLAB CARD -->
+<section class="bg-primary text-on-primary p-space-lg flex flex-col justify-between h-[230px] relative overflow-hidden shadow-sm">
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col">
+<span class="font-label-mono-xs text-label-mono-xs text-primary-fixed uppercase tracking-wider">
+              HORIZON S-TIER TITANIUM SLAB
+            </span>
+<span class="font-label-mono-xs text-label-mono-xs text-outline-variant">PHYSICAL CUSTODIAL UNIT</span>
+</div>
+<!-- Brushed EMV Microchip Spec -->
+<div class="w-9 h-7 bg-surface-container-high flex items-center justify-center border-0">
+<div class="w-6 h-4 bg-surface-dim flex items-center justify-center">
+<span class="w-2 h-2 bg-primary/40 block"></span>
+</div>
+</div>
+</div>
+<div class="relative z-10 my-auto">
+<span class="font-numeric-md text-numeric-md tracking-widest text-on-primary">
+            •••• •••• •••• 8912
+          </span>
+<div class="flex items-center gap-space-sm mt-1">
+<span class="font-label-mono-xs text-label-mono-xs text-outline-variant">EXP: 11/29</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-xs text-label-mono-xs text-outline-variant">ID: SEC-89C</span>
+<button class="font-label-mono-xs text-label-mono-xs text-secondary-container hover:underline ml-auto" type="button">
+              [COPY ID]
+            </button>
+</div>
+</div>
+<div class="flex items-center justify-between relative z-10">
+<span class="font-body-md text-body-md font-semibold tracking-wider text-on-primary uppercase">
+            VIKRAM KESWANI
+          </span>
+<span class="font-label-mono-xs text-label-mono-xs text-primary-fixed tracking-widest">VISA INFINITE PRIVILEGE</span>
+</div>
+</section>
+<!-- SECURITY IDENTITY TIER -->
+<section class="bg-surface-container-lowest p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between bg-surface-container-low px-space-sm py-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-wider">
+            SECURITY IDENTITY // TIER
+          </span>
+<span class="font-label-mono-xs text-label-mono-xs text-secondary bg-surface px-space-xs py-[1px]">
+            ONLINE
+          </span>
+</div>
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant">Principal Identity:</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Vikram Keswani</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant">Authorization:</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface bg-surface-container px-space-xs py-[2px] font-semibold">
+              VERIFIED RBAC LEVEL 4
+            </span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant">Vault Key:</span>
+<span class="font-numeric-md text-numeric-md text-on-surface text-body-sm">0x9F41...89C4</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant">Hardware Security:</span>
+<span class="font-label-mono-xs text-label-mono-xs text-secondary font-semibold">
+              HSM ATTESTATION ACTIVE
+            </span>
+</div>
+</div>
+</section>
+<!-- GATEWAY TELEMETRY -->
+<section class="bg-surface-container-lowest p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between bg-surface-container-low px-space-sm py-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase tracking-wider">
+            GATEWAY TELEMETRY &amp; BRIDGES
+          </span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">HEALTH 100%</span>
+</div>
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="p-space-sm bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Plaid US Gateway</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">Production Enclave (24ms)</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+</div>
+<div class="p-space-sm bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Setu AA Consent Node</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">Active Consent (Valid Dec 2026)</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+</div>
+</div>
+<button class="w-full mt-space-xs bg-surface-container text-on-surface hover:bg-surface-container-high p-space-sm font-label-mono-sm text-label-mono-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[16px]">add_link</span>
+<span>CONNECT ANOTHER INSTITUTION</span>
+</button>
+</section>
+</div>
+</div>
+<!-- MODULE_02 // SYSTEM LEDGER - RECENT INSTITUTIONAL ACTIVITY -->
+<section class="bg-surface-container-lowest p-space-lg flex flex-col gap-space-md mb-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm bg-surface-container-low px-space-md py-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface font-semibold uppercase tracking-wider">
+          MODULE_02 // SYSTEM LEDGER - RECENT INSTITUTIONAL ACTIVITY
+        </span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">REAL-TIME CONSENSUS</span>
+</div>
+<!-- Bank Tabs Filter -->
+<div class="flex items-center gap-space-xs overflow-x-auto">
+<button class="bg-primary text-on-primary px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase" type="button">
+          ALL INSTITUTIONS
+        </button>
+<button class="bg-surface text-on-surface-variant hover:text-on-surface px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase" type="button">
+          Chase ••8912
+        </button>
+<button class="bg-surface text-on-surface-variant hover:text-on-surface px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase" type="button">
+          HDFC ••4821
+        </button>
+<button class="bg-surface text-on-surface-variant hover:text-on-surface px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase" type="button">
+          ICICI ••1092
+        </button>
+<button class="bg-surface text-on-surface-variant hover:text-on-surface px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase" type="button">
+          Plaid ••0000
+        </button>
+</div>
+</div>
+<!-- Audited Ledger Table -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-mono-xs text-label-mono-xs uppercase">
+<th class="p-space-sm">ENTITY &amp; DESCRIPTION</th>
+<th class="p-space-sm">CUSTODY CHANNEL</th>
+<th class="p-space-sm">CLASSIFICATION</th>
+<th class="p-space-sm">TIMESTAMP</th>
+<th class="p-space-sm text-right">SETTLED AMOUNT</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-secondary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Stripe Platform Payout</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">TXID: 0x904b...44a1 // Settlement</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">CHASE ••8912 (USD)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                REVENUE INFLOW
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              TODAY, 14:22:04 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-secondary">
+              +$3,420.00 USD
+            </td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-secondary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Tata Consultancy Direct</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">RTGS / CORP-0994 // Retainer Yield</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">ICICI ••1092 (INR)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                CONTRACT SETTLEMENT
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              TODAY, 11:05:12 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-secondary">
+              +₹1,45,000.00 INR
+            </td>
+</tr>
+<!-- Row 3 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-error"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">AWS Cloud Infrastructure</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">INV-US-9912 // Compute Cluster</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">AMEX ••3004 (USD)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                INFRASTRUCTURE OPEX
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              YESTERDAY, 23:40:19 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-error">
+              -$184.20 USD
+            </td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-error"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Swiggy Gourmet Services</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">UPI / 401928371 // Executive Dining</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">HDFC ••4821 (INR)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                HOSPITALITY
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              YESTERDAY, 20:15:00 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-error">
+              -₹1,840.00 INR
+            </td>
+</tr>
+<!-- Row 5 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-secondary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">ICICI Sovereign Yield Bond</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">BOND-COUPON // 7.18% GS 2033</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">ICICI ••1092 (INR)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                TREASURY COUPON
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              NOV 14, 09:30:00 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-secondary">
+              +₹42,800.00 INR
+            </td>
+</tr>
+<!-- Row 6 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-error"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Apple 5th Ave Flagship</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">POS NYC // Hardware Procurement</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">CHASE ••8912 (USD)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                EQUIPMENT ASSET
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              NOV 13, 18:44:22 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-error">
+              -$3,899.00 USD
+            </td>
+</tr>
+<!-- Row 7 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2 h-2 bg-secondary"></span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Plaid Test Disbursal</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">MICRO-DEPOSIT // Verification Node</span>
+</div>
+</div>
+</td>
+<td class="p-space-sm">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface">PLAID ••0000 (USD)</span>
+</td>
+<td class="p-space-sm">
+<span class="bg-surface-container px-space-xs py-[2px] font-label-mono-xs text-label-mono-xs text-on-surface">
+                GATEWAY HANDSHAKE
+              </span>
+</td>
+<td class="p-space-sm font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+              NOV 12, 10:00:11 UTC
+            </td>
+<td class="p-space-sm text-right font-numeric-md text-numeric-md font-semibold text-secondary">
+              +$0.10 USD
+            </td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Audit Controls -->
+<div class="flex items-center justify-between pt-space-sm bg-surface-container-low px-space-md py-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">
+        PAGE 01 OF 89 // TOTAL 623 COMMITTED ENTRIES
+      </span>
+<div class="flex items-center gap-space-xs">
+<button class="bg-surface-container-high text-on-surface-variant opacity-50 px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase cursor-not-allowed" disabled="" type="button">
+          PREV
+        </button>
+<button class="bg-primary text-on-primary hover:bg-surface-tint px-space-sm py-[2px] font-label-mono-xs text-label-mono-xs uppercase transition-colors" type="button">
+          NEXT
+        </button>
+</div>
+</div>
+</section>
+</div></main></div></body></html>
