@@ -3,7 +3,7 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
-import { useChartColors } from "@/lib/chartColors";
+import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);
@@ -21,11 +21,11 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
       label: item.name,
       // Unfolding sweeps every arc closed into a full ring.
       data: unfold ? [1, 0] : [item.share, Math.max(1 - item.share, 0)],
-      backgroundColor: [colors.segments[i % colors.segments.length], colors.track],
+      backgroundColor: [segmentColor(colors, item.name, i), colors.track],
       borderColor: colors.card,
       borderWidth: 2,
       borderRadius: [{ outerStart: 4, outerEnd: 4, innerStart: 4, innerEnd: 4 }, 0],
-      hoverBackgroundColor: [colors.segments[i % colors.segments.length], colors.track],
+      hoverBackgroundColor: [segmentColor(colors, item.name, i), colors.track],
     })),
   };
 
@@ -36,7 +36,7 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
         cutout: "48%",
         rotation: -90,
         maintainAspectRatio: false,
-        animation: unfold ? { duration: 480, easing: "easeOutCubic" } : undefined,
+        animation: unfold ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
         plugins: {
           legend: { display: false },
           tooltip: {

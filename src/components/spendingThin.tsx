@@ -2,7 +2,7 @@
 
 import { use } from "react";
 
-import { CHART_COLOR_CLASSES } from "@/constants";
+import { chartColorClass } from "@/constants";
 import type { SpendBucket } from "@/lib/spending";
 import { cn, formatAmount } from "@/lib/utils";
 
@@ -25,13 +25,13 @@ const SpendingThin = ({ spending, accountId }: { spending: Promise<SpendingByAcc
         <span className="text-14 text-ink">{empty ? "No spending yet" : label}</span>
         {!empty && <span className="amount text-16 font-semibold text-ink">{formatAmount(data.total, data.currency)}</span>}
       </div>
-      <div className="mt-2 flex h-2 w-full gap-[2px] overflow-hidden rounded-full bg-surface-container">
+      <div key={accountId} className="bar-reveal mt-2 flex h-2 w-full gap-[2px] overflow-hidden rounded-full bg-surface-container">
         {!empty &&
           data.buckets.map((b, i) => (
             <div
               key={b.key}
               title={`${b.name}: ${formatAmount(b.amount, data.currency)} (${Math.round(b.share * 100)}%)`}
-              className={cn("h-full first:rounded-l-full last:rounded-r-full", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])}
+              className={cn("h-full first:rounded-l-full last:rounded-r-full", chartColorClass(b.name, i))}
               style={{ width: `${b.share * 100}%` }}
             />
           ))}

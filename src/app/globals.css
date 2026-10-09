@@ -35,12 +35,14 @@
     --success: 31 122 58;
     --success-soft: 221 243 228;
 
-    --chart-1: 0 0 0;
-    --chart-2: 199 239 0;
+    /* Charts: six distinct, saturated hues; "Other" is always neutral. */
+    --chart-1: 124 92 255;
+    --chart-2: 166 214 0;
     --chart-3: 242 68 0;
-    --chart-4: 83 102 0;
-    --chart-5: 119 119 123;
-    --chart-6: 199 198 203;
+    --chart-4: 0 184 169;
+    --chart-5: 255 77 141;
+    --chart-6: 255 176 32;
+    --chart-other: 199 198 203;
 
     --radius: 0.25rem;
   }
@@ -72,12 +74,13 @@
     --success: 95 211 141;
     --success-soft: 20 52 32;
 
-    --chart-1: 255 255 255;
+    --chart-1: 155 130 255;
     --chart-2: 199 239 0;
-    --chart-3: 255 85 36;
-    --chart-4: 140 176 0;
-    --chart-5: 118 118 111;
-    --chart-6: 58 58 56;
+    --chart-3: 255 99 51;
+    --chart-4: 45 212 191;
+    --chart-5: 255 110 160;
+    --chart-6: 255 190 70;
+    --chart-other: 82 82 79;
   }
 
   * {
@@ -644,6 +647,44 @@
 @media (prefers-reduced-motion: reduce) {
   .chart-unfold,
   .chart-arrive {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Graphs animate in on every load: bars sweep left to right, single   */
+/* fills grow from the left. Remounting (switching account) replays.   */
+/* ------------------------------------------------------------------ */
+.bar-reveal {
+  animation: bar-reveal 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes bar-reveal {
+  from {
+    clip-path: inset(0 100% 0 0 round 999px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 999px);
+  }
+}
+
+.bar-grow {
+  transform-origin: left center;
+  animation: bar-grow 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-reveal,
+  .bar-grow {
     animation: none;
   }
 }
