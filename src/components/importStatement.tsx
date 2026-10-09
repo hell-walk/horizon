@@ -1,112 +1,231 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
+import { Check, FileUp, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
 
-import { Button } from "./ui/button";
+import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
+import { cn, formatAmount } from "@/lib/utils";
+
 import { Input } from "./ui/input";
-import { importStatement, type ImportResult } from "@/lib/actions/statement.action";
 
-type Props = { variant?: "primary" | "ghost" | "default" };
+type Props = { variant?: "primary" | "card" };
 
 /**
- * "Import statement" button. The user picks a CSV or XLSX export from their
- * net banking; the server parses it and adds the account and its transactions.
+ * Statement import in two steps: parse the file and show what was understood,
+ * then import once the user confirms. Only the server ever sees the file.
  */
-const ImportStatement = ({ variant = "default" }: Props) => {
+const ImportStatement = ({ variant = "card" }: Props) => {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [busy, setBusy] = useState<"preview" | "import" | null>(null);
+  const [dragging, setDragging] = useState(false);
 
-  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+  const reset = () => {
+    setPreview(null);
+    setResult(null);
+  };
+
+  const runPreview = async () => {
+    if (!formRef.current) return;
+    setBusy("preview");
     setResult(null);
     try {
-      const outcome = await importStatement(new FormData(event.currentTarget));
+      setPreview(await previewStatement(new FormData(formRef.current)));
+    } catch {
+      setPreview({ ok: false, error: "Could not reach the server. Please try again." });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runImport = async () => {
+    if (!formRef.current) return;
+    setBusy("import");
+    try {
+      const outcome = await importStatement(new FormData(formRef.current));
       setResult(outcome);
       if (outcome.ok) {
         if (fileRef.current) fileRef.current.value = "";
+        setFileName(null);
+        setPreview(null);
         router.refresh();
       }
     } catch {
       setResult({ ok: false, error: "Could not reach the server. Please try again." });
     } finally {
-      setLoading(false);
+      setBusy(null);
     }
   };
 
-  const label = "Import statement";
-  const trigger =
-    variant === "primary" ? (
-      <Button type="button" onClick={() => setOpen((v) => !v)} className="plaidlink-primary">
-        {label}
-      </Button>
-    ) : variant === "ghost" ? (
-      <Button type="button" onClick={() => setOpen((v) => !v)} variant="ghost" className="plaidlink-ghost">
-        <Image src="/icons/transaction.svg" alt="import" width={24} height={24} />
-        <p className="hidden text-[16px] font-semibold text-black-2 xl:block">{label}</p>
-      </Button>
-    ) : (
-      <Button type="button" onClick={() => setOpen((v) => !v)} className="plaidlink-default">
-        <Image src="/icons/transaction.svg" alt="import" width={24} height={24} />
-        <p className="text-[16px] font-semibold text-black-2">{label}</p>
-      </Button>
-    );
+  const onFileChosen = (file?: File | null) => {
+    setFileName(file?.name ?? null);
+    reset();
+  };
+
+  const onDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setDragging(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file && fileRef.current) {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      fileRef.current.files = transfer.files;
+      onFileChosen(file);
+    }
+  };
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      {trigger}
+    <form
+      ref={formRef}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (preview?.ok) runImport();
+        else runPreview();
+      }}
+      className={cn("flex w-full flex-col gap-4", variant === "primary" && "rounded-md border border-line bg-surface-low p-4")}
+    >
+      <label
+        htmlFor="statement-file"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition-colors",
+          dragging ? "border-primary bg-surface-container" : "border-line bg-surface-low hover:border-primary"
+        )}
+      >
+        <span className="flex-center size-10 rounded-md bg-card text-ink-muted">
+          {fileName ? <Check className="size-5 text-success" /> : <Upload className="size-5" />}
+        </span>
+        <span className="text-14 font-semibold text-ink">{fileName ?? "Drop your bank statement here"}</span>
+        <span className="field-hint">CSV or XLSX export from net banking · up to 5 MB</span>
+        <input
+          ref={fileRef}
+          id="statement-file"
+          name="file"
+          type="file"
+          accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          required
+          className="sr-only"
+          onChange={(e) => onFileChosen(e.target.files?.[0])}
+        />
+      </label>
 
-      {open && (
-        <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-12 font-medium text-gray-700" htmlFor="statement-file">
-              Statement export (.csv or .xlsx)
-            </label>
-            <input
-              ref={fileRef}
-              id="statement-file"
-              name="file"
-              type="file"
-              accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              required
-              className="text-14 file:mr-3 file:rounded-md file:border-0 file:bg-blue-25 file:px-3 file:py-1.5 file:text-12 file:font-semibold file:text-blue-700"
-            />
+      <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
+        <div className="field">
+          <label className="field-label" htmlFor="statement-institution">
+            Bank name
+          </label>
+          <Input
+            id="statement-institution"
+            name="institution"
+            placeholder={preview?.ok && preview.institution ? preview.institution : "Detected from the file if left blank"}
+            className="field-input"
+          />
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="statement-mask">
+            Last 4 digits
+          </label>
+          <Input
+            id="statement-mask"
+            name="mask"
+            placeholder={preview?.ok && preview.mask ? preview.mask : "0000"}
+            className="field-input font-mono"
+            maxLength={4}
+            inputMode="numeric"
+          />
+        </div>
+      </div>
+
+      {preview && !preview.ok && <p className="field-error">{preview.error}</p>}
+
+      {preview?.ok && (
+        <div className="panel overflow-hidden">
+          <header className="panel-head">
+            <span className="eyebrow">
+              Parsed {"// "}{preview.total} {preview.total === 1 ? "transaction" : "transactions"} · {preview.currency}
+            </span>
+            <span className="eyebrow">Showing first {preview.rows.length}</span>
+          </header>
+          <div className="overflow-x-auto">
+            <table className="w-full text-13">
+              <thead>
+                <tr className="border-b border-line bg-surface-low">
+                  <th className="eyebrow px-3 py-2 text-left font-normal">Date</th>
+                  <th className="eyebrow px-3 py-2 text-left font-normal">Description</th>
+                  <th className="eyebrow px-3 py-2 text-left font-normal max-sm:hidden">Category</th>
+                  <th className="eyebrow px-3 py-2 text-right font-normal">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {preview.rows.map((row, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-2 font-mono text-12 text-ink-muted">{row.date}</td>
+                    <td className="max-w-[260px] truncate px-3 py-2 text-ink">{row.name}</td>
+                    <td className="px-3 py-2 max-sm:hidden">
+                      <span className="chip">{row.category}</span>
+                    </td>
+                    <td className={cn("amount px-3 py-2 text-right font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
+                      {row.type === "debit" ? "-" : "+"}
+                      {formatAmount(Math.abs(row.amount), preview.currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="flex gap-2">
-            <Input name="institution" placeholder="Bank name (optional)" className="input-class" />
-            <Input name="mask" placeholder="Last 4 digits" className="input-class w-28" maxLength={4} inputMode="numeric" />
-          </div>
-
-          <Button type="submit" disabled={loading} className="form-btn">
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> &nbsp;Importing...
-              </>
-            ) : (
-              "Import"
-            )}
-          </Button>
-
-          {result && !result.ok && <p className="form-message">{result.error}</p>}
-          {result && result.ok && (
-            <p className="text-12 text-success-700">
-              {result.institution} ••{result.mask}: {result.imported} new transaction{result.imported === 1 ? "" : "s"} imported
-              {result.skipped ? `, ${result.skipped} already present` : ""}.
+          {preview.closingBalance !== undefined && (
+            <p className="border-t border-line px-3 py-2 text-12 text-ink-muted">
+              Closing balance detected: <span className="amount text-ink">{formatAmount(preview.closingBalance, preview.currency)}</span>
             </p>
           )}
-
-          <p className="text-12 text-gray-500">
-            Download the statement from your net banking as CSV or Excel. The file is parsed on this server only.
-          </p>
-        </form>
+        </div>
       )}
-    </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="submit" disabled={busy !== null || !fileName} className={preview?.ok ? "btn-primary" : "btn-secondary"}>
+          {busy === "preview" ? (
+            <>
+              <Loader2 className="size-4 animate-spin" /> Reading file
+            </>
+          ) : busy === "import" ? (
+            <>
+              <Loader2 className="size-4 animate-spin" /> Importing
+            </>
+          ) : preview?.ok ? (
+            <>
+              <FileUp className="size-4" /> Import {preview.total} transactions
+            </>
+          ) : (
+            "Preview statement"
+          )}
+        </button>
+        {preview?.ok && (
+          <button type="button" onClick={reset} className="btn-ghost">
+            Discard
+          </button>
+        )}
+      </div>
+
+      {result && !result.ok && <p className="field-error">{result.error}</p>}
+      {result && result.ok && (
+        <p className="rounded-md border border-success/30 bg-success-soft px-3 py-2 text-13 text-success">
+          {result.institution} ••{result.mask}: {result.imported} new {result.imported === 1 ? "transaction" : "transactions"} imported
+          {result.skipped ? `, ${result.skipped} already present` : ""}.
+        </p>
+      )}
+
+      <p className="field-hint">The file is parsed on this server only and is not stored.</p>
+    </form>
   );
 };
 

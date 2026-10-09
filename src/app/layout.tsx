@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter, IBM_Plex_Serif } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+
+import { ThemeProvider } from "@/components/themeProvider";
+
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const ibmPlexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-ibm-plex-serif",
-  display: "swap",
-});
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -38,9 +37,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${ibmPlexSerif.variable}`}>
-        {children}
+    // next-themes sets the class on <html> before paint; the warning it would
+    // otherwise trigger is expected.
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${sans.variable} ${display.variable} ${mono.variable}`}>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

@@ -2,17 +2,27 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
+import AllocationPanel from "@/components/allocationPanel";
+import CategoryPanel from "@/components/categoryPanel";
+import QuickActions from "@/components/quickActions";
+import RecentTransaction from "@/components/recentTransaction";
+import RightSideBar from "@/components/rightSideBar";
+import { ChartPanelSkeleton, RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/skeletons";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
-import RightSideBar from "@/components/rightSideBar";
-import RecentTransaction from "@/components/recentTransaction";
-import { RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/skeletons";
-import { getLoggedInUser } from "@/lib/actions/user.action";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import { getLoggedInUser } from "@/lib/actions/user.action";
 
 export const metadata: Metadata = {
   title: "Home",
   description: "Your balances and recent transactions across every linked bank.",
+};
+
+const greeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 };
 
 const Home = async ({ searchParams }: SearchParamProps) => {
@@ -25,51 +35,68 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   const accounts = await getAccounts({ userId: loggedIn.$id });
   if (!accounts) return;
 
-  const accountsData = accounts?.data;
+  const accountsData: Account[] = accounts.data;
   const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
 
   return (
-    <section className="home">
-      <div className="home-content">
-        <header className="home-header">
+    <section className="page">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
           <HeaderBox
             type="greeting"
-            title="Welcome"
-            user={loggedIn?.name || "Guest"}
-            subtext="Access and manage your account transactions efficiently"
+            eyebrow="Overview // portfolio"
+            title={greeting()}
+            user={loggedIn.firstName || loggedIn.name || "there"}
+            subtext={
+              accountsData.length > 0
+                ? `Balances and activity across ${accountsData.length} linked ${accountsData.length === 1 ? "account" : "accounts"}.`
+                : "Connect a bank or import a statement to get started."
+            }
           />
+
+          <QuickActions />
+
           <TotalBalanceBox
             accounts={accountsData}
-            totalBanks={accounts?.totalBanks}
-            totalCurrentBalance={accounts?.totalCurrentBalance}
-            totalsByCurrency={accounts?.totalsByCurrency}
-            primaryCurrency={accounts?.primaryCurrency}
+            totalBanks={accounts.totalBanks}
+            totalCurrentBalance={accounts.totalCurrentBalance}
+            totalsByCurrency={accounts.totalsByCurrency}
+            primaryCurrency={accounts.primaryCurrency}
           />
-        </header>
 
-        {/* Transactions need Plaid's sync feed, the slowest call. Stream them in
-            so the greeting and balance appear first. */}
-        <Suspense fallback={<RecentTransactionsSkeleton />}>
-          <RecentTransactionsSection
-            accounts={accountsData}
-            appwriteItemId={appwriteItemId}
-            page={currentPage}
-          />
+          <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
+
+          {/* Transactions need the provider's feed, the slowest call. Stream them in
+              so the header, balances and allocation appear first. */}
+          <Suspense fallback={<ChartPanelSkeleton />}>
+            <CategorySection appwriteItemId={appwriteItemId} />
+          </Suspense>
+
+          <Suspense fallback={<RecentTransactionsSkeleton />}>
+            <RecentTransactionsSection accounts={accountsData} appwriteItemId={appwriteItemId} page={currentPage} />
+          </Suspense>
+        </div>
+
+        <Suspense fallback={<RightSideBarSkeleton />}>
+          <RightSideBar user={loggedIn} banks={accountsData} selected={appwriteItemId} />
         </Suspense>
       </div>
-
-      <Suspense fallback={<RightSideBarSkeleton />}>
-        <RightSideBarSection
-          user={loggedIn}
-          banks={accountsData?.slice(0, 2)}
-          appwriteItemId={appwriteItemId}
-        />
-      </Suspense>
     </section>
   );
 };
 
-// Both sections call getAccount; it is deduped per request, so Plaid is hit once.
+// All sections call getAccount; it is deduped per request, so the provider is hit once.
+async function CategorySection({ appwriteItemId }: { appwriteItemId?: string }) {
+  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
+  return (
+    <CategoryPanel
+      transactions={account?.transactions}
+      currency={account?.data?.currency}
+      accountName={account?.data?.name}
+    />
+  );
+}
+
 async function RecentTransactionsSection({
   accounts,
   appwriteItemId,
@@ -82,27 +109,8 @@ async function RecentTransactionsSection({
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
 
   return (
-    <RecentTransaction
-      accounts={accounts}
-      transactions={account?.transactions}
-      appwriteItemId={appwriteItemId ?? ""}
-      page={page}
-    />
+    <RecentTransaction accounts={accounts} transactions={account?.transactions} appwriteItemId={appwriteItemId ?? ""} page={page} />
   );
-}
-
-async function RightSideBarSection({
-  user,
-  banks,
-  appwriteItemId,
-}: {
-  user: User;
-  banks: RightSidebarProps["banks"];
-  appwriteItemId?: string;
-}) {
-  const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
-
-  return <RightSideBar user={user} transactions={account?.transactions} banks={banks} />;
 }
 
 export default Home;

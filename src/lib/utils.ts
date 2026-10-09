@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import { type ClassValue, clsx } from "clsx";
 import qs from "query-string";
 import { twMerge } from "tailwind-merge";
@@ -106,72 +105,60 @@ export function formUrlQuery({ params, key, value }: UrlQueryParams) {
   );
 }
 
-export function getAccountTypeColors(type: AccountTypes) {
-  switch (type) {
-    case "depository":
-      return {
-        bg: "bg-blue-25",
-        lightBg: "bg-blue-100",
-        title: "text-blue-900",
-        subText: "text-blue-700",
-      };
+// Spend per category for one account (debits only), largest first.
+export type CategorySpend = { name: string; amount: number; count: number; share: number };
 
-    case "credit":
-      return {
-        bg: "bg-success-25",
-        lightBg: "bg-success-100",
-        title: "text-success-900",
-        subText: "text-success-700",
-      };
+export function sumTransactionCategories(transactions: Transaction[] = [], limit = 5): CategorySpend[] {
+  const totals: Record<string, { amount: number; count: number }> = {};
+  let total = 0;
 
-    default:
-      return {
-        bg: "bg-green-25",
-        lightBg: "bg-green-100",
-        title: "text-green-900",
-        subText: "text-green-700",
-      };
+  for (const t of transactions) {
+    const amount = Math.abs(Number(t.amount) || 0);
+    const isDebit = t.type === "debit" || Number(t.amount) < 0;
+    if (!isDebit || amount === 0) continue;
+
+    const name = t.category || "Other";
+    totals[name] = { amount: (totals[name]?.amount ?? 0) + amount, count: (totals[name]?.count ?? 0) + 1 };
+    total += amount;
   }
-}
 
-export function countTransactionCategories(
-  transactions: Transaction[]
-): CategoryCount[] {
-  const categoryCounts: { [category: string]: number } = {};
-  let totalCount = 0;
+  const sorted = Object.entries(totals)
+    .map(([name, { amount, count }]) => ({ name, amount, count, share: total ? amount / total : 0 }))
+    .sort((a, b) => b.amount - a.amount);
 
-  // Iterate over each transaction
-  transactions &&
-    transactions.forEach((transaction) => {
-      // Extract the category from the transaction
-      const category = transaction.category;
+  if (sorted.length <= limit) return sorted;
 
-      // If the category exists in the categoryCounts object, increment its count
-      if (categoryCounts.hasOwnProperty(category)) {
-        categoryCounts[category]++;
-      } else {
-        // Otherwise, initialize the count to 1
-        categoryCounts[category] = 1;
-      }
-
-      // Increment total count
-      totalCount++;
-    });
-
-  // Convert the categoryCounts object to an array of objects
-  const aggregatedCategories: CategoryCount[] = Object.keys(categoryCounts).map(
-    (category) => ({
-      name: category,
-      count: categoryCounts[category],
-      totalCount,
-    })
+  // Fold the tail into one "Other" entry so the chart stays readable.
+  const head = sorted.slice(0, limit - 1);
+  const rest = sorted.slice(limit - 1);
+  const other = rest.reduce(
+    (acc, c) => ({ name: "Other", amount: acc.amount + c.amount, count: acc.count + c.count, share: acc.share + c.share }),
+    { name: "Other", amount: 0, count: 0, share: 0 }
   );
-
-  // Sort the aggregatedCategories array by count in descending order
-  aggregatedCategories.sort((a, b) => b.count - a.count);
-
-  return aggregatedCategories;
+  return [...head, other];
 }
+
+// Inflow, outflow and net for a list of transactions in one currency.
+export function summarizeTransactions(transactions: Transaction[] = []) {
+  let inflow = 0;
+  let outflow = 0;
+  let credits = 0;
+  let debits = 0;
+  for (const t of transactions) {
+    const amount = Math.abs(Number(t.amount) || 0);
+    if (t.type === "debit" || Number(t.amount) < 0) {
+      outflow += amount;
+      debits++;
+    } else {
+      inflow += amount;
+      credits++;
+    }
+  }
+  return { inflow, outflow, net: inflow - outflow, credits, debits };
+}
+
+// Short label for a bank account: "Chase ••8912".
+export const maskLabel = (mask?: string) => `••${mask || "0000"}`;
 
 export function extractCustomerIdFromUrl(url: string) {
   // Split the URL string by '/'
@@ -198,16 +185,27 @@ export const getTransactionStatus = (date: Date) => {
 
   return date > twoDaysAgo ? "Processing" : "Success";
 };
-export const authFormSchema = (type : string) => z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  firstName: type==='sign-in' ? z.string().optional() : z.string().min(3),
-  lastName: type==='sign-in' ? z.string().optional() : z.string().min(3),
-  address1: type==='sign-in' ? z.string().optional() : z.string().max(50),
-  city: type==='sign-in' ? z.string().optional() : z.string().max(20),
-  state: type==='sign-in' ? z.string().optional() : z.string().min(1).max(15),
-  postalCode: type==='sign-in' ? z.string().optional() : z.string().max(8),
-  dob: type==='sign-in' ? z.string().optional() : z.string().min(3),
-  ssn: type==='sign-in' ? z.string().optional() : z.string().min(3),
+export const authFormSchema = (type: string) => {
+  const signUp = type === "sign-up";
+  const optional = () => z.string().optional();
 
-})
+  return z
+    .object({
+      email: z.string().email("Enter a valid email address"),
+      password: z.string().min(8, "Use at least 8 characters"),
+      confirmPassword: signUp ? z.string().min(1, "Repeat your password") : optional(),
+      terms: signUp ? z.boolean().refine((v) => v, "Accept the terms to continue") : z.boolean().optional(),
+      firstName: signUp ? z.string().min(2, "Enter your first name") : optional(),
+      lastName: signUp ? z.string().min(2, "Enter your last name") : optional(),
+      address1: signUp ? z.string().min(3, "Enter your street address").max(50) : optional(),
+      city: signUp ? z.string().min(2, "Enter your city").max(20) : optional(),
+      state: signUp ? z.string().min(2, "Two-letter code").max(15) : optional(),
+      postalCode: signUp ? z.string().min(3, "Enter your postal code").max(8) : optional(),
+      dob: signUp ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD") : optional(),
+      ssn: signUp ? z.string().min(4, "Last 4 digits at least") : optional(),
+    })
+    .refine((data) => !signUp || data.password === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+};

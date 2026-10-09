@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import HeaderBox from "@/components/ui/headerBox";
-import { getLoggedInUser } from "@/lib/actions/user.action";
 import { completeSetuConsent } from "@/lib/actions/setu.action";
+import { getLoggedInUser } from "@/lib/actions/user.action";
 
 // The Account Aggregator sends the customer back here after they approve or
 // reject the consent. On approval the linked accounts become bank rows.
@@ -32,12 +32,25 @@ const SetuCallback = async ({ searchParams }: SearchParamProps) => {
             : `The consent is ${result.status}. No accounts were linked.`;
 
   return (
-    <section className="flex w-full flex-col gap-8 p-8 xl:py-12">
-      <HeaderBox title="Connect Indian bank" subtext="Account Aggregator consent" />
-      <p className="text-16 text-gray-700">{message}</p>
-      <Link href="/" className="view-all-btn w-fit">
-        Back to home
-      </Link>
+    <section className="page">
+      <HeaderBox eyebrow="Gateway // Setu AA" title="Connect Indian bank" subtext="Account Aggregator consent result." />
+      <div className="panel max-w-2xl">
+        <header className="panel-head">
+          <span className="eyebrow">Consent status</span>
+          <span className={result.status === "PENDING" ? "chip-warn" : "chip-danger"}>{result.status}</span>
+        </header>
+        <div className="panel-body flex flex-col gap-4">
+          <p className="text-14 text-ink">{message}</p>
+          <div className="flex gap-2">
+            <Link href="/connect-bank" className="btn-primary">
+              Try again
+            </Link>
+            <Link href="/" className="btn-secondary">
+              Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

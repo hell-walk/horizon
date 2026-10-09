@@ -1,14 +1,13 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
+
+// Every colour is a CSS variable (RGB triplet) defined in globals.css, once for
+// light and once for dark, so a single class works in both modes.
+const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
 
 const config = {
   darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "./constants/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {
@@ -20,123 +19,96 @@ const config = {
     },
     extend: {
       colors: {
-        fill: {
-          1: "rgba(255, 255, 255, 0.10)",
+        // Surfaces, lowest (cards) to highest (pressed states).
+        surface: {
+          DEFAULT: token("surface"),
+          lowest: token("surface-lowest"),
+          low: token("surface-low"),
+          container: token("surface-container"),
+          high: token("surface-high"),
+          highest: token("surface-highest"),
         },
-        bankGradient: "#0179FE",
-        indigo: {
-          500: "#6172F3",
-          700: "#3538CD",
+        // Text.
+        ink: {
+          DEFAULT: token("on-surface"),
+          muted: token("on-surface-variant"),
+          faint: token("outline"),
+        },
+        // Borders.
+        line: {
+          DEFAULT: token("outline-variant"),
+          strong: token("outline"),
+        },
+        // Brand: black (white in dark) with a lime marker colour.
+        lime: {
+          DEFAULT: token("lime"),
+          dim: token("lime-dim"),
+          ink: token("lime-ink"),
+          foreground: token("on-lime"),
+        },
+        warn: {
+          DEFAULT: token("warn"),
+          soft: token("warn-soft"),
+        },
+        danger: {
+          DEFAULT: token("danger"),
+          soft: token("danger-soft"),
         },
         success: {
-          25: "#F6FEF9",
-          50: "#ECFDF3",
-          100: "#D1FADF",
-          600: "#039855",
-          700: "#027A48",
-          900: "#054F31",
+          DEFAULT: token("success"),
+          soft: token("success-soft"),
         },
-        pink: {
-          25: "#FEF6FB",
-          100: "#FCE7F6",
-          500: "#EE46BC",
-          600: "#DD2590",
-          700: "#C11574",
-          900: "#851651",
+        chart: {
+          1: token("chart-1"),
+          2: token("chart-2"),
+          3: token("chart-3"),
+          4: token("chart-4"),
+          5: token("chart-5"),
+          6: token("chart-6"),
         },
-        blue: {
-          25: "#F5FAFF",
-          100: "#D1E9FF",
-          500: "#2E90FA",
-          600: "#1570EF",
-          700: "#175CD3",
-          900: "#194185",
-        },
-        sky: {
-          1: "#F3F9FF",
-        },
-        black: {
-          1: "#00214F",
-          2: "#344054",
-        },
-        gray: {
-          25: "#FCFCFD",
-          200: "#EAECF0",
-          300: "#D0D5DD",
-          500: "#667085",
-          600: "#475467",
-          700: "#344054",
-          900: "#101828",
-        },
-        // shadcn/ui tokens (used by components/ui and globals.css @layer base)
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // shadcn primitives read these names; they map onto the tokens above.
+        background: token("surface"),
+        foreground: token("on-surface"),
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: token("surface-lowest"),
+          foreground: token("on-surface"),
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: token("surface-lowest"),
+          foreground: token("on-surface"),
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: token("primary"),
+          foreground: token("on-primary"),
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: token("surface-container"),
+          foreground: token("on-surface"),
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: token("surface-container"),
+          foreground: token("on-surface-variant"),
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: token("surface-high"),
+          foreground: token("on-surface"),
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: token("danger"),
+          foreground: token("surface-lowest"),
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        chart: {
-          1: "hsl(var(--chart-1))",
-          2: "hsl(var(--chart-2))",
-          3: "hsl(var(--chart-3))",
-          4: "hsl(var(--chart-4))",
-          5: "hsl(var(--chart-5))",
-        },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
-      },
-      backgroundImage: {
-        "bank-gradient": "linear-gradient(90deg, #0179FE 0%, #4893FF 100%)",
-        "gradient-mesh": "url('/icons/gradient-mesh.svg')",
-        "bank-green-gradient":
-          "linear-gradient(90deg, #01797A 0%, #489399 100%)",
-      },
-      boxShadow: {
-        form: "0px 1px 2px 0px rgba(16, 24, 40, 0.05)",
-        chart:
-          "0px 1px 3px 0px rgba(16, 24, 40, 0.10), 0px 1px 2px 0px rgba(16, 24, 40, 0.06)",
-        profile:
-          "0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)",
-        creditCard: "8px 10px 16px 0px rgba(0, 0, 0, 0.05)",
+        border: token("outline-variant"),
+        input: token("outline-variant"),
+        ring: token("primary"),
       },
       fontFamily: {
-        inter: "var(--font-inter)",
-        "ibm-plex-serif": "var(--font-ibm-plex-serif)",
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      boxShadow: {
+        card: "0 1px 0 0 rgb(var(--on-surface) / 0.04)",
+        lift: "0 8px 24px -12px rgb(var(--on-surface) / 0.25)",
       },
       keyframes: {
         "accordion-down": {
@@ -159,7 +131,7 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;
 
 export default config;

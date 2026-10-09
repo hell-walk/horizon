@@ -1,32 +1,46 @@
-import HeaderBox from '@/components/ui/headerBox'
 import type { Metadata } from "next";
-import React from 'react'
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import PaymentTransferForm from "@/components/PaymentTransferForm";
+import HeaderBox from "@/components/ui/headerBox";
+import { getAccounts } from "@/lib/actions/bank.actions";
+import { getLoggedInUser } from "@/lib/actions/user.action";
 
 export const metadata: Metadata = {
   title: "Transfer funds",
   description: "Send money between linked bank accounts.",
 };
-import { getLoggedInUser } from "@/lib/actions/user.action";
-import { redirect } from "next/navigation";
-import {/* getAccount,*/ getAccounts } from "@/lib/actions/bank.actions";
-import PaymentTransferForm from '@/components/PaymentTransferForm';
 
-const PaymentTransfer = async () => {
-   const loggedIn = await getLoggedInUser();
-   if (!loggedIn) redirect("/sign-in");
+const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
+  const { id } = await searchParams;
+  const loggedIn = await getLoggedInUser();
+  if (!loggedIn) redirect("/sign-in");
 
-    const accounts = await getAccounts({ userId: loggedIn.$id });
-    if (!accounts) return;
-    // Dwolla moves money between US accounts only, so only Plaid-linked banks can be a source.
-    const accountsData = (accounts?.data as Account[]).filter((account) => !account.provider || account.provider === "plaid");
+  const accounts = await getAccounts({ userId: loggedIn.$id });
+  const accountsData: Account[] = accounts?.data ?? [];
+
   return (
-    <section className="payment-transfer">
-      <HeaderBox title="Payment Transfer" subtext="Please Provide any specific details or notes related to the payment transfer" />
-      <section className="size-full pt-5">
-        <PaymentTransferForm accounts={accountsData}/>
-      </section>
-    </section>
-  )
-}
+    <section className="page">
+      <HeaderBox
+        eyebrow="Transfers // dispatch"
+        title="Transfer funds"
+        subtext="Send money from one of your linked accounts to another Horizon user. Four steps, one confirmation."
+      />
 
-export default PaymentTransfer 
+      {accountsData.length === 0 ? (
+        <div className="panel flex-center flex-col gap-3 p-10 text-center">
+          <p className="text-16 font-semibold text-ink">Link an account first</p>
+          <p className="max-w-md text-14 text-ink-muted">Transfers need a source account. Connect a bank to get started.</p>
+          <Link href="/connect-bank" className="btn-primary mt-2">
+            Connect a bank
+          </Link>
+        </div>
+      ) : (
+        <PaymentTransferForm accounts={accountsData} initialId={typeof id === "string" ? id : undefined} />
+      )}
+    </section>
+  );
+};
+
+export default PaymentTransfer;

@@ -1,62 +1,52 @@
-import { formatAmount } from '@/lib/utils'
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
-import Copy from './Copy'
+import Link from "next/link";
 
+import { PROVIDER_LABELS } from "@/constants";
+import { formatAmount } from "@/lib/utils";
+
+import Copy from "./Copy";
+
+// Black card for one account. Links to that account's transaction history.
 const BankCard = ({ account, userName, showBalance = true }: CreditCardProps) => {
+  const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
+
   return (
-    <div className="flex flex-col">
-      <Link href={`/transaction-history/?id=${account.appwriteItemId}`} className="bank-card" >
-        <div className="bank-card_content">
-          <div>
-            <h1 className="text-16 font-semibold text-white">
-              {account.name}
-            </h1>
-            <p className="font-ibm-plex-serif font-black text-white">
-              {formatAmount(account.currentBalance, account.currency)}
-            </p>
+    <div className="flex w-full flex-col gap-3">
+      <Link
+        href={`/transaction-history/?id=${account.appwriteItemId}`}
+        className="relative flex min-h-[190px] w-full flex-col justify-between overflow-hidden rounded-lg bg-primary p-5 text-primary-foreground transition-shadow hover:shadow-lift"
+      >
+        <span className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full border border-primary-foreground/10" />
+        <span className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full border border-primary-foreground/10" />
+
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="font-display text-14 font-bold uppercase tracking-tight">Horizon</span>
+            <span className="eyebrow truncate text-primary-foreground/60">{account.name}</span>
           </div>
-
-          <article className="flex flex-col gap-2">
-            <div className="flex justify-between">
-              <h1 className="text-12 font-semibold text-white">{userName}</h1>
-              <h2 className="text-12 font-semibold text-white">●● / ●●</h2>
-            </div>
-            <p className="text-14 font-semibold tracking-[1.1px] text-white">
-              ●●●● ●●●● ●●●● <span className="text-16">{account.mask || "0000"}</span>
-            </p>
-          </article>
+          <span className="chip border-lime bg-lime text-lime-foreground">{provider.name}</span>
         </div>
-        <div className="bank-card_icon">
-          <Image 
-          src="/icons/Paypass.svg"
-          width={20}
-          height={24}
-          alt="Contactless payment"
-          className="ml-5"
-          />
-          <Image 
-          src="/icons/mastercard.svg"
-          width={45}
-          height={32}
-          alt="Mastercard"
-          className="ml-5"
-          />
-        </div>
-        <Image 
-         src="/icons/lines.png"
-         width={316}
-         height={190}
-         alt=""
-         className="absolute top-0 left-0"
-         />
 
+        <p className="amount text-20 tracking-[0.2em]">
+          <span className="opacity-50">•••• •••• ••••</span> {account.mask || "0000"}
+        </p>
+
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="eyebrow text-primary-foreground/60">Holder</span>
+            <span className="truncate font-mono text-12 uppercase">{userName}</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="eyebrow text-primary-foreground/60">{showBalance ? "Balance" : "Currency"}</span>
+            <span className="amount text-14 font-semibold">
+              {showBalance ? formatAmount(account.currentBalance, account.currency) : account.currency || "USD"}
+            </span>
+          </div>
+        </div>
       </Link>
 
-      {showBalance && <Copy title={account?.sharableId}/>}
+      {showBalance && <Copy title={account.sharableId} />}
     </div>
-  )
-}
+  );
+};
 
-export default BankCard
+export default BankCard;

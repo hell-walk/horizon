@@ -1,21 +1,26 @@
 "use client";
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { useChartColors } from "@/lib/chartColors";
+import { formatAmount } from "@/lib/utils";
 
+ChartJS.register(ArcElement, Tooltip);
+
+// Solid doughnut: one wedge per account, all in the same currency.
 const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
-  const accountNames = accounts.map((a) => a.name);
-  const balances = accounts.map((a) => a.currentBalance);
+  const colors = useChartColors();
 
   const data = {
-    labels: accountNames,
+    labels: accounts.map((a) => a.name),
     datasets: [
       {
-        label: "Banks",
-        data: balances,
-        backgroundColor: ["#0747b6", "#2265d8", "#2f91fa"],
+        data: accounts.map((a) => Math.max(a.currentBalance, 0)),
+        backgroundColor: accounts.map((_, i) => colors.segments[i % colors.segments.length]),
+        borderColor: colors.card,
+        borderWidth: 2,
+        hoverOffset: 4,
       },
     ],
   };
@@ -24,10 +29,18 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
     <Doughnut
       data={data}
       options={{
-        cutout: "60%",
+        cutout: "68%",
+        maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false,
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: colors.text,
+            titleColor: colors.card,
+            bodyColor: colors.card,
+            displayColors: false,
+            callbacks: {
+              label: (item) => formatAmount(item.parsed, accounts[item.dataIndex]?.currency),
+            },
           },
         },
       }}

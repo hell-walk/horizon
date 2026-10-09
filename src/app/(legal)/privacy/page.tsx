@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   return (
     <>
       <h1>Privacy policy</h1>
-      <p className="text-gray-500">Last updated {UPDATED}</p>
+      <p className="eyebrow">Last updated {UPDATED}</p>
 
       <p>
         Horizon shows your bank accounts, balances and transactions in one place. This policy explains

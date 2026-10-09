@@ -165,6 +165,8 @@ declare interface HeaderBoxProps {
   title: string;
   subtext: string;
   user?: string;
+  eyebrow?: string;
+  actions?: React.ReactNode;
 }
 
 declare interface MobileNavProps {
@@ -186,7 +188,7 @@ declare interface PaginationProps {
 
 declare interface PlaidLinkProps {
   user: User;
-  variant?: "primary" | "ghost" | "add";
+  variant?: "primary" | "card";
   dwollaCustomerId?: string;
 }
 
@@ -207,6 +209,7 @@ declare interface BankDropdownProps {
   accounts: Account[];
   setValue?: UseFormSetValue<any>;
   otherStyles?: string;
+  initialId?: string;
 }
 
 declare interface BankTabItemProps {
@@ -229,12 +232,13 @@ declare interface FooterProps {
 
 declare interface RightSidebarProps {
   user: User;
-  transactions: Transaction[];
-  banks: Bank[] & Account[];
+  banks: Account[];
+  selected?: string;
 }
 
 declare interface SidebarProps {
   user: User;
+  providerCounts?: Record<string, number>;
 }
 
 declare interface RecentTransactionsProps {
@@ -267,6 +271,7 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
   accounts: Account[];
+  initialId?: string;
 }
 
 // Actions

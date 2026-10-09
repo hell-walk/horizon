@@ -22,7 +22,7 @@ export function toManualAccount(bank: Bank): Account {
     availableBalance: bank.currentBalance ?? 0,
     currentBalance: bank.currentBalance ?? 0,
     institutionId: `manual:${institution}`,
-    name: `${institution} ••${bank.accountMask ?? "0000"}`,
+    name: institution,
     officialName: `${institution} account ending ${bank.accountMask ?? "0000"} (imported statement)`,
     mask: bank.accountMask ?? "0000",
     type: "depository",

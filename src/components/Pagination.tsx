@@ -1,64 +1,30 @@
 "use client";
 
-import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
 import { formUrlQuery } from "@/lib/utils";
 
 export const Pagination = ({ page, totalPages }: PaginationProps) => {
   const router = useRouter();
   const searchParams = useSearchParams()!;
 
-  const handleNavigation = (type: "prev" | "next") => {
-    const pageNumber = type === "prev" ? page - 1 : page + 1;
-
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: "page",
-      value: pageNumber.toString(),
-    });
-
+  const go = (next: number) => {
+    const newUrl = formUrlQuery({ params: searchParams.toString(), key: "page", value: String(next) });
     router.push(newUrl, { scroll: false });
   };
 
   return (
-    <div className="flex justify-between gap-3">
-      <Button
-        size="lg"
-        variant="ghost"
-        className="p-0 hover:bg-transparent"
-        onClick={() => handleNavigation("prev")}
-        disabled={Number(page) <= 1}
-      >
-        <Image
-          src="/icons/arrow-left.svg"
-          alt="arrow"
-          width={20}
-          height={20}
-          className="mr-2"
-        />
-        Prev
-      </Button>
-      <p className="text-14 flex items-center px-2">
-        {page} / {totalPages}
+    <div className="flex items-center justify-between gap-3">
+      <button type="button" className="btn-secondary btn-sm" onClick={() => go(page - 1)} disabled={page <= 1}>
+        <ChevronLeft className="size-3.5" /> Prev
+      </button>
+      <p className="eyebrow">
+        Page <span className="text-ink">{String(page).padStart(2, "0")}</span> / {String(totalPages).padStart(2, "0")}
       </p>
-      <Button
-        size="lg"
-        variant="ghost"
-        className="p-0 hover:bg-transparent"
-        onClick={() => handleNavigation("next")}
-        disabled={Number(page) >= totalPages}
-      >
-        Next
-        <Image
-          src="/icons/arrow-left.svg"
-          alt="arrow"
-          width={20}
-          height={20}
-          className="ml-2 -scale-x-100"
-        />
-      </Button>
+      <button type="button" className="btn-secondary btn-sm" onClick={() => go(page + 1)} disabled={page >= totalPages}>
+        Next <ChevronRight className="size-3.5" />
+      </button>
     </div>
   );
 };
