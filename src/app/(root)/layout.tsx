@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import AppShell from "@/components/appShell";
+import BottomNav from "@/components/bottomNav";
+import Topbar from "@/components/topbar";
 import { getBanks, getLoggedInUser } from "@/lib/actions/user.action";
 
 // Every page in this group depends on the session cookie, so never prerender them.
@@ -13,15 +14,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   // Cached for 30s, so this costs nothing on top of the page's own call.
   const banks: Bank[] = (await getBanks({ userId: loggedIn.$id })) ?? [];
-  const providerCounts = banks.reduce<Record<string, number>>((counts, bank) => {
-    const provider = bank.provider ?? "plaid";
-    counts[provider] = (counts[provider] ?? 0) + 1;
-    return counts;
-  }, {});
 
   return (
-    <AppShell user={loggedIn} bankCount={banks.length} providerCounts={providerCounts}>
+    <main className="flex h-screen w-full flex-col overflow-hidden">
+      <Topbar user={loggedIn} bankCount={banks.length} />
       {children}
-    </AppShell>
+      <BottomNav />
+    </main>
   );
 }

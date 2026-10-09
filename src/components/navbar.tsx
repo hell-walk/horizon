@@ -17,9 +17,9 @@ const SHORT: Record<string, string> = {
 };
 
 /**
- * Floating pill navigation, ported from the Lazy I's portfolio navbar: the
- * brand chip, a hairline, then the links. A lime line sits under the active
- * link and slides between links when the route changes.
+ * Floating pill navigation, ported from the Lazy I's portfolio navbar. A lime
+ * line sits under the active link and slides between links when the route
+ * changes.
  */
 const Navbar = ({ className }: { className?: string }) => {
   const pathname = usePathname();
@@ -51,18 +51,10 @@ const Navbar = ({ className }: { className?: string }) => {
     <nav
       aria-label="Site"
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-line bg-card/80 py-1 pl-1.5 pr-1.5 shadow-lift backdrop-blur-md",
+        "inline-flex items-center rounded-full border border-line bg-card/80 px-1.5 py-1 shadow-lift backdrop-blur-md",
         className
       )}
     >
-      <Link href="/" className="group flex items-center gap-2 pr-1">
-        <span className="whitespace-nowrap rounded-full bg-primary px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary-foreground">
-          Horizon
-        </span>
-      </Link>
-
-      <span className="mx-0.5 h-5 w-px bg-line" aria-hidden="true" />
-
       <div ref={listRef} className="relative flex items-center">
         {sidebarLinks.map((item) => {
           const active = isActive(item.route);

@@ -76,8 +76,8 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
 
       {account && (
         <>
-          <div className="grid gap-3 md:grid-cols-4">
-            <article className="panel flex flex-col gap-1 p-4 md:col-span-1">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <article className="panel flex flex-col gap-1 p-4 max-md:col-span-2">
               <p className="eyebrow">Account</p>
               <p className="truncate text-16 font-semibold text-ink">{account.data.name}</p>
               <p className="eyebrow">
