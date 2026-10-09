@@ -13,6 +13,7 @@ import { signIn, signUp } from "@/lib/actions/user.action";
 import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
+import DateInput from "./dateInput";
 import ImportStatement from "./importStatement";
 import PlaidLink from "./plaidLink";
 import SetuLink from "./setuLink";
@@ -155,7 +156,7 @@ const AuthForm = ({ type }: { type: string }) => {
                       <div className="grid gap-4 sm:grid-cols-2">
                         <CustomInput control={form.control} name="firstName" label="First name" placeholder="Alex" autoComplete="given-name" />
                         <CustomInput control={form.control} name="lastName" label="Last name" placeholder="Sharma" autoComplete="family-name" />
-                        <CustomInput control={form.control} name="dob" label="Date of birth" placeholder="YYYY-MM-DD" hint="YYYY-MM-DD" autoComplete="bday" mono />
+                        <DateInput control={form.control} name="dob" label="Date of birth" hint="Type or pick" />
                         <CustomInput control={form.control} name="ssn" label="SSN / tax id" placeholder="Last 4 digits" hint="Sandbox: 1234" autoComplete="off" mono />
                       </div>
                     </Section>
@@ -171,7 +172,7 @@ const AuthForm = ({ type }: { type: string }) => {
                           <CustomInput control={form.control} name="city" label="City" placeholder="Mumbai" autoComplete="address-level2" />
                         </div>
                         <div className="sm:col-span-1">
-                          <CustomInput control={form.control} name="state" label="State" placeholder="MH" autoComplete="address-level1" />
+                          <CustomInput control={form.control} name="state" label="State" placeholder="Maharashtra" autoComplete="address-level1" />
                         </div>
                         <div className="sm:col-span-2">
                           <CustomInput control={form.control} name="postalCode" label="Postal code" placeholder="400001" autoComplete="postal-code" mono />
@@ -199,10 +200,15 @@ const AuthForm = ({ type }: { type: string }) => {
                         {[1, 2, 3].map((level) => (
                           <span
                             key={level}
-                            className={cn("h-1 flex-1 rounded-full bg-surface-container transition-colors", strength >= level && (strength === 3 ? "bg-lime" : "bg-warn"))}
+                            className={cn(
+                              "h-1 flex-1 rounded-full bg-surface-container transition-colors",
+                              strength >= level && (strength === 3 ? "bg-success" : strength === 2 ? "bg-warn" : "bg-danger")
+                            )}
                           />
                         ))}
-                        <span className="eyebrow w-16 text-right">{["Weak", "Weak", "Fair", "Strong"][strength]}</span>
+                        <span className={cn("eyebrow w-16 text-right", strength === 3 && "text-success", strength === 2 && "text-warn", strength === 1 && "text-danger")}>
+                          {["", "Weak", "Fair", "Strong"][strength]}
+                        </span>
                       </div>
                       <CustomInput control={form.control} name="confirmPassword" label="Confirm password" placeholder="Repeat the password" type="password" autoComplete="new-password" />
 
