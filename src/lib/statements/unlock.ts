@@ -75,18 +75,30 @@ export async function parseLegacyXlsRows(buffer: Buffer, password?: string): Pro
 
 type TextItem = { str: string; transform: number[]; width: number; height: number };
 type Span = { text: string; x0: number; x1: number };
+type Line = { y: number; spans: Span[] };
 
 const LINE_TOLERANCE = 2.5; // points: items this close vertically are one line
 const CELL_GAP = 6; // points: a horizontal gap wider than this starts a new cell
-const DATE_LIKE = /\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}[ -][A-Za-z]{3}[ -]\d{2,4}/;
+const WRAP_GAP = 16; // points: a line this close below a row can be its wrapped continuation
+
+// A complete date (with a year). "1 Apr" alone is not: its year is on the next line.
+const FULL_DATE = /\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}[ -][A-Za-z]{3,9}[ -,]*\d{2,4}/;
+// A money amount: "640.00", "1,24,360.00", "5,000.00 Dr".
+const AMOUNT = /^-?\(?[\d,]+\.\d{2}\)?(\s*\(?(cr|dr)\)?\.?)?$/i;
+const HEADER_WORDS = /date|desc|narration|particular|detail|remark|debit|credit|withdrawal|deposit|balance|amount/i;
 
 /**
  * Reads every page's text and rebuilds the rows of the statement table from
- * the glyph positions: items on the same baseline form a line, and a wide
- * horizontal gap between items starts a new cell. Once the header line is
- * found, every later cell is snapped to the header's column positions, so an
- * empty debit or credit column stays empty instead of shifting the row. Lines
- * that carry only text (a wrapped narration) are folded into the row above.
+ * the glyph positions:
+ * - items on the same baseline form a line; a wide gap starts a new cell;
+ * - the header is the first line with four or more cells and header words,
+ *   merged with the line under it when the titles wrap ("Txn" / "Date");
+ * - every later cell is snapped to the header's columns, so an empty debit or
+ *   credit cell keeps the row aligned;
+ * - a line just below a row with no amount and no complete date is that row
+ *   wrapping (a long narration, or a date whose year moved down), and is
+ *   merged into it cell by cell;
+ * - the header repeated on later pages is skipped.
  */
 export async function parsePdfRows(buffer: Buffer, password?: string): Promise<Cell[][]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
@@ -114,41 +126,68 @@ export async function parsePdfRows(buffer: Buffer, password?: string): Promise<C
 
   const rows: Cell[][] = [];
   let anchors: Span[] | null = null; // header cells, once found; columns keep their x across pages
-  let nameSlot = -1;
+  let headerKey = "";
 
   try {
     for (let p = 1; p <= doc.numPages; p++) {
       const page = await doc.getPage(p);
       const content = await page.getTextContent();
       const items = (content.items as TextItem[]).filter((item) => item.str && item.str.trim().length > 0);
+      const lines = toLines(items);
 
-      for (const line of toLines(items)) {
-        const spans = toSpans(line);
-        if (spans.length === 0) continue;
+      let last: { row: Cell[]; y: number } | null = null; // the row a wrapped line may belong to
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const text = line.spans.map((c) => c.text).join(" ");
 
         if (!anchors) {
-          rows.push(spans.map((c) => c.text));
-          if (spans.length >= 4 && spans.some((c) => /date/i.test(c.text))) {
-            anchors = spans;
-            nameSlot = widestSlot(spans);
+          const next = lines[i + 1];
+          const nextText = next ? next.spans.map((c) => c.text).join(" ") : "";
+          const looksLikeHeader = line.spans.length >= 4 && HEADER_WORDS.test(text) && (/date/i.test(text) || /date/i.test(nextText));
+
+          if (!looksLikeHeader) {
+            rows.push(line.spans.map((c) => c.text));
+            continue;
           }
+
+          anchors = line.spans.map((c) => ({ ...c }));
+          // Titles that wrap onto a second line join the header cell above them.
+          if (next && line.y - next.y <= WRAP_GAP && isHeaderTail(next.spans)) {
+            for (const span of next.spans) {
+              const slot = closestSlot(span, anchors);
+              anchors[slot].text = `${anchors[slot].text} ${span.text}`.trim();
+            }
+            i++;
+          }
+          headerKey = keyOf(anchors.map((a) => a.text).join(" "));
+          rows.push(anchors.map((a) => a.text));
           continue;
         }
 
-        const row = snapToColumns(spans, anchors);
-        const filled = row.filter((c) => c !== null).length;
-        const previous = rows[rows.length - 1];
-
-        // Wrapped narration: text only, no date, nothing in the number columns.
-        if (filled <= 2 && !spans.some((c) => DATE_LIKE.test(c.text)) && previous && previous.length === anchors.length) {
-          const extra = spans.map((c) => c.text).join(" ");
-          const target = nameSlot >= 0 && previous[nameSlot] !== null ? nameSlot : previous.findIndex((c) => typeof c === "string");
-          if (target >= 0) {
-            previous[target] = `${String(previous[target] ?? "")} ${extra}`.trim();
-            continue;
-          }
+        // The header again at the top of a later page (one or two lines).
+        if (headerKey.startsWith(keyOf(text)) && keyOf(text).length > 6) {
+          last = null;
+          continue;
         }
+
+        const row = snapToColumns(line.spans, anchors);
+        const hasAmount = line.spans.some((c) => AMOUNT.test(c.text));
+        const hasDate = line.spans.some((c) => FULL_DATE.test(c.text));
+
+        if (last && !hasAmount && !hasDate && last.y - line.y <= WRAP_GAP) {
+          // Wrapped continuation of the row above: join it cell by cell.
+          row.forEach((cell, slot) => {
+            if (cell === null) return;
+            const above = last!.row[slot];
+            last!.row[slot] = above === null ? cell : `${String(above)} ${cell}`;
+          });
+          last.y = line.y;
+          continue;
+        }
+
         rows.push(row);
+        last = { row, y: line.y };
       }
       page.cleanup();
     }
@@ -159,8 +198,14 @@ export async function parsePdfRows(buffer: Buffer, password?: string): Promise<C
   return rows;
 }
 
-/** Groups text items into lines by baseline, top of the page first. */
-function toLines(items: TextItem[]) {
+const keyOf = (text: string) => text.toLowerCase().replace(/[^a-z]/g, "");
+
+/** A second header line: short title words, no amounts, no dates. */
+const isHeaderTail = (spans: Span[]) =>
+  spans.length > 0 && spans.every((c) => !AMOUNT.test(c.text) && !FULL_DATE.test(c.text) && c.text.length <= 24);
+
+/** Groups text items into lines by baseline, top of the page first, then into cells. */
+function toLines(items: TextItem[]): Line[] {
   const lines: { y: number; items: TextItem[] }[] = [];
   for (const item of [...items].sort((a, b) => b.transform[5] - a.transform[5])) {
     const y = item.transform[5];
@@ -168,7 +213,9 @@ function toLines(items: TextItem[]) {
     if (line) line.items.push(item);
     else lines.push({ y, items: [item] });
   }
-  return lines.map((l) => l.items.sort((a, b) => a.transform[4] - b.transform[4]));
+  return lines
+    .map((l) => ({ y: l.y, spans: toSpans(l.items.sort((a, b) => a.transform[4] - b.transform[4])) }))
+    .filter((l) => l.spans.length > 0);
 }
 
 /** Merges neighbouring items of one line into cells, splitting on wide gaps. */
@@ -193,43 +240,33 @@ function toSpans(items: TextItem[]): Span[] {
   return spans.map((c) => ({ ...c, text: c.text.trim() })).filter((c) => c.text);
 }
 
-/** The narration column: by header name, else the widest column that is not the last. */
-function widestSlot(header: Span[]) {
-  const byName = header.findIndex((c) => /narration|description|particular|detail|remark|transaction/i.test(c.text));
-  if (byName >= 0) return byName;
-  let best = -1;
-  let width = -1;
-  header.forEach((c, i) => {
-    if (i === header.length - 1) return;
-    const w = header[i + 1].x0 - c.x0;
-    if (w > width) {
-      width = w;
-      best = i;
+/** Column boundaries run from each header cell's start to the next one's start. */
+const boundsOf = (anchors: Span[]) =>
+  anchors.map((a, i) => ({ x0: i === 0 ? -Infinity : a.x0 - CELL_GAP, x1: anchors[i + 1] ? anchors[i + 1].x0 - CELL_GAP : Infinity }));
+
+/** The header column a cell overlaps most. */
+function closestSlot(cell: Span, anchors: Span[]) {
+  let slot = 0;
+  let overlap = -Infinity;
+  boundsOf(anchors).forEach((b, i) => {
+    const o = Math.min(cell.x1, b.x1) - Math.max(cell.x0, b.x0);
+    if (o > overlap) {
+      overlap = o;
+      slot = i;
     }
   });
-  return best;
+  return slot;
 }
 
 /**
- * Places each cell in the header column it overlaps most (by its horizontal
- * extent); cells landing in the same column are joined. Missing columns stay
- * null so debit, credit and balance keep their places.
+ * Places each cell in the header column it overlaps most; cells landing in
+ * the same column are joined. Missing columns stay null so debit, credit and
+ * balance keep their places.
  */
 function snapToColumns(spans: Span[], anchors: Span[]): Cell[] {
   const row: Cell[] = anchors.map(() => null);
-  // Column boundaries run from each header cell's start to the next one's start.
-  const bounds = anchors.map((a, i) => ({ x0: i === 0 ? -Infinity : a.x0 - CELL_GAP, x1: anchors[i + 1] ? anchors[i + 1].x0 - CELL_GAP : Infinity }));
-
   for (const cell of spans) {
-    let slot = 0;
-    let overlap = -1;
-    bounds.forEach((b, i) => {
-      const o = Math.min(cell.x1, b.x1) - Math.max(cell.x0, b.x0);
-      if (o > overlap) {
-        overlap = o;
-        slot = i;
-      }
-    });
+    const slot = closestSlot(cell, anchors);
     row[slot] = row[slot] === null ? cell.text : `${String(row[slot])} ${cell.text}`;
   }
   return row;
