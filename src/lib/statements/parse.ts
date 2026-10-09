@@ -40,7 +40,7 @@ const MAX_HEADER_SCAN_ROWS = 60;
 
 export async function parseStatement({
   name,
-  buffer,
+  buffer: input,
   password,
 }: {
   name: string;
@@ -48,6 +48,7 @@ export async function parseStatement({
   password?: string; // for protected PDFs and encrypted Excel files; used once, never stored
 }): Promise<ParsedStatement> {
   const ext = name.toLowerCase().split(".").pop() ?? "";
+  const buffer = toUtf8(input);
   // Trust the bytes over the extension: banks hand out HTML tables and tab-separated
   // text under an .xls name, and some ".xlsx" files are old binary workbooks.
   const kind = sniff(buffer, ext);
@@ -70,8 +71,24 @@ export async function parseStatement({
 
   const header = findHeaderRow(rows);
   if (!header) {
+    // Show the row that looked most like a header, so an unknown layout can be added.
+    const closest = rows
+      .slice(0, MAX_HEADER_SCAN_ROWS)
+      .map((row) => row.map((c) => String(c ?? "").trim()).filter(Boolean))
+      .filter((cells) => cells.length >= 3)
+      .sort((x, y) => y.length - x.length)[0];
+    const firstLines = rows
+      .map((row) => row.map((c) => String(c ?? "").trim()).filter(Boolean).join(" "))
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((line) => line.slice(0, 60));
+    const hint = closest
+      ? ` The closest row was: ${closest.slice(0, 8).map((c) => c.slice(0, 24)).join(" | ")}.`
+      : firstLines.length
+        ? ` The file starts with: ${firstLines.join(" / ")}.`
+        : "";
     throw new StatementParseError(
-      "Could not find the transactions table. The file needs a header row with a date, a description and debit/credit or amount columns."
+      `Could not find the transactions table. The file needs a header row with a date, a description and debit/credit or amount columns.${hint}`
     );
   }
 
@@ -110,6 +127,17 @@ export function transactionHash(bankId: string, t: ParsedTransaction) {
 export type Cell = string | number | Date | null;
 
 type FileKind = "pdf" | "xlsx" | "xls" | "html" | "text" | "unknown";
+
+/** UTF-16 text exports (with a byte-order mark) become UTF-8; everything else is untouched. */
+function toUtf8(buffer: Buffer): Buffer {
+  if (buffer[0] === 0xff && buffer[1] === 0xfe) return Buffer.from(buffer.subarray(2).toString("utf16le"), "utf8");
+  if (buffer[0] === 0xfe && buffer[1] === 0xff) {
+    const swapped = Buffer.from(buffer.subarray(2));
+    swapped.swap16();
+    return Buffer.from(swapped.toString("utf16le"), "utf8");
+  }
+  return buffer;
+}
 
 /** Works out what a file really is from its first bytes, falling back to the extension. */
 function sniff(buffer: Buffer, ext: string): FileKind {
@@ -151,21 +179,19 @@ function parseHtmlTable(html: string): Cell[][] {
   return rows;
 }
 
-/** CSV or tab-separated text: whichever delimiter the first lines use more. */
+/**
+ * Delimited text: tab, comma, semicolon or pipe, whichever splits the most
+ * lines into three or more cells (amounts and addresses are full of commas,
+ * so a raw character count would pick wrongly).
+ */
 function parseDelimited(text: string): Cell[][] {
-  const sample = text.split(/\r?\n/).slice(0, 30).join("\n");
-  const tabs = (sample.match(/\t/g) ?? []).length;
-  const commas = (sample.match(/,/g) ?? []).length;
-  if (tabs > commas) {
-    return text
-      .split(/\r?\n/)
-      .filter((line) => line.trim().length)
-      .map((line) => line.split("\t").map((c) => c.trim()));
-  }
-  return parseCsv(text);
+  const lines = text.split(/\r?\n/).slice(0, 40);
+  const score = (d: string) => lines.filter((line) => line.split(d).length >= 3).length;
+  const best = ["\t", ";", "|", ","].reduce((a, b) => (score(b) > score(a) ? b : a), ",");
+  return parseCsv(text, best);
 }
 
-function parseCsv(text: string): Cell[][] {
+function parseCsv(text: string, delimiter = ","): Cell[][] {
   const rows: Cell[][] = [];
   let row: Cell[] = [];
   let field = "";
@@ -185,7 +211,7 @@ function parseCsv(text: string): Cell[][] {
       continue;
     }
     if (ch === '"') quoted = true;
-    else if (ch === ",") {
+    else if (ch === delimiter) {
       row.push(field);
       field = "";
     } else if (ch === "\n" || ch === "\r") {
@@ -263,7 +289,7 @@ function findHeaderRow(rows: Cell[][]): { index: number; columns: Columns; raw: 
     const cells = rows[i].map(norm);
     if (cells.filter(Boolean).length < 3) continue;
 
-    const date = match(cells, [/^(txn|tran|transaction|value|posting)? ?date$/, /^date/, /date$/]);
+    const date = match(cells, [/^(txn|tran|trans|transaction|value|posting|post)? ?date$/, /^date/, /date$/, /^(txn|tran|trans|value|post) dt$/]);
     const name = match(cells, [/narration/, /description/, /particular/, /details/, /remarks/, /transaction (details|remarks)/]);
     if (date < 0 || name < 0 || date === name) continue;
 
@@ -271,7 +297,7 @@ function findHeaderRow(rows: Cell[][]): { index: number; columns: Columns; raw: 
     const credit = match(cells, [/deposit/, /credit/, /^cr$/, /cr amount/, /paid in/, /money in/]);
     const amount = match(cells, [/^amount/, /transaction amount/, /^amt/]);
     const type = match(cells, [/^(dr|cr)\s*\/?\s*(dr|cr)$/, /^type$/, /^txn type$/, /^transaction type$/, /dr cr/]);
-    const balance = match(cells, [/balance/]);
+    const balance = match(cells, [/balance/, /^bal$/, /^bal\b/, /closing bal/]);
     const reference = match(cells, [/chq/, /cheque/, /ref/, /utr/, /transaction id/, /^id$/]);
 
     const hasAmounts = (debit >= 0 && credit >= 0) || amount >= 0;
@@ -387,9 +413,12 @@ export function parseAmount(cell: Cell): { value: number; marker?: string; raw: 
   const raw = String(cell ?? "").trim();
   if (!raw) return { value: 0, raw };
 
-  const marker = raw.match(/\b(cr|dr)\b\.?$/i)?.[1]?.toLowerCase();
+  const marker = raw.match(/(?:^|[\s(])(cr|dr)\.?\)?\s*$/i)?.[1]?.toLowerCase();
   const negative = /^\(.*\)$/.test(raw) || /^-/.test(raw) || /-$/.test(raw);
-  const digits = raw.replace(/[^\d.]/g, "");
+  // "640,00": a decimal comma (European exports). Indian grouping always ends in
+  // three digits ("1,24,560"), so two digits after a final comma (after any dots) is a decimal.
+  const decimalComma = raw.lastIndexOf(",") > raw.lastIndexOf(".") && /,\d{2}\D*$/.test(raw);
+  const digits = (decimalComma ? raw.replace(/\./g, "").replace(/,(?=\d{2}\D*$)/, ".") : raw).replace(/[^\d.]/g, "");
   const value = digits ? parseFloat(digits) : 0;
   return { value: negative ? -value : value, marker, raw };
 }
@@ -420,7 +449,7 @@ function detectMetadata(rows: Cell[][], fileName: string) {
 
   const institutionName = BANKS.find(([pattern]) => pattern.test(text))?.[1];
 
-  const account = text.match(/(?:a\/?c|account)\s*(?:no|number|#)?\s*[:.\-]?\s*([xX*\d]{6,20})/i)?.[1];
+  const account = text.match(/(?:a\/?c|account)\s*(?:no|number|#)?\.?\s*[:.\-]?\s*_?([xX*\d]{6,20})/i)?.[1];
   const accountMask = account?.replace(/\D/g, "").slice(-4) || undefined;
 
   const currency = /\bUSD\b|\$/.test(text) && !/\bINR\b|₹|rs\.?/i.test(text) ? "USD" : "INR";
