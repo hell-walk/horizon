@@ -31,6 +31,7 @@ export function toManualAccount(bank: Bank): Account {
     sharableId: bank.sharableId,
     currency: bank.currency ?? "INR",
     provider: MANUAL_PROVIDER,
+    cardDesign: bank.cardDesign,
   };
 }
 

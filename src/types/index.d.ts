@@ -63,6 +63,7 @@ declare type Account = {
   sharableId: string;
   currency: string; // ISO 4217, e.g. USD or INR
   provider: BankProvider;
+  cardDesign?: string; // chosen card skin id, or "auto"
 };
 
 declare type BankProvider = "plaid" | "setu" | "manual";
@@ -101,6 +102,7 @@ declare type Bank = {
   institutionName?: string; // manual: bank name typed or detected from the statement
   accountMask?: string; // manual: last 4 digits
   currentBalance?: number; // manual: closing balance of the last statement
+  cardDesign?: string; // chosen card skin id, or "auto"
 };
 
 declare type AccountTypes =

@@ -46,6 +46,7 @@ export async function toPlaidAccount(bank: Bank): Promise<Account> {
     sharableId: bank.sharableId,
     currency: accountData.balances.iso_currency_code ?? "USD",
     provider: PLAID_PROVIDER,
+    cardDesign: bank.cardDesign,
   };
 }
 
