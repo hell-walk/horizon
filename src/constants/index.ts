@@ -21,5 +21,6 @@ export const PROVIDER_LABELS: Record<string, { name: string; region: string; mod
 };
 
 // Which light/dark control the app shows: "knob" (portfolio slider with
-// labels) or "sky" (sun/moon switch). Flip here to compare.
-export const THEME_SWITCH_VARIANT: "knob" | "sky" = "sky";
+// labels), "sky" (sun/moon day-night switch) or "pill" (lucide sun/moon in a
+// sliding disc). Flip here to compare.
+export const THEME_SWITCH_VARIANT: "knob" | "sky" | "pill" = "pill";
