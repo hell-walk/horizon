@@ -7,7 +7,14 @@ import { createAdminClient } from "../server/appwrite";
 import { encryptId } from "../utils";
 import { invalidate } from "../cache";
 import { MANUAL_PROVIDER } from "../providers/manual";
-import { categorize, parseStatement, StatementParseError, StatementPasswordError, transactionHash } from "../statements/parse";
+import {
+  categorize,
+  parseStatement,
+  StatementParseError,
+  StatementPasswordError,
+  transactionHash,
+  type BalanceCheck,
+} from "../statements/parse";
 import { createBankAccount, getLoggedInUser } from "./user.action";
 
 const {
@@ -155,6 +162,7 @@ export type PreviewResult =
       closingBalance?: number;
       headers: string[];
       rows: PreviewRow[];
+      check: BalanceCheck;
     }
   | { ok: false; error: string; needsPassword?: boolean };
 
@@ -189,6 +197,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
       total: parsed.transactions.length,
       closingBalance: parsed.closingBalance,
       headers: parsed.headers.filter(Boolean),
+      check: parsed.check,
       rows: parsed.transactions.slice(0, PREVIEW_ROWS).map((t) => ({
         date: t.date,
         name: t.name,

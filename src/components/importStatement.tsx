@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
 import { cn, formatAmount } from "@/lib/utils";
 
+import BalanceCheckNote from "./balanceCheck";
 import { Input } from "./ui/input";
 
 type Props = { variant?: "primary" | "card" };
@@ -218,11 +219,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
               </tbody>
             </table>
           </div>
-          {preview.closingBalance !== undefined && (
-            <p className="border-t border-line px-3 py-2 text-12 text-ink-muted">
-              Closing balance detected: <span className="amount text-ink">{formatAmount(preview.closingBalance, preview.currency)}</span>
-            </p>
-          )}
+          <BalanceCheckNote check={preview.check} currency={preview.currency} />
         </div>
       )}
 

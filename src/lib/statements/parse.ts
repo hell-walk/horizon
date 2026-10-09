@@ -28,6 +28,7 @@ export type ParsedStatement = {
   institutionName?: string;
   currency: string;
   headers: string[];
+  check: BalanceCheck;
 };
 
 export class StatementParseError extends Error {}
@@ -38,39 +39,55 @@ const MAX_HEADER_SCAN_ROWS = 60;
 /* Entry point                                                         */
 /* ------------------------------------------------------------------ */
 
-export async function parseStatement({
-  name,
-  buffer: input,
-  password,
-}: {
+/** Which column holds what, when the user maps a layout the parser could not read. */
+export type StatementMapping = {
+  date: number;
+  name: number;
+  debit?: number;
+  credit?: number;
+  amount?: number;
+  balance?: number;
+  reference?: number;
+};
+
+type ReadInput = {
   name: string;
   buffer: Buffer;
   password?: string; // for protected PDFs and encrypted Excel files; used once, never stored
-}): Promise<ParsedStatement> {
+};
+
+/** Reads any supported file into rows of cells, before any column is interpreted. */
+export async function readStatementRows({ name, buffer: input, password }: ReadInput): Promise<Cell[][]> {
   const ext = name.toLowerCase().split(".").pop() ?? "";
   const buffer = toUtf8(input);
   // Trust the bytes over the extension: banks hand out HTML tables and tab-separated
   // text under an .xls name, and some ".xlsx" files are old binary workbooks.
   const kind = sniff(buffer, ext);
 
-  let rows: Cell[][];
-  if (kind === "pdf") {
-    rows = await parsePdfRows(buffer, password);
-  } else if (kind === "xlsx") {
+  if (kind === "pdf") return parsePdfRows(buffer, password);
+  if (kind === "xlsx") {
     const unlocked = (await isEncryptedXlsx(buffer)) ? await decryptXlsx(buffer, password) : buffer;
-    rows = await parseXlsx(unlocked);
-  } else if (kind === "xls") {
-    rows = await parseLegacyXlsRows(buffer, password);
-  } else if (kind === "html") {
-    rows = parseHtmlTable(buffer.toString("utf8"));
-  } else if (kind === "text") {
-    rows = parseDelimited(buffer.toString("utf8"));
-  } else {
-    throw new StatementParseError("Unsupported file type. Upload a .csv, .xls, .xlsx or .pdf statement.");
+    return parseXlsx(unlocked);
   }
+  if (kind === "xls") return parseLegacyXlsRows(buffer, password);
+  if (kind === "html") return parseHtmlTable(buffer.toString("utf8"));
+  if (kind === "text") return parseDelimited(buffer.toString("utf8"));
+  throw new StatementParseError("Unsupported file type. Upload a .csv, .xls, .xlsx or .pdf statement.");
+}
 
-  // A header row when there is one; otherwise the columns are worked out from the data.
-  const header = findHeaderRow(rows) ?? inferColumns(rows);
+/** Thrown when the columns cannot be worked out; the caller can offer column mapping. */
+export class StatementLayoutError extends StatementParseError {}
+
+/**
+ * Turns rows into a statement: the columns come from the user's mapping when
+ * given, else a header row, else inference from the data. Transactions are put
+ * in date order and their running balances are checked.
+ */
+export function buildStatement(rows: Cell[][], name: string, mapping?: StatementMapping): ParsedStatement {
+  const header: { index: number; columns: Columns; raw: string[] } | null = mapping
+    ? { index: -1, columns: mapping, raw: mappingLabels(mapping) }
+    : (findHeaderRow(rows) ?? inferColumns(rows));
+
   if (!header) {
     // Show the row that looked most like a header, so an unknown layout can be added.
     const closest = rows
@@ -88,20 +105,26 @@ export async function parseStatement({
       : firstLines.length
         ? ` The file starts with: ${firstLines.join(" / ")}.`
         : "";
-    throw new StatementParseError(
+    throw new StatementLayoutError(
       `Could not find the transactions table. The file needs a header row with a date, a description and debit/credit or amount columns.${hint}`
     );
   }
 
-  const transactions: ParsedTransaction[] = [];
-  for (const row of rows.slice(header.index + 1)) {
+  const inFileOrder: ParsedTransaction[] = [];
+  let firstDataRow = -1;
+  rows.slice(header.index + 1).forEach((row, i) => {
     const transaction = toTransaction(row, header.columns);
-    if (transaction) transactions.push(transaction);
-  }
+    if (!transaction) return;
+    if (firstDataRow < 0) firstDataRow = header.index + 1 + i;
+    inFileOrder.push(transaction);
+  });
 
-  transactions.sort((a, b) => a.date.localeCompare(b.date));
+  // Oldest first. Newest-first statements are reversed before the (stable) sort so
+  // payments on the same day keep their real order and the closing balance is right.
+  const newestFirst = inFileOrder.length > 1 && inFileOrder[0].date > inFileOrder[inFileOrder.length - 1].date;
+  const transactions = (newestFirst ? [...inFileOrder].reverse() : [...inFileOrder]).sort((a, b) => a.date.localeCompare(b.date));
 
-  const meta = detectMetadata(rows.slice(0, header.index + 1), name);
+  const meta = detectMetadata(rows.slice(0, Math.max(header.index + 1, firstDataRow, 0)), name);
   const withBalance = [...transactions].reverse().find((t) => t.balance !== undefined);
 
   return {
@@ -111,6 +134,73 @@ export async function parseStatement({
     institutionName: meta.institutionName,
     currency: meta.currency ?? "INR",
     headers: header.raw,
+    check: checkBalances(transactions),
+  };
+}
+
+export async function parseStatement(input: ReadInput & { mapping?: StatementMapping }): Promise<ParsedStatement> {
+  return buildStatement(await readStatementRows(input), input.name, input.mapping);
+}
+
+function mappingLabels(m: StatementMapping): string[] {
+  const width = Math.max(...Object.values(m).filter((v): v is number => typeof v === "number")) + 1;
+  const labels: string[] = Array(width).fill("");
+  labels[m.date] = "Date";
+  labels[m.name] = "Description";
+  if (m.debit !== undefined) labels[m.debit] = "Debit";
+  if (m.credit !== undefined) labels[m.credit] = "Credit";
+  if (m.amount !== undefined) labels[m.amount] = "Amount";
+  if (m.balance !== undefined) labels[m.balance] = "Balance";
+  if (m.reference !== undefined) labels[m.reference] = "Reference";
+  return labels;
+}
+
+/* ------------------------------------------------------------------ */
+/* Balance check                                                       */
+/* ------------------------------------------------------------------ */
+
+export type BalanceCheck = {
+  status: "ok" | "mismatch" | "unchecked"; // unchecked: the file carries no running balance
+  checked: number; // rows whose balance was verified against the row before
+  mismatches: { date: string; name: string; expected: number; actual: number }[];
+  opening?: number;
+  closing?: number;
+  totalIn: number;
+  totalOut: number;
+};
+
+const signed = (t: ParsedTransaction) => (t.type === "credit" ? t.amount : -t.amount);
+
+/**
+ * Proves the statement adds up: each row's balance must equal the previous
+ * balance plus money in or minus money out. A row that doesn't is either a
+ * misread amount or direction, or a missing row in between.
+ */
+export function checkBalances(transactions: ParsedTransaction[]): BalanceCheck {
+  const totalIn = round2(transactions.filter((t) => t.type === "credit").reduce((s, t) => s + t.amount, 0));
+  const totalOut = round2(transactions.filter((t) => t.type === "debit").reduce((s, t) => s + t.amount, 0));
+  const balanced = transactions.filter((t) => t.balance !== undefined);
+  if (balanced.length < 2) return { status: "unchecked", checked: 0, mismatches: [], totalIn, totalOut };
+
+  const mismatches: BalanceCheck["mismatches"] = [];
+  let checked = 0;
+  for (let i = 1; i < transactions.length; i++) {
+    const before = transactions[i - 1];
+    const now = transactions[i];
+    if (before.balance === undefined || now.balance === undefined) continue;
+    checked++;
+    const expected = round2(before.balance + signed(now));
+    if (Math.abs(expected - now.balance) > 0.01) mismatches.push({ date: now.date, name: now.name, expected, actual: now.balance });
+  }
+
+  return {
+    status: mismatches.length ? "mismatch" : "ok",
+    checked,
+    mismatches,
+    opening: round2(balanced[0].balance! - signed(balanced[0])),
+    closing: balanced[balanced.length - 1].balance,
+    totalIn,
+    totalOut,
   };
 }
 
