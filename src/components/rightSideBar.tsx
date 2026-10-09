@@ -18,7 +18,6 @@ const RightSideBar = ({ user, banks, selected, spending }: RightSidebarProps) =>
         <section className="flex flex-col gap-3">
           <CardStack accounts={banks} selected={current?.appwriteItemId} userName={`${user.firstName} ${user.lastName}`} mode="url" />
           {current && <Copy title={current.sharableId} />}
-          {banks.length > 1 && <p className="eyebrow text-center">Tap a card behind to bring it forward</p>}
         </section>
       )}
 
