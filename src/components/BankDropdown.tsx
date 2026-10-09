@@ -1,79 +1,47 @@
 "use client";
 
-import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { formUrlQuery, formatAmount } from "@/lib/utils";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { PROVIDER_LABELS } from "@/constants";
+import { formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";
 
-export const BankDropdown = ({
-  accounts = [],
-  setValue,
-  otherStyles,
-}: BankDropdownProps) => {
+export const BankDropdown = ({ accounts = [], setValue, otherStyles, initialId }: BankDropdownProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [selected, setSeclected] = useState(accounts[0]);
+  const [selected, setSelected] = useState(accounts.find((a) => a.appwriteItemId === initialId) ?? accounts[0]);
 
   const handleBankChange = (id: string) => {
-    const account = accounts.find((account) => account.appwriteItemId === id)!;
+    const account = accounts.find((a) => a.appwriteItemId === id)!;
+    setSelected(account);
 
-    setSeclected(account);
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: "id",
-      value: id,
-    });
+    const newUrl = formUrlQuery({ params: searchParams.toString(), key: "id", value: id });
     router.push(newUrl, { scroll: false });
 
-    if (setValue) {
-      setValue("senderBank", id);
-    }
+    if (setValue) setValue("senderBank", id);
   };
 
+  if (!selected) return null;
+
   return (
-    <Select
-      defaultValue={selected.id}
-      onValueChange={(value) => handleBankChange(value)}
-    >
-      <SelectTrigger
-        className={`flex w-full bg-white gap-3 md:w-[300px] ${otherStyles}`}
-      >
-        <Image
-          src="icons/credit-card.svg"
-          width={20}
-          height={20}
-          alt="account"
-        />
-        <p className="line-clamp-1 w-full text-left">{selected.name}</p>
+    <Select defaultValue={selected.appwriteItemId} onValueChange={handleBankChange}>
+      <SelectTrigger className={`field-input justify-between ${otherStyles ?? ""}`}>
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-semibold">{selected.name}</span>
+          <span className="eyebrow">{maskLabel(selected.mask)}</span>
+        </span>
       </SelectTrigger>
-      <SelectContent
-        className={`w-full bg-white md:w-[300px] ${otherStyles}`}
-        align="end"
-      >
+      <SelectContent className="border-line bg-card" align="start">
         <SelectGroup>
-          <SelectLabel className="py-2 font-normal text-gray-500">
-            Select a bank to display
-          </SelectLabel>
           {accounts.map((account: Account) => (
-            <SelectItem
-              key={account.id}
-              value={account.appwriteItemId}
-              className="cursor-pointer border-t"
-            >
-              <div className="flex flex-col ">
-                <p className="text-16 font-medium">{account.name}</p>
-                <p className="text-14 font-medium text-blue-600">
+            <SelectItem key={account.appwriteItemId} value={account.appwriteItemId} className="cursor-pointer">
+              <div className="flex flex-col">
+                <span className="text-14 font-semibold text-ink">{account.name}</span>
+                <span className="eyebrow">
+                  {maskLabel(account.mask)} · {PROVIDER_LABELS[account.provider]?.name ?? "Plaid"} ·{" "}
                   {formatAmount(account.currentBalance, account.currency)}
-                </p>
+                </span>
               </div>
             </SelectItem>
           ))}

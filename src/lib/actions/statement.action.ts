@@ -134,3 +134,64 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     return { ok: false, error: "Saving the statement failed. Check the server log for details." };
   }
 };
+
+export type PreviewRow = { date: string; name: string; amount: number; type: string; category: string; balance?: number };
+export type PreviewResult =
+  | {
+      ok: true;
+      institution?: string;
+      mask?: string;
+      currency: string;
+      total: number;
+      closingBalance?: number;
+      headers: string[];
+      rows: PreviewRow[];
+    }
+  | { ok: false; error: string };
+
+const PREVIEW_ROWS = 6;
+
+/**
+ * Parses a statement without saving anything, so the user can check that the
+ * columns were understood before importing.
+ */
+export const previewStatement = async (formData: FormData): Promise<PreviewResult> => {
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false, error: "You need to be signed in to import a statement." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
+  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 5 MB." };
+
+  try {
+    const parsed = await parseStatement({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()) });
+    if (parsed.transactions.length === 0) {
+      return {
+        ok: false,
+        error: `No transactions found. Columns detected: ${parsed.headers.filter(Boolean).join(", ") || "none"}.`,
+      };
+    }
+
+    return {
+      ok: true,
+      institution: parsed.institutionName,
+      mask: parsed.accountMask,
+      currency: parsed.currency,
+      total: parsed.transactions.length,
+      closingBalance: parsed.closingBalance,
+      headers: parsed.headers.filter(Boolean),
+      rows: parsed.transactions.slice(0, PREVIEW_ROWS).map((t) => ({
+        date: t.date,
+        name: t.name,
+        amount: t.amount,
+        type: t.type,
+        category: categorize(t.name),
+        balance: t.balance,
+      })),
+    };
+  } catch (error) {
+    if (error instanceof StatementParseError) return { ok: false, error: error.message };
+    console.error("[statement] preview failed", error);
+    return { ok: false, error: "The file could not be read. Export it again as CSV or XLSX and retry." };
+  }
+};

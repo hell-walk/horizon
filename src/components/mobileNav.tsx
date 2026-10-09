@@ -1,86 +1,56 @@
 "use client";
 
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { sidebarLinks } from "@/constants";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Footer from "./footer";
 
+import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { sidebarLinks } from "@/constants";
+import { cn } from "@/lib/utils";
+
+import Footer from "./footer";
+import Logo from "./logo";
+
+// Slide-in menu for screens narrower than the sidebar breakpoint.
 const MobileNav = ({ user }: MobileNavProps) => {
   const pathname = usePathname();
 
   return (
-    <section className="w-full max-w-[264px]">
-      <Sheet>
-        <SheetTrigger>
-          <Image
-            src="/icons/hamburger.svg"
-            width={20}
-            height={20}
-            alt="menu icon"
-            className="cursor-pointer"
-          />
-        </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col border-none bg-white">
-          <Link href="/" className="mb-12 flex cursor-pointer items-center gap-2">
-            <Image
-              src="/icons/logo.svg"
-              width={34}
-              height={34}
-              alt="Horizon logo"
-              className="size-[24px] max-xl:size-14"
-            />
-            
-          </Link>
+    <Sheet>
+      <SheetTrigger
+        aria-label="Open menu"
+        className="flex-center size-9 rounded-md border border-line bg-card text-ink-muted hover:bg-surface-container hover:text-ink"
+      >
+        <Menu className="size-5" />
+      </SheetTrigger>
+      <SheetContent side="left" className="flex w-[300px] flex-col gap-6 border-line bg-surface-low p-5">
+        <SheetTitle className="sr-only">Navigation</SheetTitle>
+        <Logo />
 
-          <div className="mobilenav-sheet !h-auto min-h-0 flex-1">
-            <SheetClose asChild>
-              <nav className="flex h-full flex-col gap-6 pt-16 text-white">
-                {sidebarLinks.map((item) => {
-                  const isActive =
-                    pathname === item.route ||
-                    pathname.startsWith(`${item.route}/`);
+        <nav className="flex flex-1 flex-col gap-1">
+          {sidebarLinks.map((item, index) => {
+            const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`);
+            const Icon = item.icon;
+            return (
+              <SheetClose asChild key={item.route}>
+                <Link
+                  href={item.route}
+                  className={cn("sidebar-link justify-between", { "sidebar-link-active": isActive })}
+                >
+                  <span className="flex items-center gap-3">
+                    <Icon className="size-[18px]" strokeWidth={1.75} />
+                    {item.label}
+                  </span>
+                  <span className="font-mono text-[10px] opacity-50">{String(index + 1).padStart(2, "0")}</span>
+                </Link>
+              </SheetClose>
+            );
+          })}
+        </nav>
 
-                  return (
-                    <SheetClose asChild key={item.route}>
-                      <Link
-                        href={item.route}
-                        className={cn("mobilenav-sheet_close w-full", {
-                          "bg-bank-gradient": isActive,
-                        })}
-                      >
-                        <Image
-                          src={item.imgURL}
-                          alt={item.label}
-                          width={20}
-                          height={20}
-                          className={cn({ "brightness-[3] invert-0": isActive })}
-                        />
-                        <p
-                          className={cn("text-16 font-semibold text-black-2", {
-                            "text-white": isActive,
-                          })}
-                        >
-                          {item.label}
-                        </p>
-                      </Link>
-                    </SheetClose>
-                  );
-                })}
-              </nav>
-            </SheetClose>
-            <Footer user={user} type="mobile"/>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </section>
+        <Footer user={user} type="mobile" />
+      </SheetContent>
+    </Sheet>
   );
 };
 

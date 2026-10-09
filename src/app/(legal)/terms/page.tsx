@@ -12,7 +12,7 @@ export default function TermsPage() {
   return (
     <>
       <h1>Terms &amp; conditions</h1>
-      <p className="text-gray-500">Last updated {UPDATED}</p>
+      <p className="eyebrow">Last updated {UPDATED}</p>
 
       <p>By creating an account or using Horizon you agree to these terms.</p>
 

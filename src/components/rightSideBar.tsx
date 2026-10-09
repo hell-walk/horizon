@@ -1,72 +1,68 @@
+import { PlugZap } from "lucide-react";
+import Link from "next/link";
 
-import React from 'react'
-import BankCard from './bankCard';
-import PlaidLink from './plaidLink';
-import { countTransactionCategories } from '@/lib/utils';
-import Category from './Category';
+import { PROVIDER_LABELS } from "@/constants";
 
-const RightSideBar = ({ user, transactions, banks }: RightSidebarProps) => {
+import BankCard from "./bankCard";
+import BankInfo from "./BankInfo";
 
-  const categories: CategoryCount[] = countTransactionCategories(transactions)
+// Right column on Home: the selected account's card, the profile, and every linked account.
+const RightSideBar = ({ user, banks, selected }: RightSidebarProps) => {
+  const card = banks.find((b) => b.appwriteItemId === selected) ?? banks[0];
 
   return (
-    <aside className="right-sidebar">
-      <section className="flex flex-col pb-8">
-        <div className="profile-banner" />
-        <div className="profile">
-          <div className="profile-img">
-            <span className="text-5xl font-bold text-blue-500">
-              {user.name[0]}
-            </span>
-          </div>
-          <div className="profile-details">
-            <h1 className="profile-name">
-              {user.name}
-            </h1>
-            <p className="profile-email">
-              {user.email}
-            </p>
-          </div>
-        </div>
-      </section>
+    <aside className="flex w-full flex-col gap-4 xl:w-[340px] xl:shrink-0">
+      {card && <BankCard account={card} userName={`${user.firstName} ${user.lastName}`} />}
 
-      <section className="banks">
-        <div className="flex w-full justify-between">
-          <h2 className="header-2">My Banks</h2>
-          <PlaidLink user={user} variant="add" />
-        </div>
-        {banks?.length > 0 && (
-          <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
-            <div className="relative z-10">
-              <BankCard
-                key={banks[0].$id}
-                account={banks[0]}
-                userName={user.name}
-                showBalance={false}
-              />
-            </div>
-            {banks[1] && (
-              <div className="absolute right-0 top-8 z-0 w-[90%]">
-                <BankCard
-                  key={banks[1].$id}
-                  account={banks[1]}
-                  userName={user.name}
-                  showBalance={false}
-                />
-              </div>
+      <section className="panel">
+        <header className="panel-head">
+          <span className="eyebrow">Profile</span>
+          <span className="chip-lime">Verified</span>
+        </header>
+        <div className="panel-body flex items-center gap-4">
+          <div className="flex-center size-12 shrink-0 rounded-sm bg-primary font-display text-18 font-bold text-primary-foreground">
+            {user.firstName?.[0]}
+            {user.lastName?.[0]}
+          </div>
+          <div className="flex min-w-0 flex-col">
+            <p className="truncate text-16 font-semibold text-ink">
+              {user.firstName} {user.lastName}
+            </p>
+            <p className="truncate text-12 text-ink-muted">{user.email}</p>
+            {user.city && (
+              <p className="eyebrow mt-1">
+                {user.city}
+                {user.state ? `, ${user.state}` : ""}
+              </p>
             )}
           </div>
-        )}
-
-        <div className="mt-10 flex flex-1 flex-col gap-6">
-          <h2 className="header-2">Top Categories</h2>
-          <div className="space-y-5">{categories.map((category, index) => (<Category key={category.name} category={category} />))}</div>
         </div>
       </section>
 
+      <section className="panel">
+        <header className="panel-head">
+          <span className="eyebrow">Linked accounts</span>
+          <span className="eyebrow text-ink">{String(banks.length).padStart(2, "0")}</span>
+        </header>
+        <div className="panel-body flex flex-col gap-2">
+          {banks.map((bank) => (
+            <BankInfo key={bank.appwriteItemId} account={bank} appwriteItemId={selected} type="card" />
+          ))}
+          {banks.length === 0 && <p className="text-14 text-ink-muted">No accounts linked yet.</p>}
 
+          <Link href="/connect-bank" className="btn-secondary mt-2 w-full">
+            <PlugZap className="size-4" /> Connect another bank
+          </Link>
+
+          <p className="eyebrow mt-1 text-center">
+            {Object.values(PROVIDER_LABELS)
+              .map((p) => p.name)
+              .join(" · ")}
+          </p>
+        </div>
+      </section>
     </aside>
-  )
-}
+  );
+};
 
-export default RightSideBar
+export default RightSideBar;

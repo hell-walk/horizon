@@ -353,7 +353,7 @@ function detectMetadata(rows: Cell[][], fileName: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Categories (keys match transactionCategoryStyles in constants)      */
+/* Categories shown as chips in the transaction table                  */
 /* ------------------------------------------------------------------ */
 
 const CATEGORY_RULES: [RegExp, string][] = [

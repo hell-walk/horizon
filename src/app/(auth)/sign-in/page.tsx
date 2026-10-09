@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 import AuthForm from '@/components/authForm'
 const SignIn = () => {
   return (
-    <section className="flex-center size-full max-sm:px-6">
+    <section className="flex w-full justify-center">
       <AuthForm type="sign-in" />
     </section>
   )

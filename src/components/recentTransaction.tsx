@@ -1,67 +1,48 @@
-import Link from 'next/link'
-import React from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import TransactionTable from "@/components/transactionTable"
+import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
-import { BankTabItem } from './BankTabItem'
-import BankInfo from './BankInfo'
-import { Pagination } from './Pagination'
+import TransactionTable from "@/components/transactionTable";
 
+import { BankTabItem } from "./BankTabItem";
+import { Pagination } from "./Pagination";
+
+const ROWS_PER_PAGE = 10;
+
+// Latest activity for the selected account, with a chip per account to switch.
 const RecentTransaction = ({ accounts, transactions = [], appwriteItemId, page = 1 }: RecentTransactionsProps) => {
+  const totalPages = Math.ceil(transactions.length / ROWS_PER_PAGE);
+  const start = (page - 1) * ROWS_PER_PAGE;
+  const current = transactions.slice(start, start + ROWS_PER_PAGE);
 
-    const rowsPerPage = 10;
-    const totalPages = Math.ceil(transactions.length / rowsPerPage)
-    const indexOfLastTransaction = page * rowsPerPage
-    const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage
-    const currentTransaction = transactions.slice(indexOfFirstTransaction, indexOfLastTransaction)
+  return (
+    <section className="panel">
+      <header className="panel-head">
+        <div className="flex items-center gap-2">
+          <span className="eyebrow">Activity</span>
+          <span className="eyebrow text-ink">{"// recent"}</span>
+        </div>
+        <Link href={`/transaction-history/?id=${appwriteItemId}`} className="btn-ghost btn-sm -mr-2">
+          View all <ArrowUpRight className="size-3.5" />
+        </Link>
+      </header>
 
-    return (
-        <section className="recent-transactions">
-            <header className="flex items-center justify-between">
-                <h2 className="recent-transactions-label"> Recent Transactions</h2>
-                <Link href={`/transaction-history/?id=${appwriteItemId}`} className="view-all-btn">
-                    View All
-                </Link>
-            </header>
-            <Tabs defaultValue={appwriteItemId} className="w-full">
-                <TabsList className="recent-transactions-tablist">
-                    {accounts.map((account: Account) => (
-                        <TabsTrigger key={account.id} value={account.appwriteItemId} >
-                            <BankTabItem
-                                key={account.id}
-                                account={account}
-                                appwriteItemId={appwriteItemId}
-                            />
+      {accounts.length > 1 && (
+        <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-line px-4 py-3">
+          {accounts.map((account: Account) => (
+            <BankTabItem key={account.appwriteItemId} account={account} appwriteItemId={appwriteItemId} />
+          ))}
+        </div>
+      )}
 
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-                {accounts.map((account: Account) => (
-                    <TabsContent
-                        value={account.appwriteItemId}
-                        key={account.id}
-                        className="space-y-4"
-                    >
-                        <BankInfo
-                            account={account}
-                            appwriteItemId={appwriteItemId}
-                            type="full"
-                        />
-                        <TransactionTable
-                            transactions={currentTransaction}
-                        />
+      <TransactionTable transactions={current} />
 
-                        {totalPages > 1 && (
-                            <div className="my-4 w-full">
-                                <Pagination totalPages={totalPages} page={page} />
-                            </div>
-                        )}
+      {totalPages > 1 && (
+        <div className="border-t border-line px-4 py-3">
+          <Pagination totalPages={totalPages} page={page} />
+        </div>
+      )}
+    </section>
+  );
+};
 
-                    </TabsContent>
-                ))}
-            </Tabs>
-        </section>
-    )
-}
-
-export default RecentTransaction
+export default RecentTransaction;

@@ -1,37 +1,30 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { cn, formUrlQuery } from "@/lib/utils";
+import { cn, formUrlQuery, maskLabel } from "@/lib/utils";
 
+// Chip-style tab for switching the selected account.
 export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isActive = appwriteItemId === account?.appwriteItemId;
 
   const handleBankChange = () => {
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: "id",
-      value: account?.appwriteItemId,
-    });
+    const newUrl = formUrlQuery({ params: searchParams.toString(), key: "id", value: account?.appwriteItemId });
     router.push(newUrl, { scroll: false });
   };
 
   return (
     <div
       onClick={handleBankChange}
-      className={cn(`banktab-item`, {
-        " border-blue-600": isActive,
-      })}
+      className={cn(
+        "flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors",
+        isActive ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card text-ink-muted hover:bg-surface-container"
+      )}
     >
-      <p
-        className={cn(`text-16 line-clamp-1 flex-1 font-medium text-gray-500`, {
-          " text-blue-600": isActive,
-        })}
-      >
-        {account.name}
-      </p>
+      <span className="max-w-[140px] truncate">{account.name}</span>
+      <span className="opacity-60">{maskLabel(account.mask)}</span>
     </div>
   );
 };

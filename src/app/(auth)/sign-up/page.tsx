@@ -7,10 +7,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 import AuthForm from '@/components/authForm'
-import { getLoggedInUser } from '@/lib/actions/user.action';
 const SignUp = async () => {
   return (
-    <section className="flex-center size-full max-sm:px-6">
+    <section className="flex w-full justify-center">
       <AuthForm type="sign-up" />
     </section>
   )

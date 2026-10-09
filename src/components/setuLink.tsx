@@ -1,16 +1,16 @@
 "use client";
 
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
-import { Loader2 } from "lucide-react";
 
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { createSetuConsent } from "@/lib/actions/setu.action";
+import { cn } from "@/lib/utils";
+
+import { Input } from "./ui/input";
 
 type Props = {
   user: User;
-  variant?: "primary" | "ghost" | "default";
+  variant?: "primary" | "card";
 };
 
 /**
@@ -18,7 +18,7 @@ type Props = {
  * Setu consent on the server and sends the browser to the AA approval page.
  * The AA redirects back to /setu/callback when the customer is done.
  */
-const SetuLink = ({ user, variant = "default" }: Props) => {
+const SetuLink = ({ user, variant = "card" }: Props) => {
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,38 +41,26 @@ const SetuLink = ({ user, variant = "default" }: Props) => {
     }
   };
 
-  const label = "Connect Indian bank";
-
-  const trigger =
-    variant === "primary" ? (
-      <Button onClick={() => setOpen((v) => !v)} className="plaidlink-primary">
-        {label}
-      </Button>
-    ) : variant === "ghost" ? (
-      <Button onClick={() => setOpen((v) => !v)} variant="ghost" className="plaidlink-ghost">
-        <Image src="/icons/connect-bank.svg" alt="connect bank" width={24} height={24} />
-        <p className="hidden text-[16px] font-semibold text-black-2 xl:block">{label}</p>
-      </Button>
-    ) : (
-      <Button onClick={() => setOpen((v) => !v)} className="plaidlink-default">
-        <Image src="/icons/connect-bank.svg" alt="connect bank" width={24} height={24} />
-        <p className="text-[16px] font-semibold text-black-2">{label}</p>
-      </Button>
-    );
-
   return (
-    <div className="flex w-full flex-col gap-2">
-      {trigger}
+    <div className="flex w-full flex-col gap-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(variant === "primary" ? "btn-accent h-12 w-full" : "btn-accent w-full")}
+        aria-expanded={open}
+      >
+        Authenticate via Setu AA <ArrowRight className="size-4" />
+      </button>
 
       {open && (
         <form
-          className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3"
+          className="flex flex-col gap-3 rounded-md border border-line bg-surface-low p-3"
           onSubmit={(e) => {
             e.preventDefault();
             start();
           }}
         >
-          <label className="text-12 font-medium text-gray-700" htmlFor="setu-mobile">
+          <label className="field-label" htmlFor="setu-mobile">
             Mobile number registered with your bank
           </label>
           <Input
@@ -81,21 +69,21 @@ const SetuLink = ({ user, variant = "default" }: Props) => {
             placeholder="10-digit mobile"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
-            className="input-class"
+            className="field-input font-mono"
             autoComplete="tel-national"
           />
-          {error && <p className="form-message">{error}</p>}
-          <Button type="submit" disabled={loading || mobile.trim().length < 10} className="form-btn">
+          {error && <p className="field-error">{error}</p>}
+          <button type="submit" disabled={loading || mobile.trim().length < 10} className="btn-primary">
             {loading ? (
               <>
-                <Loader2 size={18} className="animate-spin" /> &nbsp;Starting...
+                <Loader2 className="size-4 animate-spin" /> Starting
               </>
             ) : (
-              "Continue"
+              "Continue to Account Aggregator"
             )}
-          </Button>
-          <p className="text-12 text-gray-500">
-            You will be taken to your Account Aggregator to approve sharing with {user.firstName ?? "Horizon"}.
+          </button>
+          <p className="field-hint">
+            You will approve sharing with {user.firstName ?? "Horizon"} on the Account Aggregator, then return here.
           </p>
         </form>
       )}

@@ -1,91 +1,83 @@
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { transactionCategoryStyles } from "@/constants"
-import { cn, formatAmount, formatDateTime, getTransactionStatus, removeSpecialCharacters } from "@/lib/utils"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn, formatAmount, formatDateTime, getTransactionStatus, removeSpecialCharacters } from "@/lib/utils";
 
-const CategoryBadge = ({ category }: CategoryBadgeProps) => {
-  const {
-    borderColor,
-    backgroundColor,
-    textColor,
-    chipBackgroundColor,
-   } = transactionCategoryStyles[category as keyof typeof transactionCategoryStyles] || transactionCategoryStyles.default
-   
+const CategoryBadge = ({ category }: CategoryBadgeProps) => <span className="chip">{category}</span>;
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const settled = status === "Success";
   return (
-    <div className={cn('category-badge', borderColor, chipBackgroundColor)}>
-      <div className={cn('size-2 rounded-full', backgroundColor)} />
-      <p className={cn('text-[12px] font-medium', textColor)}>{category}</p>
-    </div>
-  )
-} 
+    <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+      <span className={cn("dot", settled ? "bg-lime" : "bg-warn")} />
+      {settled ? "Settled" : "Processing"}
+    </span>
+  );
+};
 
 const TransactionsTable = ({ transactions }: TransactionTableProps) => {
+  if (transactions.length === 0) {
+    return (
+      <div className="flex-center h-32 rounded-md border border-dashed border-line text-14 text-ink-muted">
+        No transactions for this account yet.
+      </div>
+    );
+  }
+
   return (
     <Table>
-      <TableHeader className="bg-[#f9fafb]">
-        <TableRow>
-          <TableHead className="px-2">Transaction</TableHead>
-          <TableHead className="px-2">Amount</TableHead>
-          <TableHead className="px-2">Status</TableHead>
-          <TableHead className="px-2">Date</TableHead>
-          <TableHead className="px-2 max-md:hidden">Channel</TableHead>
-          <TableHead className="px-2 max-md:hidden">Category</TableHead>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="eyebrow h-9 px-3">Transaction</TableHead>
+          <TableHead className="eyebrow h-9 px-3 max-md:hidden">Category</TableHead>
+          <TableHead className="eyebrow h-9 px-3">Date</TableHead>
+          <TableHead className="eyebrow h-9 px-3 max-lg:hidden">Status</TableHead>
+          <TableHead className="eyebrow h-9 px-3 text-right">Amount</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {transactions.map((t: Transaction) => {
-          const status = getTransactionStatus(new Date(t.date))
-          const amount = formatAmount(t.amount, t.currency)
-
-          const isDebit = t.type === 'debit';
-          const isCredit = t.type === 'credit';
+          const status = getTransactionStatus(new Date(t.date));
+          const isDebit = t.type === "debit" || Number(t.amount) < 0;
+          const amount = formatAmount(Math.abs(Number(t.amount) || 0), t.currency);
+          const when = formatDateTime(new Date(t.date));
+          const hasTime = /T\d/.test(t.date);
 
           return (
-            <TableRow key={t.id} className={`${isDebit || amount[0] === '-' ? 'bg-[#FFFBFA]' : 'bg-[#F6FEF9]'} hover:bg-none border-b`}>
-              <TableCell className="max-w-[250px] pl-2 pr-10">
+            <TableRow key={t.id} className={cn("border-line", isDebit ? "row-debit" : "row-credit")}>
+              <TableCell className="max-w-[260px] px-3 py-3">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-14 truncate font-semibold text-[#344054]">
-                    {removeSpecialCharacters(t.name)}
-                  </h1>
+                  <span className={cn("dot", isDebit ? "bg-danger" : "bg-success")} />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-14 font-semibold text-ink">{removeSpecialCharacters(t.name)}</span>
+                    <span className="eyebrow truncate">{t.paymentChannel || "other"}</span>
+                  </div>
                 </div>
               </TableCell>
 
-              <TableCell className={`pl-2 pr-10 font-semibold ${
-                isDebit || amount[0] === '-' ?
-                  'text-[#f04438]'
-                  : 'text-[#039855]'
-              }`}>
-                {isDebit ? `-${amount}` : isCredit ? amount : amount}
+              <TableCell className="px-3 py-3 max-md:hidden">
+                <CategoryBadge category={t.category || "Other"} />
               </TableCell>
 
-              <TableCell className="pl-2 pr-10">
-                <CategoryBadge category={status} /> 
+              <TableCell className="min-w-28 px-3 py-3">
+                <div className="flex flex-col">
+                  <span className="font-mono text-12 text-ink">{when.dateOnly}</span>
+                  {hasTime && <span className="eyebrow">{when.timeOnly}</span>}
+                </div>
               </TableCell>
 
-              <TableCell className="min-w-32 pl-2 pr-10">
-                {formatDateTime(new Date(t.date)).dateTime}
+              <TableCell className="px-3 py-3 max-lg:hidden">
+                <StatusBadge status={status} />
               </TableCell>
 
-              <TableCell className="pl-2 pr-10 capitalize min-w-24">
-               {t.paymentChannel}
-              </TableCell>
-
-              <TableCell className="pl-2 pr-10 max-md:hidden">
-               <CategoryBadge category={t.category} /> 
+              <TableCell className={cn("amount px-3 py-3 text-right text-14 font-semibold", isDebit ? "text-danger" : "text-success")}>
+                {isDebit ? "-" : "+"}
+                {amount}
               </TableCell>
             </TableRow>
-          )
+          );
         })}
       </TableBody>
     </Table>
-  )
-}
+  );
+};
 
-export default TransactionsTable
+export default TransactionsTable;
