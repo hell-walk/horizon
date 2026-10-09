@@ -26,7 +26,7 @@ const FILTERS = [
 ] as const;
 
 const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
-  const { id, page, type } = await searchParams;
+  const { id, page, type, from } = await searchParams;
   const currentPage = Number(page as string) || 1;
   const filter = type === "credit" || type === "debit" ? type : "all";
 
@@ -98,7 +98,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
           </div>
 
           <div id="payees" className="scroll-mt-6">
-            <PayeePanel groups={groupByPayee(all, 8)} currency={currency} />
+            <PayeePanel groups={groupByPayee(all, 8)} currency={currency} arrive={from === "chart"} />
           </div>
 
           <section className="panel">

@@ -19,7 +19,7 @@ const ALL = "__all__";
  * or a row to list that payee's payments underneath, or "View all" to list
  * every payment with its payee.
  */
-const PayeePanel = ({ groups, currency }: { groups: PayeeSpend[]; currency?: string }) => {
+const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]; currency?: string; arrive?: boolean }) => {
   const colors = useChartColors();
   const [selected, setSelected] = useState<string | null>(null);
   const total = groups.reduce((s, g) => s + g.amount, 0);
@@ -68,7 +68,7 @@ const PayeePanel = ({ groups, currency }: { groups: PayeeSpend[]; currency?: str
       </header>
 
       <div className="panel-body grid gap-6 md:grid-cols-[220px_1fr] md:items-start">
-        <div className="relative mx-auto size-[200px] md:size-[220px]">
+        <div className={cn("relative mx-auto size-[200px] md:size-[220px]", arrive && "chart-arrive")}>
           {groups.length > 0 ? (
             <Doughnut
               data={data}
