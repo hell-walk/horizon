@@ -328,20 +328,13 @@
 
   /* App shell */
   .page {
-    @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-7;
+    @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto px-4 pb-28 pt-5 sm:px-6 md:pb-7 lg:px-8 lg:py-7;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .page-header {
     @apply flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
-  }
-
-  .sidebar {
-    @apply sticky left-0 top-0 flex h-screen w-fit flex-col justify-between border-r border-line bg-surface-low pt-6 max-md:hidden sm:px-3 xl:w-[248px] xl:px-4;
-  }
-  .sidebar-link {
-    @apply flex items-center gap-3 rounded-md px-3 py-2.5 text-14 font-medium text-ink-muted transition-colors hover:bg-surface-container hover:text-ink xl:justify-between;
-  }
-  .sidebar-link-active {
-    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
   }
 
   /* Transaction rows */
