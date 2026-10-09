@@ -1,3 +1,5 @@
+import { isPersonPayment, PEOPLE_GROUP } from "./payees";
+
 // Plain-language spending buckets. Every debit lands in one bucket that a
 // non-finance person recognises: what it was for when the merchant is known
 // (Food, Shopping, Bills...), otherwise how it was paid (UPI, Card, Bank
@@ -25,7 +27,7 @@ const PURPOSE: Rule[] = [
 
 // Then the rail, in words people use.
 const METHOD: Rule[] = [
-  ["UPI", /\bupi\b|@ok|@ybl|@paytm|@axl|@ibl|@apl|\bvpa\b|phonepe|gpay|google\s*pay|paytm|bhim/i],
+  [PEOPLE_GROUP, /\bupi\b|@ok|@ybl|@paytm|@axl|@ibl|@apl|\bvpa\b|phonepe|gpay|google\s*pay|paytm|bhim/i],
   ["Card", /\bpos\b|\bcard\b|\bvisa\b|mastercard|rupay|\becom\b/i],
   ["Bank transfer", /\bneft\b|\bimps\b|\brtgs\b|\bach\b|\bnach\b|transfer|\btrf\b|\bft\b|\bchq\b|cheque/i],
 ];
@@ -46,13 +48,20 @@ const FROM_CATEGORY: Record<string, string> = {
   rent: "Rent",
 };
 
+// Categories that say nothing about what was bought (the statement parser's default is "Transfer").
+const GENERIC_CATEGORIES = new Set(["", "transfer", "payment", "other", "bank fees"]);
+
 /** The plain-language bucket a debit belongs to. */
 export function spendType(t: Pick<Transaction, "name" | "category" | "paymentChannel">): string {
   const text = t.name ?? "";
   for (const [name, pattern] of PURPOSE) if (pattern.test(text)) return name;
   for (const [name, pattern] of METHOD) if (pattern.test(text)) return name;
 
-  const fromCategory = FROM_CATEGORY[(t.category ?? "").toLowerCase()];
+  // A bare person's name with only a generic category: money sent to someone.
+  const category = (t.category ?? "").toLowerCase();
+  if (GENERIC_CATEGORIES.has(category) && isPersonPayment(text)) return PEOPLE_GROUP;
+
+  const fromCategory = FROM_CATEGORY[category];
   if (fromCategory) return fromCategory;
   if (t.paymentChannel === "in store") return "Card";
   return "Other";

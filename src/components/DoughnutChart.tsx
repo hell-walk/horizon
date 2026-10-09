@@ -3,7 +3,7 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
-import { useChartColors } from "@/lib/chartColors";
+import { ENTRANCE, useChartColors } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);
@@ -31,6 +31,7 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
       options={{
         cutout: "68%",
         maintainAspectRatio: false,
+        animation: ENTRANCE,
         plugins: {
           legend: { display: false },
           tooltip: {

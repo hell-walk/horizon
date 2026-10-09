@@ -5,8 +5,8 @@ import { List, X } from "lucide-react";
 import { useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 
-import { CHART_COLOR_CLASSES } from "@/constants";
-import { useChartColors } from "@/lib/chartColors";
+import { chartColorClass } from "@/constants";
+import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
 import { payeeName, type PayeeSpend } from "@/lib/payees";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
     datasets: [
       {
         data: groups.map((g) => g.amount),
-        backgroundColor: groups.map((g, i) => (active && g.key !== active.key ? colors.track : colors.segments[i % colors.segments.length])),
+        backgroundColor: groups.map((g, i) => (active && g.key !== active.key ? colors.track : segmentColor(colors, g.name, i))),
         borderColor: colors.card,
         borderWidth: 2,
         hoverOffset: 6,
@@ -75,6 +75,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
               options={{
                 cutout: "62%",
                 maintainAspectRatio: false,
+                animation: ENTRANCE,
                 onClick: (_, elements) => {
                   const index = elements[0]?.index;
                   if (index === undefined) return;
@@ -124,7 +125,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
                   className={cn("flex w-full items-center justify-between gap-3 py-2.5 text-left transition-colors hover:bg-surface-low", isActive && "bg-surface-low")}
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className={cn("size-2.5 shrink-0 rounded-sm", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])} />
+                    <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(g.name, i))} />
                     <span className="flex min-w-0 flex-col">
                       <span className="truncate text-14 font-semibold text-ink">{g.name}</span>
                       <span className="eyebrow">

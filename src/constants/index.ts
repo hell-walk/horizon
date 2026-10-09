@@ -13,6 +13,10 @@ export const sidebarLinks = [
 // Chart segment classes, in the order accounts and categories are drawn.
 export const CHART_COLOR_CLASSES = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-chart-6"];
 
+/** Colour class for a chart segment: "Other" is always neutral, the rest cycle the palette. */
+export const chartColorClass = (name: string, index: number) =>
+  name === "Other" ? "bg-chart-other" : CHART_COLOR_CLASSES[index % CHART_COLOR_CLASSES.length];
+
 // Labels for the three ways a bank can be linked.
 export const PROVIDER_LABELS: Record<string, { name: string; region: string; mode: string }> = {
   plaid: { name: "Plaid", region: "US", mode: "Sandbox" },

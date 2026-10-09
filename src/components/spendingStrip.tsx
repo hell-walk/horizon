@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-import { CHART_COLOR_CLASSES } from "@/constants";
+import { chartColorClass } from "@/constants";
 import { groupBySpendType } from "@/lib/spending";
 import { cn, formatAmount } from "@/lib/utils";
 
@@ -24,12 +24,12 @@ const SpendingStrip = ({ transactions = [], currency, href }: { transactions?: T
         </Link>
       </div>
 
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-surface-container">
+      <div className="bar-reveal flex h-2.5 w-full overflow-hidden rounded-full bg-surface-container">
         {buckets.map((b, i) => (
           <div
             key={b.key}
             title={`${b.name}: ${formatAmount(b.amount, currency)} (${Math.round(b.share * 100)}%)`}
-            className={cn("h-full", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])}
+            className={cn("h-full", chartColorClass(b.name, i))}
             style={{ width: `${b.share * 100}%` }}
           />
         ))}
@@ -39,7 +39,7 @@ const SpendingStrip = ({ transactions = [], currency, href }: { transactions?: T
         {buckets.map((b, i) => (
           <li key={b.key} className="flex min-w-0 items-center justify-between gap-2" title={formatAmount(b.amount, currency)}>
             <span className="flex min-w-0 items-center gap-2">
-              <span className={cn("size-2 shrink-0 rounded-sm", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])} />
+              <span className={cn("size-2 shrink-0 rounded-sm", chartColorClass(b.name, i))} />
               <span className="truncate text-12 text-ink">{b.name}</span>
             </span>
             <span className="eyebrow shrink-0">{Math.round(b.share * 100)}%</span>

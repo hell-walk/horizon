@@ -21,6 +21,14 @@ const NOISE = new Set([
 
 // Well-known merchants: any narration containing the key gets the label.
 const ALIASES: [RegExp, string][] = [
+  [/snapmint/i, "Snapmint"],
+  [/\bslice\b|sliceit/i, "Slice"],
+  [/lazypay/i, "LazyPay"],
+  [/\bsimpl\b/i, "Simpl"],
+  [/zestmoney/i, "ZestMoney"],
+  [/kreditbee/i, "KreditBee"],
+  [/\bcred\b/i, "CRED"],
+  [/bajaj\s*fin/i, "Bajaj Finserv"],
   [/swiggy/i, "Swiggy"],
   [/zomato/i, "Zomato"],
   [/amazon|amzn/i, "Amazon"],
@@ -91,6 +99,25 @@ export function payeeName(raw: string): string {
   return words.map((w) => (w.length <= 3 && w === w.toUpperCase() ? w : w[0].toUpperCase() + w.slice(1).toLowerCase())).join(" ");
 }
 
+// Words that mark a business, a bank line or a purpose, never a person's name.
+const NOT_PERSON =
+  /\b(stores?|mart|traders?|trading|enterprises?|services?|solutions?|pvt|ltd|limited|llp|inc|corp|company|shops?|centre|center|hotel|restaurant|cafe|foods?|medical|medicos?|pharma|clinic|hospital|bank|finance|finserv|motors|electronics|agency|industries|distributors|merchant|retail|technologies|tech|labs|studio|bazaar|kirana|general|supermarket|hardware|textiles|jewell?ers|travels|tours|petroleum|fuels?|station|school|college|academy|institute|university|insurance|securities|capital|payments?|wallet|recharge|bill|deposit|interest|salary|refund|charges?|fees?|gst|tax|credit|debit|cash|atm|emi|loan|dividend|order|purchase|subscription|trip|ticket|postpaid|prepaid|groceries|savings|account|transfer|rent|investment|fund|sip|trust|foundation|society|club|gym|fitness|salon|parlour|boutique|enterprise|associates|consultants?|builders?|developers?|properties|realty|logistics|couriers?|express|digital|online|software|systems|network|media|games?|movies?|cinemas?)\b/i;
+
+/**
+ * True when a payment looks like money sent to a person (a friend, a
+ * relative) rather than a shop: the payee is one to three plain words with
+ * no business or bank words in them and no known brand.
+ */
+export function isPersonPayment(raw: string): boolean {
+  if (ALIASES.some(([pattern]) => pattern.test(raw))) return false;
+  const name = payeeName(raw);
+  if (name === "Other" || NOT_PERSON.test(name)) return false;
+  const words = name.split(" ");
+  return words.length >= 1 && words.length <= 3 && words.every((w) => /^[A-Za-z][A-Za-z.']*$/.test(w) && w.length >= 2);
+}
+
+export const PEOPLE_GROUP = "UPI payments";
+
 /** Debits grouped by payee, largest first, with the tail folded into "Other". */
 export function groupByPayee(transactions: Transaction[] = [], limit = 8): PayeeSpend[] {
   const groups = new Map<string, PayeeSpend>();
@@ -101,7 +128,8 @@ export function groupByPayee(transactions: Transaction[] = [], limit = 8): Payee
     const isDebit = t.type === "debit" || Number(t.amount) < 0;
     if (!isDebit || amount === 0) continue;
 
-    const name = payeeName(t.name || "");
+    // Money sent to people goes into one bracket; the rows keep each name.
+    const name = isPersonPayment(t.name || "") ? PEOPLE_GROUP : payeeName(t.name || "");
     const key = name.toLowerCase();
     const group = groups.get(key) ?? { key, name, amount: 0, count: 0, share: 0, transactions: [] };
     group.amount += amount;

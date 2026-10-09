@@ -9,6 +9,7 @@ const TOKEN_NAMES = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "cha
 
 export type ChartColors = {
   segments: string[];
+  other: string;
   track: string;
   text: string;
   mutedText: string;
@@ -16,7 +17,8 @@ export type ChartColors = {
 };
 
 const FALLBACK: ChartColors = {
-  segments: ["#000000", "#C7EF00", "#F24400", "#536600", "#77777B", "#C7C6CB"],
+  segments: ["#7C5CFF", "#A6D600", "#F24400", "#00B8A9", "#FF4D8D", "#FFB020"],
+  other: "#C7C6CB",
   track: "#EEEEEA",
   text: "#1A1C1A",
   mutedText: "#77777B",
@@ -32,6 +34,7 @@ const readColors = (): ChartColors => {
   const styles = getComputedStyle(document.documentElement);
   return {
     segments: TOKEN_NAMES.map((name, i) => readToken(styles, name, FALLBACK.segments[i])),
+    other: readToken(styles, "chart-other", FALLBACK.other),
     track: readToken(styles, "surface-container", FALLBACK.track),
     text: readToken(styles, "on-surface", FALLBACK.text),
     mutedText: readToken(styles, "outline", FALLBACK.mutedText),
@@ -47,3 +50,10 @@ export function useChartColors(): ChartColors {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => (typeof window === "undefined" ? FALLBACK : readColors()), [resolvedTheme]);
 }
+
+/** Canvas colour for a chart segment, matching chartColorClass. */
+export const segmentColor = (colors: ChartColors, name: string, index: number) =>
+  name === "Other" ? colors.other : colors.segments[index % colors.segments.length];
+
+/** Entrance animation for every doughnut: spins round while growing from the centre. */
+export const ENTRANCE = { animateRotate: true, animateScale: true, duration: 900, easing: "easeOutQuart" as const };

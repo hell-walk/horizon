@@ -1,4 +1,4 @@
-import { CHART_COLOR_CLASSES } from "@/constants";
+import { chartColorClass } from "@/constants";
 import { groupBySpendType } from "@/lib/spending";
 import { cn, formatAmount } from "@/lib/utils";
 
@@ -48,7 +48,7 @@ const CategoryPanel = ({
             <li key={category.name} className="flex flex-col gap-2 py-2.5">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-3">
-                  <span className={cn("size-2.5 shrink-0 rounded-sm", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])} />
+                  <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(category.name, i))} />
                   <span className="truncate text-14 font-semibold text-ink">{category.name}</span>
                 </span>
                 <span className="flex shrink-0 items-baseline gap-2">
@@ -58,8 +58,8 @@ const CategoryPanel = ({
               </div>
               <div className="h-1 w-full rounded-full bg-surface-container">
                 <div
-                  className={cn("h-1 rounded-full", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])}
-                  style={{ width: `${Math.max(category.share * 100, 2)}%` }}
+                  className={cn("bar-grow h-1 rounded-full", chartColorClass(category.name, i))}
+                  style={{ width: `${Math.max(category.share * 100, 2)}%`, animationDelay: `${150 + i * 90}ms` }}
                 />
               </div>
             </li>

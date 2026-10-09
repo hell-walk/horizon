@@ -65,6 +65,7 @@ const config = {
           4: token("chart-4"),
           5: token("chart-5"),
           6: token("chart-6"),
+          other: token("chart-other"),
         },
         // shadcn primitives read these names; they map onto the tokens above.
         background: token("surface"),
