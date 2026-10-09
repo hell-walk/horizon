@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import Sidebar from "@/components/sidebar";
-import Topbar from "@/components/topbar";
+import AppShell from "@/components/appShell";
 import { getBanks, getLoggedInUser } from "@/lib/actions/user.action";
 
 // Every page in this group depends on the session cookie, so never prerender them.
@@ -21,12 +20,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   }, {});
 
   return (
-    <main className="flex h-screen w-full overflow-hidden">
-      <Sidebar user={loggedIn} providerCounts={providerCounts} />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <Topbar user={loggedIn} bankCount={banks.length} />
-        {children}
-      </div>
-    </main>
+    <AppShell user={loggedIn} bankCount={banks.length} providerCounts={providerCounts}>
+      {children}
+    </AppShell>
   );
 }
