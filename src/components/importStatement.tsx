@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, FileUp, Loader2, Upload } from "lucide-react";
+import { Check, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -24,6 +24,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [busy, setBusy] = useState<"preview" | "import" | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const reset = () => {
     setPreview(null);
@@ -35,7 +36,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     setBusy("preview");
     setResult(null);
     try {
-      setPreview(await previewStatement(new FormData(formRef.current)));
+      const outcome = await previewStatement(new FormData(formRef.current));
+      setPreview(outcome);
+      if (!outcome.ok && outcome.needsPassword) setShowPassword(true);
     } catch {
       setPreview({ ok: false, error: "Could not reach the server. Please try again." });
     } finally {
@@ -49,6 +52,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     try {
       const outcome = await importStatement(new FormData(formRef.current));
       setResult(outcome);
+      if (!outcome.ok && outcome.needsPassword) setShowPassword(true);
       if (outcome.ok) {
         if (fileRef.current) fileRef.current.value = "";
         setFileName(null);
@@ -64,6 +68,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
 
   const onFileChosen = (file?: File | null) => {
     setFileName(file?.name ?? null);
+    // Bank PDFs are almost always protected; offer the password field right away.
+    if (file?.name.toLowerCase().endsWith(".pdf")) setShowPassword(true);
     reset();
   };
 
@@ -106,13 +112,13 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           {fileName ? <Check className="size-5 text-success" /> : <Upload className="size-5" />}
         </span>
         <span className="text-14 font-semibold text-ink">{fileName ?? "Drop your bank statement here"}</span>
-        <span className="field-hint">CSV or XLSX export from net banking · up to 5 MB</span>
+        <span className="field-hint">PDF, CSV or XLSX from net banking or email · up to 10 MB</span>
         <input
           ref={fileRef}
           id="statement-file"
           name="file"
           type="file"
-          accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".csv,.xlsx,.pdf,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           required
           className="sr-only"
           onChange={(e) => onFileChosen(e.target.files?.[0])}
@@ -146,7 +152,36 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         </div>
       </div>
 
-      {preview && !preview.ok && <p className="field-error">{preview.error}</p>}
+      {showPassword ? (
+        <div className="field">
+          <div className="flex items-center justify-between">
+            <label className="field-label" htmlFor="statement-password">
+              File password
+            </label>
+            <span className="eyebrow">Used once, never stored</span>
+          </div>
+          <div className="relative">
+            <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+            <Input
+              id="statement-password"
+              name="password"
+              type="password"
+              autoComplete="off"
+              placeholder="Password the bank gave you for this file"
+              className="field-input pl-10 font-mono"
+            />
+          </div>
+          <p className="field-hint">
+            Banks usually use your customer id, PAN, or date of birth in the format written in the email that came with the statement.
+          </p>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setShowPassword(true)} className="btn-ghost btn-sm w-fit -ml-2">
+          <KeyRound className="size-3.5" /> File has a password
+        </button>
+      )}
+
+      {preview && !preview.ok && <p className={preview.needsPassword ? "field-hint text-warn" : "field-error"}>{preview.error}</p>}
 
       {preview?.ok && (
         <div className="panel overflow-hidden">
@@ -224,7 +259,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         </p>
       )}
 
-      <p className="field-hint">The file is parsed on this server only and is not stored.</p>
+      <p className="field-hint">The file and its password are used on this server only to read the transactions; neither is stored.</p>
     </form>
   );
 };

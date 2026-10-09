@@ -12,6 +12,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Loaded at runtime on the server only (PDF text and Office decryption).
+  serverExternalPackages: ["pdfjs-dist", "officecrypto-tool"],
   // Dev only: let the dev server be reached through a tunnel (Cloudflare,
   // ngrok, localtunnel) so hot reload and assets work from a public URL.
   allowedDevOrigins: ["*.trycloudflare.com", "*.ngrok-free.app", "*.ngrok.io", "*.loca.lt"],
