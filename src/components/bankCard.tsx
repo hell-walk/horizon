@@ -6,7 +6,7 @@ import { formatAmount } from "@/lib/utils";
 import Copy from "./Copy";
 
 // Black card for one account. Links to that account's transaction history.
-const BankCard = ({ account, userName, showBalance = true }: CreditCardProps) => {
+const BankCard = ({ account, userName, showBalance = true, withCopy = true }: CreditCardProps) => {
   const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
 
   return (
@@ -44,7 +44,7 @@ const BankCard = ({ account, userName, showBalance = true }: CreditCardProps) =>
         </div>
       </Link>
 
-      {showBalance && <Copy title={account.sharableId} />}
+      {showBalance && withCopy && <Copy title={account.sharableId} />}
     </div>
   );
 };

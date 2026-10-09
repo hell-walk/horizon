@@ -3,16 +3,24 @@ import Link from "next/link";
 
 import { PROVIDER_LABELS } from "@/constants";
 
-import BankCard from "./bankCard";
 import BankInfo from "./BankInfo";
+import CardStack from "./cardStack";
+import Copy from "./Copy";
 
-// Right column on Home: the selected account's card, the profile, and every linked account.
+// Right column on Home. Pinned while the main column scrolls: it holds the
+// card deck, the profile and the account switcher, which are all actionable.
 const RightSideBar = ({ user, banks, selected }: RightSidebarProps) => {
-  const card = banks.find((b) => b.appwriteItemId === selected) ?? banks[0];
+  const current = banks.find((b) => b.appwriteItemId === selected) ?? banks[0];
 
   return (
-    <aside className="flex w-full flex-col gap-4 xl:w-[340px] xl:shrink-0">
-      {card && <BankCard account={card} userName={`${user.firstName} ${user.lastName}`} />}
+    <aside className="no-scrollbar flex w-full flex-col gap-4 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem-3.5rem)] xl:w-[340px] xl:shrink-0 xl:overflow-y-auto">
+      {banks.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <CardStack accounts={banks} selected={current?.appwriteItemId} userName={`${user.firstName} ${user.lastName}`} mode="url" />
+          {current && <Copy title={current.sharableId} />}
+          {banks.length > 1 && <p className="eyebrow text-center">Tap a card behind to bring it forward</p>}
+        </section>
+      )}
 
       <section className="panel">
         <header className="panel-head">
@@ -46,7 +54,7 @@ const RightSideBar = ({ user, banks, selected }: RightSidebarProps) => {
         </header>
         <div className="panel-body flex flex-col gap-2">
           {banks.map((bank) => (
-            <BankInfo key={bank.appwriteItemId} account={bank} appwriteItemId={selected} type="card" />
+            <BankInfo key={bank.appwriteItemId} account={bank} appwriteItemId={current?.appwriteItemId} type="card" />
           ))}
           {banks.length === 0 && <p className="text-14 text-ink-muted">No accounts linked yet.</p>}
 
