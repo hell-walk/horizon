@@ -19,3 +19,7 @@ export const PROVIDER_LABELS: Record<string, { name: string; region: string; mod
   setu: { name: "Setu AA", region: "India", mode: "Sandbox" },
   manual: { name: "Statement", region: "India", mode: "Imported" },
 };
+
+// Which light/dark control the app shows: "knob" (portfolio slider with
+// labels) or "sky" (sun/moon switch). Flip here to compare.
+export const THEME_SWITCH_VARIANT: "knob" | "sky" = "sky";
