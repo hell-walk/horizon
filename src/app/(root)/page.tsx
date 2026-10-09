@@ -95,6 +95,7 @@ async function CategorySection({ appwriteItemId }: { appwriteItemId?: string }) 
         transactions={account?.transactions}
         currency={account?.data?.currency}
         accountName={account?.data?.name}
+        href={`/transaction-history?id=${appwriteItemId ?? ""}&from=chart#payees`}
       />
       <TopPayees transactions={account?.transactions} currency={account?.data?.currency} appwriteItemId={appwriteItemId} />
     </>

@@ -12,14 +12,15 @@ export type RadialBarItem = { name: string; amount: number; share: number };
 
 // Concentric arcs: one ring per item, filled to that item's share of the total.
 // Chart.js stacks datasets as rings, so each dataset is [value, remainder].
-const RadialBarChart = ({ items, currency }: { items: RadialBarItem[]; currency?: string }) => {
+const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarItem[]; currency?: string; unfold?: boolean }) => {
   const colors = useChartColors();
 
   const data = {
     labels: ["value", "rest"],
     datasets: items.map((item, i) => ({
       label: item.name,
-      data: [item.share, Math.max(1 - item.share, 0)],
+      // Unfolding sweeps every arc closed into a full ring.
+      data: unfold ? [1, 0] : [item.share, Math.max(1 - item.share, 0)],
       backgroundColor: [colors.segments[i % colors.segments.length], colors.track],
       borderColor: colors.card,
       borderWidth: 2,
@@ -35,6 +36,7 @@ const RadialBarChart = ({ items, currency }: { items: RadialBarItem[]; currency?
         cutout: "48%",
         rotation: -90,
         maintainAspectRatio: false,
+        animation: unfold ? { duration: 480, easing: "easeOutCubic" } : undefined,
         plugins: {
           legend: { display: false },
           tooltip: {

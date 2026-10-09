@@ -1,10 +1,20 @@
 import { CHART_COLOR_CLASSES } from "@/constants";
 import { cn, formatAmount, sumTransactionCategories } from "@/lib/utils";
 
-import { RadialBarChart } from "./DoughnutChartLazy";
+import CategoryChartLink from "./categoryChartLink";
 
 // Concentric arcs: one ring per spending category for the selected account.
-const CategoryPanel = ({ transactions = [], currency, accountName }: { transactions?: Transaction[]; currency?: string; accountName?: string }) => {
+const CategoryPanel = ({
+  transactions = [],
+  currency,
+  accountName,
+  href,
+}: {
+  transactions?: Transaction[];
+  currency?: string;
+  accountName?: string;
+  href: string; // the full breakdown the chart opens
+}) => {
   const categories = sumTransactionCategories(transactions, 5);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
@@ -19,17 +29,17 @@ const CategoryPanel = ({ transactions = [], currency, accountName }: { transacti
       </header>
 
       <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center">
-        <div className="relative mx-auto size-[180px] md:size-[200px]">
-          {categories.length > 0 ? (
-            <RadialBarChart items={categories} currency={currency} />
-          ) : (
+        {categories.length > 0 ? (
+          <CategoryChartLink items={categories} currency={currency} total={total} href={href} />
+        ) : (
+          <div className="relative mx-auto size-[180px] md:size-[200px]">
             <div className="size-full rounded-full border-[14px] border-surface-container" />
-          )}
-          <div className="pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center">
-            <span className="eyebrow">Spent</span>
-            <span className="amount text-16 font-semibold text-ink">{formatAmount(total, currency)}</span>
+            <div className="pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center">
+              <span className="eyebrow">Spent</span>
+              <span className="amount text-16 font-semibold text-ink">{formatAmount(total, currency)}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         <ul className="flex flex-col divide-y divide-line">
           {categories.map((category, i) => (

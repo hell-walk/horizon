@@ -602,3 +602,48 @@
     clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Chart hand-off: the Home category chart spins outward and fades as  */
+/* it opens the breakdown; the payee chart there spins in to meet it.  */
+/* ------------------------------------------------------------------ */
+.chart-unfold {
+  animation: chart-unfold 560ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 20;
+}
+
+@keyframes chart-unfold {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.9) rotate(140deg);
+    opacity: 0;
+  }
+}
+
+.chart-arrive {
+  animation: chart-arrive 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes chart-arrive {
+  from {
+    transform: scale(0.55) rotate(-140deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-unfold,
+  .chart-arrive {
+    animation: none;
+  }
+}
