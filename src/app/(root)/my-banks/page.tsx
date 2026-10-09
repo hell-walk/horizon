@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { ArrowLeftRight, PlugZap } from "lucide-react";
+import { PlugZap } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import AccountsTable from "@/components/accountsTable";
-import BankCard from "@/components/bankCard";
+import BankShowcase from "@/components/bankShowcase";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccounts } from "@/lib/actions/bank.actions";
@@ -63,21 +63,7 @@ const MyBanks = async () => {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            {accountsData.map((account) => (
-              <article key={account.appwriteItemId} className="panel flex flex-col gap-3 p-4">
-                <BankCard account={account} userName={holder} />
-                <div className="grid grid-cols-2 gap-2">
-                  <Link href={`/transaction-history/?id=${account.appwriteItemId}`} className="btn-secondary btn-sm">
-                    View ledger
-                  </Link>
-                  <Link href={`/payment-transfer/?id=${account.appwriteItemId}`} className="btn-primary btn-sm">
-                    <ArrowLeftRight className="size-3.5" /> Transfer
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+          <BankShowcase accounts={accountsData} holder={holder} />
         )}
       </div>
 
