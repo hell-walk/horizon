@@ -38,6 +38,7 @@
     "react-plaid-link": "^5.0.0",
     "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.6.5"
   },
   "devDependencies": {
