@@ -69,7 +69,8 @@ export async function parseStatement({
     throw new StatementParseError("Unsupported file type. Upload a .csv, .xls, .xlsx or .pdf statement.");
   }
 
-  const header = findHeaderRow(rows);
+  // A header row when there is one; otherwise the columns are worked out from the data.
+  const header = findHeaderRow(rows) ?? inferColumns(rows);
   if (!header) {
     // Show the row that looked most like a header, so an unknown layout can be added.
     const closest = rows
@@ -319,6 +320,117 @@ function findHeaderRow(rows: Cell[][]): { index: number; columns: Columns; raw: 
     };
   }
   return null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header-less statements: infer the columns from the data            */
+/* ------------------------------------------------------------------ */
+
+// A money value: has paise ("1.00") or Indian/Western grouping ("2,001").
+const MONEY = /^[-(]?\s*(?:₹|rs\.?|inr)?\s*(?:\d{1,3}(?:,\d{2,3})+|\d+)(?:\.\d{1,2})?\s*\)?\s*(?:\(?(?:cr|dr)\)?\.?)?$/i;
+// What banks print in an empty amount cell.
+const EMPTY = /^(?:|-+|–|—|nil|na|n\/a)$/i;
+
+const text = (cell: Cell) => (cell instanceof Date ? "" : String(cell ?? "").trim());
+const isMoney = (cell: Cell) => typeof cell === "number" || (MONEY.test(text(cell)) && /[.,]/.test(text(cell)));
+const isEmptyCell = (cell: Cell) => cell === null || EMPTY.test(text(cell));
+
+/**
+ * When no header row can be found (SBI's newer exports, or a PDF whose column
+ * titles run together), work the columns out from the transaction rows:
+ * the date column is the one full of dates, the balance is the right-most
+ * money column that is always filled, the description is the longest text
+ * column, and the money columns just left of the balance are the amounts.
+ * Which of those is money in and which is money out is decided by whether the
+ * running balance went up or down on each row, so the bank's column order
+ * does not matter.
+ */
+function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: string[] } | null {
+  const dataIdx = rows
+    .map((row, i) => ({ row, i }))
+    .filter(({ row }) => row.some((c) => parseDate(c)) && row.filter(isMoney).length >= 2)
+    .map(({ i }) => i);
+  if (dataIdx.length < 2) return null;
+
+  const data = dataIdx.map((i) => rows[i]);
+  const width = Math.max(...data.map((r) => r.length));
+  const n = data.length;
+  const share = (fn: (c: Cell) => boolean, j: number) => data.filter((r) => fn(r[j] ?? null)).length / n;
+
+  const dateCol = [...Array(width).keys()].find((j) => share((c) => Boolean(parseDate(c)), j) >= 0.8);
+  if (dateCol === undefined) return null;
+
+  // Money columns: mostly money or empty markers, with at least some money.
+  const moneyCols = [...Array(width).keys()].filter(
+    (j) => j !== dateCol && share(isMoney, j) > 0 && share((c) => isMoney(c) || isEmptyCell(c), j) >= 0.9
+  );
+  const balance = [...moneyCols].reverse().find((j) => share(isMoney, j) >= 0.9);
+  if (balance === undefined) return null;
+  const amounts = moneyCols.filter((j) => j < balance).slice(-2);
+  if (amounts.length === 0) return null;
+
+  // Description: the column (not date, not money) with the longest text on average.
+  const textCols = [...Array(width).keys()].filter((j) => j !== dateCol && !moneyCols.includes(j));
+  const avgLength = (j: number) => data.reduce((s, r) => s + text(r[j] ?? null).length, 0) / n;
+  const name = textCols.sort((a, b) => avgLength(b) - avgLength(a))[0];
+  if (name === undefined) return null;
+
+  // Running balance in date order tells each row's direction.
+  const chronological = [...data];
+  const first = parseDate(chronological[0][dateCol]) ?? "";
+  const last = parseDate(chronological[n - 1][dateCol]) ?? "";
+  if (first > last) chronological.reverse(); // newest-first statements
+  const deltas = new Map<Cell[], number>();
+  for (let k = 1; k < chronological.length; k++) {
+    const now = parseAmount(chronological[k][balance]).value;
+    const before = parseAmount(chronological[k - 1][balance]).value;
+    deltas.set(chronological[k], round2(now - before));
+  }
+  const votesFor = (j: number) => {
+    let out = 0;
+    let into = 0;
+    for (const [row, delta] of deltas) {
+      const value = Math.abs(parseAmount(row[j]).value);
+      if (!value) continue;
+      if (Math.abs(delta + value) < 0.01) out++;
+      else if (Math.abs(delta - value) < 0.01) into++;
+    }
+    return { out, into };
+  };
+
+  let debit: number | undefined;
+  let credit: number | undefined;
+  let amount: number | undefined;
+  if (amounts.length === 2) {
+    const [a, b] = amounts;
+    const va = votesFor(a);
+    const vb = votesFor(b);
+    // Default to the common layout (debit left of credit) unless the balance says otherwise.
+    const aIsCredit = va.into + vb.out > va.out + vb.into;
+    debit = aIsCredit ? b : a;
+    credit = aIsCredit ? a : b;
+  } else {
+    amount = amounts[0];
+    // One unsigned amount column: sign each row from the balance change.
+    for (const [row, delta] of deltas) {
+      const value = Math.abs(parseAmount(row[amount]).value);
+      if (value && Math.abs(delta + value) < 0.01) row[amount] = -value;
+    }
+  }
+
+  const labels: string[] = Array(width).fill("");
+  labels[dateCol] = "Date";
+  labels[name] = "Description";
+  if (debit !== undefined) labels[debit] = "Debit";
+  if (credit !== undefined) labels[credit] = "Credit";
+  if (amount !== undefined) labels[amount] = "Amount";
+  labels[balance] = "Balance";
+
+  return {
+    index: dataIdx[0] - 1, // rows before the first transaction are the preamble
+    raw: labels,
+    columns: { date: dateCol, name, debit, credit, amount, balance },
+  };
 }
 
 /* ------------------------------------------------------------------ */

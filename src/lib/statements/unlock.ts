@@ -93,7 +93,8 @@ const HEADER_WORDS = /date|desc|narration|particular|detail|remark|debit|credit|
  * - items on the same baseline form a line; a wide gap starts a new cell;
  * - the header is the first line with four or more cells and header words,
  *   merged with the line under it when the titles wrap ("Txn" / "Date");
- * - every later cell is snapped to the header's columns, so an empty debit or
+ *   with no readable header, the widest transaction line sets the columns;
+ * - every later cell is snapped to those columns, so an empty debit or
  *   credit cell keeps the row aligned;
  * - a line just below a row with no amount and no complete date is that row
  *   wrapping (a long narration, or a date whose year moved down), and is
@@ -124,75 +125,105 @@ export async function parsePdfRows(buffer: Buffer, password?: string): Promise<C
     throw error;
   }
 
-  const rows: Cell[][] = [];
-  let anchors: Span[] | null = null; // header cells, once found; columns keep their x across pages
-  let headerKey = "";
-
+  const pages: Line[][] = [];
   try {
     for (let p = 1; p <= doc.numPages; p++) {
       const page = await doc.getPage(p);
       const content = await page.getTextContent();
-      const items = (content.items as TextItem[]).filter((item) => item.str && item.str.trim().length > 0);
-      const lines = toLines(items);
-
-      let last: { row: Cell[]; y: number } | null = null; // the row a wrapped line may belong to
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const text = line.spans.map((c) => c.text).join(" ");
-
-        if (!anchors) {
-          const next = lines[i + 1];
-          const nextText = next ? next.spans.map((c) => c.text).join(" ") : "";
-          const looksLikeHeader = line.spans.length >= 4 && HEADER_WORDS.test(text) && (/date/i.test(text) || /date/i.test(nextText));
-
-          if (!looksLikeHeader) {
-            rows.push(line.spans.map((c) => c.text));
-            continue;
-          }
-
-          anchors = line.spans.map((c) => ({ ...c }));
-          // Titles that wrap onto a second line join the header cell above them.
-          if (next && line.y - next.y <= WRAP_GAP && isHeaderTail(next.spans)) {
-            for (const span of next.spans) {
-              const slot = closestSlot(span, anchors);
-              anchors[slot].text = `${anchors[slot].text} ${span.text}`.trim();
-            }
-            i++;
-          }
-          headerKey = keyOf(anchors.map((a) => a.text).join(" "));
-          rows.push(anchors.map((a) => a.text));
-          continue;
-        }
-
-        // The header again at the top of a later page (one or two lines).
-        if (headerKey.startsWith(keyOf(text)) && keyOf(text).length > 6) {
-          last = null;
-          continue;
-        }
-
-        const row = snapToColumns(line.spans, anchors);
-        const hasAmount = line.spans.some((c) => AMOUNT.test(c.text));
-        const hasDate = line.spans.some((c) => FULL_DATE.test(c.text));
-
-        if (last && !hasAmount && !hasDate && last.y - line.y <= WRAP_GAP) {
-          // Wrapped continuation of the row above: join it cell by cell.
-          row.forEach((cell, slot) => {
-            if (cell === null) return;
-            const above = last!.row[slot];
-            last!.row[slot] = above === null ? cell : `${String(above)} ${cell}`;
-          });
-          last.y = line.y;
-          continue;
-        }
-
-        rows.push(row);
-        last = { row, y: line.y };
-      }
+      pages.push(toLines((content.items as TextItem[]).filter((item) => item.str && item.str.trim().length > 0)));
       page.cleanup();
     }
   } finally {
     await task.destroy();
+  }
+
+  // 1. Find the header (and whether its titles wrap onto a second line).
+  let anchors: Span[] | null = null;
+  let header: { page: number; line: number; end: number } | null = null;
+  search: for (let p = 0; p < pages.length; p++) {
+    const lines = pages[p];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const next = lines[i + 1];
+      const text = line.spans.map((c) => c.text).join(" ");
+      const nextText = next ? next.spans.map((c) => c.text).join(" ") : "";
+      if (!(line.spans.length >= 4 && HEADER_WORDS.test(text) && (/date/i.test(text) || /date/i.test(nextText)))) continue;
+
+      anchors = line.spans.map((c) => ({ ...c }));
+      let end = i;
+      if (next && line.y - next.y <= WRAP_GAP && isHeaderTail(next.spans)) {
+        for (const span of next.spans) {
+          const slot = closestSlot(span, anchors);
+          anchors[slot].text = `${anchors[slot].text} ${span.text}`.trim();
+        }
+        end = i + 1;
+      }
+      header = { page: p, line: i, end };
+      break search;
+    }
+  }
+
+  // 2. No readable header: the widest line holding a date and an amount sets the columns.
+  if (!anchors) {
+    let widest: Line | null = null;
+    for (const line of pages.flat()) {
+      const dated = line.spans.some((c) => FULL_DATE.test(c.text)) && line.spans.some((c) => AMOUNT.test(c.text));
+      if (dated && (!widest || line.spans.length > widest.spans.length)) widest = line;
+    }
+    if (widest && widest.spans.length >= 4) anchors = widest.spans.map((c) => ({ ...c }));
+  }
+
+  // 3. Build the rows.
+  const rows: Cell[][] = [];
+  const headerKey = header && anchors ? keyOf(anchors.map((a) => a.text).join(" ")) : "";
+
+  for (let p = 0; p < pages.length; p++) {
+    const lines = pages[p];
+    let last: { row: Cell[]; y: number } | null = null; // the row a wrapped line may belong to
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      if (!anchors) {
+        rows.push(line.spans.map((c) => c.text));
+        continue;
+      }
+
+      if (header && (p < header.page || (p === header.page && i < header.line))) {
+        rows.push(line.spans.map((c) => c.text)); // preamble above the header
+        continue;
+      }
+      if (header && p === header.page && i === header.line) {
+        rows.push(anchors.map((a) => a.text));
+        i = header.end;
+        continue;
+      }
+
+      // The header again at the top of a later page (one or two lines).
+      const text = line.spans.map((c) => c.text).join(" ");
+      if (headerKey && headerKey.startsWith(keyOf(text)) && keyOf(text).length > 6) {
+        last = null;
+        continue;
+      }
+
+      const row = snapToColumns(line.spans, anchors);
+      const hasAmount = line.spans.some((c) => AMOUNT.test(c.text));
+      const hasDate = line.spans.some((c) => FULL_DATE.test(c.text));
+
+      if (last && !hasAmount && !hasDate && last.y - line.y <= WRAP_GAP) {
+        // Wrapped continuation of the row above: join it cell by cell.
+        row.forEach((cell, slot) => {
+          if (cell === null) return;
+          const above = last!.row[slot];
+          last!.row[slot] = above === null ? cell : `${String(above)} ${cell}`;
+        });
+        last.y = line.y;
+        continue;
+      }
+
+      rows.push(row);
+      last = { row, y: line.y };
+    }
   }
 
   return rows;
