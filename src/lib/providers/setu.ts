@@ -336,6 +336,7 @@ export function toAccount({
     sharableId: bank.sharableId,
     currency: summary.currency ?? bank.currency ?? "INR",
     provider: SETU_PROVIDER,
+    cardDesign: bank.cardDesign,
   };
 }
 

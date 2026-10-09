@@ -7,6 +7,7 @@ import { Suspense, useState } from "react";
 import { PROVIDER_LABELS } from "@/constants";
 import { formatAmount, maskLabel } from "@/lib/utils";
 
+import CardDesignPicker from "./cardDesignPicker";
 import CardStack from "./cardStack";
 import Copy from "./Copy";
 import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
@@ -25,7 +26,10 @@ const BankShowcase = ({
   initialId?: string; // the app-wide active account
 }) => {
   const [selectedId, setSelectedId] = useState(initialId ?? accounts[0]?.appwriteItemId);
-  const account = accounts.find((a) => a.appwriteItemId === selectedId) ?? accounts[0];
+  // Designs picked on this page show at once, before the save comes back.
+  const [designs, setDesigns] = useState<Record<string, string>>({});
+  const withDesigns = accounts.map((a) => (designs[a.appwriteItemId] ? { ...a, cardDesign: designs[a.appwriteItemId] } : a));
+  const account = withDesigns.find((a) => a.appwriteItemId === selectedId) ?? withDesigns[0];
   if (!account) return null;
 
   const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
@@ -33,7 +37,7 @@ const BankShowcase = ({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,400px)_1fr] lg:items-start">
       <section className="flex flex-col gap-3">
-        <CardStack accounts={accounts} selected={selectedId} userName={holder} onChange={setSelectedId} />
+        <CardStack accounts={withDesigns} selected={selectedId} userName={holder} onChange={setSelectedId} />
         <Suspense fallback={<SpendingThinSkeleton />}>
           <SpendingThin spending={spending} accountId={account.appwriteItemId} />
         </Suspense>
@@ -61,6 +65,11 @@ const BankShowcase = ({
           </dl>
 
           <Copy title={account.sharableId} />
+
+          <CardDesignPicker
+            account={account}
+            onPick={(design) => setDesigns((d) => ({ ...d, [account.appwriteItemId]: design }))}
+          />
 
           <div className="grid grid-cols-2 gap-2">
             <Link href={`/transaction-history/?id=${account.appwriteItemId}`} className="btn-secondary">
