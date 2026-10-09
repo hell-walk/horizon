@@ -112,13 +112,13 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           {fileName ? <Check className="size-5 text-success" /> : <Upload className="size-5" />}
         </span>
         <span className="text-14 font-semibold text-ink">{fileName ?? "Drop your bank statement here"}</span>
-        <span className="field-hint">PDF, CSV or XLSX from net banking or email · up to 10 MB</span>
+        <span className="field-hint">PDF, XLS, XLSX or CSV from net banking or email · up to 10 MB</span>
         <input
           ref={fileRef}
           id="statement-file"
           name="file"
           type="file"
-          accept=".csv,.xlsx,.pdf,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".csv,.xls,.xlsx,.pdf,.txt,text/csv,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           required
           className="sr-only"
           onChange={(e) => onFileChosen(e.target.files?.[0])}

@@ -39,6 +39,37 @@ export async function decryptXlsx(buffer: Buffer, password?: string): Promise<Bu
 }
 
 /* ------------------------------------------------------------------ */
+/* Legacy binary .xls (Excel 97-2003), optionally RC4-encrypted        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Reads an old binary workbook with SheetJS. Encrypted ones are decrypted
+ * first with the given password (same path as .xlsx). Returns the first
+ * sheet as rows of raw cell values, dates kept as Date objects.
+ */
+export async function parseLegacyXlsRows(buffer: Buffer, password?: string): Promise<Cell[][]> {
+  const { isEncrypted, decrypt } = await officeCrypto();
+  let data = buffer;
+  if (isEncrypted(buffer)) {
+    if (!password) throw new StatementPasswordError("This Excel file is password protected. Enter the password to open it.");
+    try {
+      data = await decrypt(buffer, { password });
+    } catch {
+      throw new StatementPasswordError("That password did not open the Excel file.", true);
+    }
+  }
+
+  const XLSX = await import("xlsx");
+  const workbook = XLSX.read(data, { type: "buffer", cellDates: true, raw: true });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  if (!sheet) return [];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: null, blankrows: false });
+  return rows.map((row) =>
+    row.map((value) => (value instanceof Date || typeof value === "number" || typeof value === "string" ? value : value === null ? null : String(value)))
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* PDF: text positions -> table rows                                   */
 /* ------------------------------------------------------------------ */
 

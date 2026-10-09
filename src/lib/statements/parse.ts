@@ -8,7 +8,7 @@
 import ExcelJS from "exceljs";
 import { createHash } from "node:crypto";
 
-import { decryptXlsx, isEncryptedXlsx, parsePdfRows, StatementPasswordError } from "./unlock";
+import { decryptXlsx, isEncryptedXlsx, parseLegacyXlsRows, parsePdfRows, StatementPasswordError } from "./unlock";
 
 export { StatementPasswordError };
 
@@ -48,19 +48,24 @@ export async function parseStatement({
   password?: string; // for protected PDFs and encrypted Excel files; used once, never stored
 }): Promise<ParsedStatement> {
   const ext = name.toLowerCase().split(".").pop() ?? "";
+  // Trust the bytes over the extension: banks hand out HTML tables and tab-separated
+  // text under an .xls name, and some ".xlsx" files are old binary workbooks.
+  const kind = sniff(buffer, ext);
 
   let rows: Cell[][];
-  if (ext === "csv" || ext === "txt") {
-    rows = parseCsv(buffer.toString("utf8"));
-  } else if (ext === "xlsx") {
+  if (kind === "pdf") {
+    rows = await parsePdfRows(buffer, password);
+  } else if (kind === "xlsx") {
     const unlocked = (await isEncryptedXlsx(buffer)) ? await decryptXlsx(buffer, password) : buffer;
     rows = await parseXlsx(unlocked);
-  } else if (ext === "pdf") {
-    rows = await parsePdfRows(buffer, password);
-  } else if (ext === "xls") {
-    throw new StatementParseError("Old .xls files are not supported. Export the statement as .xlsx, .csv or .pdf instead.");
+  } else if (kind === "xls") {
+    rows = await parseLegacyXlsRows(buffer, password);
+  } else if (kind === "html") {
+    rows = parseHtmlTable(buffer.toString("utf8"));
+  } else if (kind === "text") {
+    rows = parseDelimited(buffer.toString("utf8"));
   } else {
-    throw new StatementParseError("Unsupported file type. Upload a .csv, .xlsx or .pdf statement.");
+    throw new StatementParseError("Unsupported file type. Upload a .csv, .xls, .xlsx or .pdf statement.");
   }
 
   const header = findHeaderRow(rows);
@@ -103,6 +108,62 @@ export function transactionHash(bankId: string, t: ParsedTransaction) {
 /* ------------------------------------------------------------------ */
 
 export type Cell = string | number | Date | null;
+
+type FileKind = "pdf" | "xlsx" | "xls" | "html" | "text" | "unknown";
+
+/** Works out what a file really is from its first bytes, falling back to the extension. */
+function sniff(buffer: Buffer, ext: string): FileKind {
+  const head = buffer.subarray(0, 8);
+  if (head.subarray(0, 4).toString("latin1") === "%PDF") return "pdf";
+  // OLE compound file: a binary .xls, or an encrypted .xlsx (both start this way).
+  if (head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0) return ext === "xlsx" ? "xlsx" : "xls";
+  if (head[0] === 0x50 && head[1] === 0x4b) return "xlsx"; // zip = OOXML
+  if (head[0] === 0xef && head[1] === 0xbb && head[2] === 0xbf) return sniff(buffer.subarray(3), ext); // UTF-8 BOM
+
+  const text = buffer.subarray(0, 4096).toString("utf8").trimStart().toLowerCase();
+  if (text.startsWith("<") && /<table|<html|<!doctype/.test(text)) return "html";
+  if (["csv", "txt", "xls", "xlsx", "tsv"].includes(ext)) return "text";
+  return "unknown";
+}
+
+const decodeEntities = (value: string) =>
+  value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, String.fromCharCode(34))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+
+/** Rows from every <tr> in the document; <td> and <th> become cells, tags are stripped. */
+function parseHtmlTable(html: string): Cell[][] {
+  const rows: Cell[][] = [];
+  const rowMatches = html.match(/<tr\b[\s\S]*?<\/tr>/gi) ?? [];
+  for (const tr of rowMatches) {
+    const cells = (tr.match(/<t[dh]\b[\s\S]*?<\/t[dh]>/gi) ?? []).map((td) =>
+      decodeEntities(td.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]+>/g, ""))
+        .replace(/\s+/g, " ")
+        .trim()
+    );
+    if (cells.some((c) => c.length)) rows.push(cells);
+  }
+  return rows;
+}
+
+/** CSV or tab-separated text: whichever delimiter the first lines use more. */
+function parseDelimited(text: string): Cell[][] {
+  const sample = text.split(/\r?\n/).slice(0, 30).join("\n");
+  const tabs = (sample.match(/\t/g) ?? []).length;
+  const commas = (sample.match(/,/g) ?? []).length;
+  if (tabs > commas) {
+    return text
+      .split(/\r?\n/)
+      .filter((line) => line.trim().length)
+      .map((line) => line.split("\t").map((c) => c.trim()));
+  }
+  return parseCsv(text);
+}
 
 function parseCsv(text: string): Cell[][] {
   const rows: Cell[][] = [];
