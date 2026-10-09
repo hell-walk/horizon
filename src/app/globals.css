@@ -550,11 +550,14 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Theme flip: the new theme sweeps out from the switch in a circle via */
-/* the View Transitions API (see themeSwitch.tsx). The old snapshot     */
-/* stays underneath, so the page never passes through a muddy grey.     */
-/* Browsers without the API, and reduced-motion users, get the instant  */
-/* change.                                                              */
+/* Theme flip (View Transitions API, see themeSwitch.tsx).               */
+/* Going dark: the dark page grows out of the switch in a circle, over   */
+/* the light snapshot.                                                   */
+/* Going light: the dark snapshot shrinks back into the switch, revealing*/
+/* the light page underneath. Pixels are old or new, never blended, so   */
+/* the page never turns grey. --theme-x/y/r are set from the switch.     */
+/* Browsers without the API, and reduced-motion users, get the instant   */
+/* change.                                                               */
 /* ------------------------------------------------------------------ */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -562,20 +565,40 @@
   mix-blend-mode: normal;
 }
 
-::view-transition-old(root) {
+/* to dark: new on top, growing */
+:root[data-theme-flip="dark"]::view-transition-old(root) {
   z-index: 1;
 }
 
-::view-transition-new(root) {
+:root[data-theme-flip="dark"]::view-transition-new(root) {
   z-index: 2;
-  animation: theme-reveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: theme-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes theme-reveal {
+/* to light: old on top, shrinking back into the switch */
+:root[data-theme-flip="light"]::view-transition-new(root) {
+  z-index: 1;
+}
+
+:root[data-theme-flip="light"]::view-transition-old(root) {
+  z-index: 2;
+  animation: theme-shrink 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes theme-grow {
   from {
     clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
   }
   to {
     clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+}
+
+@keyframes theme-shrink {
+  from {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+  to {
+    clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
   }
 }
