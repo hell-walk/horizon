@@ -1,26 +1,29 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 
 import SkyToggle from "@/components/ui/sky-toggle";
 import { ThemeToggle as PillToggle } from "@/components/ui/theme-toggle";
 import Toggle, { type ToggleOption } from "@/components/ui/toggle";
 import { THEME_SWITCH_VARIANT } from "@/constants";
-import { cn } from "@/lib/utils";
 
 const subscribe = () => () => {};
 
-// The switch starts moving first; a beat later the theme flips with every
-// colour easing over the same 600 ms curve (see .theme-transition in
-// globals.css), so the page fades in step with the disc.
+// The switch starts moving first; a beat later the new theme sweeps out from
+// the switch in a circle (View Transitions API + ::view-transition-new in
+// globals.css). The old page stays underneath until it is covered, so no
+// colour ever passes through grey.
 const FLIP_DELAY_MS = 120;
-const FADE_MS = 600;
 
 const OPTIONS: [ToggleOption<"light">, ToggleOption<"dark">] = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
 ];
+
+type DocWithViewTransition = Document & {
+  startViewTransition?: (update: () => void | Promise<void>) => { ready: Promise<void>; finished: Promise<void> };
+};
 
 /**
  * Light/dark control wired to next-themes. Three looks, picked by
@@ -33,6 +36,7 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const isDark = mounted && resolvedTheme === "dark";
+  const anchor = useRef<HTMLSpanElement>(null);
 
   // The position the switch shows while the theme change is still pending.
   const [pending, setPending] = useState<boolean | null>(null);
@@ -42,31 +46,67 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
   const flip = (night: boolean) => {
     if (night === shownDark) return;
     setPending(night);
+
     const root = document.documentElement;
-    window.setTimeout(() => {
-      root.classList.add("theme-transition");
+    const doc = document as DocWithViewTransition;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Apply the class ourselves inside the transition so the snapshot is taken
+    // at the right moment; next-themes then sets the same class and persists it.
+    const apply = () => {
+      root.classList.toggle("dark", night);
+      root.classList.toggle("light", !night);
       setTheme(night ? "dark" : "light");
-      window.setTimeout(() => root.classList.remove("theme-transition"), FADE_MS + 100);
+    };
+
+    window.setTimeout(() => {
+      if (!doc.startViewTransition || reduceMotion) {
+        apply();
+        return;
+      }
+
+      // Centre of the switch, and a radius that reaches the farthest corner.
+      const el = anchor.current?.firstElementChild ?? anchor.current;
+      const rect = el?.getBoundingClientRect();
+      const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+      const y = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+      const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+      root.style.setProperty("--theme-x", `${x}px`);
+      root.style.setProperty("--theme-y", `${y}px`);
+      root.style.setProperty("--theme-r", `${r}px`);
+
+      // The browser skips the animation in a hidden tab (the class still
+      // applies); swallow that rejection so it does not surface as an error.
+      const transition = doc.startViewTransition(apply);
+      transition.ready.catch(() => {});
+      transition.finished.catch(() => {});
     }, FLIP_DELAY_MS);
   };
 
+  let control;
   if (THEME_SWITCH_VARIANT === "pill") {
-    return <PillToggle isDark={shownDark} onChange={flip} className={cn("no-theme-transition", className)} />;
+    control = <PillToggle isDark={shownDark} onChange={flip} className={className} />;
+  } else if (THEME_SWITCH_VARIANT === "sky") {
+    control = <SkyToggle checked={shownDark} onChange={flip} ariaLabel="Dark mode" className={className} />;
+  } else {
+    control = (
+      <Toggle<"light" | "dark">
+        value={shownDark ? "dark" : "light"}
+        onChange={(value) => flip(value === "dark")}
+        options={OPTIONS}
+        ariaLabel="Colour scheme"
+        compact={compact}
+        className={className}
+      />
+    );
   }
 
-  if (THEME_SWITCH_VARIANT === "sky") {
-    return <SkyToggle checked={shownDark} onChange={flip} ariaLabel="Dark mode" className={cn("no-theme-transition", className)} />;
-  }
-
+  // display: contents keeps the wrapper out of the layout; it only gives us
+  // a handle on the control's position.
   return (
-    <Toggle<"light" | "dark">
-      value={shownDark ? "dark" : "light"}
-      onChange={(value) => flip(value === "dark")}
-      options={OPTIONS}
-      ariaLabel="Colour scheme"
-      compact={compact}
-      className={cn("no-theme-transition", className)}
-    />
+    <span ref={anchor} className="contents">
+      {control}
+    </span>
   );
 };
 
