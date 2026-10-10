@@ -4,7 +4,8 @@ import { Languages } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import { LOCALE_COOKIE, LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/config";
+import { rememberLocale } from "@/lib/i18n/client";
+import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
 import { useLocale, useT } from "./i18nProvider";
@@ -18,7 +19,7 @@ const LanguageSwitch = ({ className }: { className?: string }) => {
 
   const choose = (next: Locale) => {
     if (next === locale) return;
-    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    rememberLocale(next);
     startTransition(() => router.refresh());
   };
 
