@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
 import ComingUp from "./components/comingUp";
+import ForecastPanel from "@/components/forecastPanel";
+import { accountForecast } from "@/lib/server/forecast";
 import SpendingStrip from "./components/spendingStrip";
 import QuickActions from "./components/quickActions";
 import RecentTransaction from "./components/recentTransaction";
@@ -77,6 +79,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           </Suspense>
 
           <Suspense fallback={null}>
+            <ForecastSection appwriteItemId={appwriteItemId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
             <ComingUp ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
@@ -140,3 +146,10 @@ async function RecentTransactionsSection({
 }
 
 export default Home;
+
+/** "Will I have enough money?" for the account chosen on Home, short version. Nothing for a new user. */
+const ForecastSection = async ({ appwriteItemId }: { appwriteItemId?: string }) => {
+  if (!appwriteItemId) return null;
+  const result = await accountForecast(appwriteItemId);
+  return result ? <ForecastPanel result={result} compact /> : null;
+};
