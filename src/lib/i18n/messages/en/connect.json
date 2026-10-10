@@ -1,0 +1,20 @@
+{
+  "guideWhichBank": "Which bank is the statement from?",
+  "guideChooseBank": "Choose your bank (optional)",
+  "guideOtherBank": "Another bank",
+  "guideYourBank": "your bank",
+  "guideHowTitle": "How to get your statement",
+  "guideStep1": "Open the {bank} app or net banking website and log in.",
+  "guideStep2": "Find \"Account statement\" (usually under Accounts or Services).",
+  "guideStep3": "Choose the months you want, for example the last 3 months.",
+  "guideStep4": "Download it as PDF or Excel, then upload that file here.",
+  "guidePasswordTitle": "If the file asks for a password",
+  "guidePassword_sbi": "Usually the last 5 digits of your registered mobile number, then your date of birth as DDMMYY. Example: 12345 and 11 Feb 1990 make 12345110290.",
+  "guidePassword_hdfc": "Your numeric Customer ID (the number you use to log in to HDFC net banking).",
+  "guidePassword_icici": "Usually the first 4 letters of your name, then your birth day and month as DDMM. Example: RAHU1503 for Rahul, born 15 March. Try capitals and small letters.",
+  "guidePassword_axis": "Usually the first 4 letters of your name in capitals, then your birth day and month as DDMM. Example: RAHU1508.",
+  "guidePassword_kotak": "Usually your CRN (Customer Relationship Number). Text \"CRN\" from your registered mobile to 5676788 to get it.",
+  "guidePassword_pnb": "It differs between accounts: try your date of birth as DDMMYYYY, then your full account number.",
+  "guidePassword_other": "Banks usually use your customer ID, account number, date of birth, or a mix of your name and date of birth.",
+  "guideCheckEmail": "The email or SMS that came with your statement says exactly which password it uses. That is always the surest answer. The password is only used once to open the file; Horizon does not keep it."
+}

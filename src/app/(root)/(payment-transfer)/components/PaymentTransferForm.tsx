@@ -48,6 +48,8 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
   // One key per transfer attempt: a retry after a network error reuses it, so the
   // server (and Dwolla) can tell it is the same transfer and not send it twice.
   const attemptKey = useRef<string | null>(null);
+  // Money cannot be unsent: a filled-in form is shown back for a yes/no first.
+  const [review, setReview] = useState<Values | null>(null);
 
   const defaultSender = accounts.find((a) => a.appwriteItemId === initialId) ?? accounts[0];
 
@@ -69,6 +71,7 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
   const canSend = source?.provider === "plaid" || !source?.provider;
 
   const submit = async (data: Values) => {
+    setReview(null);
     setIsLoading(true);
     setFormError(null);
     setNotice(null);
@@ -99,8 +102,9 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submit)} className="grid gap-6 xl:grid-cols-[1fr_340px] xl:items-start">
-        <div className="flex flex-col gap-4">
+      <form onSubmit={form.handleSubmit((data) => setReview(data))} className="grid gap-6 xl:grid-cols-[1fr_340px] xl:items-start">
+        {/* Locked while the user is asked to confirm, so what they confirm is what is sent. */}
+        <fieldset disabled={review !== null || isLoading} className="flex min-w-0 flex-col gap-4">
           <Step index="01" title="Source account" hint={source ? `${currency} · ${maskLabel(source.mask)}` : undefined}>
             <FormField
               control={form.control}
@@ -198,7 +202,7 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
               )}
             />
           </Step>
-        </div>
+        </fieldset>
 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-0">
           <section className="panel">
@@ -246,18 +250,40 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
             </p>
           )}
 
-          <button type="submit" disabled={isLoading || !canSend} className={cn("btn-primary h-12 w-full")}>
-            {isLoading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" /> Sending
-              </>
-            ) : (
-              <>
-                Authorize and send <ArrowRight className="size-4" />
-              </>
-            )}
-          </button>
-          <p className="eyebrow text-center">Transfers are final once sent</p>
+          {review ? (
+            <section className="panel border-primary" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+              <div className="panel-body flex flex-col gap-3">
+                <h2 id="confirm-title" className="font-display text-16 font-semibold text-ink">
+                  Send <span translate="no">{formatAmount(Number(review.amount), currency)}</span>?
+                </h2>
+                <p id="confirm-body" className="text-14 text-ink-muted">
+                  From <span translate="no" className="font-semibold text-ink">{source ? `${source.name} ${maskLabel(source.mask)}` : "—"}</span> to{" "}
+                  <span translate="no" className="font-semibold text-ink">{review.email}</span>. Once sent, this money cannot be taken back.
+                </p>
+                <button type="button" autoFocus onClick={() => submit(review)} className="btn-primary h-12 w-full">
+                  Yes, send <span translate="no">{formatAmount(Number(review.amount), currency)}</span>
+                </button>
+                <button type="button" onClick={() => setReview(null)} className="btn-secondary w-full">
+                  No, go back and change it
+                </button>
+              </div>
+            </section>
+          ) : (
+            <>
+              <button type="submit" disabled={isLoading || !canSend} className={cn("btn-primary h-12 w-full")}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Sending
+                  </>
+                ) : (
+                  <>
+                    Review transfer <ArrowRight className="size-4" />
+                  </>
+                )}
+              </button>
+              <p className="eyebrow text-center">You will be asked to confirm before anything is sent</p>
+            </>
+          )}
         </aside>
       </form>
     </Form>

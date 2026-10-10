@@ -42,7 +42,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Loaded at runtime on the server only (PDF text and Office decryption).
-  serverExternalPackages: ["pdfjs-dist", "officecrypto-tool", "xlsx"],
+  serverExternalPackages: ["pdfjs-dist", "officecrypto-tool", "xlsx", "exceljs"],
+  // The statement-reading worker is loaded by path at runtime; ship it with the server.
+  outputFileTracingIncludes: { "/**": ["./.worker/**"] },
   experimental: {
     // Statement uploads go through a server action; the default 1 MB cap rejected
     // most PDF statements. Matches MAX_FILE_BYTES in statement.action.ts (plus form overhead).
