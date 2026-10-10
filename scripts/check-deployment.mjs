@@ -17,6 +17,15 @@ if (!target) {
   process.exit(2);
 }
 const base = new URL(target);
+try {
+  await fetch(base, { redirect: "manual", signal: AbortSignal.timeout(10_000) });
+} catch {
+  console.error(`Nothing answers at ${base.origin}.`);
+  if (["localhost", "127.0.0.1"].includes(base.hostname)) {
+    console.error(`Start a production build first:  npm run build  then  npx next start -p ${base.port || 3000}`);
+  }
+  process.exit(2);
+}
 const results = [];
 const ok = (name, pass, detail = "") => results.push({ name, pass, detail });
 const get = (path, init = {}) => fetch(new URL(path, base), { redirect: "manual", ...init });
