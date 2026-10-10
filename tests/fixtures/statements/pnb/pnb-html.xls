@@ -1,0 +1,9 @@
+<html><body><table border="1">
+<tr><td colspan="6">Punjab National Bank</td></tr>
+<tr><td colspan="6">Account Number : 1234000100094821</td></tr>
+<tr><th>Transaction Date</th><th>Instrument ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+<tr><td>02-11-2025</td><td></td><td>UPI/DR/531/ZOMATO</td><td>620.00</td><td></td><td>45,210.00</td></tr>
+<tr><td>04-11-2025</td><td>NEFT001</td><td>NEFT/CR/INFOSYS LTD/SALARY</td><td></td><td>1,45,000.00</td><td>1,90,210.00</td></tr>
+<tr><td>06-11-2025</td><td></td><td>ATM/CASH WDL/DELHI</td><td>5,000.00</td><td></td><td>1,85,210.00</td></tr>
+<tr><td>08-11-2025</td><td>CHQ1123</td><td>CHQ PAID/RENT</td><td>28,000.00</td><td></td><td>1,57,210.00</td></tr>
+</table></body></html>
