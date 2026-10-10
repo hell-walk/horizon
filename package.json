@@ -6,6 +6,7 @@
     "build:worker": "node scripts/build-parse-worker.mjs",
     "predev": "node scripts/build-parse-worker.mjs",
     "prebuild": "node scripts/build-parse-worker.mjs",
+    "reset-dev-limits": "node scripts/reset-dev-limits.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

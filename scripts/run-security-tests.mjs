@@ -13,6 +13,12 @@ const OUTPUT = "reports/security-results.json";
 const allowSkip = process.env.HORIZON_SECURITY_ALLOW_SKIP === "1";
 
 mkdirSync("reports", { recursive: true });
+
+// The suite trips rate limits on purpose. With Upstash they outlive a server restart, so a
+// second run within ten minutes would fail on limits left by the first. Clear the development
+// ones first (the script refuses anything but a "-dev" prefix, and says why when it skips).
+spawnSync("node", ["scripts/reset-dev-limits.mjs"], { stdio: "inherit" });
+
 const run = spawnSync("npx", ["vitest", "run", "--project", "security", "--reporter=default", "--reporter=json", `--outputFile.json=${OUTPUT}`], {
   stdio: "inherit",
   shell: process.platform === "win32",
