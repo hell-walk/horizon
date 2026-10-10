@@ -7,8 +7,8 @@ import { useRef, useState } from "react";
 import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
 import { STATEMENT_BANKS, type StatementBankId } from "@/lib/bankGuides";
 import type { Fixes, RowFix } from "@/lib/statements/doubtful";
-import type { StatementMapping, StatementSample } from "@/lib/statements/parse";
-import { cn, formatAmount } from "@/lib/utils";
+import type { DateOrder, StatementMapping, StatementSample } from "@/lib/statements/parse";
+import { cn, formatAmount, SUPPORTED_CURRENCIES } from "@/lib/utils";
 
 import BalanceCheckNote from "./balanceCheck";
 import { useT } from "./i18nProvider";
@@ -43,6 +43,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [fixes, setFixes] = useState<Fixes>({});
   const [skipAll, setSkipAll] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // The user's choices when the file could be read two ways: date order and currency ("" = as the file shows).
+  const [dateOrder, setDateOrder] = useState<DateOrder | "">("");
+  const [currency, setCurrency] = useState("");
   const fixRow = (index: number, fix: RowFix | null) => {
     setFixes((current) => {
       const next = { ...current };
@@ -71,6 +74,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     setFixes({});
     setSkipAll(false);
     setDirty(false);
+    setDateOrder("");
+    setCurrency("");
   };
 
   const mappingBefore = useRef<Partial<StatementMapping> | null>(null);
@@ -88,12 +93,13 @@ const ImportStatement = ({ variant = "card" }: Props) => {
 
   // keepChoices: read again with the user's fixes (same file, same columns). Otherwise
   // it is a fresh read, and fixes for the old reading would point at the wrong rows.
-  const runPreview = async (keepChoices = false) => {
+  const runPreview = async (keepChoices = false, order?: DateOrder) => {
     if (!formRef.current) return;
     setBusy("preview");
     setResult(null);
     try {
       const data = new FormData(formRef.current);
+      if (order) data.set("dateOrder", order); // chosen this moment, before the hidden field updates
       if (!keepChoices) {
         data.delete("fixes");
         data.delete("skipDoubtful");
@@ -278,6 +284,21 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         </div>
       </div>
 
+      <div className="field max-w-xs">
+        <label className="field-label" htmlFor="statement-currency">
+          {t("connect.currency")}
+        </label>
+        <select id="statement-currency" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} className="field-input">
+          <option value="">{preview?.ok ? t("connect.currencyFromFile", { currency: preview.detectedCurrency }) : t("connect.currencyAuto")}</option>
+          {SUPPORTED_CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+      {dateOrder && <input type="hidden" name="dateOrder" value={dateOrder} />}
+
       {showPassword ? (
         <div className="field">
           <div className="flex items-center justify-between">
@@ -351,6 +372,31 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </table>
           </div>
           <BalanceCheckNote check={preview.check} currency={preview.currency} />
+          {preview.dateOrder.numeric && (
+            <div
+              className={cn(
+                "flex flex-wrap items-center justify-between gap-2 border-t border-line px-3 py-2 text-13",
+                preview.dateOrder.sure ? "text-ink-muted" : "bg-warn/10 text-ink",
+              )}
+            >
+              <span>
+                {preview.dateOrder.sure ? "" : `${t("connect.datesUnsure")} `}
+                {t(preview.dateOrder.order === "dmy" ? "connect.datesDmy" : "connect.datesMdy")}
+              </span>
+              <button
+                type="button"
+                className="btn-ghost btn-sm shrink-0"
+                disabled={busy !== null}
+                onClick={() => {
+                  const other: DateOrder = preview.dateOrder.order === "dmy" ? "mdy" : "dmy";
+                  setDateOrder(other);
+                  runPreview(false, other);
+                }}
+              >
+                {t(preview.dateOrder.order === "dmy" ? "connect.datesSwitchToMdy" : "connect.datesSwitchToDmy")}
+              </button>
+            </div>
+          )}
           {preview.doubtful.count > 0 && (
             <DoubtfulRows
               count={preview.doubtful.count}
