@@ -34,6 +34,19 @@ const plans = [
 ];
 
 const auth = Buffer.from(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`).toString("base64");
+
+// Tell apart "wrong keys" from "keys fine, Subscriptions not switched on": both answer 401.
+const keysWork = (await fetch("https://api.razorpay.com/v1/payments?count=1", { headers: { Authorization: `Basic ${auth}` } })).status === 200;
+const plansOpen = (await fetch("https://api.razorpay.com/v1/plans?count=1", { headers: { Authorization: `Basic ${auth}` } })).status === 200;
+if (!keysWork) {
+  console.error("Razorpay does not accept these keys: copy the Key Id and Key Secret again (Account & Settings -> API Keys), from the same mode (test or live).");
+  process.exit(1);
+}
+if (!plansOpen) {
+  console.error("The keys work, but Subscriptions is not switched on for this Razorpay account.");
+  console.error("Dashboard -> Subscriptions (in the same test/live mode) -> enable it, or ask Razorpay support to activate Subscriptions. Then run this again.");
+  process.exit(1);
+}
 console.log(`${env.RAZORPAY_KEY_ID.startsWith("rzp_test_") ? "TEST" : "LIVE"} keys. ${apply ? "Creating:" : "Dry run. With --apply this would create:"}`);
 for (const plan of plans) {
   const line = `${plan.name}: ₹${plan.amount} every ${plan.period === "monthly" ? "month" : "year"}`;

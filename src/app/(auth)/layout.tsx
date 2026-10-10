@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import LanguageSwitch from "@/components/languageSwitch";
 import Logo from "@/components/logo";
@@ -29,6 +30,9 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
               {t("auth.testMode")}
             </span>
           )}
+          <Link href="/pricing" className="font-mono text-[12px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:text-ink hover:underline">
+            {t("common.footerPricing")}
+          </Link>
           <LanguageSwitch />
         </div>
       </header>

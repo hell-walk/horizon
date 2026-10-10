@@ -39,5 +39,7 @@
   "errStart": "Could not open the payment page. Try again.",
   "errTooMany": "Too many tries. Wait a few minutes.",
   "errNothing": "There is no subscription to change.",
-  "errAlready": "You are already subscribed."
+  "errAlready": "You are already subscribed.",
+  "seePricing": "Full pricing",
+  "seeRefunds": "Refund and cancellation policy"
 }
