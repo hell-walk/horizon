@@ -615,8 +615,9 @@ const MAPPING_KEYS = ["date", "name", "debit", "credit", "amount", "type", "bala
  * Returns an error message, or null when it is usable.
  */
 export function mappingProblem(value: unknown, width: number): string | null {
-  if (!value || typeof value !== "object") return "Pick the columns first.";
-  const m = value as Record<string, unknown>;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "Pick the columns first.";
+  // Own keys only: a value inherited through the prototype must not count as a choice.
+  const m = Object.fromEntries(Object.entries(value)) as Record<string, unknown>;
   const used = new Set<number>();
   for (const [key, index] of Object.entries(m)) {
     if (!(MAPPING_KEYS as readonly string[]).includes(key)) return `Unknown column role "${key}".`;
@@ -630,6 +631,14 @@ export function mappingProblem(value: unknown, width: number): string | null {
   const hasPair = m.debit !== undefined || m.credit !== undefined;
   if (!hasPair && m.amount === undefined) return "Choose the money out and money in columns, or a single amount column.";
   return null;
+}
+
+/** A fresh mapping with only the known roles, for a value that passed mappingProblem. */
+export function cleanMapping(value: unknown): StatementMapping {
+  const m = value as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const key of MAPPING_KEYS) if (Object.hasOwn(m, key) && typeof m[key] === "number") out[key] = m[key] as number;
+  return out as StatementMapping;
 }
 
 /* ------------------------------------------------------------------ */

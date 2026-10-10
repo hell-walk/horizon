@@ -9,6 +9,7 @@ import { MANUAL_PROVIDER } from "../providers/manual";
 import {
   buildStatement,
   categorize,
+  cleanMapping,
   mappingProblem,
   readStatementRows,
   sampleStatement,
@@ -146,14 +147,14 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
     if (chosen !== undefined) {
       const problem = mappingProblem(chosen, found.width);
       if (problem) return needsMapping(problem);
-      const parsed = buildStatement(rows, file.name, chosen as StatementMapping);
+      const parsed = buildStatement(rows, file.name, cleanMapping(chosen));
       if (!parsed.transactions.length) return needsMapping("No transactions could be read with those columns. Check the date and amount columns.");
       return { ok: true, parsed, sample: found, source: "manual" };
     }
 
     const saved = (await savedLayouts(userId))[found.signature];
     if (saved && !mappingProblem(saved, found.width)) {
-      const parsed = buildStatement(rows.map((r) => [...r]), file.name, saved);
+      const parsed = buildStatement(rows.map((r) => [...r]), file.name, cleanMapping(saved));
       if (parsed.transactions.length) return { ok: true, parsed, sample: found, source: "saved" };
     }
 
