@@ -26,7 +26,7 @@ const BalanceCheckNote = ({ check, currency }: { check: BalanceCheck; currency: 
   return (
     <div className={cn("flex flex-col gap-1.5 border-t px-3 py-2.5 text-12", ok ? "border-success/30 bg-success-soft/50" : "border-warn/30 bg-warn-soft/60")}>
       <div className="flex items-start gap-2">
-        {ok ? <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" /> : <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warn" />}
+        {ok ? <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" /> : <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warn-ink" />}
         <span className="text-ink">
           {ok ? "Balances add up. " : `${check.mismatches.length} ${check.mismatches.length === 1 ? "row doesn't" : "rows don't"} add up. `}
           <span className="amount">

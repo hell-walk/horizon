@@ -55,7 +55,7 @@ const CardDesignPicker = ({ account, onPick }: { account: Account; onPick: (desi
               )}
               style={{ background: cardBackground(design) }}
             >
-              {id === "auto" && <span className="absolute inset-x-0 bottom-0 bg-black/50 py-px text-center font-mono text-[9px] uppercase text-white">Auto</span>}
+              {id === "auto" && <span className="absolute inset-x-0 bottom-0 bg-black/50 py-px text-center font-mono text-[11px] uppercase text-white">Auto</span>}
               {active && id !== "auto" && <Check className="absolute right-1 top-1 size-3 text-white" />}
             </button>
           );

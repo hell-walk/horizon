@@ -6,7 +6,7 @@ export const metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center gap-6 px-6 text-center">
+    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col items-center justify-center gap-6 px-6 text-center outline-none">
       <Logo compact />
       <p className="eyebrow">{"Error // 404"}</p>
       <h1 className="h-display">Page not found</h1>

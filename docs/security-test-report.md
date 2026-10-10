@@ -7,8 +7,9 @@
 | Suite | Command | Result |
 |---|---|---|
 | Unit and integration (Vitest) | `npm test` | **275 / 275 pass**, including about 2,000 fuzzed statement files per run |
-| Security, black-box | `npm run test:security` | **72 / 72 pass, 0 skipped** (the runner fails on any skip or a short count; results kept in `reports/security-results.json`) |
+| Security, black-box | `npm run test:security` | **84 / 84 pass, 0 skipped**, including a 12-test authorization grid (every action called by account A with account B's real ids and forged owner fields) (the runner fails on any skip or a short count; results kept in `reports/security-results.json`) |
 | Secret scan | `node scripts/scan-secrets.mjs` | **Clean**: 265 tracked files and all 74 commits; no `.env` secret value appears anywhere. Two warnings: Plaid *sandbox* tokens from the tutorial's sample data in commits `23d35e36`/`ae25aaa4` (removed since; useless without that sandbox's client secret). |
+| Deployment check | `node scripts/check-deployment.mjs <url>` | Local build: 28 / 30. The two failures are the legacy rows below (8 plain-text tokens, 5 profiles with SSN/date of birth). Checks HTTPS, TLS 1.2+, certificate, headers, locked pages, private files, Appwrite permissions and leftover plain-text data. |
 | Dependency audit | `npm audit` | 11 findings (7 high, 4 moderate), all in build tooling (Tailwind 3's watcher, ESLint config) or `exceljs`'s `uuid`; none reachable from requests. Cleared by the Tailwind 4 upgrade. |
 
 The security suite attacks the running app the way an outsider would: raw HTTP, server actions called by id with no UI, forged headers and cookies, hostile files, a second account going after the first one's data, and direct calls to Appwrite with a user's own session. See `tests/security/README.md` to run it.

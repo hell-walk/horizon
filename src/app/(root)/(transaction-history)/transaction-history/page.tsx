@@ -72,7 +72,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
       />
 
       {accountsData.length > 1 && (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto" role="group" aria-label="Choose an account">
           {accountsData.map((a) => (
             <BankTabItem key={a.appwriteItemId} account={a} appwriteItemId={appwriteItemId} />
           ))}
@@ -116,7 +116,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
                     key={f.key}
                     href={filterHref(f.key)}
                     className={cn(
-                      "rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors",
+                      "rounded-sm border px-2.5 py-1 font-mono text-[12px] uppercase tracking-wider transition-colors",
                       filter === f.key ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card text-ink-muted hover:bg-surface-container"
                     )}
                   >

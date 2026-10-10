@@ -73,6 +73,8 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
         <div className={cn("relative mx-auto size-[200px] md:size-[220px]", arrive && "chart-arrive")}>
           {groups.length > 0 ? (
             <Doughnut
+              role="img"
+              aria-label={`Spending by payee: ${groups.map((g) => `${g.name} ${Math.round(g.share * 100)}%`).join(", ")}`}
               data={data}
               options={{
                 cutout: "62%",

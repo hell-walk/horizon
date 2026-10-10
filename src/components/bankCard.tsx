@@ -27,14 +27,20 @@ const Chip = () => (
  * colours, an unbranded theme, or Classic black (see lib/cardDesigns). Links
  * to that account's transaction history.
  */
-const BankCard = ({ account, userName, showBalance = true, withCopy = true }: CreditCardProps) => {
+// The card links to the account's ledger, except behind the front card in the deck,
+// where the whole card is already a button (a link inside would be a control in a control).
+const CardShell = ({ linked, href, ...rest }: { linked: boolean; href: string } & React.HTMLAttributes<HTMLElement>) =>
+  linked ? <Link href={href} {...rest} /> : <div {...rest} />;
+
+const BankCard = ({ account, userName, showBalance = true, withCopy = true, linked = true }: CreditCardProps & { linked?: boolean }) => {
   const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
   const design = resolveCardDesign(account);
   const isClassic = design.kind === "classic";
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <Link
+      <CardShell
+        linked={linked}
         href={`/transaction-history/?id=${account.appwriteItemId}`}
         style={{ background: cardBackground(design) }}
         className="relative flex min-h-[190px] w-full flex-col justify-between overflow-hidden rounded-lg p-5 text-white ring-1 ring-white/10 transition-shadow hover:shadow-lift"
@@ -83,7 +89,7 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true }: Cr
             </span>
           </div>
         </div>
-      </Link>
+      </CardShell>
 
       {showBalance && withCopy && <Copy title={account.sharableId} />}
     </div>

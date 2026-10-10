@@ -31,7 +31,7 @@ const Step = ({ index, title, hint, children }: { index: string; title: string; 
   <section className="panel">
     <header className="panel-head">
       <div className="flex items-center gap-3">
-        <span className="flex-center h-6 min-w-6 rounded-sm bg-primary px-1.5 font-mono text-[11px] text-primary-foreground">{index}</span>
+        <span className="flex-center h-6 min-w-6 rounded-sm bg-primary px-1.5 font-mono text-[12px] text-primary-foreground">{index}</span>
         <span className="font-display text-14 font-semibold uppercase tracking-tight text-ink">{title}</span>
       </div>
       {hint && <span className="eyebrow">{hint}</span>}
@@ -241,7 +241,7 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
             </p>
           )}
           {notice && (
-            <p className="rounded-md border border-warn/30 bg-warn-soft px-3 py-2 text-13 text-warn" role="status">
+            <p className="rounded-md border border-warn/30 bg-warn-soft px-3 py-2 text-13 text-warn-ink" role="status">
               {notice}
             </p>
           )}

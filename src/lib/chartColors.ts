@@ -56,4 +56,11 @@ export const segmentColor = (colors: ChartColors, name: string, index: number) =
   name === "Other" ? colors.other : colors.segments[index % colors.segments.length];
 
 /** Entrance animation for every doughnut: spins round while growing from the centre. */
-export const ENTRANCE = { animateRotate: true, animateScale: true, duration: 900, easing: "easeOutQuart" as const };
+/** True when the user asked their system for less motion. */
+export const prefersReducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+
+// Entrance animation for charts; none at all for people who asked for less motion.
+export const ENTRANCE = prefersReducedMotion()
+  ? (false as const)
+  : { animateRotate: true, animateScale: true, duration: 900, easing: "easeOutQuart" as const };

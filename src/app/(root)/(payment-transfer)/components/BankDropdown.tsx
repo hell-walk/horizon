@@ -28,7 +28,7 @@ export const BankDropdown = ({ accounts = [], setValue, otherStyles, initialId }
 
   return (
     <Select defaultValue={selected.appwriteItemId} onValueChange={handleBankChange}>
-      <SelectTrigger className={`field-input justify-between ${otherStyles ?? ""}`}>
+      <SelectTrigger aria-label="Account to send from" className={`field-input justify-between ${otherStyles ?? ""}`}>
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate font-semibold">{selected.name}</span>
           <span className="eyebrow">{maskLabel(selected.mask)}</span>

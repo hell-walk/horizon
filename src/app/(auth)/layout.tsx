@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: Readonly<{ children: ReactNode 
         </div>
       </header>
 
-      <div className="grid flex-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div id="main" tabIndex={-1} className="grid flex-1 outline-none lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* Brand panel */}
         <aside className="relative hidden flex-col justify-between overflow-hidden bg-black p-10 text-white lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-56px)]">
           <span className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border border-white/10" />

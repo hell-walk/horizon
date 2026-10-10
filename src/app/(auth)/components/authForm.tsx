@@ -28,7 +28,7 @@ const Section = ({ index, title, hint, children }: { index: string; title: strin
   <fieldset className="flex flex-col gap-4">
     <legend className="mb-4 flex w-full items-center justify-between border-b border-line pb-2">
       <span className="flex items-center gap-2">
-        <span className="font-mono text-[11px] text-ink-faint">{index}</span>
+        <span className="font-mono text-[12px] text-ink-faint">{index}</span>
         <span className="font-display text-13 font-semibold uppercase tracking-wide text-ink">{title}</span>
       </span>
       {hint && <span className="eyebrow">{hint}</span>}
@@ -139,7 +139,7 @@ const AuthForm = ({ type }: { type: string }) => {
                 <a
                   key={s.index}
                   href={`#section-${s.index}`}
-                  className="flex items-center justify-center gap-2 rounded-sm border border-line bg-card py-2 font-mono text-[11px] uppercase tracking-wider text-ink-muted hover:bg-surface-container"
+                  className="flex items-center justify-center gap-2 rounded-sm border border-line bg-card py-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted hover:bg-surface-container"
                 >
                   <span className="text-ink-faint">{s.index}</span> {s.title}
                 </a>
@@ -206,7 +206,7 @@ const AuthForm = ({ type }: { type: string }) => {
                             )}
                           />
                         ))}
-                        <span className={cn("eyebrow w-16 text-right", strength === 3 && "text-success", strength === 2 && "text-warn", strength === 1 && "text-danger")}>
+                        <span className={cn("eyebrow w-16 text-right", strength === 3 && "text-success", strength === 2 && "text-warn-ink", strength === 1 && "text-danger")}>
                           {["", "Weak", "Fair", "Strong"][strength]}
                         </span>
                       </div>
@@ -265,7 +265,7 @@ const AuthForm = ({ type }: { type: string }) => {
 
           <footer className="flex items-center justify-between rounded-md border border-line bg-surface-low px-4 py-3 text-13 text-ink-muted">
             <span>{isSignUp ? "Already have an account?" : "New to Horizon?"}</span>
-            <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="font-mono text-[11px] uppercase tracking-wider text-ink underline underline-offset-4">
+            <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="font-mono text-[12px] uppercase tracking-wider text-ink underline underline-offset-4">
               {isSignUp ? "Sign in" : "Create account"}
             </Link>
           </footer>

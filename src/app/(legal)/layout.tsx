@@ -7,11 +7,12 @@ import ThemeSwitch from "@/components/themeSwitch";
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-screen w-full flex-col">
+    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col outline-none">
       <header className="flex h-14 items-center justify-between border-b border-line bg-surface-low px-4 sm:px-6">
-        <Logo />
+        <Logo className="max-[400px]:hidden" />
+        <Logo compact className="hidden max-[400px]:flex" />
         <div className="flex items-center gap-2">
-          <ThemeSwitch className="max-sm:hidden" />
+          <ThemeSwitch />
           <Link href="/sign-in" className="btn-primary btn-sm">
             Sign in
           </Link>

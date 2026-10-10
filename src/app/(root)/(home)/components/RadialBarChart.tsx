@@ -3,7 +3,7 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
-import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
+import { ENTRANCE, prefersReducedMotion, segmentColor, useChartColors } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);
@@ -31,12 +31,14 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
 
   return (
     <Doughnut
+      role="img"
+      aria-label={`Spending by type: ${items.map((item) => `${item.name} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; ")}`}
       data={data}
       options={{
         cutout: "48%",
         rotation: -90,
         maintainAspectRatio: false,
-        animation: unfold ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
+        animation: unfold && !prefersReducedMotion() ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
         plugins: {
           legend: { display: false },
           tooltip: {

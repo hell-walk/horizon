@@ -27,6 +27,8 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
 
   return (
     <Doughnut
+      role="img"
+      aria-label={`Balances by account: ${accounts.map((a) => `${a.name} ${formatAmount(a.currentBalance, a.currency)}`).join(", ")}`}
       data={data}
       options={{
         cutout: "68%",

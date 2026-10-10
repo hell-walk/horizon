@@ -17,10 +17,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const banks: Bank[] = (await getBanks({ userId: ownerIdOf(loggedIn) })) ?? [];
 
   return (
-    <main className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
       <Topbar user={loggedIn} bankCount={banks.length} />
-      {children}
+      {/* The page itself is the main landmark; the skip link lands here. */}
+      <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
+        {children}
+      </main>
       <BottomNav />
-    </main>
+    </div>
   );
 }
