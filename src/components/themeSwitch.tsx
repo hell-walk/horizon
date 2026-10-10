@@ -3,6 +3,8 @@
 import { useTheme } from "next-themes";
 import { useRef, useState, useSyncExternalStore } from "react";
 
+import { useT } from "@/components/i18nProvider";
+
 import SkyToggle from "@/components/ui/sky-toggle";
 import { ThemeToggle as PillToggle } from "@/components/ui/theme-toggle";
 import Toggle, { type ToggleOption } from "@/components/ui/toggle";
@@ -15,11 +17,6 @@ const subscribe = () => () => {};
 // in a circle; going light, the dark page shrinks back into the switch. Pixels
 // are old or new, never blended, so nothing passes through grey.
 const FLIP_DELAY_MS = 120;
-
-const OPTIONS: [ToggleOption<"light">, ToggleOption<"dark">] = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
 
 type DocWithViewTransition = Document & {
   startViewTransition?: (update: () => void | Promise<void>) => { ready: Promise<void>; finished: Promise<void> };
@@ -34,6 +31,7 @@ type DocWithViewTransition = Document & {
  */
 const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; className?: string }) => {
   const { resolvedTheme, setTheme } = useTheme();
+  const t = useT();
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const isDark = mounted && resolvedTheme === "dark";
   const anchor = useRef<HTMLSpanElement>(null);
@@ -90,14 +88,18 @@ const ThemeSwitch = ({ compact = false, className }: { compact?: boolean; classN
   if (THEME_SWITCH_VARIANT === "pill") {
     control = <PillToggle isDark={shownDark} onChange={flip} className={className} />;
   } else if (THEME_SWITCH_VARIANT === "sky") {
-    control = <SkyToggle checked={shownDark} onChange={flip} ariaLabel="Dark mode" className={className} />;
+    control = <SkyToggle checked={shownDark} onChange={flip} ariaLabel={t("common.darkMode")} className={className} />;
   } else {
+    const options: [ToggleOption<"light">, ToggleOption<"dark">] = [
+      { value: "light", label: t("common.themeLight") },
+      { value: "dark", label: t("common.themeDark") },
+    ];
     control = (
       <Toggle<"light" | "dark">
         value={shownDark ? "dark" : "light"}
         onChange={(value) => flip(value === "dark")}
-        options={OPTIONS}
-        ariaLabel="Colour scheme"
+        options={options}
+        ariaLabel={t("common.colourScheme")}
         compact={compact}
         className={className}
       />

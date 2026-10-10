@@ -1,1 +1,19 @@
-{}
+{
+  "mainMenu": "मुख्य मेन्यू",
+  "home": "होम",
+  "myBanks": "मेरे बैंक",
+  "myBanksShort": "बैंक",
+  "history": "खाते का हिसाब",
+  "historyShort": "हिसाब",
+  "transfer": "पैसे भेजें",
+  "transferShort": "भेजें",
+  "connect": "बैंक जोड़ें",
+  "connectShort": "जोड़ें",
+  "accountCount_one": "{count} खाता",
+  "accountCount_other": "{count} खाते",
+  "accountMenu": "आपकी प्रोफ़ाइल का मेन्यू",
+  "account": "आपकी प्रोफ़ाइल",
+  "privacyPolicy": "प्राइवेसी पॉलिसी",
+  "terms": "शर्तें",
+  "logOut": "लॉग आउट करें"
+}

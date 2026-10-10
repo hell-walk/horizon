@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import HeaderBox from "@/components/ui/headerBox";
 import { completeSetuConsent } from "@/lib/actions/setu.action";
+import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser } from "@/lib/server/auth";
 
 // The Account Aggregator sends the customer back here after they approve or
@@ -20,33 +21,44 @@ const SetuCallback = async ({ searchParams }: SearchParamProps) => {
 
   if (result.status === "ACTIVE") redirect("/");
 
+  const t = await getT();
   const message =
     result.status === "PENDING"
-      ? "The consent is still pending approval. Finish the approval with your Account Aggregator and try again."
+      ? t("connect.cbPending")
       : result.status === "REJECTED"
-        ? "The consent request was rejected, so no accounts were linked."
+        ? t("connect.cbRejected")
         : result.status === "MISSING"
-          ? "We could not find the consent you started. Please start the connection again."
+          ? t("connect.cbMissing")
           : result.status === "ERROR"
-            ? `Something went wrong while finishing the connection: ${"error" in result ? result.error : ""}`
-            : `The consent is ${result.status}. No accounts were linked.`;
+            ? t("connect.cbError", { error: "error" in result ? (result.error ?? "") : "" })
+            : t("connect.cbOther", { status: result.status });
+  const statusLabel =
+    result.status === "PENDING"
+      ? t("connect.cbStatusPending")
+      : result.status === "REJECTED"
+        ? t("connect.cbStatusRejected")
+        : result.status === "MISSING"
+          ? t("connect.cbStatusMissing")
+          : result.status === "ERROR"
+            ? t("connect.cbStatusError")
+            : result.status;
 
   return (
     <section className="page">
-      <HeaderBox eyebrow="Gateway // Setu AA" title="Connect Indian bank" subtext="Account Aggregator consent result." />
+      <HeaderBox eyebrow={t("connect.cbEyebrow")} title={t("connect.cbTitle")} subtext={t("connect.cbSubtext")} />
       <div className="panel max-w-2xl">
         <header className="panel-head">
-          <span className="eyebrow">Consent status</span>
-          <span className={result.status === "PENDING" ? "chip-warn" : "chip-danger"}>{result.status}</span>
+          <span className="eyebrow">{t("connect.cbStatus")}</span>
+          <span className={result.status === "PENDING" ? "chip-warn" : "chip-danger"}>{statusLabel}</span>
         </header>
         <div className="panel-body flex flex-col gap-4">
           <p className="text-14 text-ink">{message}</p>
           <div className="flex gap-2">
             <Link href="/connect-bank" className="btn-primary">
-              Try again
+              {t("connect.tryAgain")}
             </Link>
             <Link href="/" className="btn-secondary">
-              Back to home
+              {t("connect.backHome")}
             </Link>
           </div>
         </div>

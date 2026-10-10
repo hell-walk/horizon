@@ -1,3 +1,5 @@
+"use client";
+
 import { Nfc } from "lucide-react";
 import Link from "next/link";
 
@@ -6,6 +8,7 @@ import { cardBackground, resolveCardDesign } from "@/lib/cardDesigns";
 import { formatAmount } from "@/lib/utils";
 
 import Copy from "./Copy";
+import { useT } from "./i18nProvider";
 
 // Gold contact chip, drawn so it scales crisply at any size.
 const Chip = () => (
@@ -33,7 +36,10 @@ const CardShell = ({ linked, href, ...rest }: { linked: boolean; href: string } 
   linked ? <Link href={href} {...rest} /> : <div {...rest} />;
 
 const BankCard = ({ account, userName, showBalance = true, withCopy = true, linked = true }: CreditCardProps & { linked?: boolean }) => {
-  const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
+  const t = useT();
+  const providerKey = account.provider in PROVIDER_LABELS ? account.provider : "plaid";
+  const providerText = t(`banks.provider_${providerKey}`);
+  const providerName = providerText === `banks.provider_${providerKey}` ? PROVIDER_LABELS[providerKey].name : providerText;
   const design = resolveCardDesign(account);
   const isClassic = design.kind === "classic";
 
@@ -57,34 +63,40 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
 
         <div className="relative flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col">
-            <span className="font-display text-14 font-bold uppercase tracking-tight">Horizon</span>
-            <span className="eyebrow truncate text-white/60">{account.name}</span>
+            <span translate="no" className="font-display text-14 font-bold uppercase tracking-tight">Horizon</span>
+            <span translate="no" className="eyebrow truncate text-white/60">
+              {account.name}
+            </span>
           </div>
           {design.kind === "bank" ? (
-            <span className="font-display text-16 font-bold uppercase tracking-tight">{design.label}</span>
+            <span translate="no" className="font-display text-16 font-bold uppercase tracking-tight">
+              {design.label}
+            </span>
           ) : (
-            <span className="chip border-lime bg-lime text-[#171E00]">{provider.name}</span>
+            <span className="chip border-lime bg-lime text-[#171E00]">{providerName}</span>
           )}
         </div>
 
         <div className="relative flex items-center gap-2.5">
           <Chip />
           <Nfc className="size-4 text-white/70" strokeWidth={1.75} />
-          {design.kind === "bank" && <span className="chip ml-auto border-white/30 bg-white/10 text-white">{provider.name}</span>}
+          {design.kind === "bank" && <span className="chip ml-auto border-white/30 bg-white/10 text-white">{providerName}</span>}
         </div>
 
-        <p className="amount relative text-18 tracking-[0.2em]">
+        <p translate="no" className="amount relative text-18 tracking-[0.2em]">
           <span className="opacity-60">•••• •••• ••••</span> {account.mask || "0000"}
         </p>
 
         <div className="relative flex items-end justify-between gap-3">
           <div className="flex min-w-0 flex-col">
-            <span className="eyebrow text-white/60">Holder</span>
-            <span className="truncate font-mono text-12 uppercase">{userName}</span>
+            <span className="eyebrow text-white/60">{t("banks.holder")}</span>
+            <span translate="no" className="truncate font-mono text-12 uppercase">
+              {userName}
+            </span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="eyebrow text-white/60">{showBalance ? "Balance" : "Currency"}</span>
-            <span className="amount text-14 font-semibold">
+            <span className="eyebrow text-white/60">{showBalance ? t("banks.balance") : t("banks.currency")}</span>
+            <span translate="no" className="amount text-14 font-semibold">
               {showBalance ? formatAmount(account.currentBalance, account.currency) : account.currency || "USD"}
             </span>
           </div>

@@ -3,6 +3,8 @@ import qs from "query-string";
 import { twMerge } from "tailwind-merge";
 import z from "zod";
 
+import type { Translate } from "./i18n/translate";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -145,29 +147,36 @@ export const getTransactionStatus = (date: Date) => {
 
   return date > twoDaysAgo ? "Processing" : "Success";
 };
-export const authFormSchema = (type: string) => {
+
+// Validation for the sign-in and sign-up forms. `t` turns the messages into the
+// reader's language (useT() in the form).
+export const authFormSchema = (type: string, t: Translate) => {
   const signUp = type === "sign-up";
   const optional = () => z.string().optional();
+  const tooLong = (max: number) => t("auth.errorTooLong", { max });
 
   return z
     .object({
-      email: z.string().email("Enter a valid email address"),
-      password: z.string().min(8, "Use at least 8 characters"),
-      confirmPassword: signUp ? z.string().min(1, "Repeat your password") : optional(),
-      terms: signUp ? z.boolean().refine((v) => v, "Accept the terms to continue") : z.boolean().optional(),
-      firstName: signUp ? z.string().min(2, "Enter your first name") : optional(),
-      lastName: signUp ? z.string().min(2, "Enter your last name") : optional(),
-      address1: signUp ? z.string().min(3, "Enter your street address").max(50) : optional(),
-      city: signUp ? z.string().min(2, "Enter your city").max(20) : optional(),
-      state: signUp ? z.string().min(2, "Enter your state").max(30) : optional(),
-      postalCode: signUp ? z.string().regex(/^[A-Za-z0-9 -]{3,10}$/, "Enter a valid postal code") : optional(),
+      email: z.string().email(t("auth.errorEmail")),
+      password: z.string().min(8, t("auth.passwordTooShort")),
+      confirmPassword: signUp ? z.string().min(1, t("auth.errorConfirmPassword")) : optional(),
+      terms: signUp ? z.boolean().refine((v) => v, t("auth.errorTerms")) : z.boolean().optional(),
+      firstName: signUp ? z.string().min(2, t("auth.errorFirstName")) : optional(),
+      lastName: signUp ? z.string().min(2, t("auth.errorLastName")) : optional(),
+      address1: signUp ? z.string().min(3, t("auth.errorStreet")).max(50, tooLong(50)) : optional(),
+      city: signUp ? z.string().min(2, t("auth.errorCity")).max(20, tooLong(20)) : optional(),
+      state: signUp ? z.string().min(2, t("auth.errorState")).max(30, tooLong(30)) : optional(),
+      postalCode: signUp ? z.string().regex(/^[A-Za-z0-9 -]{3,10}$/, t("auth.errorPostalCode")) : optional(),
       dob: signUp
-        ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").refine((v) => !Number.isNaN(Date.parse(v)) && new Date(v) < new Date(), "Enter a real date in the past")
+        ? z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, t("auth.errorDobFormat"))
+            .refine((v) => !Number.isNaN(Date.parse(v)) && new Date(v) < new Date(), t("auth.errorDobPast"))
         : optional(),
-      ssn: signUp ? z.string().min(4, "Last 4 digits at least") : optional(),
+      ssn: signUp ? z.string().min(4, t("auth.errorTaxId")) : optional(),
     })
     .refine((data) => !signUp || data.password === data.confirmPassword, {
-      message: "Passwords do not match",
+      message: t("auth.errorPasswordsDiffer"),
       path: ["confirmPassword"],
     });
 };

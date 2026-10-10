@@ -3,6 +3,8 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
+import { useT } from "@/components/i18nProvider";
+import { spendTypeLabel } from "@/constants";
 import { ENTRANCE, prefersReducedMotion, segmentColor, useChartColors } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
@@ -14,11 +16,12 @@ export type RadialBarItem = { name: string; amount: number; share: number };
 // Chart.js stacks datasets as rings, so each dataset is [value, remainder].
 const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarItem[]; currency?: string; unfold?: boolean }) => {
   const colors = useChartColors();
+  const t = useT();
 
   const data = {
     labels: ["value", "rest"],
     datasets: items.map((item, i) => ({
-      label: item.name,
+      label: spendTypeLabel(t, item.name),
       // Unfolding sweeps every arc closed into a full ring.
       data: unfold ? [1, 0] : [item.share, Math.max(1 - item.share, 0)],
       backgroundColor: [segmentColor(colors, item.name, i), colors.track],
@@ -32,7 +35,9 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
   return (
     <Doughnut
       role="img"
-      aria-label={`Spending by type: ${items.map((item) => `${item.name} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; ")}`}
+      aria-label={t("home.spendingChartLabel", {
+        list: items.map((item) => `${spendTypeLabel(t, item.name)} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; "),
+      })}
       data={data}
       options={{
         cutout: "48%",

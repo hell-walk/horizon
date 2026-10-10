@@ -8,10 +8,13 @@ import { PlaidLinkOnSuccess, PlaidLinkOptions, usePlaidLink } from "react-plaid-
 import { createLinkToken, exchangePublicToken } from "@/lib/actions/user.action";
 import { cn } from "@/lib/utils";
 
+import { useT } from "./i18nProvider";
+
 // Opens Plaid Link. `primary` is the full-width button on the post-sign-up step;
 // `card` sits inside the provider card on the Connect Bank page.
 const PlaidLink = ({ variant = "card" }: PlaidLinkProps) => {
   const router = useRouter();
+  const t = useT();
   const [token, setToken] = useState("");
   const [linking, setLinking] = useState(false);
 
@@ -45,15 +48,15 @@ const PlaidLink = ({ variant = "card" }: PlaidLinkProps) => {
     >
       {linking ? (
         <>
-          <Loader2 className="size-4 animate-spin" /> Linking
+          <Loader2 className="size-4 animate-spin" /> {t("connect.plaidLinking")}
         </>
       ) : !ready ? (
         <>
-          <Loader2 className="size-4 animate-spin" /> Preparing Plaid
+          <Loader2 className="size-4 animate-spin" /> {t("connect.plaidPreparing")}
         </>
       ) : (
         <>
-          Connect via Plaid <ArrowRight className="size-4" />
+          {t("connect.plaidConnect")} <ArrowRight className="size-4" />
         </>
       )}
     </button>

@@ -7,7 +7,11 @@ const HeaderBox = ({ type = "title", title, user, subtext, eyebrow, actions }: H
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
       <h1 className="h-display">
         {title}
-        {type === "greeting" && user && <span className="text-lime-ink">, {user}</span>}
+        {type === "greeting" && user && (
+          <span className="text-lime-ink">
+            , <span translate="no">{user}</span>
+          </span>
+        )}
       </h1>
       <p className="max-w-2xl text-14 text-ink-muted">{subtext}</p>
     </div>

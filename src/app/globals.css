@@ -733,3 +733,9 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Devanagari letters join up: the design's wide letter-spacing on small
+   uppercase labels pulls them apart, and uppercase means nothing to them. */
+*:lang(hi) {
+  letter-spacing: normal !important;
+}

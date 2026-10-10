@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
 import { isKnownDesign } from "../cardDesigns";
+import { getT } from "../i18n/server";
 import { createAdminClient } from "../server/appwrite";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -13,16 +14,17 @@ const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_BANK_COLLECTION_ID: BANK_COL
 
 /** Saves the card design for one of the signed-in user's accounts. */
 export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId: string; design: string }) {
-  if (!isKnownDesign(design)) return { ok: false as const, error: "Unknown card design." };
+  const t = await getT();
+  if (!isKnownDesign(design)) return { ok: false as const, error: t("connect.cardUnknownDesign") };
 
   const user = await getLoggedInUser();
-  if (!user) return { ok: false as const, error: "You need to be signed in." };
-  if (!allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false as const, error: "Too many changes. Wait a few minutes and try again." };
+  if (!user) return { ok: false as const, error: t("connect.errSignIn") };
+  if (!allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false as const, error: t("connect.cardTooMany") };
 
   try {
     const { database } = await createAdminClient();
     const bank = await database.getDocument(DATABASE_ID!, BANK_COLLECTION_ID!, appwriteItemId);
-    if (bank.userId !== ownerIdOf(user)) return { ok: false as const, error: "That account is not yours." };
+    if (bank.userId !== ownerIdOf(user)) return { ok: false as const, error: t("connect.cardNotYours") };
 
     await database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, appwriteItemId, { cardDesign: design });
     invalidate("banks:");
@@ -30,6 +32,6 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
     return { ok: true as const };
   } catch (error) {
     logError("card: could not save the design", error);
-    return { ok: false as const, error: "Could not save the design. Please try again." };
+    return { ok: false as const, error: t("connect.cardSaveFailed") };
   }
 }

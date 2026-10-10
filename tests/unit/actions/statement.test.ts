@@ -119,7 +119,7 @@ describe("previewStatement", () => {
     for (let i = 0; i < 31; i++) results.push(await previewStatement(form(csv(good))));
     expect(results.slice(0, 30).every((r) => r.ok)).toBe(true);
     expect(results[30]).toMatchObject({ ok: false, error: expect.stringMatching(/Too many files/) });
-  });
+  }, 120_000); // 31 reads, each in its own worker
 });
 
 describe("importStatement", () => {

@@ -4,17 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { sidebarLinks } from "@/constants";
 import { cn } from "@/lib/utils";
-
-// Short labels for narrow widths.
-const SHORT: Record<string, string> = {
-  "/": "Home",
-  "/my-banks": "Banks",
-  "/transaction-history": "History",
-  "/payment-transfer": "Transfer",
-  "/connect-bank": "Connect",
-};
 
 /**
  * Floating pill navigation, ported from the Lazy I's portfolio navbar. A lime
@@ -23,6 +15,7 @@ const SHORT: Record<string, string> = {
  */
 const Navbar = ({ className }: { className?: string }) => {
   const pathname = usePathname();
+  const t = useT();
   const listRef = useRef<HTMLDivElement>(null);
   const [line, setLine] = useState<{ left: number; width: number } | null>(null);
 
@@ -49,7 +42,7 @@ const Navbar = ({ className }: { className?: string }) => {
 
   return (
     <nav
-      aria-label="Site"
+      aria-label={t("nav.mainMenu")}
       className={cn(
         "inline-flex items-center rounded-full border border-line bg-card/80 px-1.5 py-1 shadow-lift backdrop-blur-md",
         className
@@ -68,8 +61,8 @@ const Navbar = ({ className }: { className?: string }) => {
                 active ? "text-ink" : "text-ink-faint hover:text-ink"
               )}
             >
-              <span className="lg:hidden">{SHORT[item.route] ?? item.label}</span>
-              <span className="hidden lg:inline">{item.label}</span>
+              <span className="lg:hidden">{t(item.shortKey)}</span>
+              <span className="hidden lg:inline">{t(item.labelKey)}</span>
             </Link>
           );
         })}

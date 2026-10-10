@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { cn } from "@/lib/utils";
 
 export type ToggleOption<T extends string> = { value: T; label: string };
@@ -22,8 +23,9 @@ type Props<T extends string> = {
  * between the ends (see ".vtoggle" in globals.css). Colours come from the
  * theme tokens, so it works in light and dark: track = primary, knob = lime.
  */
-const Toggle = <T extends string>({ value, onChange, options, ariaLabel = "Switch view", className, compact = false }: Props<T>) => {
+const Toggle = <T extends string>({ value, onChange, options, ariaLabel, className, compact = false }: Props<T>) => {
   const id = useId();
+  const t = useT();
   const [a, b] = options;
   const checked = value === b.value;
 
@@ -35,7 +37,7 @@ const Toggle = <T extends string>({ value, onChange, options, ariaLabel = "Switc
     );
 
   return (
-    <div className={cn("inline-flex items-center gap-3", className)} role="group" aria-label={ariaLabel}>
+    <div className={cn("inline-flex items-center gap-3", className)} role="group" aria-label={ariaLabel ?? t("common.switchView")}>
       <button type="button" onClick={() => onChange(a.value)} className={labelClass(!checked)}>
         {a.label}
       </button>
@@ -47,7 +49,7 @@ const Toggle = <T extends string>({ value, onChange, options, ariaLabel = "Switc
           className="vtoggle-input"
           checked={checked}
           onChange={(e) => onChange(e.target.checked ? b.value : a.value)}
-          aria-label={`${a.label} or ${b.label}`}
+          aria-label={t("common.eitherOr", { first: a.label, second: b.label })}
         />
         <label className="vtoggle" htmlFor={id}>
           <svg viewBox="0 0 212.4992 84.4688" overflow="visible" aria-hidden="true">

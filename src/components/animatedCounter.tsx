@@ -7,7 +7,7 @@ import { formatAmount } from "@/lib/utils";
 
 const AnimatedCounter = ({ amount, currency = "USD" }: { amount: number; currency?: string }) => {
   return (
-    <span className="inline-block w-full">
+    <span translate="no" className="inline-block w-full">
       <CountUp
         duration={prefersReducedMotion() ? 0 : 2.75}
         decimals={2}

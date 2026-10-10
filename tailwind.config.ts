@@ -104,9 +104,10 @@ const config = {
         ring: token("primary"),
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "var(--font-sans)", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        // Hindi: the Latin fonts have no Devanagari, so each stack falls back to Noto Sans Devanagari.
+        sans: ["var(--font-sans)", "var(--font-devanagari)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-devanagari)", "var(--font-sans)", "sans-serif"],
+        mono: ["var(--font-mono)", "var(--font-devanagari)", "ui-monospace", "monospace"],
       },
       boxShadow: {
         card: "0 1px 0 0 rgb(var(--on-surface) / 0.04)",

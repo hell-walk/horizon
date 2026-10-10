@@ -27,8 +27,12 @@ export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
         isActive ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card text-ink-muted hover:bg-surface-container"
       )}
     >
-      <span className="max-w-[140px] truncate">{account.name}</span>
-      <span className="opacity-60">{maskLabel(account.mask)}</span>
+      <span translate="no" className="max-w-[140px] truncate">
+        {account.name}
+      </span>
+      <span translate="no" className="opacity-60">
+        {maskLabel(account.mask)}
+      </span>
     </button>
   );
 };

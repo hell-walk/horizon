@@ -4,14 +4,15 @@ import { redirect } from "next/navigation";
 
 import PaymentTransferForm from "../components/PaymentTransferForm";
 import HeaderBox from "@/components/ui/headerBox";
+import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 
-export const metadata: Metadata = {
-  title: "Transfer funds",
-  description: "Send money between linked bank accounts.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("transfer.metaTitle"), description: t("transfer.metaDescription") };
+}
 
 const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
   const { id } = await searchParams;
@@ -20,21 +21,22 @@ const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
 
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   const accountsData: Account[] = accounts?.data ?? [];
+  const t = await getT();
 
   return (
     <section className="page">
       <HeaderBox
-        eyebrow="Transfers // dispatch"
-        title="Transfer funds"
-        subtext="Send money from one of your linked accounts to another Horizon user. Four steps, one confirmation."
+        eyebrow={t("transfer.eyebrow")}
+        title={t("transfer.title")}
+        subtext={t("transfer.subtext")}
       />
 
       {accountsData.length === 0 ? (
         <div className="panel flex-center flex-col gap-3 p-10 text-center">
-          <p className="text-16 font-semibold text-ink">Link an account first</p>
-          <p className="max-w-md text-14 text-ink-muted">Transfers need a source account. Connect a bank to get started.</p>
+          <p className="text-16 font-semibold text-ink">{t("transfer.noAccountTitle")}</p>
+          <p className="max-w-md text-14 text-ink-muted">{t("transfer.noAccountBody")}</p>
           <Link href="/connect-bank" className="btn-primary mt-2">
-            Connect a bank
+            {t("transfer.connectBank")}
           </Link>
         </div>
       ) : (

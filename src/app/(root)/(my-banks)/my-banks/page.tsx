@@ -8,15 +8,16 @@ import BankShowcase from "../components/bankShowcase";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import type { SpendingByAccount } from "../components/spendingThin";
+import { getT } from "@/lib/i18n/server";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { groupBySpendType } from "@/lib/spending";
 
-export const metadata: Metadata = {
-  title: "My Banks",
-  description: "Every bank account linked to Horizon.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("banks.metaTitle"), description: t("banks.metaDescription") };
+}
 
 const isThisMonth = (date: string) => {
   const d = new Date(date);
@@ -25,6 +26,7 @@ const isThisMonth = (date: string) => {
 };
 
 const MyBanks = async () => {
+  const t = await getT();
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
@@ -39,7 +41,7 @@ const MyBanks = async () => {
       try {
         const account = await getAccount({ appwriteItemId: a.appwriteItemId });
         const all: Transaction[] = account?.transactions ?? [];
-        const monthBuckets = groupBySpendType(all.filter((t) => isThisMonth(t.date)), 5);
+        const monthBuckets = groupBySpendType(all.filter((tx) => isThisMonth(tx.date)), 5);
         // This month when there is spending in it; statements cover past months, so fall back to all of it.
         const thisMonth = monthBuckets.length > 0;
         const buckets = thisMonth ? monthBuckets : groupBySpendType(all, 5);
@@ -54,12 +56,12 @@ const MyBanks = async () => {
   return (
     <section className="page">
       <HeaderBox
-        eyebrow="Accounts // linked"
-        title="My banks"
-        subtext="Every account connected through Plaid, Setu or a statement import, with its latest balance."
+        eyebrow={t("banks.eyebrow")}
+        title={t("banks.title")}
+        subtext={t("banks.subtext")}
         actions={
           <Link href="/connect-bank" className="btn-primary">
-            <PlugZap className="size-4" /> Connect new bank
+            <PlugZap className="size-4" /> {t("banks.connectNew")}
           </Link>
         }
       />
@@ -76,18 +78,18 @@ const MyBanks = async () => {
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="h-section">Cards</h2>
-          <span className="eyebrow">{String(accountsData.length).padStart(2, "0")} accounts</span>
+          <h2 className="h-section">{t("banks.cards")}</h2>
+          <span className="eyebrow">{t("banks.accountsCount", { count: accountsData.length })}</span>
         </div>
 
         {accountsData.length === 0 ? (
           <div className="panel flex-center flex-col gap-3 p-10 text-center">
-            <p className="text-16 font-semibold text-ink">No accounts linked yet</p>
+            <p className="text-16 font-semibold text-ink">{t("banks.emptyTitle")}</p>
             <p className="max-w-md text-14 text-ink-muted">
-              Connect a US bank through Plaid, an Indian bank through Setu, or import a statement export.
+              {t("banks.emptyBody")}
             </p>
             <Link href="/connect-bank" className="btn-primary mt-2">
-              Connect a bank
+              {t("banks.connectBank")}
             </Link>
           </div>
         ) : (
