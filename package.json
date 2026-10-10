@@ -7,6 +7,8 @@
     "predev": "node scripts/build-parse-worker.mjs",
     "prebuild": "node scripts/build-parse-worker.mjs",
     "reset-dev-limits": "node scripts/reset-dev-limits.mjs",
+    "prepare": "node scripts/install-hooks.mjs",
+    "check:staged": "node scripts/check-staged.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
