@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { parseStringify } from "../utils";
-import { loadLoggedInUser } from "./auth";
+import { loadLoggedInUser, ownerIdOf } from "./auth";
 import { getBanks, getOwnBank, saveSetuSessionId } from "./banks";
 import { getTransactionsByBankId } from "./transactions";
 import { getPlaidInstitution, getPlaidTransactions, toPlaidAccount } from "../providers/plaid";
@@ -16,6 +16,7 @@ import {
   toTransactions as toSetuTransactions,
 } from "../providers/setu";
 import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
+import { logError } from "./log";
 
 // Three ways a bank can be linked:
 //   plaid  - Plaid Link (US banks; sandbox for the demo)
@@ -84,7 +85,7 @@ async function loadAccountOnly(bank: Bank): Promise<Account | null> {
         return await toPlaidAccount(bank);
     }
   } catch (error) {
-    console.error(`An error occurred while loading bank ${bank.$id} (${providerOf(bank)}):`, error);
+    logError(`An error occurred while loading bank ${bank.$id} (${providerOf(bank)})`, error);
     return null;
   }
 }
@@ -117,7 +118,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
     return parseStringify({ data: accounts, totalBanks, totalCurrentBalance, totalsByCurrency, primaryCurrency });
   } catch (error) {
-    console.error("An error occurred while getting the accounts:", error);
+    logError("An error occurred while getting the accounts", error);
   }
 };
 
@@ -127,7 +128,7 @@ const loadAccount = cache(async (appwriteItemId: string) => {
   try {
     // Only the signed-in user's own accounts: the id comes from the URL or a cookie.
     const user = await loadLoggedInUser();
-    const bank = user ? await getOwnBank(user.$id, appwriteItemId) : null;
+    const bank = user ? await getOwnBank(ownerIdOf(user), appwriteItemId) : null;
     if (!bank) return null;
 
     // Transfers made inside Horizon live in Appwrite regardless of provider.
@@ -159,7 +160,7 @@ const loadAccount = cache(async (appwriteItemId: string) => {
 
     return parseStringify({ data: account, transactions: allTransactions });
   } catch (error) {
-    console.error("An error occurred while getting the account:", error);
+    logError("An error occurred while getting the account", error);
   }
 });
 
@@ -177,6 +178,6 @@ export const getInstitution = async ({ institutionId }: getInstitutionProps) => 
     const institution = await getPlaidInstitution(institutionId);
     return parseStringify(institution);
   } catch (error) {
-    console.error("An error occurred while getting the institution:", error);
+    logError("An error occurred while getting the institution", error);
   }
 };

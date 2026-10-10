@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -44,6 +44,10 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  // One key per transfer attempt: a retry after a network error reuses it, so the
+  // server (and Dwolla) can tell it is the same transfer and not send it twice.
+  const attemptKey = useRef<string | null>(null);
 
   const defaultSender = accounts.find((a) => a.appwriteItemId === initialId) ?? accounts[0];
 
@@ -67,20 +71,27 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
   const submit = async (data: Values) => {
     setIsLoading(true);
     setFormError(null);
+    setNotice(null);
 
     try {
+      attemptKey.current ??= crypto.randomUUID();
       // The server checks the sender, the recipient and the amount; the form only collects them.
-      const result = await sendTransfer(data);
+      const result = await sendTransfer({ ...data, idempotencyKey: attemptKey.current });
+      attemptKey.current = null; // answered: the next submit is a new transfer
       if (!result.ok) {
         if (result.field) form.setError(result.field, { message: result.error });
         else setFormError(result.error);
         return;
       }
       form.reset();
+      if (result.warning) {
+        setNotice(result.warning);
+        return;
+      }
       router.push("/");
-    } catch (error) {
-      console.error("Submitting create transfer request failed: ", error);
-      setFormError("Something went wrong while sending the transfer. Please try again.");
+    } catch {
+      // No answer (network): keep the key, so trying again cannot send it twice.
+      setFormError("Could not reach the server. Check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -227,6 +238,11 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
           {formError && (
             <p className="rounded-md border border-danger/30 bg-danger-soft px-3 py-2 text-13 text-danger" role="alert">
               {formError}
+            </p>
+          )}
+          {notice && (
+            <p className="rounded-md border border-warn/30 bg-warn-soft px-3 py-2 text-13 text-warn" role="status">
+              {notice}
             </p>
           )}
 

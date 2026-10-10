@@ -11,13 +11,14 @@ import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
 import { createAdminClient, createSessionClient } from "../server/appwrite";
-import { accountIdOf, loadLoggedInUser, requireUser } from "../server/auth";
+import { authIdOf, loadLoggedInUser, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { addFundingSource, createDwollaCustomer } from "../server/dwolla";
 import { allow, clientIp, MINUTE } from "../server/rateLimit";
 import { extractCustomerIdFromUrl } from "../utils";
 import { plaidClient } from "../plaid";
+import { logError } from "../server/log";
 
 const {
     APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -29,20 +30,30 @@ export type AuthResult = { ok: true; user?: User } | { ok: false; error: string 
 const SESSION_COOKIE = "banking-session";
 const TOO_MANY = "Too many attempts. Wait a few minutes and try again.";
 
-const setSessionCookie = async (secret: string) => {
-    (await cookies()).set(SESSION_COOKIE, secret, {
+const MAX_SESSION_DAYS = 30;
+
+// Expires with the Appwrite session, and never later than 30 days from sign-in.
+// Secure everywhere except local development over plain HTTP (e.g. a phone on
+// the same Wi-Fi), where the browser would otherwise drop the cookie.
+const setSessionCookie = async (session: { secret: string; expire?: string }) => {
+    const cap = Date.now() + MAX_SESSION_DAYS * 24 * 60 * MINUTE;
+    const appwriteExpiry = session.expire ? Date.parse(session.expire) : NaN;
+    (await cookies()).set(SESSION_COOKIE, session.secret, {
         path: "/",
         httpOnly: true,
         sameSite: "strict",
-        secure: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(Number.isFinite(appwriteExpiry) ? Math.min(appwriteExpiry, cap) : cap),
     });
 };
 
 // The server talks to Appwrite with an API key, which skips Appwrite's own
-// per-IP limits, so sign-in and sign-up are limited here instead.
+// per-IP limits, so sign-in and sign-up are limited here instead. The email
+// limit stops password guessing on one account; the IP limit is generous
+// because a whole college or office can share one public IP.
 const allowAuthAttempt = async (email: string) => {
     const ip = await clientIp();
-    return allow(`auth:ip:${ip}`, 20, 10 * MINUTE) && allow(`auth:email:${email.trim().toLowerCase()}`, 8, 10 * MINUTE);
+    return allow(`auth:email:${String(email ?? "").trim().toLowerCase()}`, 8, 10 * MINUTE) && allow(`auth:ip:${ip}`, 100, 10 * MINUTE);
 };
 
 export const signIn = async ({ email, password }: signInProps): Promise<AuthResult> => {
@@ -50,7 +61,7 @@ export const signIn = async ({ email, password }: signInProps): Promise<AuthResu
     try {
         const { account } = await createAdminClient();
         const session = await account.createEmailPasswordSession(email, password);
-        await setSessionCookie(session.secret);
+        await setSessionCookie(session);
         return { ok: true };
     } catch {
         return { ok: false, error: "Invalid email or password." };
@@ -114,11 +125,11 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
         )
 
         const session = await account.createEmailPasswordSession(email, password);
-        await setSessionCookie(session.secret);
+        await setSessionCookie(session);
 
         return { ok: true, user: { $id: newUserAccount.$id, email, firstName, lastName, name: `${firstName} ${lastName}` } as User };
     } catch (error) {
-        console.error('Sign-up failed', (error as Error)?.message)
+        logError("sign-up failed", error)
 
         // Roll back the auth account so a failed sign-up can be retried with the same email.
         if (newUserAccount) {
@@ -126,7 +137,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
                 const { user } = await createAdminClient();
                 await user.delete(newUserAccount.$id);
             } catch (cleanupError) {
-                console.error('Could not remove the partially created user', cleanupError);
+                logError('Could not remove the partially created user', cleanupError);
             }
         }
         return { ok: false, error: "We could not create your account. Check the details and try again." };
@@ -143,7 +154,7 @@ export const logoutAccount = async () => {
         await account.deleteSession('current');
     } catch (error) {
         // The session may already be invalid; clearing the cookie below still logs the user out.
-        console.error('Error deleting the Appwrite session', error);
+        logError('Error deleting the Appwrite session', error);
     }
 
     (await cookies()).delete(SESSION_COOKIE);
@@ -155,15 +166,15 @@ export const createLinkToken = async () => {
     try {
         const user = await requireUser();
         const response = await plaidClient.linkTokenCreate({
-            user: { client_user_id: accountIdOf(user) },
+            user: { client_user_id: authIdOf(user) },
             client_name: "Horizon",
             products: ['auth', 'transactions'] as Products[],
             language: 'en',
             country_codes: ['US'] as CountryCode[],
         })
         return { linkToken: response.data.link_token };
-    } catch (error: any) {
-        console.error("[createLinkToken] failed:", error?.code, error?.message);
+    } catch (error) {
+        logError("createLinkToken failed", error);
         return null;
     }
 }
@@ -206,7 +217,7 @@ export const exchangePublicToken = async ({ publicToken }: { publicToken: string
         }
 
         await createBankAccount({
-            userId: user.$id,
+            userId: ownerIdOf(user),
             bankId: itemId,
             accountId: accountData.account_id,
             accessToken,
@@ -218,7 +229,7 @@ export const exchangePublicToken = async ({ publicToken }: { publicToken: string
 
         return { publicTokenExchange: "complete" as const };
     } catch (error) {
-        console.error("An error occurred while exchanging the public token", (error as Error)?.message);
+        logError("exchangePublicToken failed", error);
         return null;
     }
 };

@@ -6,6 +6,7 @@ import { cached, invalidate, TTL } from "../cache";
 import { parseStringify } from "../utils";
 import { createAdminClient } from "./appwrite";
 import { openSecret, sealSecret } from "./crypto";
+import { logError } from "./log";
 
 // Data access for users and banks. Server-only on purpose: none of these check
 // who is asking, so they must never be exported from a "use server" file (that
@@ -27,7 +28,7 @@ export async function getUserInfo({ userId }: getUserInfoProps) {
     const info = user.documents[0];
     return info ? parseStringify(info) : null;
   } catch (error) {
-    console.error("Error fetching user info", error);
+    logError("Error fetching user info", error);
     return null;
   }
 }
@@ -41,7 +42,7 @@ export async function getBanks({ userId }: getBanksProps): Promise<Bank[]> {
     });
     return (parseStringify(banks) as Bank[]).map(withOpenToken);
   } catch (error) {
-    console.error("Error fetching banks", error);
+    logError("Error fetching banks", error);
     return [];
   }
 }
@@ -70,7 +71,7 @@ export async function getBankBySharableId(sharableId: string): Promise<Bank | nu
     const result = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [Query.equal("sharableId", [sharableId])]);
     return result.total === 1 ? withOpenToken(parseStringify(result.documents[0])) : null;
   } catch (error) {
-    console.error("Error looking up a sharable id", error);
+    logError("Error looking up a sharable id", error);
     return null;
   }
 }
@@ -108,7 +109,7 @@ export async function createBankAccount({
     invalidate("banks:");
     return withOpenToken(parseStringify(bankAccount));
   } catch (error) {
-    console.error("An error occurred while creating the bank account", error);
+    logError("An error occurred while creating the bank account", error);
   }
 }
 
@@ -122,6 +123,6 @@ export async function saveSetuSessionId({ consentId, sessionId }: { consentId: s
     );
     invalidate("banks:");
   } catch (error) {
-    console.error("[setu] could not persist the data session id", error);
+    logError("setu: could not persist the data session id", error);
   }
 }

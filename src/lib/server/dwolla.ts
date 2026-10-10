@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Client } from "dwolla-v2";
+import { logError } from "./log";
 
 const getEnvironment = (): "production" | "sandbox" => {
     const environment = process.env.DWOLLA_ENV as string;
@@ -39,7 +40,7 @@ export const createFundingSource = async (options: CreateFundingSourceOptions) =
             })
             .then((res: any) => res.headers.get("location"));
     } catch (err) {
-        console.error("Creating a Funding Source Failed: ", err);
+        logError("Creating a Funding Source Failed", err);
     }
 };
 
@@ -49,7 +50,7 @@ export const createOnDemandAuthorization = async () => {
         const authLink = onDemandAuthorization.body._links;
         return authLink;
     } catch (err) {
-        console.error("Creating an On Demand Authorization Failed: ", err);
+        logError("Creating an On Demand Authorization Failed", err);
     }
 };
 
@@ -69,7 +70,7 @@ export const createDwollaCustomer = async (newCustomer: NewDwollaCustomerParams)
             console.warn("Dwolla customer already exists for this email, reusing it");
             return existingUrl as string;
         }
-        console.error("Creating a Dwolla Customer Failed: ", err);
+        logError("Creating a Dwolla Customer Failed", err);
     }
 };
 
@@ -77,6 +78,7 @@ export const createTransfer = async ({
     sourceFundingSourceUrl,
     destinationFundingSourceUrl,
     amount,
+    idempotencyKey,
 }: TransferParams) => {
     try {
         const requestBody = {
@@ -86,11 +88,13 @@ export const createTransfer = async ({
             },
             amount: { currency: "USD", value: amount },
         };
+        // Dwolla answers a repeated Idempotency-Key with the transfer it already
+        // made (for 24 hours), so a retry after a timeout cannot pay twice.
         return await getDwollaClient()
-            .post("transfers", requestBody)
-            .then((res: any) => res.headers.get("location"));
+            .post("transfers", requestBody, { "Idempotency-Key": idempotencyKey })
+            .then((res: any) => res.headers.get("location") as string);
     } catch (err) {
-        console.error("Transfer fund failed: ", err);
+        logError("Transfer failed", err);
     }
 };
 
@@ -112,6 +116,6 @@ export const addFundingSource = async ({
         };
         return await createFundingSource(fundingSourceOptions);
     } catch (err) {
-        console.error("Transfer fund failed: ", err);
+        logError("Adding a funding source failed", err);
     }
 };

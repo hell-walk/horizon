@@ -11,6 +11,7 @@ import { PROVIDER_LABELS } from "@/constants";
 import { groupByPayee } from "@/lib/payees";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import { cn, formatAmount, maskLabel, summarizeTransactions } from "@/lib/utils";
@@ -35,7 +36,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
-  const accounts = await getAccounts({ userId: loggedIn.$id });
+  const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   if (!accounts) return;
 
   const accountsData: Account[] = accounts.data;

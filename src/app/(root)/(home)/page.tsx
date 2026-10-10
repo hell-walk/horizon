@@ -13,6 +13,7 @@ import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 
@@ -35,7 +36,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
-  const accounts = await getAccounts({ userId: loggedIn.$id });
+  const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   if (!accounts) return;
 
   const accountsData: Account[] = accounts.data;

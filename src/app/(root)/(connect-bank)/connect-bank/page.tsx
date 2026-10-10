@@ -9,6 +9,7 @@ import SetuLink from "@/components/setuLink";
 import HeaderBox from "@/components/ui/headerBox";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { ownerIdOf } from "@/lib/server/auth";
 
 export const metadata: Metadata = {
   title: "Connect a bank",
@@ -19,7 +20,7 @@ const ConnectBank = async () => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
-  const accounts = await getAccounts({ userId: loggedIn.$id });
+  const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   const accountsData: Account[] = accounts?.data ?? [];
   const count = (provider: string) => accountsData.filter((a) => (a.provider ?? "plaid") === provider).length;
 
