@@ -13,6 +13,8 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// The plan's daily limit has its own tests (plan.test.ts); here every change is allowed.
+vi.mock("@/lib/server/plan", () => ({ changeBlocked: async () => null, countChange: async () => {} }));
 vi.mock("@/lib/server/auth", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/server/auth")>()),
   getLoggedInUser: vi.fn(async () => state.user),

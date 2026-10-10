@@ -6,6 +6,7 @@ import { invalidate } from "../cache";
 
 import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_ROW_CHANGES, payeeKey, type Correction } from "../corrections";
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 import { getAccountUncached } from "../server/accounts";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadCorrections, storeCorrections } from "../server/corrections";
@@ -49,6 +50,8 @@ export async function correctTransaction(input: Target & { name?: string; catego
   const category = input.category === undefined || input.category === "" ? null : input.category;
   if (category !== null && !isCategory(category)) return { ok: false, error: t("history.editErrCategory") };
   if (!name && !category) return { ok: false, error: t("history.editErrNothing") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
 
   try {
     const entry = await findEntry(input);
@@ -71,6 +74,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
       corrections.rows[entry.id] = change;
     }
     await storeCorrections(ownerIdOf(user), corrections);
+    await countChange();
     invalidate("banks:leftover:");
     await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/", "layout");

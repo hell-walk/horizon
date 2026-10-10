@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { MAX_GOALS, readGoal } from "../goals";
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadGoals, storeGoals } from "../server/goals";
 import { logError } from "../server/log";
@@ -37,6 +38,9 @@ export async function saveGoal(input: {
   const id = input?.id;
   if (id !== undefined && !isId(id)) return { ok: false, error: t("goals.errNotFound") };
   const currency = isCurrency(input?.currency) ? input.currency : "INR";
+  // Adding or changing a goal counts; deleting one never does.
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
 
   try {
     const goals = await loadGoals(ownerIdOf(user));
@@ -50,6 +54,7 @@ export async function saveGoal(input: {
       goals.push({ id: `g-${randomUUID().slice(0, 12)}`, currency, ...goal });
     }
     await storeGoals(ownerIdOf(user), goals);
+    await countChange();
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {

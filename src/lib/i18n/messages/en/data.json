@@ -33,5 +33,6 @@
   "deleteEmail": "Your email",
   "deleteEmailHint": "You sign in with Google, so there is no password to ask for. Type your account's email; if you signed in more than 15 minutes ago, sign out and in again first.",
   "errEmail": "That is not this account's email.",
-  "errRecentSignIn": "For safety, sign out and sign in again, then delete within 15 minutes."
+  "errRecentSignIn": "For safety, sign out and sign in again, then delete within 15 minutes.",
+  "errSubscription": "We could not cancel your subscription, so nothing was deleted. Please try again, or cancel it on the Plans page first."
 }

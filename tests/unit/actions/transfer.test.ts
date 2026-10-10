@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ user: null as null | { $id: string }, ownedBy: new Map<string, string>() }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// The plan's daily limit has its own tests (plan.test.ts); here every change is allowed.
+vi.mock("@/lib/server/plan", () => ({ changeBlocked: async () => null, countChange: async () => {} }));
 vi.mock("@/lib/server/auth", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/lib/server/auth")>();
   return {

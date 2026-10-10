@@ -17,6 +17,7 @@ import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";
+import PasswordRules from "./passwordRules";
 import ImportStatement from "@/components/importStatement";
 import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
@@ -94,6 +95,7 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
   });
 
   const password = form.watch("password") ?? "";
+  const typedEmail = form.watch("email") ?? "";
   const country = form.watch("country") ?? "";
   const usIdentity = needsUsIdentity(country);
   const regionRequired = needsStateAndPostal(country);
@@ -434,6 +436,7 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
                             {["", t("auth.strengthWeak"), t("auth.strengthFair"), t("auth.strengthStrong")][strength]}
                           </span>
                         </div>
+                        <PasswordRules password={password} email={typedEmail} />
                         <CustomInput
                           control={form.control}
                           name="confirmPassword"

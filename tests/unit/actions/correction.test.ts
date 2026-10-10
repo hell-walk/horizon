@@ -13,6 +13,8 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
   headers: async () => ({ get: () => null }),
 }));
+// The plan's daily limit has its own tests (plan.test.ts); here every change is allowed.
+vi.mock("@/lib/server/plan", () => ({ changeBlocked: async () => null, countChange: async () => {} }));
 vi.mock("@/lib/server/auth", () => ({
   getLoggedInUser: async () => state.user,
   ownerIdOf: (u: { $id: string }) => u.$id,

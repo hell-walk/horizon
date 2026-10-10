@@ -41,7 +41,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("signed-in pages", () => {
-    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals", "/welcome"])(
+    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals", "/welcome", "/plans", "/feedback"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);
@@ -67,6 +67,24 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     });
   });
 
+  describe("the Razorpay webhook", () => {
+    // Only Razorpay knows the webhook secret: anything else must change nothing.
+    const post = (headers: Record<string, string>) =>
+      fetch(`${BASE}/api/razorpay/webhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ event: "subscription.charged", payload: { subscription: { entity: { id: "sub_forged", status: "active", notes: { login: "00000000-0000-0000-0000-000000000000" } } } } }),
+      });
+
+    it("refuses a message without a signature", async () => {
+      expect((await post({})).status).toBe(401);
+    });
+
+    it("refuses a made-up signature", async () => {
+      expect((await post({ "X-Razorpay-Signature": "a".repeat(64) })).status).toBe(401);
+    });
+  });
+
   describe("coming back from Google or a reset email (/auth/callback)", () => {
     it("a made-up code signs nobody in", async () => {
       const page = await getPage("/auth/callback?code=forged-code");
@@ -84,6 +102,8 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     it("exposes exactly the intended actions", () => {
       expect(Object.keys(actionIds()).sort()).toEqual(
         [
+          "cancelMySubscription",
+          "checkSubscription",
           "completeProfile",
           "completeSetuConsent",
           "correctTransaction",
@@ -98,6 +118,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "logoutAccount",
           "previewStatement",
           "requestPasswordReset",
+          "sendFeedback",
           "saveGoal",
           "sendTransfer",
           "setCardDesign",
@@ -105,6 +126,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "signIn",
           "signInWithGoogle",
           "signUp",
+          "startSubscription",
           "undoCorrection",
         ].sort()
       );

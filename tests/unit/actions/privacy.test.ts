@@ -15,7 +15,7 @@ const db = vi.hoisted(() => {
   passwordOk: true,
   };
 });
-const calls = vi.hoisted(() => ({ itemRemove: [] as string[], removeFundingSource: [] as string[], deactivate: [] as string[] }));
+const calls = vi.hoisted(() => ({ itemRemove: [] as string[], removeFundingSource: [] as string[], deactivate: [] as string[], cancelled: [] as string[], cancelFails: false }));
 
 const COL = { users: "users", banks: "banks", tx: "transactions", st: "statements" };
 vi.stubEnv("APPWRITE_DATABASE_ID", "db");
@@ -43,6 +43,13 @@ vi.mock("next/headers", () => ({
     delete: (n: string) => db.cookies.delete(n),
   }),
   headers: async () => ({ get: () => null }),
+}));
+vi.mock("@/lib/server/razorpay", () => ({
+  cancelSubscriptionNow: vi.fn(async (id: string) => {
+    if (calls.cancelFails) throw new Error("razorpay down");
+    calls.cancelled.push(id);
+    return {};
+  }),
 }));
 vi.mock("@/lib/plaid", () => ({ plaidClient: { itemRemove: vi.fn(async ({ access_token }: { access_token: string }) => calls.itemRemove.push(access_token)) } }));
 vi.mock("@/lib/server/dwolla", () => ({
@@ -99,6 +106,8 @@ const seed = () => {
   calls.itemRemove = [];
   calls.removeFundingSource = [];
   calls.deactivate = [];
+  calls.cancelled = [];
+  calls.cancelFails = false;
   db.sessionUser = { id: "a-me", email: "me@example.com", app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, last_sign_in_at: new Date().toISOString() };
   col(COL.users).set("p-me", { userId: "a-me", prefs: JSON.stringify({ statementLayouts: { sig: { date: 0 } } }), firstName: "Me", lastName: "Self", address1: "1 Road", city: "Pune", state: "MH", postalCode: "411001", ssn: "not-kept", dateOfBirth: "not-kept", dwollaCustomerUrl: "https://dwolla/customers/me" });
   col(COL.users).set("p-them", { userId: "a-them", firstName: "Them", lastName: "Other" });
@@ -204,6 +213,20 @@ describe("deleteMyAccount", () => {
     expect(db.deletedAuthUsers).toEqual(["a-me"]);
     expect(db.deletedSessions).toEqual(["extra-session"]); // the password check's own session
     expect([...db.cookies.keys()]).toEqual([]);
+  });
+
+  it("stops a running subscription first, and deletes nothing if it cannot", async () => {
+    freshUser();
+    const subscription = { id: "sub_live", period: "monthly", status: "active", until: Date.now() + 86400_000 };
+    db.sessionUser = { ...db.sessionUser, app_metadata: { provider: "email", providers: ["email"], subscription } };
+    calls.cancelFails = true;
+    expect(await deleteMyAccount({ password: "right" })).toMatchObject({ ok: false, error: expect.stringMatching(/could not cancel your subscription/) });
+    expect(db.deletedAuthUsers).toEqual([]);
+    expect(col(COL.banks).size).toBe(3);
+    calls.cancelFails = false;
+    expect(await deleteMyAccount({ password: "right" })).toEqual({ ok: true });
+    expect(calls.cancelled).toEqual(["sub_live"]);
+    expect(db.deletedAuthUsers).toEqual(["a-me"]);
   });
 
   it("a Google login (no password) types its email instead, soon after signing in", async () => {

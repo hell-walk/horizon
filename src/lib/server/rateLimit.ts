@@ -48,12 +48,17 @@ export async function allow(key: string, limit: number, windowMs: number): Promi
   return (await count(key, windowMs)) <= limit;
 }
 
+/** How many events were recorded for `key` in the current window (records nothing). */
+export async function used(key: string): Promise<number> {
+  const shared = await tryRedis((r) => r.get<string>(redisKey("rl", key)));
+  if (shared !== undefined) return Number(shared ?? 0);
+  const entry = windows.get(key);
+  return entry && entry.resetAt > Date.now() ? entry.count : 0;
+}
+
 /** True once `limit` events were recorded for `key` in the current window (records nothing). */
 export async function isBlocked(key: string, limit: number): Promise<boolean> {
-  const shared = await tryRedis((r) => r.get<string>(redisKey("rl", key)));
-  if (shared !== undefined) return Number(shared ?? 0) >= limit;
-  const entry = windows.get(key);
-  return Boolean(entry && entry.resetAt > Date.now() && entry.count >= limit);
+  return (await used(key)) >= limit;
 }
 
 /** Records one event (e.g. a failed password) without asking whether it is allowed. */

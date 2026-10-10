@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
@@ -67,6 +68,8 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
   if (!/^\d{10}(@[a-z0-9-]+)?$/i.test(vua)) {
     return { error: t("connect.setuMobileInvalid") };
   }
+  const blocked = await changeBlocked(t);
+  if (blocked) return { error: blocked };
 
   try {
     const consent = await createConsent({ mobile: vua, redirectUrl: `${siteUrl()}/setu/callback` });
@@ -79,6 +82,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
       maxAge: 60 * 30,
     });
 
+    await countChange();
     return parseStringify({ consentId: consent.id, url: consent.url });
   } catch (error) {
     logError("setu: createConsent failed", error);

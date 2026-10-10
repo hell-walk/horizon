@@ -8,6 +8,7 @@ import { getOwnBank } from "../server/banks";
 import { getT } from "../i18n/server";
 import { logError } from "../server/log";
 import { allow, MINUTE } from "../server/rateLimit";
+import { cancelSubscriptionNow } from "../server/razorpay";
 import { clearSessionCookies, passwordMatches } from "../server/supabase";
 import { deleteUserEverything, exportUserData, removeBank } from "../server/userData";
 
@@ -71,6 +72,18 @@ export async function deleteMyAccount(input: { password?: string; email?: string
     const email = typeof input?.email === "string" ? input.email.trim().toLowerCase() : "";
     if (email !== session.email.toLowerCase()) return { ok: false, error: t("data.errEmail") };
     if (Date.now() - session.lastSignInAt > RECENT_SIGN_IN) return { ok: false, error: t("data.errRecentSignIn") };
+  }
+
+  // A Razorpay subscription that would still renew is stopped first: deleting the
+  // account must never leave a charge running. If that fails, nothing is deleted.
+  const sub = session.subscription;
+  if (sub && !sub.id.startsWith("comp_") && !["cancelled", "completed", "expired"].includes(sub.status)) {
+    try {
+      await cancelSubscriptionNow(sub.id);
+    } catch (error) {
+      logError("privacy: could not cancel the subscription before deleting", error);
+      return { ok: false, error: t("data.errSubscription") };
+    }
   }
 
   try {

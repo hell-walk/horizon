@@ -14,8 +14,10 @@ import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
 import { isCountry, needsStateAndPostal } from "../countries";
+import { passwordProblemKey } from "../passwordRules";
 import { getT } from "../i18n/server";
 import type { Translate } from "../i18n/translate";
+import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount, getUserInfo } from "../server/banks";
@@ -61,17 +63,11 @@ const strings = (value: unknown, keys: string[], max = 200): value is Record<str
 const badInput = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorCheckDetails") });
 const tooMany = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorTooMany") });
 
-// The sign-up form's rule, enforced where it cannot be skipped. Not exported:
-// every export of this file is a public endpoint.
-const COMMON_PASSWORDS = new Set(["password", "password1", "password123", "12345678", "123456789", "1234567890", "qwerty123", "qwertyuiop", "iloveyou", "11111111", "00000000", "abcd1234", "admin123", "letmein1", "welcome1"]);
+// The rules the forms show (lib/passwordRules.ts), enforced where they cannot
+// be skipped. Not exported: every export of this file is a public endpoint.
 const passwordProblem = (password: string, email: string, t: Translate): string | null => {
-    if (password.length < 8) return t("auth.passwordTooShort");
-    if (password.length > 128) return t("auth.passwordTooLong");
-    const lower = password.toLowerCase();
-    if (COMMON_PASSWORDS.has(lower) || /^(.)\1+$/.test(password)) return t("auth.passwordCommon");
-    const name = email.split("@")[0]?.toLowerCase() ?? "";
-    if (name.length >= 4 && lower.includes(name)) return t("auth.passwordHasEmail");
-    return null;
+    const key = passwordProblemKey(password, email);
+    return key ? t(key) : null;
 };
 
 /** Supabase saying "slow down" (its own limits), as opposed to a wrong password. */
@@ -318,6 +314,8 @@ export const createLinkToken = async () => {
         const user = await requireUser();
         // Each call costs a Plaid API request.
         if (!(await allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return null;
+        // Opening Plaid costs a call: refused when adding a bank would be, never counted.
+        if (await changeBlocked(await getT())) return null;
         const response = await plaidClient.linkTokenCreate({
             user: { client_user_id: authIdOf(user) },
             client_name: "Horizon",
@@ -337,6 +335,7 @@ export const exchangePublicToken = async ({ publicToken }: { publicToken: string
         const user = await requireUser();
         if (typeof publicToken !== "string" || !publicToken || publicToken.length > 200) return null;
         if (!(await allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return null;
+        if (await changeBlocked(await getT())) return null;
 
         // Exchange the short-lived public token for a permanent access token
         const response = await plaidClient.itemPublicTokenExchange({ public_token: publicToken });
@@ -378,6 +377,7 @@ export const exchangePublicToken = async ({ publicToken }: { publicToken: string
             fundingSourceUrl,
             sharableId: newSharableId(),
         });
+        await countChange();
 
         revalidatePath("/");
 
