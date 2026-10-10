@@ -1,16 +1,24 @@
-import { ArrowLeftRight, Home, Landmark, PlugZap, ReceiptText } from "lucide-react";
+import { ArrowLeftRight, CalendarClock, Home, Landmark, PlugZap, ReceiptText, ShieldCheck } from "lucide-react";
 
 import type { Translate } from "@/lib/i18n/translate";
 
 // Main navigation. Icons are lucide components so they inherit the text colour
 // and work in both light and dark mode. `label` is the English name; the
-// screens show t(labelKey), or t(shortKey) where space is tight.
+// screens show t(labelKey), or t(shortKey) where space is tight. `phone: false`
+// moves a link from the phone's bottom bar (room for four and "More") into More.
 export const sidebarLinks = [
   { icon: Home, route: "/", label: "Home", labelKey: "nav.home", shortKey: "nav.home" },
   { icon: Landmark, route: "/my-banks", label: "My Banks", labelKey: "nav.myBanks", shortKey: "nav.myBanksShort" },
   { icon: ReceiptText, route: "/transaction-history", label: "Transaction History", labelKey: "nav.history", shortKey: "nav.historyShort" },
+  { icon: CalendarClock, route: "/bills", label: "Bills", labelKey: "nav.bills", shortKey: "nav.billsShort" },
+  { icon: PlugZap, route: "/connect-bank", label: "Connect Bank", labelKey: "nav.connect", shortKey: "nav.connectShort", phone: false },
+];
+
+// Behind "More" (the three dots) everywhere. Sending money is US-only (Dwolla);
+// in India people pay with UPI, so it does not need a place in the main bar.
+export const moreLinks = [
   { icon: ArrowLeftRight, route: "/payment-transfer", label: "Payment Transfer", labelKey: "nav.transfer", shortKey: "nav.transferShort" },
-  { icon: PlugZap, route: "/connect-bank", label: "Connect Bank", labelKey: "nav.connect", shortKey: "nav.connectShort" },
+  { icon: ShieldCheck, route: "/my-data", label: "Privacy and your data", labelKey: "nav.myData", shortKey: "nav.myData" },
 ];
 
 // Chart segment classes, in the order accounts and categories are drawn.

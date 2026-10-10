@@ -15,5 +15,10 @@
   "account": "Your profile",
   "privacyPolicy": "Privacy policy",
   "terms": "Terms",
-  "logOut": "Log out"
+  "logOut": "Log out",
+  "bills": "Bills",
+  "billsShort": "Bills",
+  "more": "More",
+  "moreTitle": "More options",
+  "myData": "Privacy and your data"
 }
