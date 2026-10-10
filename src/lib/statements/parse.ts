@@ -229,11 +229,27 @@ export function checkBalances(transactions: ParsedTransaction[]): BalanceCheck {
   };
 }
 
-/** Stable id for a transaction so re-importing a statement skips rows already stored. */
-export function transactionHash(bankId: string, t: ParsedTransaction) {
-  return createHash("sha256")
-    .update([bankId, t.date, t.name.toLowerCase(), t.amount.toFixed(2), t.type, t.balance?.toFixed(2) ?? ""].join("|"))
-    .digest("hex");
+/**
+ * Stable id for a transaction so re-importing a statement skips rows already
+ * stored. `occurrence` tells apart rows that are otherwise identical (two ₹20
+ * teas at the same shop on the same day, in a file with no balance column);
+ * the first keeps the original fingerprint, so rows saved before still match.
+ */
+export function transactionHash(bankId: string, t: ParsedTransaction, occurrence = 0) {
+  const parts = [bankId, t.date, t.name.toLowerCase(), t.amount.toFixed(2), t.type, t.balance?.toFixed(2) ?? ""];
+  if (occurrence > 0) parts.push(`#${occurrence}`);
+  return createHash("sha256").update(parts.join("|")).digest("hex");
+}
+
+/** Fingerprints for a whole statement, counting repeats of identical rows in file order. */
+export function transactionHashes(bankId: string, transactions: ParsedTransaction[]) {
+  const seen = new Map<string, number>();
+  return transactions.map((t) => {
+    const base = transactionHash(bankId, t);
+    const occurrence = seen.get(base) ?? 0;
+    seen.set(base, occurrence + 1);
+    return occurrence ? transactionHash(bankId, t, occurrence) : base;
+  });
 }
 
 /* ------------------------------------------------------------------ */

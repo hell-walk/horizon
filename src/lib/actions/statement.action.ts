@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ID, Query } from "node-appwrite";
+import { ID } from "node-appwrite";
 
 import { getT } from "../i18n/server";
 import { createAdminClient } from "../server/appwrite";
@@ -16,13 +16,15 @@ import {
   StatementLayoutError,
   StatementParseError,
   StatementPasswordError,
-  transactionHash,
+  transactionHashes,
   type BalanceCheck,
   type ParsedStatement,
   type StatementMapping,
   type StatementSample,
 } from "../statements/parse";
 import { readStatementRowsIsolated } from "../statements/isolated";
+import { findOverlap, type Overlap } from "../statements/overlap";
+import { findImportedBank, savedStatementRows } from "../server/statementRows";
 import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
@@ -48,8 +50,32 @@ export type ReadFailure = {
 };
 
 export type ImportResult =
-  | { ok: true; bankId: string; institution: string; mask: string; imported: number; skipped: number; total: number }
+  | {
+      ok: true;
+      bankId: string;
+      institution: string;
+      mask: string;
+      imported: number;
+      skipped: number;
+      /** Entries left out because they looked like ones already saved from another file. */
+      likelySkipped: number;
+      total: number;
+    }
   | ReadFailure;
+
+/** The bank name and account ending the entries go to: what the user typed, else what the file says. */
+const accountFrom = (formData: FormData, parsed: ParsedStatement) => ({
+  institution: String(formData.get("institution") || "").trim() || parsed.institutionName || "My Bank",
+  mask: String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000",
+});
+
+/** How this statement overlaps what is already saved for the same account (nothing, for a new account). */
+async function overlapWithSaved(bankId: string | undefined, parsed: ParsedStatement): Promise<{ hashes: string[]; overlap: Overlap }> {
+  if (!bankId) return { hashes: [], overlap: { exact: [], likely: [] } };
+  const hashes = transactionHashes(bankId, parsed.transactions);
+  const incoming = parsed.transactions.map((entry, i) => ({ ...entry, hash: hashes[i] }));
+  return { hashes, overlap: findOverlap(incoming, await savedStatementRows(bankId)) };
+}
 
 const MAX_PASSWORD_LENGTH = 64;
 
@@ -197,21 +223,16 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
   const { parsed, sample, source } = read;
   if (source === "manual") await rememberLayout(authIdOf(user), sample.signature, parsed.columns);
 
-  const institution = String(formData.get("institution") || "").trim() || parsed.institutionName || "My Bank";
-  const mask = String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000";
+  const { institution, mask } = accountFrom(formData, parsed);
+  // Ticked by the user in the preview: "these are new, save them too".
+  const keepLikely = formData.get("keepLikely") === "1";
 
   try {
     const { database } = await createAdminClient();
 
     // Reuse the bank if this institution + account was imported before.
-    const existing = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [
-      Query.equal("userId", [ownerIdOf(user)]),
-      Query.equal("provider", [MANUAL_PROVIDER]),
-      Query.equal("institutionName", [institution]),
-      Query.equal("accountMask", [mask]),
-    ]);
-
-    let bankId = existing.documents[0]?.$id as string | undefined;
+    let bankId = await findImportedBank(ownerIdOf(user), institution, mask);
+    const { overlap } = await overlapWithSaved(bankId, parsed);
     if (!bankId) {
       const accountId = `manual-${ID.unique()}`;
       const bank = await createBankAccount({
@@ -231,12 +252,16 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
       if (!bankId) return { ok: false, error: t("connect.stBankFailed") };
     }
 
+    const hashes = transactionHashes(bankId, parsed.transactions);
+    const leaveOut = new Set([...overlap.exact, ...(keepLikely ? [] : overlap.likely.map((l) => l.index))]);
+    const toSave = parsed.transactions.map((entry, i) => ({ entry, hash: hashes[i] })).filter((_, i) => !leaveOut.has(i));
+
     let imported = 0;
-    let skipped = 0;
-    for (let i = 0; i < parsed.transactions.length; i += INSERT_BATCH) {
-      const batch = parsed.transactions.slice(i, i + INSERT_BATCH);
+    let skipped = overlap.exact.length;
+    for (let i = 0; i < toSave.length; i += INSERT_BATCH) {
+      const batch = toSave.slice(i, i + INSERT_BATCH);
       await Promise.all(
-        batch.map(async (entry) => {
+        batch.map(async ({ entry, hash }) => {
           try {
             await database.createDocument(DATABASE_ID!, STATEMENT_COLLECTION_ID!, ID.unique(), {
               bankId,
@@ -248,7 +273,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
               category: categorize(entry.name),
               balance: entry.balance ?? null,
               reference: entry.reference?.slice(0, 255) ?? null,
-              hash: transactionHash(bankId!, entry),
+              hash,
             });
             imported++;
           } catch (error) {
@@ -273,7 +298,16 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     invalidate(`statement:${bankId}`);
     revalidatePath("/");
 
-    return { ok: true, bankId, institution, mask, imported, skipped, total: parsed.transactions.length };
+    return {
+      ok: true,
+      bankId,
+      institution,
+      mask,
+      imported,
+      skipped,
+      likelySkipped: keepLikely ? 0 : overlap.likely.length,
+      total: parsed.transactions.length,
+    };
   } catch (error) {
     logError("statement: import failed", error);
     return { ok: false, error: t("connect.stSaveFailed") };
@@ -281,6 +315,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 };
 
 export type PreviewRow = { date: string; name: string; amount: number; type: string; category: string; balance?: number };
+export type LikelyRow = { date: string; name: string; amount: number; type: string; savedDate: string; savedName: string };
 export type PreviewResult =
   | {
       ok: true;
@@ -295,10 +330,15 @@ export type PreviewResult =
       columns: StatementMapping;
       source: LayoutSource;
       sample: StatementSample;
+      /** Entries saved before, word for word: skipped. */
+      alreadySaved: number;
+      /** Entries that look like ones saved from another file; `rows` shows the first few. */
+      likely: { count: number; rows: LikelyRow[] };
     }
   | ReadFailure;
 
 const PREVIEW_ROWS = 6;
+const LIKELY_ROWS = 20;
 
 /**
  * Parses a statement without saving anything, so the user can check that the
@@ -313,8 +353,25 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   if (!read.ok) return read;
   const { parsed, sample, source } = read;
 
+  let overlap: Overlap = { exact: [], likely: [] };
+  try {
+    const { institution, mask } = accountFrom(formData, parsed);
+    overlap = (await overlapWithSaved(await findImportedBank(ownerIdOf(user), institution, mask), parsed)).overlap;
+  } catch (error) {
+    // The preview still helps without it; the import checks again.
+    logError("statement: overlap check failed", error);
+  }
+
   return {
     ok: true,
+    alreadySaved: overlap.exact.length,
+    likely: {
+      count: overlap.likely.length,
+      rows: overlap.likely.slice(0, LIKELY_ROWS).map(({ index, saved }) => {
+        const entry = parsed.transactions[index];
+        return { date: entry.date, name: entry.name, amount: entry.amount, type: entry.type, savedDate: saved.date, savedName: saved.name };
+      }),
+    },
     institution: parsed.institutionName,
     mask: parsed.accountMask,
     currency: parsed.currency,

@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { csvStatement, zipBomb } from "../../helpers/files";
+import { transactionHash } from "@/lib/statements/parse";
 
 const state = vi.hoisted(() => ({
   user: null as null | { $id: string; userId: string },
   prefs: {} as Record<string, unknown>,
   documents: [] as Record<string, unknown>[],
   existingBanks: [] as { $id: string }[],
+  savedRows: [] as Record<string, unknown>[],
   listQueries: [] as string[][],
 }));
 
@@ -23,6 +25,13 @@ vi.mock("@/lib/server/appwrite", () => ({
     database: {
       listDocuments: vi.fn(async (_db: string, _col: string, queries: string[]) => {
         state.listQueries.push(queries);
+        // Saved entries are listed by bank; banks by owner, provider, name and account ending.
+        if (queries.some((q) => q.includes('"bankId"'))) {
+          const after = queries.map((q) => JSON.parse(q)).find((q) => q.method === "cursorAfter")?.values?.[0];
+          const start = after ? state.savedRows.findIndex((r) => r.$id === after) + 1 : 0;
+          const page = state.savedRows.slice(start, start + 100);
+          return { documents: page, total: state.savedRows.length };
+        }
         return { documents: state.existingBanks, total: state.existingBanks.length };
       }),
       createDocument: vi.fn(async (_db: string, _col: string, _id: string, data: Record<string, unknown>) => {
@@ -50,6 +59,7 @@ beforeEach(() => {
   state.prefs = {};
   state.documents = [];
   state.existingBanks = [];
+  state.savedRows = [];
   state.listQueries = [];
 });
 
@@ -152,5 +162,69 @@ describe("importStatement", () => {
   it("handles a large but legal statement", async () => {
     const result = await previewStatement(form(new File([new Uint8Array(csvStatement(5_000))], "big.csv")));
     expect(result).toMatchObject({ ok: true, total: 5_000 });
+  });
+});
+
+describe("entries already saved from another file", () => {
+  // The same account, imported before from a file that words things differently.
+  const seedSaved = () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = [
+      { $id: "s1", bankId: "bank-1", date: "2024-04-01", name: "UPI/DR/531/SWIGGY/SBIN", amount: 640, type: "debit", balance: 1000, hash: "from-the-pdf" },
+      {
+        $id: "s2",
+        bankId: "bank-1",
+        date: "2024-04-02",
+        name: "NEFT SALARY",
+        amount: 5000,
+        type: "credit",
+        balance: 6000,
+        hash: transactionHash("bank-1", { date: "2024-04-02", name: "NEFT SALARY", amount: 5000, type: "credit", balance: 6000 }),
+      },
+    ];
+  };
+
+  it("the preview says what is already there and what only looks like it", async () => {
+    seedSaved();
+    const result = await previewStatement(form(csv(good), { institution: "Test Bank", mask: "1234" }));
+    expect(result).toMatchObject({
+      ok: true,
+      total: 2,
+      alreadySaved: 1,
+      likely: { count: 1, rows: [{ date: "2024-04-01", name: "UPI SWIGGY", amount: 640, savedName: "UPI/DR/531/SWIGGY/SBIN" }] },
+    });
+  });
+
+  it("the import leaves look-alikes out unless the user says they are new", async () => {
+    seedSaved();
+    expect(await importStatement(form(csv(good), { institution: "Test Bank", mask: "1234" }))).toMatchObject({
+      ok: true,
+      imported: 0,
+      skipped: 1,
+      likelySkipped: 1,
+    });
+    expect(state.documents).toHaveLength(0);
+
+    expect(await importStatement(form(csv(good), { institution: "Test Bank", mask: "1234", keepLikely: "1" }))).toMatchObject({
+      ok: true,
+      imported: 1,
+      likelySkipped: 0,
+    });
+    expect(state.documents.map((d) => d.name)).toEqual(["UPI SWIGGY"]);
+  });
+
+  it("reads every saved entry, past the first page", async () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = Array.from({ length: 250 }, (_, i) => ({ $id: `r${i}`, date: "2024-03-01", name: "OLD", amount: 1, type: "debit", hash: `h${i}` }));
+    state.savedRows.push({ $id: "last", date: "2024-04-01", name: "SWIGGY via PDF", amount: 640, type: "debit", balance: 1000, hash: "x" });
+    const result = await previewStatement(form(csv(good), { institution: "Test Bank", mask: "1234" }));
+    expect(result).toMatchObject({ ok: true, likely: { count: 1 } });
+  });
+
+  it("keeps two identical entries in one file instead of dropping the second", async () => {
+    const teas = "Date,Narration,Debit,Credit\n01/04/2024,TEA STALL,20.00,\n01/04/2024,TEA STALL,20.00,\n";
+    expect(await importStatement(form(csv(teas)))).toMatchObject({ ok: true, imported: 2 });
+    const [a, b] = state.documents.map((d) => d.hash);
+    expect(a).not.toBe(b);
   });
 });

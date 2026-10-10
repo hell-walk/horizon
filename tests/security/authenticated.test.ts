@@ -89,7 +89,9 @@ describe.skipIf(!up || !haveAccounts)(`signed-in attacker against ${BASE}`, () =
     it("a narration with HTML is stored as text and rendered escaped", async () => {
       const { value } = await callFormAction(
         "importStatement",
-        { file: csv(`Date,Narration,Debit,Credit,Balance\n04/04/2024,"${payload}",1.00,,1.00\n`), institution: "XSS Test Bank", mask: "4242" },
+        // Every run sends the same date, amount and balance with new wording: after the first run that
+        // looks like an entry already saved, so say it is new (the box a user would tick).
+        { file: csv(`Date,Narration,Debit,Credit,Balance\n04/04/2024,"${payload}",1.00,,1.00\n`), institution: "XSS Test Bank", mask: "4242", keepLikely: "1" },
         { cookie: a }
       );
       expect(value).toMatchObject({ ok: true });
