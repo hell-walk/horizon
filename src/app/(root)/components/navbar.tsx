@@ -8,6 +8,8 @@ import { useT } from "@/components/i18nProvider";
 import { sidebarLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 
+import MoreMenu from "./moreMenu";
+
 /**
  * Floating pill navigation, ported from the Lazy I's portfolio navbar. A lime
  * line sits under the active link and slides between links when the route
@@ -43,10 +45,7 @@ const Navbar = ({ className }: { className?: string }) => {
   return (
     <nav
       aria-label={t("nav.mainMenu")}
-      className={cn(
-        "inline-flex items-center rounded-full border border-line bg-card/80 px-1.5 py-1 shadow-lift backdrop-blur-md",
-        className
-      )}
+      className={cn("inline-flex items-center rounded-full border border-line bg-card/80 px-1.5 py-1 shadow-lift backdrop-blur-md", className)}
     >
       <div ref={listRef} className="relative flex items-center">
         {sidebarLinks.map((item) => {
@@ -58,7 +57,7 @@ const Navbar = ({ className }: { className?: string }) => {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "relative whitespace-nowrap px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-colors",
-                active ? "text-ink" : "text-ink-faint hover:text-ink"
+                active ? "text-ink" : "text-ink-faint hover:text-ink",
               )}
             >
               <span className="lg:hidden">{t(item.shortKey)}</span>
@@ -66,6 +65,8 @@ const Navbar = ({ className }: { className?: string }) => {
             </Link>
           );
         })}
+
+        <MoreMenu variant="bar" />
 
         {line && (
           <span
