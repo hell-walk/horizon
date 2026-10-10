@@ -145,7 +145,11 @@ export function summarizeTransactions(transactions: Transaction[] = []) {
 }
 
 // Short label for a bank account: "Chase ••8912".
-export const maskLabel = (mask?: string) => `••${mask || "0000"}`;
+/** Is the account's last-4 known? An imported statement without a number is saved as "0000". */
+export const maskKnown = (mask?: string) => Boolean(mask) && mask !== "0000";
+
+/** "••4821", or "••" alone when the number is not known (never a made-up 0000). */
+export const maskLabel = (mask?: string) => (maskKnown(mask) ? `••${mask}` : "••");
 
 export function extractCustomerIdFromUrl(url: string) {
   // Split the URL string by '/'

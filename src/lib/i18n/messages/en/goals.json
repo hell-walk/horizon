@@ -53,5 +53,6 @@
   "errFull": "You have {max} goals, the most we keep. Delete one first.",
   "errFailed": "We could not save that. Try again in a moment.",
   "saving": "Saving…",
-  "deleting": "Deleting…"
+  "deleting": "Deleting…",
+  "leftShort": "In a usual month you spend about {amount} more than comes in ({months}), so there is nothing left over for goals yet. A goal can still track what you save."
 }

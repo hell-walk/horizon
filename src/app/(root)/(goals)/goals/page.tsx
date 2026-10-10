@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
-import { authIdOf, getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { loadGoals } from "@/lib/server/goals";
 import { usualLeftOver } from "@/lib/server/leftover";
 
@@ -21,13 +21,13 @@ const Goals = async () => {
   const user = await getLoggedInUser();
   if (!user) redirect("/sign-in");
 
-  const [goals, leftOver, accounts] = await Promise.all([loadGoals(authIdOf(user)), usualLeftOver(ownerIdOf(user)), getAccounts({ userId: ownerIdOf(user) })]);
+  const [goals, leftOver, accounts] = await Promise.all([loadGoals(ownerIdOf(user)), usualLeftOver(ownerIdOf(user)), getAccounts({ userId: ownerIdOf(user) })]);
   const currencies = [...new Set([...((accounts?.data as Account[]) ?? []).map((a) => a.currency ?? "INR"), "INR"])];
 
   return (
     <section className="page">
       <HeaderBox eyebrow={t("goals.eyebrow")} title={t("goals.title")} subtext={t("goals.intro")} />
-      <div className="max-w-3xl">
+      <div className="max-w-[1400px]">
         <GoalsBoard goals={goals} leftOver={leftOver} currencies={currencies} thisMonth={new Date().toISOString().slice(0, 7)} />
       </div>
     </section>

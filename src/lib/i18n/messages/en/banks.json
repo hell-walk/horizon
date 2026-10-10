@@ -57,5 +57,11 @@
   "noAccounts": "No accounts linked yet.",
   "tableScrolls": "Table, scrolls sideways",
   "colBank": "Bank",
-  "colConnection": "How it is connected"
+  "colConnection": "How it is connected",
+  "digitsUnknown": "Not added",
+  "digitsHint": "This statement did not show the account number. Add its last 4 digits, so later statements from this account land here.",
+  "digitsSave": "Save",
+  "digitsInvalid": "Type the last 4 digits of the account number.",
+  "digitsAlreadySet": "This account already has its number.",
+  "digitsTaken": "Another account at this bank already ends with those digits."
 }

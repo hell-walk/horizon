@@ -212,5 +212,6 @@
   "datesMdy": "Dates are read month first: 03/04/2026 is 4 March 2026.",
   "datesUnsure": "The file does not show whether dates are day first or month first, so this is our best guess.",
   "datesSwitchToMdy": "Read month first instead",
-  "datesSwitchToDmy": "Read day first instead"
+  "datesSwitchToDmy": "Read day first instead",
+  "last4Missing": "We could not find the account number in this file. Type its last 4 digits, so later statements land in the same account."
 }
