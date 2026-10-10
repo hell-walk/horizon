@@ -92,6 +92,13 @@ function kindOf(t: Transaction, direction: "in" | "out"): RegularKind {
   return "other";
 }
 
+/** Which regular payment an entry would belong to: direction and payee (null when it has no payee). */
+export function regularKeyOf(tx: Pick<Transaction, "type" | "amount" | "name" | "shownName">): string | null {
+  const direction = tx.type === "debit" || Number(tx.amount) < 0 ? "out" : "in";
+  const who = tx.shownName?.toLowerCase() || payeeKey(tx.name);
+  return who ? `${direction}|${who}` : null;
+}
+
 /** Regular payments in one account's entries, the soonest expected first. */
 export function findRegular(transactions: Transaction[] = [], today = new Date()): Regular[] {
   const groups = new Map<string, { direction: "in" | "out"; rows: { tx: Transaction; day: number; amount: number }[] }>();
@@ -103,10 +110,9 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     const amount = Math.abs(Number(tx.amount) || 0);
     if (!Number.isFinite(day) || !amount) continue;
     lastCovered = Math.max(lastCovered, day);
-    const direction = tx.type === "debit" || Number(tx.amount) < 0 ? "out" : "in";
-    const who = tx.shownName?.toLowerCase() || payeeKey(tx.name);
-    if (!who) continue;
-    const key = `${direction}|${who}`;
+    const key = regularKeyOf(tx);
+    if (!key) continue;
+    const direction = key.startsWith("out|") ? "out" : "in";
     const group = groups.get(key) ?? { direction, rows: [] };
     group.rows.push({ tx, day, amount });
     groups.set(key, group);

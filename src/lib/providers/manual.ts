@@ -32,6 +32,7 @@ export function toManualAccount(bank: Bank): Account {
     currency: bank.currency ?? "INR",
     provider: MANUAL_PROVIDER,
     cardDesign: bank.cardDesign,
+    balanceUnknown: bank.currentBalance === undefined || bank.currentBalance === null,
   };
 }
 

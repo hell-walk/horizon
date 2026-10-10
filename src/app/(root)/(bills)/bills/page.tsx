@@ -3,10 +3,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, FileUp } from "lucide-react";
 
+import ForecastPanel from "@/components/forecastPanel";
 import HeaderBox from "@/components/ui/headerBox";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
+import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { accountForecast, type AccountForecast } from "@/lib/server/forecast";
 import { regularPayments, type RegularWithAccount } from "@/lib/server/regular";
 import { formatAmount } from "@/lib/utils";
 
@@ -38,7 +41,12 @@ const Bills = async () => {
   const user = await getLoggedInUser();
   if (!user) redirect("/sign-in");
 
-  const all = await regularPayments(ownerIdOf(user));
+  const [all, accounts] = await Promise.all([regularPayments(ownerIdOf(user)), getAccounts({ userId: ownerIdOf(user) })]);
+  const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId)))).filter(
+    (f): f is AccountForecast => f !== null,
+  );
+  const withForecast = forecasts.filter((f) => f.forecast.ok);
+  const withoutForecast = forecasts.filter((f) => !f.forecast.ok);
   // Still going: due next, or due already but past where the statements end. Only these
   // count in the totals and in "coming up"; a payment that did not come is a question, not a bill.
   const current = all.filter((r) => r.status === "upcoming" || r.status === "unseen");
@@ -75,6 +83,26 @@ const Bills = async () => {
             />
           </div>
           <p className="text-12 text-ink-muted">{t("bills.estimateNote")}</p>
+
+          {withForecast.length > 0 && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {withForecast.map((f) => (
+                <ForecastPanel key={f.account.id} result={f} />
+              ))}
+            </div>
+          )}
+          {withoutForecast.length > 0 && (
+            <details className="panel">
+              <summary className="panel-head cursor-pointer">
+                <span className="eyebrow text-ink">{t("bills.fcWithout", { count: withoutForecast.length })}</span>
+              </summary>
+              <div className="grid gap-3 p-3 lg:grid-cols-2">
+                {withoutForecast.map((f) => (
+                  <ForecastPanel key={f.account.id} result={f} />
+                ))}
+              </div>
+            </details>
+          )}
 
           {alerts.length > 0 && (
             <section className="panel" aria-labelledby="bills-alerts">
