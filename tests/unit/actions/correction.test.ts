@@ -31,16 +31,13 @@ vi.mock("@/lib/server/accounts", () => ({
         }
       : null,
 }));
-vi.mock("@/lib/server/appwrite", () => ({
-  createAdminClient: async () => ({
-    user: {
-      getPrefs: async () => JSON.parse(JSON.stringify(state.prefs)),
-      updatePrefs: async (_id: string, prefs: Record<string, unknown>) => {
-        state.prefWrites++;
-        state.prefs = prefs;
-      },
-    },
-  }),
+vi.mock("@/lib/server/prefs", () => ({
+  readPrefs: async () => JSON.parse(JSON.stringify(state.prefs)),
+  updatePrefs: async (_id: string, change: Record<string, unknown>) => {
+    state.prefWrites++;
+    state.prefs = { ...state.prefs, ...JSON.parse(JSON.stringify(change)) };
+    return state.prefs;
+  },
 }));
 
 const { correctTransaction, undoCorrection } = await import("@/lib/actions/correction.action");
@@ -106,7 +103,7 @@ describe("reading back", () => {
     expect(await correctTransaction({ accountId: "acct-mine", transactionId: "t2", category: "Health" })).toEqual({ ok: true });
     state.prefs = {}; // what a lagging read would return
     const { loadCorrections } = await import("@/lib/server/corrections");
-    expect((await loadCorrections(`auth-${n}`)).rows).toEqual({ t2: { category: "Health" } });
+    expect((await loadCorrections(`profile-${n}`)).rows).toEqual({ t2: { category: "Health" } });
   });
 });
 

@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { parseStringify } from "../utils";
 import { applyCorrections } from "../corrections";
-import { authIdOf, loadLoggedInUser, ownerIdOf } from "./auth";
+import { loadLoggedInUser, ownerIdOf } from "./auth";
 import { loadCorrections } from "./corrections";
 import { getBanks, getOwnBank, saveSetuSessionId } from "./banks";
 import { getTransactionsByBankId } from "./transactions";
@@ -137,7 +137,7 @@ async function loadAccountNow(appwriteItemId: string) {
     const [loaded, transferTransactionsData, corrections] = await Promise.all([
       loadBank(bank),
       getTransactionsByBankId({ bankId: bank.$id }),
-      loadCorrections(authIdOf(user!)),
+      loadCorrections(ownerIdOf(user!)),
     ]);
     if (!loaded) return null;
 

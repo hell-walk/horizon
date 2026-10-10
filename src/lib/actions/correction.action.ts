@@ -7,7 +7,7 @@ import { invalidate } from "../cache";
 import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_ROW_CHANGES, payeeKey, type Correction } from "../corrections";
 import { getT } from "../i18n/server";
 import { getAccountUncached } from "../server/accounts";
-import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
+import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadCorrections, storeCorrections } from "../server/corrections";
 import { forgetLeftOver } from "../server/leftover";
 import { logError } from "../server/log";
@@ -55,7 +55,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
     if (!entry) return { ok: false, error: t("history.editErrNotFound") };
 
     const change: Correction = { ...(name ? { name } : {}), ...(category ? { category } : {}) };
-    const corrections = await loadCorrections(authIdOf(user));
+    const corrections = await loadCorrections(ownerIdOf(user));
     const key = payeeKey(entry.name);
     // No readable payee (only codes and numbers): the change can only be for this entry.
     if (input.everyPayment === true && key) {
@@ -70,7 +70,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
       }
       corrections.rows[entry.id] = change;
     }
-    await storeCorrections(authIdOf(user), corrections);
+    await storeCorrections(ownerIdOf(user), corrections);
     invalidate("banks:leftover:");
     await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/", "layout");
@@ -93,11 +93,11 @@ export async function undoCorrection(input: Target): Promise<CorrectionResult> {
     const entry = await findEntry(input);
     if (!entry) return { ok: false, error: t("history.editErrNotFound") };
 
-    const corrections = await loadCorrections(authIdOf(user));
+    const corrections = await loadCorrections(ownerIdOf(user));
     delete corrections.rows[entry.id];
     const key = payeeKey(entry.name);
     if (key) delete corrections.payees[key];
-    await storeCorrections(authIdOf(user), corrections);
+    await storeCorrections(ownerIdOf(user), corrections);
     invalidate("banks:leftover:");
     await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/", "layout");

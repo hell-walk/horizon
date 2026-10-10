@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { MAX_GOALS, readGoal } from "../goals";
 import { getT } from "../i18n/server";
-import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
+import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadGoals, storeGoals } from "../server/goals";
 import { logError } from "../server/log";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -39,7 +39,7 @@ export async function saveGoal(input: {
   const currency = isCurrency(input?.currency) ? input.currency : "INR";
 
   try {
-    const goals = await loadGoals(authIdOf(user));
+    const goals = await loadGoals(ownerIdOf(user));
     if (id) {
       // Only the user's own goals can be changed: the id must be one of theirs.
       const at = goals.findIndex((g) => g.id === id);
@@ -49,7 +49,7 @@ export async function saveGoal(input: {
       if (goals.length >= MAX_GOALS) return { ok: false, error: t("goals.errFull", { max: MAX_GOALS }) };
       goals.push({ id: `g-${randomUUID().slice(0, 12)}`, currency, ...goal });
     }
-    await storeGoals(authIdOf(user), goals);
+    await storeGoals(ownerIdOf(user), goals);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
@@ -67,10 +67,10 @@ export async function deleteGoal(input: { id: string }): Promise<GoalResult> {
   if (!isId(input?.id)) return { ok: false, error: t("goals.errNotFound") };
 
   try {
-    const goals = await loadGoals(authIdOf(user));
+    const goals = await loadGoals(ownerIdOf(user));
     const kept = goals.filter((g) => g.id !== input.id);
     if (kept.length === goals.length) return { ok: false, error: t("goals.errNotFound") };
-    await storeGoals(authIdOf(user), kept);
+    await storeGoals(ownerIdOf(user), kept);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
