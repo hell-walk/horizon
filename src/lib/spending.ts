@@ -12,25 +12,55 @@ export type SpendBucket = { key: string; name: string; amount: number; count: nu
 type Rule = [name: string, pattern: RegExp];
 
 // Purpose first: a recognisable merchant says more than the rail it used.
+// Each rule lists Indian names first, then those common in the US, UK, Europe,
+// the Gulf, Singapore and Australia. Order matters: "Uber Eats" is Food before
+// "Uber" is Travel; "Whole Foods" is Groceries before "food" is Food.
 const PURPOSE: Rule[] = [
-  ["EMI & pay later", /snapmint|\bslice\b|sliceit|lazypay|\bsimpl\b|zestmoney|kreditbee|moneyview|bajaj\s*fin|home\s*credit|tata\s*capital|\bnavi\b|\bemi\b|loan|\bbnpl\b/i],
-  ["Investments", /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney/i],
-  ["Rent", /\brent\b|nobroker|housing\.com/i],
-  ["Groceries", /bigbasket|blinkit|zepto|instamart|\bdmart\b|reliance\s*fresh|grofers|jiomart|more\s*retail|kirana|supermarket/i],
-  ["Food", /swiggy|zomato|eatsure|domino|pizza|mcdonald|\bkfc\b|burger|starbucks|\bcafe\b|coffee|restaurant|dhaba|bakery|food/i],
-  ["Shopping", /amazon(?!\s*web)|amzn|flipkart|myntra|meesho|\bajio\b|nykaa|croma|reliance\s*digital|decathlon|ikea|\bshops?\b|sparkfun|climbing/i],
-  ["Subscriptions", /netflix|spotify|prime\s*video|hotstar|youtube|apple\.com|google\s*play|subscription|github|microsoft|amazon\s*web|\baws\b/i],
-  ["Bills & recharges", /airtel|\bjio\b|vodafone|\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|recharge|postpaid|prepaid|fastag|utilit/i],
-  ["Travel", /\buber\b|\bola\b|rapido|irctc|indigo|air\s*india|vistara|akasa|airlines?|redbus|makemytrip|goibibo|petrol|\bhpcl\b|\bbpcl\b|\biocl\b|indian\s*oil|\bshell\b|\bmetro\b|travel/i],
-  ["Health", /pharmacy|apollo|medplus|\b1mg\b|pharmeasy|hospital|clinic|diagnostic|healthcare/i],
-  ["Cash (ATM)", /\batm\b|cash\s*wdl|cash\s*withdrawal|\bnwd\b|\bawd\b/i],
+  [
+    "EMI & pay later",
+    /snapmint|\bslice\b|sliceit|lazypay|\bsimpl\b|zestmoney|kreditbee|moneyview|bajaj\s*fin|home\s*credit|tata\s*capital|\bnavi\b|\bemi\b|loan|\bbnpl\b|\baffirm\b|klarna|afterpay|clearpay|\btabby\b|\btamara\b|\bzip\s*pay/i,
+  ],
+  [
+    "Investments",
+    /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney|vanguard|fidelity|schwab|robinhood|e\*?trade|coinbase|trading\s*212|hargreaves|\bisa\b/i,
+  ],
+  ["Rent", /\brent\b|nobroker|housing\.com|letting|landlord|miete|loyer/i],
+  [
+    "Groceries",
+    /bigbasket|blinkit|zepto|instamart|\bdmart\b|reliance\s*fresh|grofers|jiomart|more\s*retail|kirana|supermarket|walmart|\btarget\b|kroger|costco|safeway|whole\s*foods|trader\s*joe|\baldi\b|\blidl\b|tesco|sainsbury|\basda\b|morrisons|waitrose|carrefour|\brewe\b|edeka|albert\s*heijn|mercadona|\bcoles\b|woolworths|fairprice|\bntuc\b|lulu\s*hyper|spinneys/i,
+  ],
+  [
+    "Food",
+    /swiggy|zomato|eatsure|domino|pizza|mcdonald|\bkfc\b|burger|starbucks|\bcafe\b|coffee|restaurant|dhaba|bakery|food|uber\s*eats|doordash|grubhub|deliveroo|just\s*eat|talabat|grab\s*food|foodpanda|chipotle|subway|dunkin|taco\s*bell|\bpret\b|greggs|nando/i,
+  ],
+  [
+    "Shopping",
+    /amazon(?!\s*web)|amzn|flipkart|myntra|meesho|\bajio\b|nykaa|croma|reliance\s*digital|decathlon|ikea|\bshops?\b|sparkfun|climbing|\bebay\b|etsy|best\s*buy|home\s*depot|argos|john\s*lewis|zalando|shein|\btemu\b|aliexpress|\bnoon\b|lazada|shopee/i,
+  ],
+  [
+    "Subscriptions",
+    /netflix|spotify|prime\s*video|hotstar|youtube|apple\.com|google\s*play|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i,
+  ],
+  [
+    "Bills & recharges",
+    /airtel|\bjio\b|vodafone|\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|recharge|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
+  ],
+  [
+    "Travel",
+    /\buber\b|\bola\b|rapido|irctc|indigo|air\s*india|vistara|akasa|airlines?|redbus|makemytrip|goibibo|petrol|\bhpcl\b|\bbpcl\b|\biocl\b|indian\s*oil|\bshell\b|\bmetro\b|travel|\blyft\b|amtrak|ryanair|easyjet|british\s*airways|emirates|qatar\s*air|lufthansa|airbnb|booking\.com|expedia|\bgrab\b|careem|\bbolt\b|\btfl\b|chevron|exxon|\bbp\b|trainline/i,
+  ],
+  ["Health", /pharmacy|apollo|medplus|\b1mg\b|pharmeasy|hospital|clinic|diagnostic|healthcare|\bcvs\b|walgreens|\bboots\b|rite\s*aid|apotheke|pharmacie/i],
+  ["Cash (ATM)", /\batm\b|cash\s*wdl|cash\s*withdrawal|\bnwd\b|\bawd\b|geldautomat|bargeld/i],
 ];
 
 // Then the rail, in words people use.
 const METHOD: Rule[] = [
   [PEOPLE_GROUP, /\bupi\b|@ok|@ybl|@paytm|@axl|@ibl|@apl|\bvpa\b|phonepe|gpay|google\s*pay|paytm|bhim/i],
-  ["Card", /\bpos\b|\bcard\b|\bvisa\b|mastercard|rupay|\becom\b/i],
-  ["Bank transfer", /\bneft\b|\bimps\b|\brtgs\b|\bach\b|\bnach\b|transfer|\btrf\b|\bft\b|\bchq\b|cheque/i],
+  ["Card", /\bpos\b|\bcard\b|\bvisa\b|mastercard|rupay|\becom\b|contactless|kartenzahlung|carte\s*bancaire/i],
+  [
+    "Bank transfer",
+    /\bneft\b|\bimps\b|\brtgs\b|\bach\b|\bnach\b|transfer|\btrf\b|\bft\b|\bchq\b|cheque|\bzelle\b|venmo|paypal|\bwire\b|\bsepa\b|faster\s*payment|\bbacs\b|interac|paynow|uberweisung|virement|lastschrift/i,
+  ],
 ];
 
 // Provider category names (Plaid and the statement parser) mapped to the same words.

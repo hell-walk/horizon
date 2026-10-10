@@ -17,10 +17,33 @@ const NOISE = new Set([
   "upi", "neft", "imps", "rtgs", "ach", "nach", "ecs", "pos", "atm", "dr", "cr", "txn", "ref", "id", "no", "chq", "cheque",
   "payment", "paid", "purchase", "transfer", "trf", "to", "from", "by", "via", "the", "and", "ltd", "limited", "pvt", "private",
   "india", "ind", "in", "order", "bill", "online", "card", "debit", "credit", "autopay", "mandate", "emi", "settlement", "wdl", "withdrawal", "cash",
+  // Rails and words from other countries' statements.
+  "zelle", "venmo", "paypal", "sepa", "wire", "bacs", "fps", "interac", "contactless", "visa", "mastercard", "dd", "so", "lastschrift",
+  "kartenzahlung", "uberweisung", "virement", "carte", "prlv", "inc", "llc", "gmbh", "co",
 ]);
 
 // Well-known merchants: any narration containing the key gets the label.
+// More specific names first ("Uber Eats" before "Uber", "Whole Foods" before "food").
 const ALIASES: [RegExp, string][] = [
+  [/uber\s*eats/i, "Uber Eats"],
+  [/doordash/i, "DoorDash"],
+  [/deliveroo/i, "Deliveroo"],
+  [/talabat/i, "Talabat"],
+  [/whole\s*foods/i, "Whole Foods"],
+  [/walmart/i, "Walmart"],
+  [/\btarget\b/i, "Target"],
+  [/costco/i, "Costco"],
+  [/tesco/i, "Tesco"],
+  [/sainsbury/i, "Sainsbury's"],
+  [/\blidl\b/i, "Lidl"],
+  [/\baldi\b/i, "Aldi"],
+  [/carrefour/i, "Carrefour"],
+  [/\blyft\b/i, "Lyft"],
+  [/airbnb/i, "Airbnb"],
+  [/klarna/i, "Klarna"],
+  [/afterpay|clearpay/i, "Afterpay"],
+  [/comcast|xfinity/i, "Comcast"],
+  [/verizon/i, "Verizon"],
   [/snapmint/i, "Snapmint"],
   [/\bslice\b|sliceit/i, "Slice"],
   [/lazypay/i, "LazyPay"],
