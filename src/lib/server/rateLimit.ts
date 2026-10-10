@@ -2,7 +2,7 @@ import "server-only";
 
 import { headers } from "next/headers";
 
-import { redisKey, tryRedis } from "./redis";
+import { redis, redisKey, tryRedis } from "./redis";
 
 // Fixed-window counters. With Upstash configured they live in Redis, shared by
 // every server instance; otherwise (and for any call where Redis cannot be
@@ -38,27 +38,42 @@ function countInMemory(key: string, windowMs: number): number {
   return ++entry.count;
 }
 
-async function count(key: string, windowMs: number): Promise<number> {
+// Several copies of the server (Vercel, or MULTI_INSTANCE=1) normally share
+// one count in Redis. If Redis is configured but unreachable, each copy counts
+// on its own, so an attacker spread over the copies would get several times the
+// allowance. While that lasts, each copy allows a quarter of the limit: people
+// still get in, abuse stays bounded. One copy, or no Redis at all: unchanged.
+const OUTAGE_SHARE = 4;
+const multiInstance = () => process.env.VERCEL === "1" || process.env.MULTI_INSTANCE === "1";
+const limitDuringOutage = (limit: number) => (redis() && multiInstance() ? Math.max(1, Math.ceil(limit / OUTAGE_SHARE)) : limit);
+
+async function count(key: string, windowMs: number): Promise<{ n: number; shared: boolean }> {
   const shared = await tryRedis((r) => r.eval<[string], number>(COUNT, [redisKey("rl", key)], [String(windowMs)]));
-  return typeof shared === "number" ? shared : countInMemory(key, windowMs);
+  return typeof shared === "number" ? { n: shared, shared: true } : { n: countInMemory(key, windowMs), shared: false };
 }
 
 /** Counts one attempt for `key`; false once `limit` attempts were made within `windowMs`. */
 export async function allow(key: string, limit: number, windowMs: number): Promise<boolean> {
-  return (await count(key, windowMs)) <= limit;
+  const { n, shared } = await count(key, windowMs);
+  return n <= (shared ? limit : limitDuringOutage(limit));
+}
+
+async function usedWhere(key: string): Promise<{ n: number; shared: boolean }> {
+  const shared = await tryRedis((r) => r.get<string>(redisKey("rl", key)));
+  if (shared !== undefined) return { n: Number(shared ?? 0), shared: true };
+  const entry = windows.get(key);
+  return { n: entry && entry.resetAt > Date.now() ? entry.count : 0, shared: false };
 }
 
 /** How many events were recorded for `key` in the current window (records nothing). */
 export async function used(key: string): Promise<number> {
-  const shared = await tryRedis((r) => r.get<string>(redisKey("rl", key)));
-  if (shared !== undefined) return Number(shared ?? 0);
-  const entry = windows.get(key);
-  return entry && entry.resetAt > Date.now() ? entry.count : 0;
+  return (await usedWhere(key)).n;
 }
 
 /** True once `limit` events were recorded for `key` in the current window (records nothing). */
 export async function isBlocked(key: string, limit: number): Promise<boolean> {
-  return (await used(key)) >= limit;
+  const { n, shared } = await usedWhere(key);
+  return n >= (shared ? limit : limitDuringOutage(limit));
 }
 
 /** Records one event (e.g. a failed password) without asking whether it is allowed. */

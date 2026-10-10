@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
 import { getT } from "../i18n/server";
+import { siteUrl } from "../site";
 import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { ownerIdOf, requireUser } from "../server/auth";
@@ -46,8 +47,6 @@ const readPending = (value: string | undefined): { ownerId: string; consentId: s
     return null;
   }
 };
-
-const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 /**
  * Step 1 of linking an Indian bank: create a consent request for the customer's

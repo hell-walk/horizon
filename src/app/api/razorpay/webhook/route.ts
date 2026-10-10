@@ -11,11 +11,36 @@ import { createSupabaseAdmin } from "@/lib/server/supabase";
 // the message's contents: it asks Razorpay for the subscription itself.
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const MAX_BODY = 64 * 1024;
+const MAX_BODY = 64 * 1024; // Razorpay's subscription events are a few kilobytes
+
+/**
+ * The body as text, read no further than MAX_BODY bytes: a huge request is
+ * refused as it arrives, never held in memory whole. Null when too big.
+ */
+async function boundedBody(request: NextRequest): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (declared > MAX_BODY) return null;
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
 
 export async function POST(request: NextRequest) {
-  const body = await request.text();
-  if (body.length > MAX_BODY || !webhookIsGenuine(body, request.headers.get("x-razorpay-signature"))) {
+  const body = await boundedBody(request);
+  if (body === null) return NextResponse.json({ ok: false }, { status: 413 });
+  if (!webhookIsGenuine(body, request.headers.get("x-razorpay-signature"))) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 

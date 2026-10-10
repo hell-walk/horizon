@@ -169,8 +169,26 @@ export async function deleteUserEverything(user: User) {
   const profile = await getUserInfo({ userId: authId });
   if (profile?.dwollaCustomerUrl) await deactivateCustomer(profile.dwollaCustomerUrl);
   if (FEEDBACK_COLLECTION_ID) await deleteAll(FEEDBACK_COLLECTION_ID, [Query.equal("ownerId", [owner])]);
-  if (profile?.$id) await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profile.$id);
 
-  await createSupabaseAdmin().auth.admin.deleteUser(authId); // the login and every session
+  // The login goes before the profile: if removing it fails, the profile is
+  // still there, the person is still signed in, and trying again finishes the
+  // job (every step above is safe to repeat). Supabase reports a failure by
+  // returning it, not by throwing.
+  const { error } = await createSupabaseAdmin().auth.admin.deleteUser(authId); // the login and every session
+  if (error && error.status !== 404) throw new Error(`could not delete the login: ${error.message}`);
+
+  // Last, the profile row (name and address). Tried twice; if it still fails,
+  // the login is already gone, so it is logged for a person to remove by hand.
+  if (profile?.$id) {
+    try {
+      await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profile.$id);
+    } catch {
+      try {
+        await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profile.$id);
+      } catch (retryError) {
+        logError(`privacy: login deleted but profile ${profile.$id} left behind; remove it by hand`, retryError);
+      }
+    }
+  }
   invalidate("banks:");
 }

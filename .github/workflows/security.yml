@@ -1,0 +1,52 @@
+# The black-box security suite (tests/security), on demand, against a
+# production build of this commit talking to STAGING services with disposable
+# credentials. Never point it at production keys or real accounts.
+name: Security tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Staging settings
+        env:
+          STAGING_ENV_FILE: ${{ secrets.STAGING_ENV_FILE }}
+        run: |
+          if [ -z "$STAGING_ENV_FILE" ]; then echo "Add the STAGING_ENV_FILE secret (see tests/security/README.md)."; exit 1; fi
+          printf '%s\n' "$STAGING_ENV_FILE" > .env
+          grep -q '^REDIS_PREFIX=.*-dev$' .env || { echo "REDIS_PREFIX must end in -dev for test runs."; exit 1; }
+      - run: npm run build
+      - name: Start the production server
+        run: |
+          npx next start -p 3100 > server.log 2>&1 &
+          for i in $(seq 1 60); do curl -fs -o /dev/null http://localhost:3100/sign-in && exit 0; sleep 2; done
+          cat server.log; exit 1
+      - name: Security tests
+        env:
+          HORIZON_TEST_EMAIL: ${{ secrets.HORIZON_TEST_EMAIL }}
+          HORIZON_TEST_PASSWORD: ${{ secrets.HORIZON_TEST_PASSWORD }}
+          HORIZON_TEST_EMAIL_2: ${{ secrets.HORIZON_TEST_EMAIL_2 }}
+          HORIZON_TEST_PASSWORD_2: ${{ secrets.HORIZON_TEST_PASSWORD_2 }}
+        run: npm run test:security
+      - name: Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-results
+          path: reports/security-results.json
+          if-no-files-found: ignore
+      - name: Remove the settings
+        if: always()
+        run: rm -f .env
