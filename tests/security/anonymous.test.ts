@@ -41,7 +41,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("signed-in pages", () => {
-    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills"])(
+    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);
@@ -61,7 +61,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   describe("the server action surface", () => {
     it("exposes exactly the intended actions", () => {
       expect(Object.keys(actionIds()).sort()).toEqual(
-        ["completeSetuConsent", "correctTransaction", "createLinkToken", "createSetuConsent", "deleteBank", "deleteMyAccount", "exchangePublicToken", "exportMyData", "importStatement", "logoutAccount", "previewStatement", "sendTransfer", "setCardDesign", "signIn", "signUp", "undoCorrection"].sort()
+        ["completeSetuConsent", "correctTransaction", "createLinkToken", "createSetuConsent", "deleteBank", "deleteGoal", "deleteMyAccount", "exchangePublicToken", "exportMyData", "importStatement", "logoutAccount", "previewStatement", "saveGoal", "sendTransfer", "setCardDesign", "signIn", "signUp", "undoCorrection"].sort()
       );
     });
 
@@ -86,6 +86,8 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       ["deleteMyAccount", [{ password: "x" }]],
       ["correctTransaction", [{ accountId: "x", transactionId: "x", category: "Rent" }]],
       ["undoCorrection", [{ accountId: "x", transactionId: "x" }]],
+      ["saveGoal", [{ name: "Trip", target: 100 }]],
+      ["deleteGoal", [{ id: "g-x" }]],
     ])("%s refuses without a session", async (name, args) => {
       const { status, value } = await callAction(name, args);
       expect(status).toBe(200);

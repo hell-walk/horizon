@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { invalidate } from "../cache";
+
 import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_ROW_CHANGES, payeeKey, type Correction } from "../corrections";
 import { getT } from "../i18n/server";
 import { getAccountUncached } from "../server/accounts";
@@ -68,6 +70,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
       corrections.rows[entry.id] = change;
     }
     await storeCorrections(authIdOf(user), corrections);
+    invalidate("banks:leftover:");
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
@@ -93,6 +96,7 @@ export async function undoCorrection(input: Target): Promise<CorrectionResult> {
     const key = payeeKey(entry.name);
     if (key) delete corrections.payees[key];
     await storeCorrections(authIdOf(user), corrections);
+    invalidate("banks:leftover:");
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {

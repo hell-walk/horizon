@@ -55,6 +55,9 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ["completeSetuConsent", () => [{ consentId: "consent-of-b", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ status: "MISSING" })],
     ["correctTransaction", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any", category: "Rent", everyPayment: true }], (v) => expect(v).toMatchObject({ ok: false })],
     ["undoCorrection", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any" }], (v) => expect(v).toMatchObject({ ok: false })],
+    // Goals belong to the signed-in user only: an id that is not theirs finds nothing.
+    ["saveGoal", () => [{ ...forged(victimProfile, victimBank), id: "g-victim-goal", name: "Hijack", target: 1 }], (v) => expect(v).toMatchObject({ ok: false })],
+    ["deleteGoal", () => [{ ...forged(victimProfile, victimBank), id: "g-victim-goal" }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteBank", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteMyAccount", () => [{ ...forged(victimProfile, victimBank), password: "not-the-password" }], (v) => expect(v).toMatchObject({ ok: false })],
     [
