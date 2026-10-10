@@ -1,0 +1,15 @@
+{
+  "skipToContent": "Skip to main content",
+  "language": "Language",
+  "appearance": "Appearance",
+  "darkMode": "Dark mode",
+  "close": "Close",
+  "back": "Back",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "continue": "Continue",
+  "loading": "Loading…",
+  "tryAgain": "Something went wrong. Please try again.",
+  "notReachable": "Could not reach the server. Check your connection and try again.",
+  "whatIsThis": "What is this?"
+}

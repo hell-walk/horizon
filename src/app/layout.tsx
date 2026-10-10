@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 
+import { I18nProvider } from "@/components/i18nProvider";
 import { ThemeProvider } from "@/components/themeProvider";
+import { LOCALE_TAGS } from "@/lib/i18n/config";
+import { getLocale, getT } from "@/lib/i18n/server";
 
 import "./globals.css";
 
@@ -35,16 +38,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
+  const t = await getT();
   return (
     // next-themes sets the class on <html> before paint; the warning it would
     // otherwise trigger is expected.
-    <html lang="en" suppressHydrationWarning>
+    <html lang={LOCALE_TAGS[locale]} suppressHydrationWarning>
       <body className={`${sans.variable} ${display.variable} ${mono.variable}`}>
         <a href="#main" className="skip-link">
-          Skip to main content
+          {t("common.skipToContent")}
         </a>
-        <ThemeProvider>{children}</ThemeProvider>
+        <I18nProvider locale={locale}>
+          <ThemeProvider>{children}</ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

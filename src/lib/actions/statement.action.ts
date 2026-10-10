@@ -11,7 +11,6 @@ import {
   categorize,
   cleanMapping,
   mappingProblem,
-  readStatementRows,
   sampleStatement,
   StatementLayoutError,
   StatementParseError,
@@ -22,6 +21,7 @@ import {
   type StatementMapping,
   type StatementSample,
 } from "../statements/parse";
+import { readStatementRowsIsolated } from "../statements/isolated";
 import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
@@ -137,7 +137,8 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
 
   let sample: StatementSample | undefined;
   try {
-    const rows = await readStatementRows({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()), password: passwordFrom(formData) });
+    // Read in a disposable, memory-capped worker with no secrets (see statements/isolated.ts).
+    const rows = await readStatementRowsIsolated({ name: file.name, buffer: Buffer.from(await file.arrayBuffer()), password: passwordFrom(formData) });
     const found = sampleStatement(rows);
     sample = found;
     const needsMapping = (error: string): ReadFailure => ({ ok: false, error, needsMapping: true, sample: found });

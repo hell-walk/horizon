@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
+import { STATEMENT_BANKS, type StatementBankId } from "@/lib/bankGuides";
 import type { StatementMapping, StatementSample } from "@/lib/statements/parse";
 import { cn, formatAmount } from "@/lib/utils";
 
 import BalanceCheckNote from "./balanceCheck";
+import { useT } from "./i18nProvider";
 import ColumnMapper, { mappingHint } from "./columnMapper";
 import { Input } from "./ui/input";
 
@@ -32,6 +34,17 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [mapSample, setMapSample] = useState<StatementSample | null>(null);
   const [mapping, setMapping] = useState<Partial<StatementMapping> | null>(null);
   const [mapperOpen, setMapperOpen] = useState(false);
+  // Guided import: which bank the statement is from, to show how to get it and its usual password.
+  const t = useT();
+  const [bank, setBank] = useState<StatementBankId | "">("");
+  const institutionRef = useRef<HTMLInputElement>(null);
+  const bankName = STATEMENT_BANKS.find((b) => b.id === bank)?.name;
+  const chooseBank = (id: StatementBankId | "") => {
+    setBank(id);
+    const name = STATEMENT_BANKS.find((b) => b.id === id)?.name;
+    if (name && institutionRef.current) institutionRef.current.value = name;
+    if (id) setShowPassword(true); // bank PDFs are almost always protected
+  };
 
   const reset = () => {
     setPreview(null);
@@ -125,6 +138,36 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       }}
       className={cn("flex w-full flex-col gap-4", variant === "primary" && "rounded-md border border-line bg-surface-low p-4")}
     >
+      <div className="field">
+        <label className="field-label" htmlFor="statement-bank">
+          {t("connect.guideWhichBank")}
+        </label>
+        <select id="statement-bank" value={bank} onChange={(e) => chooseBank(e.target.value as StatementBankId | "")} className="field-input">
+          <option value="">{t("connect.guideChooseBank")}</option>
+          {STATEMENT_BANKS.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+          <option value="other">{t("connect.guideOtherBank")}</option>
+        </select>
+      </div>
+
+      {bank && (
+        <div className="rounded-md border border-line bg-card p-4 text-14" aria-live="polite">
+          <p className="font-semibold text-ink">{t("connect.guideHowTitle")}</p>
+          <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-ink-muted">
+            <li>{t("connect.guideStep1", { bank: bankName ?? t("connect.guideYourBank") })}</li>
+            <li>{t("connect.guideStep2")}</li>
+            <li>{t("connect.guideStep3")}</li>
+            <li>{t("connect.guideStep4")}</li>
+          </ol>
+          <p className="mt-3 font-semibold text-ink">{t("connect.guidePasswordTitle")}</p>
+          <p className="text-ink-muted">{t(`connect.guidePassword_${bank}`)}</p>
+          <p className="field-hint mt-2">{t("connect.guideCheckEmail")}</p>
+        </div>
+      )}
+
       <label
         htmlFor="statement-file"
         onDragOver={(e) => {
@@ -161,6 +204,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             Bank name
           </label>
           <Input
+            ref={institutionRef}
             id="statement-institution"
             name="institution"
             placeholder={preview?.ok && preview.institution ? preview.institution : "Detected from the file if left blank"}
