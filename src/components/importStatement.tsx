@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Columns3, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
+import { Check, Columns3, CopyCheck, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -34,6 +34,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [mapSample, setMapSample] = useState<StatementSample | null>(null);
   const [mapping, setMapping] = useState<Partial<StatementMapping> | null>(null);
   const [mapperOpen, setMapperOpen] = useState(false);
+  // "These are new, save them too", for entries that look like ones already saved from another file.
+  const [keepLikely, setKeepLikely] = useState(false);
   // Guided import: which bank the statement is from, to show how to get it and its usual password.
   const t = useT();
   const [bank, setBank] = useState<StatementBankId | "">("");
@@ -49,6 +51,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const reset = () => {
     setPreview(null);
     setResult(null);
+    setKeepLikely(false);
   };
 
   const mappingBefore = useRef<Partial<StatementMapping> | null>(null);
@@ -71,6 +74,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     try {
       const outcome = await previewStatement(new FormData(formRef.current));
       setPreview(outcome);
+      setKeepLikely(false);
       if (!outcome.ok && outcome.needsPassword) setShowPassword(true);
       if (!outcome.ok && outcome.needsMapping && outcome.sample) {
         // Keep what the user already picked; otherwise start from the parser's guess.
@@ -128,6 +132,10 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     }
   };
 
+  // What the save button will really save: not the entries already there, nor the
+  // look-alikes unless the user says they are new.
+  const toSave = preview?.ok ? preview.total - preview.alreadySaved - (keepLikely ? 0 : preview.likely.count) : null;
+
   return (
     <form
       ref={formRef}
@@ -157,7 +165,11 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         <div className="rounded-md border border-line bg-card p-4 text-14" aria-live="polite">
           <p className="font-semibold text-ink">{t("connect.guideHowTitle")}</p>
           <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-ink-muted">
-            <li>{t("connect.guideStep1", { bank: bankName ?? t("connect.guideYourBank") })}</li>
+            <li>
+              {t("connect.guideStep1", {
+                bank: bankName ?? t("connect.guideYourBank"),
+              })}
+            </li>
             <li>{t("connect.guideStep2")}</li>
             <li>{t("connect.guideStep3")}</li>
             <li>{t("connect.guideStep4")}</li>
@@ -178,7 +190,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         onDrop={onDrop}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition-colors",
-          dragging ? "border-primary bg-surface-container" : "border-line bg-surface-low hover:border-primary"
+          dragging ? "border-primary bg-surface-container" : "border-line bg-surface-low hover:border-primary",
         )}
       >
         <span className="flex-center size-10 rounded-md bg-card text-ink-muted">
@@ -262,9 +274,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
 
       {mapping && <input type="hidden" name="mapping" value={JSON.stringify(mapping)} />}
 
-      {preview && !preview.ok && (
-        <p className={preview.needsPassword || preview.needsMapping ? "field-hint text-warn-ink" : "field-error"}>{preview.error}</p>
-      )}
+      {preview && !preview.ok && <p className={preview.needsPassword || preview.needsMapping ? "field-hint text-warn-ink" : "field-error"}>{preview.error}</p>}
 
       {mapperOpen && mapSample && mapping && <ColumnMapper sample={mapSample} mapping={mapping} onChange={setMapping} />}
 
@@ -308,13 +318,76 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </table>
           </div>
           <BalanceCheckNote check={preview.check} currency={preview.currency} />
+          {preview.alreadySaved > 0 && (
+            <p className="flex items-start gap-2 border-t border-line px-3 py-2 text-13 text-ink">
+              <CopyCheck className="mt-0.5 size-4 shrink-0 text-ink-muted" aria-hidden /> {t("connect.alreadySaved", { count: preview.alreadySaved })}
+            </p>
+          )}
+          {preview.likely.count > 0 && (
+            <div className="flex flex-col gap-2 border-t border-line bg-warn/10 px-3 py-3 text-13 text-ink">
+              <p className="font-semibold">{t("connect.likelyTitle", { count: preview.likely.count })}</p>
+              <p>{t("connect.likelyBody")}</p>
+              <details>
+                <summary className="cursor-pointer font-semibold underline underline-offset-2">{t("connect.likelyShow")}</summary>
+                <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label={t("connect.tableScrolls")}>
+                  <table className="w-full text-12">
+                    <thead>
+                      <tr className="border-b border-line">
+                        <th className="eyebrow px-2 py-1 text-left font-normal">{t("connect.likelyInFile")}</th>
+                        <th className="eyebrow px-2 py-1 text-left font-normal">{t("connect.likelySaved")}</th>
+                        <th className="eyebrow px-2 py-1 text-right font-normal">{t("connect.colAmount")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {preview.likely.rows.map((row, i) => (
+                        <tr key={i} translate="no">
+                          <td className="px-2 py-1.5 align-top">
+                            <span className="block font-mono text-ink-muted">{row.date}</span>
+                            <span className="break-words">{row.name}</span>
+                          </td>
+                          <td className="px-2 py-1.5 align-top">
+                            <span className="block font-mono text-ink-muted">{row.savedDate}</span>
+                            <span className="break-words">{row.savedName}</span>
+                          </td>
+                          <td className={cn("amount px-2 py-1.5 text-right align-top font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
+                            {row.type === "debit" ? "-" : "+"}
+                            {formatAmount(Math.abs(row.amount), preview.currency)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {preview.likely.count > preview.likely.rows.length && (
+                    <p className="mt-1 text-ink-muted">
+                      {t("connect.likelyMore", {
+                        count: preview.likely.count - preview.likely.rows.length,
+                      })}
+                    </p>
+                  )}
+                </div>
+              </details>
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  name="keepLikely"
+                  value="1"
+                  checked={keepLikely}
+                  onChange={(e) => setKeepLikely(e.target.checked)}
+                  className="mt-0.5 size-4"
+                />
+                {t("connect.likelyKeep")}
+              </label>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2 text-12 text-ink-muted">
             <span>
               {preview.source === "saved"
                 ? t("connect.sourceSaved")
                 : preview.source === "manual"
                   ? t("connect.sourceManual")
-                  : t("connect.sourceAuto", { columns: preview.headers.join(", ") })}
+                  : t("connect.sourceAuto", {
+                      columns: preview.headers.join(", "),
+                    })}
             </span>
             <button type="button" onClick={() => openMapper(preview.sample, preview.columns)} className="btn-ghost btn-sm shrink-0">
               <Columns3 className="size-3.5" /> {t("connect.changeColumns")}
@@ -326,7 +399,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="submit"
-          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null)}
+          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null) || (!mapperOpen && toSave === 0)}
           className={preview?.ok && !mapperOpen ? "btn-primary" : "btn-secondary"}
         >
           {busy === "preview" ? (
@@ -339,9 +412,11 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </>
           ) : mapperOpen ? (
             t("connect.readWithColumns")
+          ) : preview?.ok && toSave === 0 ? (
+            t("connect.nothingNew")
           ) : preview?.ok ? (
             <>
-              <FileUp className="size-4" /> {t("connect.saveEntries", { count: preview.total })}
+              <FileUp className="size-4" /> {t("connect.saveEntries", { count: toSave ?? 0 })}
             </>
           ) : (
             t("connect.readFile")
@@ -367,6 +442,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           </span>
           : {t("connect.savedNew", { count: result.imported })}
           {result.skipped ? ` ${t("connect.alreadyThere", { count: result.skipped })}` : ""}
+          {result.likelySkipped ? ` ${t("connect.likelySkipped", { count: result.likelySkipped })}` : ""}
         </p>
       )}
 

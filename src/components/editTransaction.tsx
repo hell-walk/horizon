@@ -4,10 +4,7 @@ import { Loader2, Pencil, X } from "lucide-react";
 import { useId, useRef, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
-import {
-  correctTransaction,
-  undoCorrection,
-} from "@/lib/actions/correction.action";
+import { correctTransaction, undoCorrection } from "@/lib/actions/correction.action";
 import { CATEGORIES, MAX_NAME_LENGTH } from "@/lib/corrections";
 import { dataLabel } from "@/lib/i18n/labels";
 
@@ -31,17 +28,7 @@ type Props = {
  * A small button on each entry that opens a form to give the entry a clearer
  * name or another category, for this entry or every entry from the same payee.
  */
-const EditTransaction = ({
-  accountId,
-  transactionId,
-  shownName,
-  bankText,
-  payee,
-  category,
-  autoName,
-  autoCategory,
-  changed,
-}: Props) => {
+const EditTransaction = ({ accountId, transactionId, shownName, bankText, payee, category, autoName, autoCategory, changed }: Props) => {
   const t = useT();
   const dialog = useRef<HTMLDialogElement>(null);
   const ids = useId();
@@ -66,8 +53,7 @@ const EditTransaction = ({
     try {
       // Send the whole wanted state, measured against what the bank shows, so
       // changing only the category keeps a name chosen earlier.
-      const wantName =
-        name.trim() && name.trim() !== autoName ? name.trim() : undefined;
+      const wantName = name.trim() && name.trim() !== autoName ? name.trim() : undefined;
       const wantCategory = chosen !== autoCategory ? chosen : undefined;
       const result =
         kind === "save" && (wantName || wantCategory)
@@ -118,18 +104,10 @@ const EditTransaction = ({
           }}
         >
           <div className="flex items-start justify-between gap-3">
-            <h2
-              id={`${ids}-title`}
-              className="font-display text-18 font-semibold"
-            >
+            <h2 id={`${ids}-title`} className="font-display text-18 font-semibold">
               {t("history.editTitle")}
             </h2>
-            <button
-              type="button"
-              onClick={close}
-              aria-label={t("history.editClose")}
-              className="flex-center size-9 rounded-sm hover:bg-surface-container"
-            >
+            <button type="button" onClick={close} aria-label={t("history.editClose")} className="flex-center size-9 rounded-sm hover:bg-surface-container">
               <X className="size-4" aria-hidden />
             </button>
           </div>
@@ -163,15 +141,8 @@ const EditTransaction = ({
             <label className="field-label" htmlFor={`${ids}-category`}>
               {t("history.editCategory")}
             </label>
-            <select
-              id={`${ids}-category`}
-              value={chosen}
-              onChange={(e) => setChosen(e.target.value)}
-              className="field-input"
-            >
-              {!(CATEGORIES as readonly string[]).includes(category) && (
-                <option value={category}>{dataLabel(t, category)}</option>
-              )}
+            <select id={`${ids}-category`} value={chosen} onChange={(e) => setChosen(e.target.value)} className="field-input">
+              {!(CATEGORIES as readonly string[]).includes(category) && <option value={category}>{dataLabel(t, category)}</option>}
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {dataLabel(t, c)}
@@ -183,15 +154,9 @@ const EditTransaction = ({
 
           {payee && (
             <label className="flex items-start gap-2 text-14">
-              <input
-                type="checkbox"
-                checked={everyPayment}
-                onChange={(e) => setEveryPayment(e.target.checked)}
-                className="mt-1 size-4"
-              />
+              <input type="checkbox" checked={everyPayment} onChange={(e) => setEveryPayment(e.target.checked)} className="mt-1 size-4" />
               <span>
-                {t("history.editEveryPayment")}{" "}
-                <strong translate="no">{payee}</strong>
+                {t("history.editEveryPayment")} <strong translate="no">{payee}</strong>
               </span>
             </label>
           )}
@@ -203,28 +168,13 @@ const EditTransaction = ({
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="submit"
-              disabled={nothingChanged || busy !== null}
-              className="btn-primary"
-            >
-              {busy === "save" && (
-                <Loader2 className="size-4 animate-spin" aria-hidden />
-              )}
-              {busy === "save"
-                ? t("history.editSaving")
-                : t("history.editSave")}
+            <button type="submit" disabled={nothingChanged || busy !== null} className="btn-primary">
+              {busy === "save" && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {busy === "save" ? t("history.editSaving") : t("history.editSave")}
             </button>
             {changed && (
-              <button
-                type="button"
-                onClick={() => run("undo")}
-                disabled={busy !== null}
-                className="btn-ghost"
-              >
-                {busy === "undo" && (
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                )}
+              <button type="button" onClick={() => run("undo")} disabled={busy !== null} className="btn-ghost">
+                {busy === "undo" && <Loader2 className="size-4 animate-spin" aria-hidden />}
                 {t("history.editUndo")}
               </button>
             )}
