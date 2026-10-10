@@ -170,20 +170,24 @@ export const getTransactionStatus = (date: Date) => {
 // reader's language (useT() in the form).
 export const authFormSchema = (type: string, t: Translate) => {
   const signUp = type === "sign-up";
+  // "welcome": signed in with Google, finishing the profile. Same questions as
+  // sign-up, minus the email and password Google already settled.
+  const welcome = type === "welcome";
+  const profile = signUp || welcome;
   const optional = () => z.string().optional();
   const tooLong = (max: number) => t("auth.errorTooLong", { max });
 
   return z
     .object({
-      email: z.string().email(t("auth.errorEmail")),
-      password: z.string().min(8, t("auth.passwordTooShort")),
+      email: welcome ? optional() : z.string().email(t("auth.errorEmail")),
+      password: welcome ? optional() : z.string().min(8, t("auth.passwordTooShort")),
       confirmPassword: signUp ? z.string().min(1, t("auth.errorConfirmPassword")) : optional(),
-      terms: signUp ? z.boolean().refine((v) => v, t("auth.errorTerms")) : z.boolean().optional(),
-      firstName: signUp ? z.string().min(2, t("auth.errorFirstName")) : optional(),
-      lastName: signUp ? z.string().min(2, t("auth.errorLastName")) : optional(),
-      country: signUp ? z.string().refine(isCountry, t("auth.errorCountry")) : optional(),
-      address1: signUp ? z.string().min(3, t("auth.errorStreet")).max(50, tooLong(50)) : optional(),
-      city: signUp ? z.string().min(2, t("auth.errorCity")).max(20, tooLong(20)) : optional(),
+      terms: profile ? z.boolean().refine((v) => v, t("auth.errorTerms")) : z.boolean().optional(),
+      firstName: profile ? z.string().min(2, t("auth.errorFirstName")) : optional(),
+      lastName: profile ? z.string().min(2, t("auth.errorLastName")) : optional(),
+      country: profile ? z.string().refine(isCountry, t("auth.errorCountry")) : optional(),
+      address1: profile ? z.string().min(3, t("auth.errorStreet")).max(50, tooLong(50)) : optional(),
+      city: profile ? z.string().min(2, t("auth.errorCity")).max(20, tooLong(20)) : optional(),
       // Region, postal code, date of birth and SSN depend on the country: checked below.
       state: optional(),
       postalCode: optional(),
@@ -195,7 +199,7 @@ export const authFormSchema = (type: string, t: Translate) => {
       path: ["confirmPassword"],
     })
     .superRefine((data, ctx) => {
-      if (!signUp) return;
+      if (!profile) return;
       const country = data.country ?? "";
       const state = (data.state ?? "").trim();
       const postal = (data.postalCode ?? "").trim();

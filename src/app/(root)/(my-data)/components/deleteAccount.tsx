@@ -8,8 +8,11 @@ import { useT } from "@/components/i18nProvider";
 import { Input } from "@/components/ui/input";
 import { deleteMyAccount } from "@/lib/actions/privacy.action";
 
-/** Deleting the account needs a tick and the password, then signs out. */
-const DeleteAccount = () => {
+/**
+ * Deleting the account needs a tick and the password, then signs out. A Google
+ * login has no password: it types its email, soon after signing in.
+ */
+const DeleteAccount = ({ hasPassword }: { hasPassword: boolean }) => {
   const t = useT();
   const router = useRouter();
   const [understood, setUnderstood] = useState(false);
@@ -22,7 +25,7 @@ const DeleteAccount = () => {
     setBusy(true);
     setError(null);
     try {
-      const result = await deleteMyAccount({ password });
+      const result = await deleteMyAccount(hasPassword ? { password } : { email: password });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -52,19 +55,19 @@ const DeleteAccount = () => {
 
         <div className="field max-w-sm">
           <label className="field-label" htmlFor="delete-password">
-            {t("data.deletePassword")}
+            {hasPassword ? t("data.deletePassword") : t("data.deleteEmail")}
           </label>
           <Input
             id="delete-password"
-            type="password"
-            autoComplete="current-password"
+            type={hasPassword ? "password" : "email"}
+            autoComplete={hasPassword ? "current-password" : "off"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="field-input"
             aria-describedby="delete-password-hint"
           />
           <p id="delete-password-hint" className="field-hint">
-            {t("data.deletePasswordHint")}
+            {hasPassword ? t("data.deletePasswordHint") : t("data.deleteEmailHint")}
           </p>
         </div>
 

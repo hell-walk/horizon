@@ -41,7 +41,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("signed-in pages", () => {
-    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals"])(
+    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals", "/welcome"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);
@@ -51,17 +51,62 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     );
 
     it("a forged or stale session cookie gets nowhere", async () => {
-      for (const cookie of ["banking-session=forged", "banking-session=", "banking-session=" + "a".repeat(4096)]) {
+      // A token that looks right but is not signed by Supabase ("alg": "none").
+      const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString("base64url");
+      const fakeJwt = `${b64({ alg: "none", typ: "JWT" })}.${b64({ sub: "00000000-0000-0000-0000-000000000000", role: "authenticated", exp: 4102444800 })}.`;
+      const forgedSession = "base64-" + b64({ access_token: fakeJwt, refresh_token: "forged", expires_at: 4102444800, token_type: "bearer", user: { id: "x" } });
+      for (const cookie of ["horizon-session=forged", "horizon-session=", "horizon-session=" + "a".repeat(4096), `horizon-session=${forgedSession}`, "banking-session=forged"]) {
         const page = await getPage("/my-banks", cookie);
         expect(page.location ?? "", cookie.slice(0, 30)).toMatch(/\/sign-in/);
       }
+    });
+
+    it("setting a new password needs the emailed link first", async () => {
+      const page = await getPage("/reset-password");
+      expect(page.location ?? "").toMatch(/\/forgot-password\?expired=1/);
+    });
+  });
+
+  describe("coming back from Google or a reset email (/auth/callback)", () => {
+    it("a made-up code signs nobody in", async () => {
+      const page = await getPage("/auth/callback?code=forged-code");
+      expect(page.location ?? "").toMatch(/\/sign-in\?failed=1/);
+      expect(page.headers.getSetCookie().filter((c) => /^horizon-session[^=]*=[^;]/.test(c))).toEqual([]);
+    });
+
+    it.each(["https://evil.example", "//evil.example", "/\\evil.example", "javascript:alert(1)"])("never sends anyone off the site (next=%s)", async (next) => {
+      const page = await getPage(`/auth/callback?code=forged&next=${encodeURIComponent(next)}`);
+      expect(new URL(page.location ?? "/", BASE).origin).toBe(new URL(BASE).origin);
     });
   });
 
   describe("the server action surface", () => {
     it("exposes exactly the intended actions", () => {
       expect(Object.keys(actionIds()).sort()).toEqual(
-        ["completeSetuConsent", "correctTransaction", "createLinkToken", "createSetuConsent", "deleteBank", "deleteGoal", "deleteMyAccount", "exchangePublicToken", "exportMyData", "importStatement", "logoutAccount", "previewStatement", "saveGoal", "sendTransfer", "setCardDesign", "signIn", "signUp", "undoCorrection"].sort()
+        [
+          "completeProfile",
+          "completeSetuConsent",
+          "correctTransaction",
+          "createLinkToken",
+          "createSetuConsent",
+          "deleteBank",
+          "deleteGoal",
+          "deleteMyAccount",
+          "exchangePublicToken",
+          "exportMyData",
+          "importStatement",
+          "logoutAccount",
+          "previewStatement",
+          "requestPasswordReset",
+          "saveGoal",
+          "sendTransfer",
+          "setCardDesign",
+          "setNewPassword",
+          "signIn",
+          "signInWithGoogle",
+          "signUp",
+          "undoCorrection",
+        ].sort()
       );
     });
 

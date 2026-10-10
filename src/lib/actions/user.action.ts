@@ -4,6 +4,9 @@
 // arguments. So none of them take "who the user is" as a parameter: that always
 // comes from the session cookie. Data helpers that do not check the session
 // live in ../server and are never exported from here.
+//
+// Sign-in is Supabase's job (who you are); the profile, banks and statements
+// stay in Appwrite, found by the Supabase user id.
 
 import { ID } from "node-appwrite";
 import { cookies } from "next/headers";
@@ -13,12 +16,13 @@ import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestPr
 import { isCountry, needsStateAndPostal } from "../countries";
 import { getT } from "../i18n/server";
 import type { Translate } from "../i18n/translate";
-import { createAdminClient, createSessionClient } from "../server/appwrite";
-import { authIdOf, ownerIdOf, requireUser } from "../server/auth";
-import { createBankAccount } from "../server/banks";
+import { createAdminClient } from "../server/appwrite";
+import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
+import { createBankAccount, getUserInfo } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { addFundingSource, createDwollaCustomer } from "../server/dwolla";
 import { allow, clientIp, isBlocked, MINUTE, record } from "../server/rateLimit";
+import { clearSessionCookies, createSupabaseAdmin, createSupabaseServerClient } from "../server/supabase";
 import { extractCustomerIdFromUrl } from "../utils";
 import { plaidClient } from "../plaid";
 import { logError } from "../server/log";
@@ -30,27 +34,13 @@ const {
 
 export type AuthResult = { ok: true; user?: User } | { ok: false; error: string };
 
-const SESSION_COOKIE = "banking-session";
+// Where Supabase sends people back to (Google sign-in, password reset links).
+// From the configuration, never from the request: a forged Host header must
+// not be able to point a reset link at someone else's site.
+const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-const MAX_SESSION_DAYS = 30;
-
-// Expires with the Appwrite session, and never later than 30 days from sign-in.
-// Secure everywhere except local development over plain HTTP (e.g. a phone on
-// the same Wi-Fi), where the browser would otherwise drop the cookie.
-const setSessionCookie = async (session: { secret: string; expire?: string }) => {
-    const cap = Date.now() + MAX_SESSION_DAYS * 24 * 60 * MINUTE;
-    const appwriteExpiry = session.expire ? Date.parse(session.expire) : NaN;
-    (await cookies()).set(SESSION_COOKIE, session.secret, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        expires: new Date(Number.isFinite(appwriteExpiry) ? Math.min(appwriteExpiry, cap) : cap),
-    });
-};
-
-// The server talks to Appwrite with an API key, which skips Appwrite's own
-// per-IP limits, so sign-in and sign-up are limited here instead.
+// The server talks to Supabase from one address for everyone, so its per-IP
+// limits cannot tell people apart: sign-in and sign-up are limited here instead.
 // - Per email: 8 wrong passwords in 10 minutes. Only failures count, so someone
 //   signing in on several devices is never locked out.
 // - Per IP: 100 attempts in 10 minutes, generous because a whole college or
@@ -84,17 +74,23 @@ const passwordProblem = (password: string, email: string, t: Translate): string 
     return null;
 };
 
+/** Supabase saying "slow down" (its own limits), as opposed to a wrong password. */
+const isRateLimited = (error: unknown) => (error as { status?: number } | null)?.status === 429;
+
 export const signIn = async (input: signInProps): Promise<AuthResult> => {
     const t = await getT();
     if (!strings(input, ["email", "password"], 256)) return badInput(t);
     const { email, password } = input;
     if (!(await allowAuthAttempt(email))) return tooMany(t);
     try {
-        const { account } = await createAdminClient();
-        const session = await account.createEmailPasswordSession(email, password);
-        await setSessionCookie(session);
+        const supabase = await createSupabaseServerClient();
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (isRateLimited(error)) return tooMany(t);
+        if (error) throw error;
         return { ok: true };
     } catch {
+        // Same answer for a wrong password, a missing account and a Google-only
+        // account: the reply never tells whether an email is registered.
         await record(emailKey(email), 10 * MINUTE);
         return { ok: false, error: t("auth.errorSignIn") };
     }
@@ -108,80 +104,103 @@ const isUsAddress = (state: string, postalCode: string) =>
 // never needed again, so Horizon does not keep them.
 const NOT_KEPT = "not-kept";
 
+const PROFILE_FIELDS = ["country", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"];
+type ProfileInput = Omit<SignUpParams, "email" | "password">;
+
+/** What sign-up and "finish setting up" ask, checked the same way: true when it is fine. */
+const profileIsValid = (p: ProfileInput) => {
+    if (!isCountry(p.country)) return false;
+    if (p.firstName.trim().length < 2 || p.lastName.trim().length < 2 || p.address1.trim().length < 3 || p.city.trim().length < 2) return false;
+    // The US payment partner needs a US address, date of birth and SSN; nobody else is asked.
+    if (needsStateAndPostal(p.country) && (p.state.trim().length < 2 || !/^[A-Za-z0-9 -]{3,10}$/.test(p.postalCode.trim()))) return false;
+    if (p.country === "US" && (!isUsAddress(p.state, p.postalCode) || !/^\d{4}-\d{2}-\d{2}$/.test(p.dateOfBirth) || p.ssn.trim().length < 4)) return false;
+    return true;
+};
+
+/** Creates the Appwrite profile for a Supabase login. Returns the profile row's id. */
+const createProfile = async (authId: string, email: string, p: ProfileInput) => {
+    // Dwolla (US transfers) only accepts US addresses. Everyone else signs up
+    // without a Dwolla customer: they can still link banks and import
+    // statements, only transfers stay unavailable.
+    const dwolla: { dwollaCustomerId?: string; dwollaCustomerUrl?: string } = {};
+    if (p.country === "US") {
+        try {
+            const dwollaCustomerUrl = await createDwollaCustomer({ ...p, email, type: 'personal' });
+            if (dwollaCustomerUrl) {
+                dwolla.dwollaCustomerUrl = dwollaCustomerUrl;
+                dwolla.dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
+            }
+        } catch {
+            console.warn('Dwolla customer not created; continuing without transfers');
+        }
+    }
+
+    const { database } = await createAdminClient();
+    const row = await database.createDocument(DATABASE_ID!, USER_COLLECTION_ID!, ID.unique(), {
+        address1: p.address1.trim(),
+        city: p.city.trim(),
+        state: p.state.trim(),
+        postalCode: p.postalCode.trim(),
+        email,
+        firstName: p.firstName.trim(),
+        lastName: p.lastName.trim(),
+        dateOfBirth: NOT_KEPT,
+        ssn: NOT_KEPT,
+        userId: authId,
+        // The person's settings start with their country (see server/prefs.ts).
+        prefs: JSON.stringify({ country: p.country }),
+        ...dwolla,
+    });
+    return row.$id;
+};
+
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     const t = await getT();
-    if (!strings(userData, ["country", "email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return badInput(t);
-    const { country, email, password, firstName, lastName, address1, city, state, postalCode } = userData
-    if (!isCountry(country)) return badInput(t);
-    // The US payment partner needs a US address, date of birth and SSN; nobody else is asked.
-    if (needsStateAndPostal(country) && (state.trim().length < 2 || !/^[A-Za-z0-9 -]{3,10}$/.test(postalCode.trim()))) return badInput(t);
-    if (country === "US" && (!isUsAddress(state, postalCode) || !/^\d{4}-\d{2}-\d{2}$/.test(userData.dateOfBirth) || userData.ssn.trim().length < 4)) return badInput(t);
-    const profile = { address1, city, state: state.trim(), postalCode: postalCode.trim() };
+    if (!strings(userData, ["email", "password", ...PROFILE_FIELDS], 256)) return badInput(t);
+    const { email, password, firstName, lastName } = userData;
+    if (!profileIsValid(userData)) return badInput(t);
     const weak = passwordProblem(password, email, t);
     if (weak) return { ok: false, error: weak };
     if (!(await allowAuthAttempt(email))) return tooMany(t);
-    // Each sign-up creates real accounts (Appwrite, maybe Dwolla): a tighter cap per network.
+    // Each sign-up creates real accounts (Supabase, Appwrite, maybe Dwolla): a tighter cap per network.
     if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
 
-    let newUserAccount;
+    let authId: string | undefined;
+    let profileId: string | undefined;
     try {
-        const { account, database } = await createAdminClient();
-
-        newUserAccount = await account.create(
-            ID.unique(),
-            email,
+        // Created as already confirmed: Horizon does not send a confirmation email.
+        const admin = createSupabaseAdmin();
+        const { data, error } = await admin.auth.admin.createUser({
+            email: email.trim(),
             password,
-            `${firstName} ${lastName}`,
-        );
+            email_confirm: true,
+            user_metadata: { full_name: `${firstName.trim()} ${lastName.trim()}` },
+        });
+        if (error || !data.user) throw error ?? new Error("Supabase returned no user");
+        authId = data.user.id;
 
-        // Dwolla (US transfers) only accepts US addresses. Everyone else signs up
-        // without a Dwolla customer: they can still link banks and import
-        // statements, only transfers stay unavailable.
-        const dwolla: { dwollaCustomerId?: string; dwollaCustomerUrl?: string } = {};
-        if (country === "US") {
-            try {
-                const dwollaCustomerUrl = await createDwollaCustomer({ ...userData, type: 'personal' });
-                if (dwollaCustomerUrl) {
-                    dwolla.dwollaCustomerUrl = dwollaCustomerUrl;
-                    dwolla.dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
-                }
-            } catch {
-                console.warn('Dwolla customer not created; continuing without transfers');
-            }
-        }
+        profileId = await createProfile(authId, email.trim(), userData);
 
-        await database.createDocument(
-            DATABASE_ID!,
-            USER_COLLECTION_ID!,
-            ID.unique(),
-            {
-                ...profile,
-                email,
-                firstName,
-                lastName,
-                dateOfBirth: NOT_KEPT,
-                ssn: NOT_KEPT,
-                userId: newUserAccount.$id,
-                ...dwolla,
-            }
-        )
+        const supabase = await createSupabaseServerClient();
+        const signedIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (signedIn.error) throw signedIn.error;
 
-        // The country lives with the login's preferences (no change to the profile table).
-        const { user: users } = await createAdminClient();
-        await users.updatePrefs(newUserAccount.$id, { country });
-
-        const session = await account.createEmailPasswordSession(email, password);
-        await setSessionCookie(session);
-
-        return { ok: true, user: { $id: newUserAccount.$id, email, firstName, lastName, name: `${firstName} ${lastName}` } as User };
+        return { ok: true, user: { $id: profileId, userId: authId, email: email.trim(), firstName, lastName, name: `${firstName} ${lastName}` } as User };
     } catch (error) {
         logError("sign-up failed", error)
 
-        // Roll back the auth account so a failed sign-up can be retried with the same email.
-        if (newUserAccount) {
+        // Roll back what was made, so a failed sign-up can be retried with the same email.
+        if (profileId) {
             try {
-                const { user } = await createAdminClient();
-                await user.delete(newUserAccount.$id);
+                const { database } = await createAdminClient();
+                await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profileId);
+            } catch (cleanupError) {
+                logError('Could not remove the partially created profile', cleanupError);
+            }
+        }
+        if (authId) {
+            try {
+                await createSupabaseAdmin().auth.admin.deleteUser(authId);
             } catch (cleanupError) {
                 logError('Could not remove the partially created user', cleanupError);
             }
@@ -190,18 +209,106 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     }
 }
 
+/**
+ * Starts "Continue with Google". Returns Google's address for the browser to
+ * go to; Google sends the person back to /auth/callback. The one-time code
+ * check (PKCE) is kept in a cookie, so the callback only works in this browser.
+ */
+export const signInWithGoogle = async (): Promise<{ ok: true; url: string } | { ok: false; error: string }> => {
+    const t = await getT();
+    if (!(await allow(`auth:google:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
+    try {
+        const supabase = await createSupabaseServerClient();
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo: `${siteUrl()}/auth/callback`, skipBrowserRedirect: true, queryParams: { prompt: "select_account" } },
+        });
+        if (error || !data.url) throw error ?? new Error("no URL");
+        return { ok: true, url: data.url };
+    } catch (error) {
+        logError("Google sign-in could not start", error);
+        return { ok: false, error: t("auth.errorGoogle") };
+    }
+}
+
+/**
+ * "Finish setting up": signed in (with Google) but no Horizon profile yet. Asks
+ * what sign-up asks, minus the email and password Google already settled.
+ */
+export const completeProfile = async (input: ProfileInput & { terms: boolean }): Promise<AuthResult> => {
+    const t = await getT();
+    const session = await loadSession();
+    if (!session) return { ok: false, error: t("auth.errorSignIn") };
+    if (!strings(input, PROFILE_FIELDS, 256) || input.terms !== true || !profileIsValid(input)) return badInput(t);
+    if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
+    // One profile per login, even when the form is sent twice.
+    if (!(await allow(`welcome:${session.id}`, 1, MINUTE))) return tooMany(t);
+    if (await getUserInfo({ userId: session.id })) return { ok: true };
+
+    try {
+        const profileId = await createProfile(session.id, session.email, input);
+        revalidatePath("/", "layout");
+        return { ok: true, user: { $id: profileId, userId: session.id, email: session.email, firstName: input.firstName, lastName: input.lastName, name: `${input.firstName} ${input.lastName}` } as User };
+    } catch (error) {
+        logError("finishing the profile failed", error);
+        return { ok: false, error: t("auth.errorSignUp") };
+    }
+}
+
+/**
+ * Sends a "set a new password" link. Always answers the same way, whether or
+ * not the email has an account, so nobody can use it to test emails.
+ */
+export const requestPasswordReset = async (input: { email: string }): Promise<{ ok: true } | { ok: false; error: string }> => {
+    const t = await getT();
+    if (!strings(input, ["email"], 256) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return badInput(t) as { ok: false; error: string };
+    const email = input.email.trim().toLowerCase();
+    // Every request may send an email: few per address, a few more per network.
+    if (!(await allow(`reset:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t) as { ok: false; error: string };
+    if (!(await allow(`reset:email:${email}`, 3, 60 * MINUTE))) return { ok: true };
+    try {
+        const supabase = await createSupabaseServerClient();
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/auth/callback?next=/reset-password` });
+        if (error && !isRateLimited(error)) logError("password reset email failed", error);
+    } catch (error) {
+        logError("password reset email failed", error);
+    }
+    return { ok: true };
+}
+
+/** Sets a new password for the signed-in person (after following a reset link). */
+export const setNewPassword = async (input: { password: string }): Promise<AuthResult> => {
+    const t = await getT();
+    const session = await loadSession();
+    if (!session) return { ok: false, error: t("auth.errorResetExpired") };
+    if (!strings(input, ["password"], 256)) return badInput(t);
+    const weak = passwordProblem(input.password, session.email, t);
+    if (weak) return { ok: false, error: weak };
+    if (!(await allow(`reset:set:${session.id}`, 5, 10 * MINUTE))) return tooMany(t);
+    try {
+        const supabase = await createSupabaseServerClient();
+        const { error } = await supabase.auth.updateUser({ password: input.password });
+        if (error) throw error;
+        // Other devices signed in with the old password are signed out.
+        await supabase.auth.signOut({ scope: "others" }).catch(() => {});
+        return { ok: true };
+    } catch (error) {
+        logError("setting a new password failed", error);
+        return { ok: false, error: t("auth.errorResetFailed") };
+    }
+}
+
 export const logoutAccount = async () => {
     try {
-        const { account } = await createSessionClient();
-        await account.deleteSession('current');
+        const supabase = await createSupabaseServerClient();
+        await supabase.auth.signOut({ scope: "local" });
     } catch (error) {
         // The session may already be invalid; clearing the cookie below still logs the user out.
-        logError('Error deleting the Appwrite session', error);
+        logError('Error ending the Supabase session', error);
     }
 
-    const jar = await cookies();
-    jar.delete(SESSION_COOKIE);
-    jar.delete("setu-consent"); // a half-finished bank link belongs to this user only
+    await clearSessionCookies();
+    (await cookies()).delete("setu-consent"); // a half-finished bank link belongs to this user only
 
     return true;
 }

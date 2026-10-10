@@ -13,6 +13,7 @@ import { deactivateCustomer, removeFundingSource } from "./dwolla";
 import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
 import { readPrefs } from "./prefs";
+import { createSupabaseAdmin } from "./supabase";
 
 // What the privacy page offers: a copy of your data, removing a bank, and
 // deleting the account. Server-only; the actions in actions/privacy.action.ts
@@ -149,7 +150,7 @@ export async function exportUserData(user: User) {
 export async function deleteUserEverything(user: User) {
   const owner = ownerIdOf(user);
   const authId = authIdOf(user);
-  const { database, user: users } = await createAdminClient();
+  const { database } = await createAdminClient();
 
   for (const bank of await getBanks({ userId: owner })) await removeBank(bank);
 
@@ -166,6 +167,6 @@ export async function deleteUserEverything(user: User) {
   if (profile?.dwollaCustomerUrl) await deactivateCustomer(profile.dwollaCustomerUrl);
   if (profile?.$id) await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profile.$id);
 
-  await users.delete(authId); // the login, its sessions and preferences
+  await createSupabaseAdmin().auth.admin.deleteUser(authId); // the login and every session
   invalidate("banks:");
 }

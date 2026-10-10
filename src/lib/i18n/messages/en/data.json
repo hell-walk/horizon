@@ -29,5 +29,9 @@
   "errNotYours": "That bank is not on your account.",
   "errPassword": "That password is not right.",
   "errFailed": "That did not work. Nothing else was changed. Please try again.",
-  "menuLink": "Privacy and your data"
+  "menuLink": "Privacy and your data",
+  "deleteEmail": "Your email",
+  "deleteEmailHint": "You sign in with Google, so there is no password to ask for. Type your account's email; if you signed in more than 15 minutes ago, sign out and in again first.",
+  "errEmail": "That is not this account's email.",
+  "errRecentSignIn": "For safety, sign out and sign in again, then delete within 15 minutes."
 }

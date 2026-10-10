@@ -89,7 +89,11 @@ export function callFormAction(name: string, fields: Record<string, string | Blo
   return send(name, body, null, opts);
 }
 
-export const sessionCookie = (setCookies: string[]) => setCookies.find((c) => c.startsWith("banking-session="))?.split(";")[0];
+/** The session cookie (all its pieces: a long Supabase session is split into horizon-session.0, .1...), ready for a Cookie header. */
+export const sessionCookie = (setCookies: string[]) => {
+  const pieces = setCookies.map((c) => c.split(";")[0]).filter((c) => /^horizon-session(\.\d+)?=./.test(c));
+  return pieces.length ? pieces.join("; ") : undefined;
+};
 
 /** Signs in through the real action and returns the Cookie header to use afterwards. */
 export async function signIn(email: string, password: string) {

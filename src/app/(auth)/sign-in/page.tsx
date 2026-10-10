@@ -13,10 +13,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const SignIn = () => {
+// ?failed=1: coming back from Google (or an old sign-in link) did not work.
+const SignIn = async ({ searchParams }: { searchParams: Promise<{ failed?: string }> }) => {
+  const { failed } = await searchParams;
+  const t = await getT();
   return (
     <section className="flex w-full justify-center">
-      <AuthForm type="sign-in" />
+      <AuthForm type="sign-in" notice={failed === "1" ? t("auth.noticeSignInFailed") : undefined} />
     </section>
   );
 };

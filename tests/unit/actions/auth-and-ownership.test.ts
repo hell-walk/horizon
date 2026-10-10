@@ -1,47 +1,95 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// One mocked Appwrite for every module, so the real actions and data helpers run on top of it.
-const state = vi.hoisted(() => ({
-  sessionUser: null as null | Record<string, unknown>,
-  profile: null as null | Record<string, unknown>,
-  banks: {} as Record<string, Record<string, unknown>>,
-  cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(),
-  headers: new Map<string, string>(),
-  created: [] as Record<string, unknown>[],
-  updated: [] as { id: string; data: Record<string, unknown> }[],
-  sessionCalls: 0,
-  prefsSaved: [] as { id: string; prefs: Record<string, unknown> }[],
-  passwordOk: true,
-}));
+// One mocked Appwrite and one mocked Supabase for every module, so the real
+// actions, data helpers and cookie rules (server/supabase.ts) run on top of them.
+const state = vi.hoisted(() => {
+  process.env.SUPABASE_URL = "https://supabase.test";
+  process.env.SUPABASE_ANON_KEY = "anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
+  process.env.NEXT_PUBLIC_SITE_URL = "https://horizon.test";
+  return {
+    sessionUser: null as null | Record<string, unknown>,
+    profile: null as null | Record<string, unknown>,
+    banks: {} as Record<string, Record<string, unknown>>,
+    cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(),
+    headers: new Map<string, string>(),
+    created: [] as Record<string, unknown>[],
+    updated: [] as { id: string; data: Record<string, unknown> }[],
+    deletedDocs: [] as string[],
+    failProfile: false,
+    sessionCalls: 0,
+    passwordOk: true,
+    newLogins: [] as Record<string, unknown>[],
+    deletedLogins: [] as string[],
+    oauth: [] as Record<string, unknown>[],
+    resets: [] as { email: string; options: Record<string, unknown> }[],
+    passwordUpdates: [] as string[],
+  };
+});
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
     get: (name: string) => (state.cookies.has(name) ? { name, value: state.cookies.get(name)!.value } : undefined),
+    getAll: () => [...state.cookies].map(([name, c]) => ({ name, value: c.value })),
     set: (name: string, value: string, options?: Record<string, unknown>) => state.cookies.set(name, { value, options }),
     delete: (name: string) => state.cookies.delete(name),
   }),
   headers: async () => ({ get: (name: string) => state.headers.get(name.toLowerCase()) ?? null }),
 }));
-vi.mock("@/lib/server/appwrite", () => ({
-  createSessionClient: async () => ({
-    account: {
-      get: async () => {
-        if (!state.sessionUser) throw new Error("No session");
-        return state.sessionUser;
+
+type SetAll = (list: { name: string; value: string; options: Record<string, unknown> }[], headers: Record<string, string>) => void;
+// Supabase's cookie client. What it asks for (400 days, readable by scripts) is
+// what the library really asks for; server/supabase.ts must override it.
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: (_url: string, _key: string, options: { cookies: { setAll: SetAll } }) => ({
+    auth: {
+      getUser: async () =>
+        state.sessionUser ? { data: { user: state.sessionUser }, error: null } : { data: { user: null }, error: Object.assign(new Error("Auth session missing"), { status: 401 }) },
+      signInWithPassword: async () => {
+        state.sessionCalls++;
+        if (!state.passwordOk) return { data: {}, error: Object.assign(new Error("Invalid login credentials"), { status: 400 }) };
+        options.cookies.setAll([{ name: "horizon-session", value: "base64-token", options: { path: "/", sameSite: "lax", httpOnly: false, maxAge: 400 * 86400 } }], {});
+        return { data: { session: {} }, error: null };
       },
-      deleteSession: async () => ({}),
+      signOut: async () => {
+        options.cookies.setAll([{ name: "horizon-session", value: "", options: { path: "/", maxAge: 0 } }], {});
+        return { error: null };
+      },
+      signInWithOAuth: async (args: Record<string, unknown>) => {
+        state.oauth.push(args);
+        return { data: { url: "https://supabase.test/auth/v1/authorize?provider=google" }, error: null };
+      },
+      resetPasswordForEmail: async (email: string, opts: Record<string, unknown>) => {
+        state.resets.push({ email, options: opts });
+        return { data: {}, error: null };
+      },
+      updateUser: async ({ password }: { password: string }) => {
+        state.passwordUpdates.push(password);
+        return { data: {}, error: null };
+      },
     },
   }),
-  createAdminClient: async () => ({
-    account: {
-      createEmailPasswordSession: async () => {
-        state.sessionCalls++;
-        if (!state.passwordOk) throw Object.assign(new Error("Invalid credentials"), { code: 401 });
-        return { secret: "session-secret", expire: new Date(Date.now() + 365 * 86400_000).toISOString(), userId: "auth-1" };
+}));
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      admin: {
+        createUser: async (attrs: Record<string, unknown>) => {
+          state.newLogins.push(attrs);
+          return { data: { user: { id: "auth-new", email: attrs.email } }, error: null };
+        },
+        deleteUser: async (id: string) => {
+          state.deletedLogins.push(id);
+          return { data: {}, error: null };
+        },
+        signOut: async () => ({ error: null }),
       },
-      create: async (id: string, email: string) => ({ $id: "auth-new", email }),
     },
+  }),
+}));
+vi.mock("@/lib/server/appwrite", () => ({
+  createAdminClient: async () => ({
     database: {
       listDocuments: async (_db: string, _col: string, queries: string[]) => {
         const q = queries.join(" ");
@@ -53,6 +101,7 @@ vi.mock("@/lib/server/appwrite", () => ({
         return state.banks[id];
       },
       createDocument: async (_db: string, _col: string, _id: string, data: Record<string, unknown>) => {
+        if (state.failProfile) throw new Error("Appwrite is down");
         state.created.push(data);
         return { $id: "doc-new", ...data };
       },
@@ -60,13 +109,7 @@ vi.mock("@/lib/server/appwrite", () => ({
         state.updated.push({ id, data });
         return {};
       },
-    },
-    user: {
-      delete: async () => ({}),
-      updatePrefs: async (id: string, prefs: Record<string, unknown>) => {
-        state.prefsSaved.push({ id, prefs });
-        return prefs;
-      },
+      deleteDocument: async (_db: string, _col: string, id: string) => state.deletedDocs.push(id),
     },
   }),
 }));
@@ -87,15 +130,22 @@ vi.mock("@/lib/providers/setu", async (importOriginal) => ({
 const userActions = await import("@/lib/actions/user.action");
 const { setCardDesign } = await import("@/lib/actions/card.action");
 const { completeSetuConsent, createSetuConsent } = await import("@/lib/actions/setu.action");
-const { loadLoggedInUser } = await import("@/lib/server/auth");
+const { loadLoggedInUser, loadSession } = await import("@/lib/server/auth");
 const { getOwnBank } = await import("@/lib/server/banks");
 const { sealSecret } = await import("@/lib/server/crypto");
 const { plaidClient } = await import("@/lib/plaid");
 
 // A fresh profile id per call where asked, so per-user rate limits do not leak between tests.
 let fresh = 0;
+const login = (id: string, email: string, providers = ["email"]) => ({
+  id,
+  email,
+  app_metadata: { provider: providers[0], providers },
+  user_metadata: { full_name: "Test User" },
+  last_sign_in_at: new Date().toISOString(),
+});
 const signedIn = (profileId = "profile-1") => {
-  state.sessionUser = { $id: "auth-1", email: "test@example.com", name: "Test User", prefs: { statementLayouts: {} }, targets: [] };
+  state.sessionUser = login("auth-1", "test@example.com");
   state.profile = { $id: profileId, userId: "auth-1", firstName: "Test", ssn: "1234", dateOfBirth: "1990-01-01", dwollaCustomerUrl: "https://x" };
   return profileId;
 };
@@ -111,17 +161,32 @@ beforeEach(() => {
   state.headers.set("x-forwarded-for", `198.51.100.${++ip % 250}`);
   state.created = [];
   state.updated = [];
+  state.deletedDocs = [];
+  state.failProfile = false;
   state.sessionCalls = 0;
   state.passwordOk = true;
+  state.newLogins = [];
+  state.deletedLogins = [];
+  state.oauth = [];
+  state.resets = [];
+  state.passwordUpdates = [];
 });
 
 describe("signIn", () => {
-  it("sets an HttpOnly, SameSite=Strict session cookie that expires within 30 days", async () => {
+  it("sets an HttpOnly, SameSite=Lax session cookie that lasts at most 30 days", async () => {
     expect(await userActions.signIn({ email: "a@example.com", password: "pw" })).toEqual({ ok: true });
-    const cookie = state.cookies.get("banking-session")!;
-    expect(cookie.options).toMatchObject({ httpOnly: true, sameSite: "strict", path: "/" });
-    const expires = (cookie.options!.expires as Date).getTime();
-    expect(expires - Date.now()).toBeLessThanOrEqual(30 * 86400_000 + 1000);
+    // Supabase asks for a 400-day cookie that scripts can read; Horizon refuses both.
+    const cookie = state.cookies.get("horizon-session")!;
+    expect(cookie.options).toMatchObject({ httpOnly: true, sameSite: "lax", path: "/" });
+    expect(cookie.options!.maxAge).toBeLessThanOrEqual(30 * 86400);
+  });
+
+  it("signing out really removes the cookie (age 0 is kept, not raised to 30 days)", async () => {
+    signedIn();
+    state.cookies.set("horizon-session", { value: "base64-token" });
+    state.cookies.set("horizon-session.1", { value: "second-piece" });
+    await userActions.logoutAccount();
+    expect([...state.cookies.keys()].filter((n) => n.startsWith("horizon-session"))).toEqual([]);
   });
 
   it("refuses malformed input instead of crashing", async () => {
@@ -138,10 +203,10 @@ describe("signIn", () => {
     state.passwordOk = false;
     const result = await userActions.signIn({ email: "b@example.com", password: "wrong" });
     expect(result).toEqual({ ok: false, error: "Invalid email or password." });
-    expect(state.cookies.has("banking-session")).toBe(false);
+    expect(state.cookies.has("horizon-session")).toBe(false);
   });
 
-  it("stops password guessing on one email after 8 tries, without asking Appwrite again", async () => {
+  it("stops password guessing on one email after 8 tries, without asking Supabase again", async () => {
     state.passwordOk = false;
     const email = `victim-${Math.random()}@example.com`;
     for (let i = 0; i < 8; i++) {
@@ -189,7 +254,21 @@ describe("signUp", () => {
     const profile = state.created.find((d) => "firstName" in d)!;
     expect(profile.ssn).toBe("not-kept");
     expect(profile.dateOfBirth).toBe("not-kept");
+    expect(profile.userId).toBe("auth-new"); // linked to the Supabase login
     expect(JSON.stringify(result)).not.toMatch(/123456789|1990-01-01|1 Main St/);
+    // Created as confirmed: Horizon sends no confirmation email.
+    expect(state.newLogins.at(-1)).toMatchObject({ email_confirm: true });
+  });
+
+  it("rolls back the login when the profile cannot be saved, so the email can try again", async () => {
+    state.failProfile = true;
+    const result = await userActions.signUp({
+      country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001",
+      dateOfBirth: "", ssn: "", email: `rollback-${Math.random()}@example.com`, password: "Str0ng!Passw0rd",
+    });
+    expect(result).toMatchObject({ ok: false });
+    expect(state.deletedLogins).toEqual(["auth-new"]);
+    expect(state.cookies.has("horizon-session")).toBe(false);
   });
 });
 
@@ -213,7 +292,7 @@ describe("sign-up by country", () => {
     vi.mocked(createDwollaCustomer).mockClear();
     expect(await userActions.signUp(person({ country: "IN", state: "MH", postalCode: "411001" }))).toMatchObject({ ok: true });
     expect(createDwollaCustomer).not.toHaveBeenCalled();
-    expect(state.prefsSaved.at(-1)?.prefs).toEqual({ country: "IN" });
+    expect(JSON.parse(String(state.created.at(-1)?.prefs))).toEqual({ country: "IN" });
   });
 
   it("UK: no region needed, a postal code if given", async () => {
@@ -241,7 +320,7 @@ describe("sign-up by country", () => {
 });
 
 describe("password policy (enforced on the server, not just the form)", () => {
-  const base = { country: "IN", firstName: "Ada", lastName: "L", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "" };
+  const base = { country: "IN", firstName: "Ada", lastName: "Lo", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "" };
 
   it.each([
     ["short", "Use at least 8 characters."],
@@ -255,6 +334,79 @@ describe("password policy (enforced on the server, not just the form)", () => {
 
   it.each(["Str0ng!Passw0rd", "correct horse battery staple", "ab12CD34ef"])("accepts %j", async (password) => {
     expect(await userActions.signUp({ ...base, email: `user-${Math.random()}@example.com`, password })).toMatchObject({ ok: true });
+  });
+});
+
+describe("Continue with Google", () => {
+  it("sends Google back to this site's own address, from the configuration", async () => {
+    state.headers.set("host", "evil.example"); // a forged Host header changes nothing
+    expect(await userActions.signInWithGoogle()).toEqual({ ok: true, url: expect.stringMatching(/^https:\/\/supabase\.test\//) });
+    expect(state.oauth.at(-1)).toMatchObject({ provider: "google", options: { redirectTo: "https://horizon.test/auth/callback", skipBrowserRedirect: true } });
+  });
+
+  it("a Google login without a profile is not a signed-in user yet", async () => {
+    state.sessionUser = login("auth-g", "g@example.com", ["google"]);
+    expect(await loadLoggedInUser()).toBeNull();
+    expect(await loadSession()).toMatchObject({ id: "auth-g", email: "g@example.com", hasPassword: false });
+  });
+});
+
+describe("finishing the profile (first Google sign-in)", () => {
+  const details = { country: "IN", firstName: "Grace", lastName: "Hopper", address1: "2 Ring Road", city: "Delhi", state: "DL", postalCode: "110001", dateOfBirth: "", ssn: "", terms: true };
+
+  it("needs a session, the terms, and the same details as sign-up", async () => {
+    expect(await userActions.completeProfile(details)).toMatchObject({ ok: false });
+    state.sessionUser = login(`auth-g-${++fresh}`, "g@example.com", ["google"]);
+    expect(await userActions.completeProfile({ ...details, terms: false })).toMatchObject({ ok: false });
+    expect(await userActions.completeProfile({ ...details, country: "XX" })).toMatchObject({ ok: false });
+    expect(await userActions.completeProfile({ ...details, state: "" })).toMatchObject({ ok: false });
+    expect(state.created).toEqual([]);
+  });
+
+  it("creates the profile with the login's email, not one the caller sends", async () => {
+    const id = `auth-g-${++fresh}`;
+    state.sessionUser = login(id, "g@example.com", ["google"]);
+    // @ts-expect-error: an extra field on purpose
+    expect(await userActions.completeProfile({ ...details, email: "someone@else.com", userId: "auth-victim" })).toMatchObject({ ok: true });
+    expect(state.created.at(-1)).toMatchObject({ email: "g@example.com", userId: id, ssn: "not-kept", dateOfBirth: "not-kept" });
+  });
+
+  it("never makes a second profile for the same login", async () => {
+    const id = `auth-g-${++fresh}`;
+    state.sessionUser = login(id, "g@example.com", ["google"]);
+    state.profile = { $id: "profile-g", userId: id, firstName: "Grace" };
+    expect(await userActions.completeProfile(details)).toEqual({ ok: true });
+    expect(state.created).toEqual([]);
+  });
+});
+
+describe("forgot password", () => {
+  it("answers the same whether or not the email has an account, and links back to this site", async () => {
+    expect(await userActions.requestPasswordReset({ email: "nobody@example.com" })).toEqual({ ok: true });
+    expect(await userActions.requestPasswordReset({ email: "test@example.com" })).toEqual({ ok: true });
+    expect(state.resets.at(-1)?.options).toEqual({ redirectTo: "https://horizon.test/auth/callback?next=/reset-password" });
+  });
+
+  it("sends at most 3 emails an hour to one address, and still answers the same", async () => {
+    const email = `flood-${Math.random()}@example.com`;
+    for (let i = 0; i < 5; i++) expect(await userActions.requestPasswordReset({ email })).toEqual({ ok: true });
+    expect(state.resets.filter((r) => r.email === email)).toHaveLength(3);
+  });
+
+  it("refuses things that are not an email", async () => {
+    // @ts-expect-error: wrong shape on purpose
+    expect(await userActions.requestPasswordReset({ email: { $ne: "" } })).toMatchObject({ ok: false });
+    expect(await userActions.requestPasswordReset({ email: "not an email" })).toMatchObject({ ok: false });
+    expect(state.resets).toEqual([]);
+  });
+
+  it("the new password needs the link's session and follows the password rules", async () => {
+    expect(await userActions.setNewPassword({ password: "Str0ng!Passw0rd" })).toMatchObject({ ok: false });
+    state.sessionUser = login(`auth-r-${++fresh}`, "reset@example.com");
+    expect(await userActions.setNewPassword({ password: "password123" })).toMatchObject({ ok: false });
+    expect(state.passwordUpdates).toEqual([]);
+    expect(await userActions.setNewPassword({ password: "Str0ng!Passw0rd" })).toEqual({ ok: true });
+    expect(state.passwordUpdates).toEqual(["Str0ng!Passw0rd"]);
   });
 });
 
@@ -350,7 +502,7 @@ describe("Setu consent", () => {
     signedIn(); // A starts linking a bank...
     await createSetuConsent({ mobile: "9876543210" });
     // ...and B signs in on the same browser, with A's pending cookie still there.
-    state.sessionUser = { $id: "auth-2", email: "b@example.com", name: "B" };
+    state.sessionUser = login("auth-2", "b@example.com");
     state.profile = { $id: "profile-2", userId: "auth-2", firstName: "B" };
     expect(await completeSetuConsent({ consentId: "consent-1" })).toMatchObject({ status: "MISSING" });
     expect(await completeSetuConsent({})).toMatchObject({ status: "MISSING" });
@@ -362,7 +514,7 @@ describe("Setu consent", () => {
     expect(state.cookies.has("setu-consent")).toBe(true);
     await userActions.logoutAccount();
     expect(state.cookies.has("setu-consent")).toBe(false);
-    expect(state.cookies.has("banking-session")).toBe(false);
+    expect(state.cookies.has("horizon-session")).toBe(false);
   });
 
   it("does nothing without a session", async () => {
