@@ -9,6 +9,7 @@ import { getBankBySharableId, getOwnBank } from "../server/banks";
 import { createTransfer } from "../server/dwolla";
 import { logError } from "../server/log";
 import { allow, MINUTE } from "../server/rateLimit";
+import { claim, get, put, release } from "../server/shared";
 import { createTransaction } from "../server/transactions";
 
 export type TransferInput = {
@@ -30,15 +31,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // The same form sent twice (double click, a retry after a slow network) must
 // not become two transfers. Dwolla dedupes by Idempotency-Key; this also stops
 // a second copy reaching Dwolla while the first is still in flight, and
-// answers a repeat with the first result.
-const inFlight = new Set<string>();
-const finished = new Map<string, { result: TransferResult; at: number }>();
+// answers a repeat with the first result. Shared by every server instance
+// (Redis) so a retry landing on another instance is caught too.
 const REMEMBER_MS = 24 * 60 * MINUTE;
+const LOCK_MS = 2 * MINUTE; // longer than any Dwolla call; released as soon as it ends
 
-const remember = (key: string, result: TransferResult) => {
-  const now = Date.now();
-  for (const [k, v] of finished) if (now - v.at > REMEMBER_MS) finished.delete(k);
-  finished.set(key, { result, at: now });
+const remember = async (key: string, result: TransferResult) => {
+  await put("transfer-done", key, result, REMEMBER_MS);
   return result;
 };
 
@@ -60,11 +59,10 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
   const key = String(input?.idempotencyKey ?? "");
   if (!UUID.test(key)) return { ok: false, error: t("transfer.errReload") };
   const scopedKey = `${ownerIdOf(user)}:${key}`;
-  const earlier = finished.get(scopedKey);
-  if (earlier) return earlier.result;
-  if (inFlight.has(scopedKey)) return { ok: false, error: t("transfer.errInFlight") };
+  const earlier = await get<TransferResult>("transfer-done", scopedKey);
+  if (earlier) return earlier;
 
-  if (!allow(`transfer:${ownerIdOf(user)}`, 10, 10 * MINUTE)) {
+  if (!(await allow(`transfer:${ownerIdOf(user)}`, 10, 10 * MINUTE))) {
     return { ok: false, error: t("transfer.errTooMany") };
   }
 
@@ -96,7 +94,7 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
   }
   if (receiverBank.$id === senderBank.$id) return { ok: false, field: "sharableId", error: t("transfer.errSameAccount") };
 
-  inFlight.add(scopedKey);
+  if (!(await claim("transfer-lock", scopedKey, LOCK_MS))) return { ok: false, error: t("transfer.errInFlight") };
   try {
     const transfer = await createTransfer({
       sourceFundingSourceUrl: senderBank.fundingSourceUrl,
@@ -105,7 +103,7 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
       idempotencyKey: key,
     });
     // Declined is final for this key: the same form must not be retried as is.
-    if (!transfer) return remember(scopedKey, { ok: false, error: t("transfer.errDeclined") });
+    if (!transfer) return await remember(scopedKey, { ok: false, error: t("transfer.errDeclined") });
 
     const record = await createTransaction({
       name,
@@ -122,13 +120,13 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
       // The money moved; only Horizon's copy is missing. Keep the Dwolla link in
       // the log so the record can be restored, and tell the user not to resend.
       logError(`transfer: sent but not recorded, dwolla=${transfer.split("/").pop()} sender=${senderBank.$id} receiver=${receiverBank.$id} amount=${amount}`);
-      return remember(scopedKey, {
+      return await remember(scopedKey, {
         ok: true,
         warning: t("transfer.warnNotSaved"),
       });
     }
-    return remember(scopedKey, { ok: true });
+    return await remember(scopedKey, { ok: true });
   } finally {
-    inFlight.delete(scopedKey);
+    await release("transfer-lock", scopedKey);
   }
 }

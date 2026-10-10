@@ -183,7 +183,7 @@ let readsInProgress = 0;
 async function readStatement(formData: FormData, userId: string): Promise<ReadOutcome> {
   const t = await getT();
   // Reading PDFs and unlocking files is heavy work; cap how often one user can ask for it.
-  if (!allow(`statement:${userId}`, 30, 10 * MINUTE)) {
+  if (!(await allow(`statement:${userId}`, 30, 10 * MINUTE))) {
     return { ok: false, error: t("connect.stTooMany") };
   }
   if (readsInProgress >= MAX_PARALLEL_READS) {

@@ -41,7 +41,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("history.editErrSignIn") };
   if (!isTarget(input)) return { ok: false, error: t("history.editErrNotFound") };
-  if (!allow(`corrections:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false, error: t("history.editErrTooMany") };
+  if (!(await allow(`corrections:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false, error: t("history.editErrTooMany") };
 
   const name = input.name === undefined || input.name === "" ? null : cleanName(input.name);
   if (input.name && !name) return { ok: false, error: t("history.editErrNothing") };
@@ -85,7 +85,7 @@ export async function undoCorrection(input: Target): Promise<CorrectionResult> {
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("history.editErrSignIn") };
   if (!isTarget(input)) return { ok: false, error: t("history.editErrNotFound") };
-  if (!allow(`corrections:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false, error: t("history.editErrTooMany") };
+  if (!(await allow(`corrections:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false, error: t("history.editErrTooMany") };
 
   try {
     const entry = await findEntry(input);

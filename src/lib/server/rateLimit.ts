@@ -2,14 +2,23 @@ import "server-only";
 
 import { headers } from "next/headers";
 
-// Fixed-window counters in memory. Per server instance, which is enough to stop
-// one client hammering sign-in or the statement reader; a shared store (Redis,
-// Upstash) is the upgrade once there are several instances.
+import { redisKey, tryRedis } from "./redis";
+
+// Fixed-window counters. With Upstash configured they live in Redis, shared by
+// every server instance; otherwise (and for any call where Redis cannot be
+// reached) in this instance's memory, which still stops one client hammering
+// sign-in or the statement reader.
+
 const windows = new Map<string, { count: number; resetAt: number }>();
 const MAX_KEYS = 50_000; // a few MB at most
 
-/** Counts one attempt for `key`; false once `limit` attempts were made within `windowMs`. */
-export function allow(key: string, limit: number, windowMs: number): boolean {
+// Counts one attempt and starts the window on the first, in one step: a crash
+// between the two can never leave a key without an expiry (a lockout forever).
+const COUNT = `local c = redis.call('INCR', KEYS[1])
+if c == 1 or redis.call('PTTL', KEYS[1]) < 0 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end
+return c`;
+
+function countInMemory(key: string, windowMs: number): number {
   const now = Date.now();
   const entry = windows.get(key);
   if (!entry || entry.resetAt <= now) {
@@ -24,21 +33,32 @@ export function allow(key: string, limit: number, windowMs: number): boolean {
       }
     }
     windows.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
+    return 1;
   }
-  entry.count++;
-  return entry.count <= limit;
+  return ++entry.count;
+}
+
+async function count(key: string, windowMs: number): Promise<number> {
+  const shared = await tryRedis((r) => r.eval<[string], number>(COUNT, [redisKey("rl", key)], [String(windowMs)]));
+  return typeof shared === "number" ? shared : countInMemory(key, windowMs);
+}
+
+/** Counts one attempt for `key`; false once `limit` attempts were made within `windowMs`. */
+export async function allow(key: string, limit: number, windowMs: number): Promise<boolean> {
+  return (await count(key, windowMs)) <= limit;
 }
 
 /** True once `limit` events were recorded for `key` in the current window (records nothing). */
-export function isBlocked(key: string, limit: number): boolean {
+export async function isBlocked(key: string, limit: number): Promise<boolean> {
+  const shared = await tryRedis((r) => r.get<string>(redisKey("rl", key)));
+  if (shared !== undefined) return Number(shared ?? 0) >= limit;
   const entry = windows.get(key);
   return Boolean(entry && entry.resetAt > Date.now() && entry.count >= limit);
 }
 
 /** Records one event (e.g. a failed password) without asking whether it is allowed. */
-export function record(key: string, windowMs: number) {
-  allow(key, Number.MAX_SAFE_INTEGER, windowMs);
+export async function record(key: string, windowMs: number) {
+  await count(key, windowMs);
 }
 
 /**
