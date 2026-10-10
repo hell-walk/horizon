@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import HeaderBox from "@/components/ui/headerBox";
 import { completeSetuConsent } from "@/lib/actions/setu.action";
-import { getLoggedInUser } from "@/lib/actions/user.action";
+import { getLoggedInUser } from "@/lib/server/auth";
 
 // The Account Aggregator sends the customer back here after they approve or
 // reject the consent. On approval the linked accounts become bank rows.

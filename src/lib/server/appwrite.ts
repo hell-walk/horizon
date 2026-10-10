@@ -1,5 +1,8 @@
 
-"use server";
+// Server-only: these clients carry the session secret or the admin API key.
+// Never "use server" here: that would turn each function into a public endpoint.
+import "server-only";
+
 import { Client, Account, Databases, Users } from "node-appwrite";
 import { cookies } from "next/headers";
 

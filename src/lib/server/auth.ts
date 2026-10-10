@@ -28,6 +28,9 @@ export const loadLoggedInUser = cache(async (): Promise<User | null> => {
   }
 });
 
+/** The signed-in user (private fields removed), or null. */
+export const getLoggedInUser = loadLoggedInUser;
+
 export class NotSignedInError extends Error {
   constructor() {
     super("You need to be signed in.");

@@ -113,6 +113,16 @@ describe("signIn", () => {
     expect(expires - Date.now()).toBeLessThanOrEqual(30 * 86400_000 + 1000);
   });
 
+  it("refuses malformed input instead of crashing", async () => {
+    for (const input of [undefined, null, "a@b.co", { email: 1, password: "x" }, { email: "a@b.co" }, { email: "a".repeat(300), password: "x" }]) {
+      // @ts-expect-error: wrong shapes on purpose
+      expect(await userActions.signIn(input)).toEqual({ ok: false, error: "Check the details and try again." });
+    }
+    // @ts-expect-error: wrong shape on purpose
+    expect(await userActions.signUp({ email: "a@b.co", password: "x" })).toEqual({ ok: false, error: "Check the details and try again." });
+    expect(state.sessionCalls).toBe(0);
+  });
+
   it("gives the same message for a wrong password and returns no user data", async () => {
     state.passwordOk = false;
     const result = await userActions.signIn({ email: "b@example.com", password: "wrong" });
@@ -131,6 +141,13 @@ describe("signIn", () => {
     const ninth = await userActions.signIn({ email: email.toUpperCase(), password: "guess-9" }); // case does not help
     expect(ninth).toEqual({ ok: false, error: expect.stringMatching(/Too many attempts/) });
     expect(state.sessionCalls).toBe(callsBefore);
+  });
+
+  it("never locks out a user for signing in successfully many times", async () => {
+    const email = `busy-${Math.random()}@example.com`;
+    const results = [];
+    for (let i = 0; i < 12; i++) results.push(await userActions.signIn({ email, password: "right" }));
+    expect(results.every((r) => r.ok)).toBe(true);
   });
 
   it("stops one IP spraying many accounts after 100 tries", async () => {

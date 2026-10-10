@@ -8,8 +8,7 @@ import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
 import HeaderBox from "@/components/ui/headerBox";
 import { getAccounts } from "@/lib/server/accounts";
-import { getLoggedInUser } from "@/lib/actions/user.action";
-import { ownerIdOf } from "@/lib/server/auth";
+import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 
 export const metadata: Metadata = {
   title: "Connect a bank",

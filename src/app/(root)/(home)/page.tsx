@@ -12,8 +12,7 @@ import { ChartPanelSkeleton, RecentTransactionsSkeleton, RightSideBarSkeleton } 
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
-import { getLoggedInUser } from "@/lib/actions/user.action";
-import { ownerIdOf } from "@/lib/server/auth";
+import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 

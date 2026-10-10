@@ -11,7 +11,10 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("@/lib/actions/user.action", () => ({ getLoggedInUser: vi.fn(async () => state.user) }));
+vi.mock("@/lib/server/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/server/auth")>()),
+  getLoggedInUser: vi.fn(async () => state.user),
+}));
 vi.mock("@/lib/server/banks", () => ({
   createBankAccount: vi.fn(async (props: Record<string, unknown>) => ({ $id: "new-bank", ...props })),
 }));
@@ -78,7 +81,7 @@ describe("previewStatement", () => {
   });
 
   it("turns a zip bomb into a friendly message", async () => {
-    const bomb = new File([new Uint8Array(await zipBomb(100))], "bomb.xlsx");
+    const bomb = new File([new Uint8Array(await zipBomb(40))], "bomb.xlsx");
     expect(await previewStatement(form(bomb))).toMatchObject({ ok: false, error: expect.stringMatching(/too large/) });
   });
 
