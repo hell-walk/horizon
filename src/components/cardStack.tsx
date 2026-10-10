@@ -133,7 +133,8 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                 transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
               }}
             >
-              <BankCard account={account} userName={userName} withCopy={false} />
+              {/* Behind the front card the whole card is one button; a link inside it would be a control within a control. */}
+              <BankCard account={account} userName={userName} withCopy={false} linked={isFront} />
             </div>
           );
         })}
@@ -149,7 +150,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
           >
             <ChevronLeft className="size-4" />
           </button>
-          <div className="flex items-center gap-1.5" role="group" aria-label="Accounts">
+          <div className="flex items-center" role="group" aria-label="Accounts">
             {accounts.map((a) => {
               const active = a.appwriteItemId === front;
               return (
@@ -159,8 +160,10 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                   onClick={() => bringForward(a.appwriteItemId)}
                   aria-label={`${a.name} ${maskLabel(a.mask)}`}
                   aria-pressed={active}
-                  className={cn("h-1.5 rounded-full transition-all duration-300", active ? "w-5 bg-lime" : "w-1.5 bg-line hover:bg-ink-faint")}
-                />
+                  className="group flex h-6 min-w-6 items-center justify-center"
+                >
+                  <span className={cn("h-1.5 rounded-full transition-all duration-300", active ? "w-5 bg-lime" : "w-1.5 bg-line group-hover:bg-ink-faint")} />
+                </button>
               );
             })}
           </div>

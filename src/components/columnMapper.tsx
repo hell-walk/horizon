@@ -61,7 +61,7 @@ const ColumnMapper = ({ sample, mapping, onChange }: Props) => {
         </span>
         <span className="eyebrow">Remembered for files like this</span>
       </header>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table, scrolls sideways">
         <table className="w-full text-12">
           <thead>
             <tr className="border-b border-line bg-surface-low">
@@ -85,7 +85,7 @@ const ColumnMapper = ({ sample, mapping, onChange }: Props) => {
                         </option>
                       ))}
                     </select>
-                    {sample.labels[j] && <span className="mt-1 block truncate text-11 text-ink-muted">{sample.labels[j]}</span>}
+                    {sample.labels[j] && <span className="mt-1 block truncate text-12 text-ink-muted">{sample.labels[j]}</span>}
                   </th>
                 );
               })}
@@ -110,7 +110,7 @@ const ColumnMapper = ({ sample, mapping, onChange }: Props) => {
           </tbody>
         </table>
       </div>
-      <p className={cn("border-t border-line px-3 py-2 text-12", hint ? "text-warn" : "text-ink-muted")}>
+      <p className={cn("border-t border-line px-3 py-2 text-12", hint ? "text-warn-ink" : "text-ink-muted")}>
         {hint ??
           (mapping.amount !== undefined && mapping.type === undefined && mapping.balance !== undefined
             ? "Ready. The balance column tells Horizon which amounts were money out."

@@ -29,7 +29,7 @@ const Toggle = <T extends string>({ value, onChange, options, ariaLabel = "Switc
 
   const labelClass = (active: boolean) =>
     cn(
-      "font-mono text-[11px] uppercase tracking-[0.14em] transition-colors",
+      "font-mono text-[12px] uppercase tracking-[0.14em] transition-colors",
       active ? "font-semibold text-ink" : "text-ink-faint hover:text-ink",
       compact && "sr-only"
     );

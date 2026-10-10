@@ -64,7 +64,7 @@ const Navbar = ({ className }: { className?: string }) => {
               href={item.route}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative whitespace-nowrap px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors",
+                "relative whitespace-nowrap px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-colors",
                 active ? "text-ink" : "text-ink-faint hover:text-ink"
               )}
             >

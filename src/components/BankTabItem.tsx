@@ -18,15 +18,17 @@ export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
   };
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handleBankChange}
+      aria-pressed={isActive}
       className={cn(
-        "flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors",
+        "flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm border px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider transition-colors",
         isActive ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card text-ink-muted hover:bg-surface-container"
       )}
     >
       <span className="max-w-[140px] truncate">{account.name}</span>
       <span className="opacity-60">{maskLabel(account.mask)}</span>
-    </div>
+    </button>
   );
 };

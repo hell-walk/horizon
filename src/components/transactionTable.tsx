@@ -8,7 +8,7 @@ const CategoryBadge = ({ category }: CategoryBadgeProps) => <span className="chi
 const StatusBadge = ({ status }: { status: string }) => {
   const settled = status === "Success";
   return (
-    <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+    <span className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted">
       <span className={cn("dot", settled ? "bg-lime" : "bg-warn")} />
       {settled ? "Settled" : "Processing"}
     </span>

@@ -214,7 +214,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       {mapping && <input type="hidden" name="mapping" value={JSON.stringify(mapping)} />}
 
       {preview && !preview.ok && (
-        <p className={preview.needsPassword || preview.needsMapping ? "field-hint text-warn" : "field-error"}>{preview.error}</p>
+        <p className={preview.needsPassword || preview.needsMapping ? "field-hint text-warn-ink" : "field-error"}>{preview.error}</p>
       )}
 
       {mapperOpen && mapSample && mapping && <ColumnMapper sample={mapSample} mapping={mapping} onChange={setMapping} />}
@@ -227,7 +227,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </span>
             <span className="eyebrow">Showing first {preview.rows.length}</span>
           </header>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table, scrolls sideways">
             <table className="w-full text-13">
               <thead>
                 <tr className="border-b border-line bg-surface-low">

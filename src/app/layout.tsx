@@ -41,6 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // otherwise trigger is expected.
     <html lang="en" suppressHydrationWarning>
       <body className={`${sans.variable} ${display.variable} ${mono.variable}`}>
+        <a href="#main" className="skip-link">
+          Skip to main content
+        </a>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

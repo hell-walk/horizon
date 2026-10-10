@@ -18,6 +18,8 @@
     --on-surface: 26 28 26;
     --on-surface-variant: 70 70 75;
     --outline: 119 119 123;
+    /* Faint text: 4.8:1 or more on every light surface (WCAG AA). */
+    --ink-faint: 100 100 105;
     --outline-variant: 214 213 208;
 
     --primary: 0 0 0;
@@ -30,6 +32,7 @@
 
     --warn: 242 68 0;
     --warn-soft: 255 219 209;
+    --warn-ink: 168 45 0; /* warning text: 5.4:1 on warn-soft */
     --danger: 186 26 26;
     --danger-soft: 255 218 214;
     --success: 31 122 58;
@@ -57,6 +60,8 @@
     --on-surface: 236 235 230;
     --on-surface-variant: 166 166 160;
     --outline: 118 118 111;
+    /* Faint text: 4.5:1 or more on every dark surface. */
+    --ink-faint: 150 150 143;
     --outline-variant: 58 58 56;
 
     --primary: 255 255 255;
@@ -69,6 +74,7 @@
 
     --warn: 255 85 36;
     --warn-soft: 72 30 16;
+    --warn-ink: 255 120 80; /* 5.5:1 on warn-soft */
     --danger: 255 138 128;
     --danger-soft: 74 24 22;
     --success: 95 211 141;
@@ -240,7 +246,7 @@
 
   /* Small mono label used above sections and inside panel headers */
   .eyebrow {
-    @apply font-mono text-[11px] uppercase leading-4 tracking-[0.12em] text-ink-faint;
+    @apply font-mono text-[12px] uppercase leading-4 tracking-[0.1em] text-ink-faint;
   }
 
   /* Display headings */
@@ -289,7 +295,7 @@
 
   /* Chips */
   .chip {
-    @apply inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-surface-low px-2 font-mono text-[11px] uppercase tracking-wider text-ink-muted;
+    @apply inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-surface-low px-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted;
   }
   .chip-lime {
     @apply chip border-lime bg-lime text-lime-foreground;
@@ -686,5 +692,44 @@
   .bar-reveal,
   .bar-grow {
     animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Accessibility                                                       */
+/* ------------------------------------------------------------------ */
+
+/* Keyboard users always see where they are. Mouse clicks show nothing extra. */
+:where(a, button, [role="button"], [tabindex]:not([tabindex="-1"]), summary, select, [role="tab"]):focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* First thing a keyboard or screen-reader user meets: jump past the navigation. */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+  background: rgb(var(--primary));
+  color: rgb(var(--on-primary));
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* People who asked their system for less motion get none, everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

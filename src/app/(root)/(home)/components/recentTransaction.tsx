@@ -27,7 +27,7 @@ const RecentTransaction = ({ accounts, transactions = [], appwriteItemId, page =
       </header>
 
       {accounts.length > 1 && (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-line px-4 py-3">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-line px-4 py-3" role="group" aria-label="Choose an account">
           {accounts.map((account: Account) => (
             <BankTabItem key={account.appwriteItemId} account={account} appwriteItemId={appwriteItemId} />
           ))}

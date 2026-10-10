@@ -13,7 +13,7 @@ const AccountsTable = ({ accounts, title = "Connected accounts" }: { accounts: A
     {accounts.length === 0 ? (
       <p className="panel-body text-14 text-ink-muted">No accounts linked yet.</p>
     ) : (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table, scrolls sideways">
         <table className="w-full text-14">
           <thead>
             <tr className="border-b border-line">

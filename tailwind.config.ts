@@ -32,7 +32,7 @@ const config = {
         ink: {
           DEFAULT: token("on-surface"),
           muted: token("on-surface-variant"),
-          faint: token("outline"),
+          faint: token("ink-faint"),
         },
         // Borders.
         line: {
@@ -49,6 +49,7 @@ const config = {
         warn: {
           DEFAULT: token("warn"),
           soft: token("warn-soft"),
+          ink: token("warn-ink"),
         },
         danger: {
           DEFAULT: token("danger"),

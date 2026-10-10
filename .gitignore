@@ -46,3 +46,4 @@ next-env.d.ts
 
 # security test results (evidence of a run, kept locally)
 /reports
+/public/__axe

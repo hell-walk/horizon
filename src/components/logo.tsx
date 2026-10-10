@@ -15,7 +15,7 @@ const Logo = ({ compact = false, className, href = "/" }: { compact?: boolean; c
         <span className="whitespace-nowrap font-display text-18 font-bold uppercase tracking-tight text-ink">
           Horizon <span className="text-ink-faint">{"// 01"}</span>
         </span>
-        <span className="eyebrow mt-1 whitespace-nowrap text-[9px]">Multi-currency ledger</span>
+        <span className="eyebrow mt-1 whitespace-nowrap text-[11px]">Multi-currency ledger</span>
       </span>
     )}
   </Link>
