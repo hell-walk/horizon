@@ -51,3 +51,31 @@ describe("server action surface", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+// The folder layout: one bracket folder per page, holding its page, its own
+// components/ and ui/. Anything two pages share lives in src/components,
+// src/app/(root)/components or src/lib, never inside another page's folder.
+describe("one folder per page", () => {
+  const app = join(src, "app");
+  const pageFolderOf = (p: string) => rel(p).match(/^app\/\((root)\)\/\(([^)]+)\)\//)?.[2] ?? rel(p).match(/^app\/\(([^)]+)\)\//)?.[1];
+
+  it("no page imports from another page's folder", () => {
+    const offenders: string[] = [];
+    for (const file of files(app)) {
+      const own = pageFolderOf(file);
+      for (const [, spec] of readFileSync(file, "utf8").matchAll(/from ["']([^"']+)["']/g)) {
+        const target = spec.startsWith("@/") ? join(src, spec.slice(2)) : spec.startsWith(".") ? join(file, "..", spec) : null;
+        if (!target) continue;
+        const theirs = pageFolderOf(target + "/x");
+        if (theirs && own && theirs !== own) offenders.push(`${rel(file)} -> ${spec}`);
+        if (theirs && !own) offenders.push(`${rel(file)} -> ${spec}`); // shared code reaching into a page
+      }
+    }
+    for (const file of files(join(src, "components")).concat(files(join(src, "lib")))) {
+      for (const [, spec] of readFileSync(file, "utf8").matchAll(/from ["']([^"']+)["']/g)) {
+        if (/^@\/app\/|\(root\)|\(auth\)|\(legal\)/.test(spec)) offenders.push(`${rel(file)} -> ${spec}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
