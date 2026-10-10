@@ -67,8 +67,8 @@ export default async function PrivacyPage() {
             statement from the same bank is quicker.
           </li>
           <li>
-            <strong>Your changes:</strong> names and categories you give to entries, so they show the way you
-            want. The bank&apos;s own record is kept as it was.
+            <strong>Your changes and goals:</strong> names and categories you give to entries, so they show the
+            way you want, and the savings goals you set. The bank&apos;s own record is kept as it was.
           </li>
           <li>
             <strong>Transfers:</strong> the amount, date, note, and who sent and received it.

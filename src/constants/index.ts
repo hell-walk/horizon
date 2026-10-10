@@ -1,4 +1,4 @@
-import { ArrowLeftRight, CalendarClock, Home, Landmark, PlugZap, ReceiptText, ShieldCheck } from "lucide-react";
+import { ArrowLeftRight, CalendarClock, Home, Landmark, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
 
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -17,6 +17,7 @@ export const sidebarLinks = [
 // Behind "More" (the three dots) everywhere. Sending money is US-only (Dwolla);
 // in India people pay with UPI, so it does not need a place in the main bar.
 export const moreLinks = [
+  { icon: Target, route: "/goals", label: "Savings goals", labelKey: "nav.goals", shortKey: "nav.goals" },
   { icon: ArrowLeftRight, route: "/payment-transfer", label: "Payment Transfer", labelKey: "nav.transfer", shortKey: "nav.transferShort" },
   { icon: ShieldCheck, route: "/my-data", label: "Privacy and your data", labelKey: "nav.myData", shortKey: "nav.myData" },
 ];

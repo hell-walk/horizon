@@ -7,6 +7,7 @@ import { plaidClient } from "../plaid";
 import { createAdminClient } from "./appwrite";
 import { authIdOf, ownerIdOf } from "./auth";
 import { readCorrections } from "../corrections";
+import { readGoals } from "../goals";
 import { getBanks, getUserInfo } from "./banks";
 import { deactivateCustomer, removeFundingSource } from "./dwolla";
 import { logError } from "./log";
@@ -132,6 +133,7 @@ export async function exportUserData(user: User) {
     transfers: [...sent.map((t) => transfer(t, "sent")), ...received.map((t) => transfer(t, "received"))],
     savedStatementLayouts: (prefs as Record<string, unknown>).statementLayouts ?? {},
     yourChanges: readCorrections((prefs as Record<string, unknown>).corrections),
+    savingsGoals: readGoals((prefs as Record<string, unknown>).goals),
   };
 }
 
