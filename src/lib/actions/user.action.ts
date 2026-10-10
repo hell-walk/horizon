@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
+import { isCountry, needsStateAndPostal } from "../countries";
 import { getT } from "../i18n/server";
 import type { Translate } from "../i18n/translate";
 import { createAdminClient, createSessionClient } from "../server/appwrite";
@@ -109,9 +110,13 @@ const NOT_KEPT = "not-kept";
 
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     const t = await getT();
-    if (!strings(userData, ["email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return badInput(t);
-    const { email, password, firstName, lastName, address1, city, state, postalCode } = userData
-    const profile = { address1, city, state, postalCode };
+    if (!strings(userData, ["country", "email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return badInput(t);
+    const { country, email, password, firstName, lastName, address1, city, state, postalCode } = userData
+    if (!isCountry(country)) return badInput(t);
+    // The US payment partner needs a US address, date of birth and SSN; nobody else is asked.
+    if (needsStateAndPostal(country) && (state.trim().length < 2 || !/^[A-Za-z0-9 -]{3,10}$/.test(postalCode.trim()))) return badInput(t);
+    if (country === "US" && (!isUsAddress(state, postalCode) || !/^\d{4}-\d{2}-\d{2}$/.test(userData.dateOfBirth) || userData.ssn.trim().length < 4)) return badInput(t);
+    const profile = { address1, city, state: state.trim(), postalCode: postalCode.trim() };
     const weak = passwordProblem(password, email, t);
     if (weak) return { ok: false, error: weak };
     if (!(await allowAuthAttempt(email))) return tooMany(t);
@@ -133,7 +138,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
         // without a Dwolla customer: they can still link banks and import
         // statements, only transfers stay unavailable.
         const dwolla: { dwollaCustomerId?: string; dwollaCustomerUrl?: string } = {};
-        if (isUsAddress(profile.state, profile.postalCode)) {
+        if (country === "US") {
             try {
                 const dwollaCustomerUrl = await createDwollaCustomer({ ...userData, type: 'personal' });
                 if (dwollaCustomerUrl) {
@@ -160,6 +165,10 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
                 ...dwolla,
             }
         )
+
+        // The country lives with the login's preferences (no change to the profile table).
+        const { user: users } = await createAdminClient();
+        await users.updatePrefs(newUserAccount.$id, { country });
 
         const session = await account.createEmailPasswordSession(email, password);
         await setSessionCookie(session);

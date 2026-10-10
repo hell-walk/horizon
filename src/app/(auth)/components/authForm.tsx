@@ -4,13 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useT } from "@/components/i18nProvider";
+import { useLocale, useT } from "@/components/i18nProvider";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { signIn, signUp } from "@/lib/actions/user.action";
+import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/countries";
+import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
@@ -42,6 +44,8 @@ const strengthOf = (password: string) =>
 
 const AuthForm = ({ type }: { type: string }) => {
   const t = useT();
+  const locale = useLocale();
+  const countries = useMemo(() => countryList(LOCALE_TAGS[locale]), [locale]);
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +60,7 @@ const AuthForm = ({ type }: { type: string }) => {
       password: "",
       confirmPassword: "",
       terms: false,
+      country: "",
       firstName: "",
       lastName: "",
       address1: "",
@@ -68,6 +73,9 @@ const AuthForm = ({ type }: { type: string }) => {
   });
 
   const password = form.watch("password") ?? "";
+  const country = form.watch("country") ?? "";
+  const usIdentity = needsUsIdentity(country);
+  const regionRequired = needsStateAndPostal(country);
   const strength = strengthOf(password);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -81,14 +89,16 @@ const AuthForm = ({ type }: { type: string }) => {
     try {
       if (isSignUp) {
         const newUser = await signUp({
+          country: data.country!,
           firstName: data.firstName!,
           lastName: data.lastName!,
           address1: data.address1!,
           city: data.city!,
-          state: data.state!,
-          postalCode: data.postalCode!,
-          dateOfBirth: data.dob!,
-          ssn: data.ssn!,
+          state: data.state ?? "",
+          postalCode: data.postalCode ?? "",
+          // Only the US payment partner needs these; nobody else is asked, or sends them.
+          dateOfBirth: needsUsIdentity(data.country ?? "") ? (data.dob ?? "") : "",
+          ssn: needsUsIdentity(data.country ?? "") ? (data.ssn ?? "") : "",
           email: data.email,
           password: data.password,
         });
@@ -148,18 +158,56 @@ const AuthForm = ({ type }: { type: string }) => {
                   <div id="section-01" className="scroll-mt-6">
                     <Section title={t("auth.sectionAbout")} hint={t("auth.sectionAboutHint")}>
                       <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem className="field sm:col-span-2">
+                              <label className="field-label" htmlFor="signup-country">
+                                {t("auth.country")}
+                              </label>
+                              <select
+                                id="signup-country"
+                                value={field.value ?? ""}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                onBlur={field.onBlur}
+                                autoComplete="country"
+                                className="field-input"
+                                aria-describedby="signup-country-hint"
+                              >
+                                <option value="" disabled>
+                                  {t("auth.errorCountry")}
+                                </option>
+                                {countries.map((c) => (
+                                  <option key={c.code} value={c.code}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <p id="signup-country-hint" className="field-hint">
+                                {t("auth.countryHint")}
+                              </p>
+                              <FormMessage className="field-error" />
+                            </FormItem>
+                          )}
+                        />
                         <CustomInput control={form.control} name="firstName" label={t("auth.firstName")} placeholder={t("auth.firstNamePlaceholder")} autoComplete="given-name" />
                         <CustomInput control={form.control} name="lastName" label={t("auth.lastName")} placeholder={t("auth.lastNamePlaceholder")} autoComplete="family-name" />
-                        <DateInput control={form.control} name="dob" label={t("auth.dob")} hint={t("auth.dobHint")} />
-                        <CustomInput
-                          control={form.control}
-                          name="ssn"
-                          label={t("auth.taxId")}
-                          placeholder={t("auth.taxIdPlaceholder")}
-                          hint={t("auth.taxIdHint")}
-                          autoComplete="off"
-                          mono
-                        />
+                        {usIdentity && (
+                          <>
+                            <p className="text-13 text-ink-muted sm:col-span-2">{t("auth.usOnlyNote")}</p>
+                            <DateInput control={form.control} name="dob" label={t("auth.dob")} hint={t("auth.dobHint")} />
+                            <CustomInput
+                              control={form.control}
+                              name="ssn"
+                              label={t("auth.taxId")}
+                              placeholder={t("auth.taxIdPlaceholder")}
+                              hint={t("auth.taxIdHint")}
+                              autoComplete="off"
+                              mono
+                            />
+                          </>
+                        )}
                       </div>
                     </Section>
                   </div>
@@ -174,13 +222,19 @@ const AuthForm = ({ type }: { type: string }) => {
                           <CustomInput control={form.control} name="city" label={t("auth.city")} placeholder={t("auth.cityPlaceholder")} autoComplete="address-level2" />
                         </div>
                         <div className="sm:col-span-1">
-                          <CustomInput control={form.control} name="state" label={t("auth.state")} placeholder={t("auth.statePlaceholder")} autoComplete="address-level1" />
+                          <CustomInput
+                            control={form.control}
+                            name="state"
+                            label={regionRequired ? t("auth.state") : t("auth.stateOptional")}
+                            placeholder={t("auth.statePlaceholder")}
+                            autoComplete="address-level1"
+                          />
                         </div>
                         <div className="sm:col-span-2">
                           <CustomInput
                             control={form.control}
                             name="postalCode"
-                            label={t("auth.postalCode")}
+                            label={regionRequired ? t("auth.postalCode") : t("auth.postalOptional")}
                             placeholder={t("auth.postalCodePlaceholder")}
                             autoComplete="postal-code"
                             mono

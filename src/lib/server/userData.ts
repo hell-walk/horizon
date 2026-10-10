@@ -134,6 +134,7 @@ export async function exportUserData(user: User) {
     savedStatementLayouts: (prefs as Record<string, unknown>).statementLayouts ?? {},
     yourChanges: readCorrections((prefs as Record<string, unknown>).corrections),
     savingsGoals: readGoals((prefs as Record<string, unknown>).goals),
+    country: typeof (prefs as Record<string, unknown>).country === "string" ? (prefs as Record<string, unknown>).country : undefined,
   };
 }
 

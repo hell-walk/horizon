@@ -13,7 +13,7 @@ describe.skipIf(!up && allowSkip)(`deleting an account against ${BASE}`, () => {
   it("signs up, uploads, deletes itself, and is gone", async () => {
     // An Indian address, so no Dwolla customer is created for this throwaway account.
     const signUp = await callAction("signUp", [
-      { email, password, firstName: "Delete", lastName: "Test", address1: "1 Test Road", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "1990-01-01", ssn: "1234" },
+      { country: "IN", email, password, firstName: "Delete", lastName: "Test", address1: "1 Test Road", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "" },
     ]);
     expect(signUp.value).toMatchObject({ ok: true });
     const cookie = sessionCookie(signUp.setCookies)!;

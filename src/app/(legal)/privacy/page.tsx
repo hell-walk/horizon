@@ -48,13 +48,13 @@ export default async function PrivacyPage() {
         <h2>What we keep</h2>
         <ul>
           <li>
-            <strong>Your account:</strong> name, email address, postal address and a password. Your password is
-            held by our database provider in hashed form; we cannot read it.
+            <strong>Your account:</strong> name, email address, the country you live in, postal address and a
+            password. Your password is held by our database provider in hashed form; we cannot read it.
           </li>
           <li>
-            <strong>Date of birth and US Social Security number:</strong> the sign-up form asks for these
-            because our US payment partner needs them. If your address is in the United States, they are sent
-            to Dwolla to open your payment account. Horizon does not store them, whatever your country.
+            <strong>Date of birth and US Social Security number:</strong> asked only if you live in the United
+            States, because our US payment partner needs them to open your payment account. They are sent to
+            Dwolla and Horizon does not store them. Nobody outside the US is asked for them.
           </li>
           <li>
             <strong>Your banks:</strong> bank name, account name, the last four digits of the account number,
