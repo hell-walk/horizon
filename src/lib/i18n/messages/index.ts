@@ -10,6 +10,7 @@ import enConnect from "./en/connect.json";
 import enData from "./en/data.json";
 import enHistory from "./en/history.json";
 import enHome from "./en/home.json";
+import enInsights from "./en/insights.json";
 import enLegal from "./en/legal.json";
 import enNav from "./en/nav.json";
 import enTransfer from "./en/transfer.json";
@@ -21,6 +22,7 @@ import hiConnect from "./hi/connect.json";
 import hiData from "./hi/data.json";
 import hiHistory from "./hi/history.json";
 import hiHome from "./hi/home.json";
+import hiInsights from "./hi/insights.json";
 import hiLegal from "./hi/legal.json";
 import hiNav from "./hi/nav.json";
 import hiTransfer from "./hi/transfer.json";
@@ -31,6 +33,6 @@ const flatten = (areas: Record<string, Record<string, string>>): Messages =>
   Object.fromEntries(Object.entries(areas).flatMap(([area, entries]) => Object.entries(entries).map(([key, text]) => [`${area}.${key}`, text])));
 
 export const MESSAGES: Record<Locale, Messages> = {
-  en: flatten({ common: enCommon, nav: enNav, home: enHome, banks: enBanks, history: enHistory, transfer: enTransfer, connect: enConnect, data: enData, bills: enBills, auth: enAuth, legal: enLegal }),
-  hi: flatten({ common: hiCommon, nav: hiNav, home: hiHome, banks: hiBanks, history: hiHistory, transfer: hiTransfer, connect: hiConnect, data: hiData, bills: hiBills, auth: hiAuth, legal: hiLegal }),
+  en: flatten({ common: enCommon, nav: enNav, home: enHome, banks: enBanks, history: enHistory, transfer: enTransfer, connect: enConnect, data: enData, bills: enBills, insights: enInsights, auth: enAuth, legal: enLegal }),
+  hi: flatten({ common: hiCommon, nav: hiNav, home: hiHome, banks: hiBanks, history: hiHistory, transfer: hiTransfer, connect: hiConnect, data: hiData, bills: hiBills, insights: hiInsights, auth: hiAuth, legal: hiLegal }),
 };

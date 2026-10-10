@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
 import ComingUp from "./components/comingUp";
+import YourWeek from "./components/yourWeek";
 import ForecastPanel from "@/components/forecastPanel";
+import InsightsPanel from "@/components/insightsPanel";
+import { findInsights } from "@/lib/insights";
+import { weeklyRecap } from "@/lib/recap";
+import { findRegular } from "@/lib/recurring";
 import { accountForecast } from "@/lib/server/forecast";
 import SpendingStrip from "./components/spendingStrip";
 import QuickActions from "./components/quickActions";
@@ -79,7 +84,15 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           </Suspense>
 
           <Suspense fallback={null}>
+            <WeekSection appwriteItemId={appwriteItemId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
             <ForecastSection appwriteItemId={appwriteItemId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <InsightsSection appwriteItemId={appwriteItemId} />
           </Suspense>
 
           <Suspense fallback={null}>
@@ -152,4 +165,28 @@ const ForecastSection = async ({ appwriteItemId }: { appwriteItemId?: string }) 
   if (!appwriteItemId) return null;
   const result = await accountForecast(appwriteItemId);
   return result ? <ForecastPanel result={result} compact /> : null;
+};
+
+/** "What changed" for the account chosen on Home: the top three, with a link to the rest. */
+const InsightsSection = async ({ appwriteItemId }: { appwriteItemId?: string }) => {
+  if (!appwriteItemId) return null;
+  const account = await getAccount({ appwriteItemId });
+  if (!account) return null;
+  return (
+    <InsightsPanel
+      result={findInsights(account.transactions)}
+      currency={account.data?.currency}
+      compact
+      href={`/transaction-history?id=${appwriteItemId}#insights`}
+    />
+  );
+};
+
+/** "Your week" for the account chosen on Home. */
+const WeekSection = async ({ appwriteItemId }: { appwriteItemId?: string }) => {
+  if (!appwriteItemId) return null;
+  const account = await getAccount({ appwriteItemId });
+  const transactions = (account?.transactions as Transaction[] | undefined) ?? [];
+  const recap = weeklyRecap(transactions, findRegular(transactions));
+  return recap ? <YourWeek recap={recap} currency={account?.data?.currency} /> : null;
 };
