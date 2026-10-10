@@ -1,13 +1,15 @@
 "use client";
 
-import { Check, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
+import { Check, Columns3, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
+import type { StatementMapping, StatementSample } from "@/lib/statements/parse";
 import { cn, formatAmount } from "@/lib/utils";
 
 import BalanceCheckNote from "./balanceCheck";
+import ColumnMapper, { mappingHint } from "./columnMapper";
 import { Input } from "./ui/input";
 
 type Props = { variant?: "primary" | "card" };
@@ -26,10 +28,27 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [busy, setBusy] = useState<"preview" | "import" | null>(null);
   const [dragging, setDragging] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Column mapping: the rows to label, and the user's choice (sent with every read once set).
+  const [mapSample, setMapSample] = useState<StatementSample | null>(null);
+  const [mapping, setMapping] = useState<Partial<StatementMapping> | null>(null);
+  const [mapperOpen, setMapperOpen] = useState(false);
 
   const reset = () => {
     setPreview(null);
     setResult(null);
+  };
+
+  const mappingBefore = useRef<Partial<StatementMapping> | null>(null);
+  const openMapper = (sample: StatementSample, start: Partial<StatementMapping>) => {
+    if (!mapperOpen) mappingBefore.current = mapping;
+    setMapSample(sample);
+    setMapping(start);
+    setMapperOpen(true);
+  };
+
+  const closeMapper = () => {
+    setMapperOpen(false);
+    setMapping(mappingBefore.current); // back to what the shown preview was read with
   };
 
   const runPreview = async () => {
@@ -40,6 +59,11 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       const outcome = await previewStatement(new FormData(formRef.current));
       setPreview(outcome);
       if (!outcome.ok && outcome.needsPassword) setShowPassword(true);
+      if (!outcome.ok && outcome.needsMapping && outcome.sample) {
+        // Keep what the user already picked; otherwise start from the parser's guess.
+        openMapper(outcome.sample, mapping ?? outcome.sample.guess);
+      }
+      if (outcome.ok) setMapperOpen(false);
     } catch {
       setPreview({ ok: false, error: "Could not reach the server. Please try again." });
     } finally {
@@ -58,6 +82,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         if (fileRef.current) fileRef.current.value = "";
         setFileName(null);
         setPreview(null);
+        setMapping(null);
+        setMapSample(null);
         router.refresh();
       }
     } catch {
@@ -72,6 +98,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     // Bank PDFs are almost always protected; offer the password field right away.
     if (file?.name.toLowerCase().endsWith(".pdf")) setShowPassword(true);
     reset();
+    setMapping(null);
+    setMapSample(null);
+    setMapperOpen(false);
   };
 
   const onDrop = (event: React.DragEvent<HTMLLabelElement>) => {
@@ -91,7 +120,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       ref={formRef}
       onSubmit={(e) => {
         e.preventDefault();
-        if (preview?.ok) runImport();
+        if (preview?.ok && !mapperOpen) runImport();
         else runPreview();
       }}
       className={cn("flex w-full flex-col gap-4", variant === "primary" && "rounded-md border border-line bg-surface-low p-4")}
@@ -182,9 +211,15 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         </button>
       )}
 
-      {preview && !preview.ok && <p className={preview.needsPassword ? "field-hint text-warn" : "field-error"}>{preview.error}</p>}
+      {mapping && <input type="hidden" name="mapping" value={JSON.stringify(mapping)} />}
 
-      {preview?.ok && (
+      {preview && !preview.ok && (
+        <p className={preview.needsPassword || preview.needsMapping ? "field-hint text-warn" : "field-error"}>{preview.error}</p>
+      )}
+
+      {mapperOpen && mapSample && mapping && <ColumnMapper sample={mapSample} mapping={mapping} onChange={setMapping} />}
+
+      {preview?.ok && !mapperOpen && (
         <div className="panel overflow-hidden">
           <header className="panel-head">
             <span className="eyebrow">
@@ -220,11 +255,27 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </table>
           </div>
           <BalanceCheckNote check={preview.check} currency={preview.currency} />
+          <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2 text-12 text-ink-muted">
+            <span>
+              {preview.source === "saved"
+                ? "Read with the column layout you set for files like this."
+                : preview.source === "manual"
+                  ? "Read with the columns you picked. Horizon remembers them when you import."
+                  : `Columns detected: ${preview.headers.join(", ")}`}
+            </span>
+            <button type="button" onClick={() => openMapper(preview.sample, preview.columns)} className="btn-ghost btn-sm shrink-0">
+              <Columns3 className="size-3.5" /> Change columns
+            </button>
+          </div>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button type="submit" disabled={busy !== null || !fileName} className={preview?.ok ? "btn-primary" : "btn-secondary"}>
+        <button
+          type="submit"
+          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null)}
+          className={preview?.ok && !mapperOpen ? "btn-primary" : "btn-secondary"}
+        >
           {busy === "preview" ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Reading file
@@ -233,6 +284,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             <>
               <Loader2 className="size-4 animate-spin" /> Importing
             </>
+          ) : mapperOpen ? (
+            "Read with these columns"
           ) : preview?.ok ? (
             <>
               <FileUp className="size-4" /> Import {preview.total} transactions
@@ -241,7 +294,12 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             "Preview statement"
           )}
         </button>
-        {preview?.ok && (
+        {mapperOpen && preview?.ok && (
+          <button type="button" onClick={closeMapper} className="btn-ghost">
+            Cancel
+          </button>
+        )}
+        {preview?.ok && !mapperOpen && (
           <button type="button" onClick={reset} className="btn-ghost">
             Discard
           </button>

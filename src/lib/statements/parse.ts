@@ -28,6 +28,7 @@ export type ParsedStatement = {
   institutionName?: string;
   currency: string;
   headers: string[];
+  columns: StatementMapping; // which column was read as what, so the user can correct it
   check: BalanceCheck;
 };
 
@@ -46,6 +47,7 @@ export type StatementMapping = {
   debit?: number;
   credit?: number;
   amount?: number;
+  type?: number; // a separate Dr/Cr column next to a single amount
   balance?: number;
   reference?: number;
 };
@@ -110,6 +112,12 @@ export function buildStatement(rows: Cell[][], name: string, mapping?: Statement
     );
   }
 
+  // A user-mapped single amount column with no Dr/Cr: the running balance says which way each row went.
+  if (mapping && mapping.amount !== undefined && mapping.type === undefined && mapping.balance !== undefined) {
+    const data = rows.filter((row) => parseDate(row[mapping.date] ?? null));
+    signFromBalance(balanceDeltas(data, mapping.date, mapping.balance), mapping.amount);
+  }
+
   const inFileOrder: ParsedTransaction[] = [];
   let firstDataRow = -1;
   rows.slice(header.index + 1).forEach((row, i) => {
@@ -134,6 +142,7 @@ export function buildStatement(rows: Cell[][], name: string, mapping?: Statement
     institutionName: meta.institutionName,
     currency: meta.currency ?? "INR",
     headers: header.raw,
+    columns: header.columns,
     check: checkBalances(transactions),
   };
 }
@@ -151,6 +160,7 @@ function mappingLabels(m: StatementMapping): string[] {
   if (m.credit !== undefined) labels[m.credit] = "Credit";
   if (m.amount !== undefined) labels[m.amount] = "Amount";
   if (m.balance !== undefined) labels[m.balance] = "Balance";
+  if (m.type !== undefined) labels[m.type] = "Dr/Cr";
   if (m.reference !== undefined) labels[m.reference] = "Reference";
   return labels;
 }
@@ -356,16 +366,7 @@ function cellValue(value: ExcelJS.CellValue): Cell {
 /* Header detection                                                    */
 /* ------------------------------------------------------------------ */
 
-type Columns = {
-  date: number;
-  name: number;
-  debit?: number;
-  credit?: number;
-  amount?: number;
-  type?: number;
-  balance?: number;
-  reference?: number;
-};
+type Columns = StatementMapping;
 
 const norm = (cell: Cell) =>
   String(cell ?? "")
@@ -466,16 +467,7 @@ function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: s
   if (name === undefined) return null;
 
   // Running balance in date order tells each row's direction.
-  const chronological = [...data];
-  const first = parseDate(chronological[0][dateCol]) ?? "";
-  const last = parseDate(chronological[n - 1][dateCol]) ?? "";
-  if (first > last) chronological.reverse(); // newest-first statements
-  const deltas = new Map<Cell[], number>();
-  for (let k = 1; k < chronological.length; k++) {
-    const now = parseAmount(chronological[k][balance]).value;
-    const before = parseAmount(chronological[k - 1][balance]).value;
-    deltas.set(chronological[k], round2(now - before));
-  }
+  const deltas = balanceDeltas(data, dateCol, balance);
   const votesFor = (j: number) => {
     let out = 0;
     let into = 0;
@@ -501,11 +493,7 @@ function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: s
     credit = aIsCredit ? a : b;
   } else {
     amount = amounts[0];
-    // One unsigned amount column: sign each row from the balance change.
-    for (const [row, delta] of deltas) {
-      const value = Math.abs(parseAmount(row[amount]).value);
-      if (value && Math.abs(delta + value) < 0.01) row[amount] = -value;
-    }
+    signFromBalance(deltas, amount);
   }
 
   const labels: string[] = Array(width).fill("");
@@ -523,6 +511,119 @@ function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: s
   };
 }
 
+/** How much the running balance moved on each row, taken in date order. */
+function balanceDeltas(data: Cell[][], dateCol: number, balance: number): Map<Cell[], number> {
+  const chronological = [...data];
+  const first = parseDate(chronological[0]?.[dateCol] ?? null) ?? "";
+  const last = parseDate(chronological[chronological.length - 1]?.[dateCol] ?? null) ?? "";
+  if (first > last) chronological.reverse(); // newest-first statements
+  const deltas = new Map<Cell[], number>();
+  for (let k = 1; k < chronological.length; k++) {
+    const now = parseAmount(chronological[k][balance]).value;
+    const before = parseAmount(chronological[k - 1][balance]).value;
+    deltas.set(chronological[k], round2(now - before));
+  }
+  return deltas;
+}
+
+/** One unsigned amount column: rows where the balance went down are money out. */
+function signFromBalance(deltas: Map<Cell[], number>, amount: number) {
+  for (const [row, delta] of deltas) {
+    const parsed = parseAmount(row[amount]);
+    const value = Math.abs(parsed.value);
+    if (value && !parsed.marker && Math.abs(delta + value) < 0.01) row[amount] = -value;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Column mapping: sample rows the user can label                     */
+/* ------------------------------------------------------------------ */
+
+export type StatementSample = {
+  signature: string; // the layout's fingerprint, to remember the user's mapping for next time
+  width: number;
+  labels: string[]; // the header row above the transactions, when the file has one
+  rows: string[][];
+  guess: Partial<StatementMapping>;
+};
+
+const SAMPLE_ROWS = 8;
+const display = (cell: Cell) => (cell instanceof Date ? (parseDate(cell) ?? "") : String(cell ?? "").replace(/\s+/g, " ").trim());
+
+/**
+ * A few transaction-looking rows, plus a guess at the columns, for the user to
+ * label when the layout could not be worked out (or was worked out wrong).
+ */
+export function sampleStatement(rows: Cell[][]): StatementSample {
+  // Looser than isMoney: an unknown layout may print "640" or "-640" with no paise.
+  const isNumber = (c: Cell) => isMoney(c) || /^[-+(]?\s*\d+(?:\.\d+)?\s*\)?$/.test(text(c));
+  const isDataRow = (row: Cell[]) => row.some((c) => parseDate(c)) && row.some(isNumber);
+  const firstData = rows.findIndex(isDataRow);
+  const data = rows.filter(isDataRow);
+  const picked = (data.length ? data : rows.filter((r) => r.filter((c) => display(c)).length >= 3)).slice(0, SAMPLE_ROWS);
+  const width = Math.max(0, ...picked.map((r) => r.length));
+
+  // The column titles, if any: the nearest row above the first transaction that reads like a header.
+  let labels: string[] = [];
+  for (let i = firstData - 1; i >= Math.max(0, firstData - 3); i--) {
+    const cells = rows[i].map(display);
+    if (cells.filter((c) => c && !isNumber(c) && !parseDate(c)).length >= 3) {
+      labels = Array.from({ length: width }, (_, j) => cells[j] ?? "");
+      break;
+    }
+  }
+
+  const n = picked.length || 1;
+  const share = (fn: (c: Cell) => boolean, j: number) => picked.filter((r) => fn(r[j] ?? null)).length / n;
+  const cols = [...Array(width).keys()];
+  // Empty columns count as money so a month without any credits keeps the same fingerprint.
+  const kinds = cols.map((j) =>
+    share((c) => Boolean(parseDate(c)), j) >= 0.6 ? "d" : share((c) => isNumber(c) || isEmptyCell(c), j) >= 0.9 ? "m" : "t"
+  );
+
+  const date = kinds.indexOf("d");
+  const balance = [...cols].reverse().find((j) => share(isNumber, j) >= 0.9);
+  const avgLength = (j: number) => picked.reduce((s, r) => s + display(r[j] ?? null).length, 0) / n;
+  const name = cols.filter((j) => kinds[j] === "t").sort((a, b) => avgLength(b) - avgLength(a))[0];
+
+  return {
+    signature: `${kinds.join("")}|${labels.map((l) => norm(l)).join(",")}`.slice(0, 240),
+    width,
+    labels,
+    rows: picked.map((r) => cols.map((j) => display(r[j] ?? null).slice(0, 48))),
+    guess: {
+      date: date >= 0 ? date : undefined,
+      name,
+      balance,
+    } as Partial<StatementMapping>,
+  };
+}
+
+const MAPPING_KEYS = ["date", "name", "debit", "credit", "amount", "type", "balance", "reference"] as const;
+
+/**
+ * Checks a mapping from the user (or a saved one) against the file: known
+ * keys, columns that exist, no column used twice, and enough to read a row.
+ * Returns an error message, or null when it is usable.
+ */
+export function mappingProblem(value: unknown, width: number): string | null {
+  if (!value || typeof value !== "object") return "Pick the columns first.";
+  const m = value as Record<string, unknown>;
+  const used = new Set<number>();
+  for (const [key, index] of Object.entries(m)) {
+    if (!(MAPPING_KEYS as readonly string[]).includes(key)) return `Unknown column role "${key}".`;
+    if (index === undefined) continue;
+    if (typeof index !== "number" || !Number.isInteger(index) || index < 0 || index >= width) return "A chosen column is not in the file.";
+    if (used.has(index)) return "Each column can only have one role.";
+    used.add(index);
+  }
+  if (m.date === undefined) return "Choose the date column.";
+  if (m.name === undefined) return "Choose the description column.";
+  const hasPair = m.debit !== undefined || m.credit !== undefined;
+  if (!hasPair && m.amount === undefined) return "Choose the money out and money in columns, or a single amount column.";
+  return null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Row conversion                                                      */
 /* ------------------------------------------------------------------ */
@@ -537,9 +638,11 @@ function toTransaction(row: Cell[], columns: Columns): ParsedTransaction | null 
   let amount = 0;
   let type: "debit" | "credit" | null = null;
 
-  if (columns.debit !== undefined && columns.credit !== undefined) {
-    const debit = parseAmount(row[columns.debit]);
-    const credit = parseAmount(row[columns.credit]);
+  // Both money columns, or (when the user mapped it so) just one of them.
+  const pair = (columns.debit !== undefined && columns.credit !== undefined) || (columns.amount === undefined && (columns.debit ?? columns.credit) !== undefined);
+  if (pair) {
+    const debit = columns.debit !== undefined ? parseAmount(row[columns.debit]) : { value: 0 };
+    const credit = columns.credit !== undefined ? parseAmount(row[columns.credit]) : { value: 0 };
     if (debit.value > 0) {
       amount = debit.value;
       type = "debit";
