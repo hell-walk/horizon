@@ -50,3 +50,9 @@ next-env.d.ts
 
 # statement-reading worker, built by npm run build:worker
 /.worker
+
+# Key files downloaded from dashboards (Razorpay, Supabase, Upstash...). Never commit them.
+*api_keys*.csv
+*api-keys*.csv
+*credentials*.csv
+*.pem

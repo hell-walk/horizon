@@ -7,25 +7,9 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
-const PATTERNS = [
-  ["Appwrite API key", /\bstandard_[0-9a-f]{64,}\b/],
-  ["Plaid access token", /\baccess-(development|production)-[0-9a-f-]{30,}/],
-  ["Private key block", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
-  ["Sentry auth token", /\bsntrys_[A-Za-z0-9_=-]{20,}/],
-  ["AWS access key", /\bAKIA[0-9A-Z]{16}\b/],
-  ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{36,}\b/],
-  ["Generic assignment", /\b(SECRET|PASSWORD|API_KEY|PRIVATE_KEY|ENCRYPTION_KEY)\s*=\s*["']?[A-Za-z0-9+/=_-]{16,}/],
-];
+import { envSecretValues, PATTERNS, serviceRoleJwt } from "./secret-patterns.mjs";
 
-// Secret values from .env worth searching for verbatim (not ids that are public anyway).
-const SECRET_NAMES = /KEY|SECRET|PASSWORD|TOKEN/i;
-const envValues = existsSync(".env")
-  ? readFileSync(".env", "utf8")
-      .split(/\r?\n/)
-      .filter((l) => l && !l.startsWith("#") && l.includes("="))
-      .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim().replace(/^"|"$/g, "")])
-      .filter(([name, value]) => SECRET_NAMES.test(name) && !name.startsWith("NEXT_PUBLIC_") && value.length >= 12)
-  : [];
+const envValues = envSecretValues();
 
 const git = (...args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 });
 const findings = [];
@@ -35,6 +19,7 @@ const SANDBOX = /\baccess-sandbox-[0-9a-f-]{30,}/;
 const check = (where, text) => {
   for (const [label, pattern] of PATTERNS) if (pattern.test(text)) findings.push(`${where}: looks like a ${label}`);
   for (const [name, value] of envValues) if (text.includes(value)) findings.push(`${where}: contains the value of ${name} from .env`);
+  if (serviceRoleJwt(text)) findings.push(`${where}: contains a Supabase service-role key`);
   if (SANDBOX.test(text)) warnings.push(`${where}: Plaid sandbox access token (sample data)`);
 };
 
