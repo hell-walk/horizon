@@ -43,5 +43,11 @@ export function openSecret(value: string): string {
   return Buffer.concat([decipher.update(data.subarray(28)), decipher.final()]).toString("utf8");
 }
 
+/** Opens a value that must have been sealed: plain text is refused, not passed through. */
+export function openSealed(value: string): string {
+  if (!value?.startsWith(PREFIX)) throw new Error("Not a sealed value");
+  return openSecret(value);
+}
+
 /** An id that can be shared to receive transfers: random, so it says nothing about the account. */
 export const newSharableId = () => randomBytes(18).toString("base64url");

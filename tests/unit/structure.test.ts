@@ -22,6 +22,19 @@ describe("server action surface", () => {
     expect(outside.map(rel)).toEqual([]);
   });
 
+  it('"use server" files export only async functions and types', () => {
+    const offenders = all
+      .filter((p) => directive(readFileSync(p, "utf8")) === "server")
+      .flatMap((p) =>
+        readFileSync(p, "utf8")
+          .split(/\r?\n/)
+          .filter((line) => line.startsWith("export "))
+          .filter((line) => !/^export (type |interface |async function |const \w+ = async\b)/.test(line))
+          .map((line) => `${rel(p)}: ${line.slice(0, 60)}`)
+      );
+    expect(offenders).toEqual([]);
+  });
+
   it("server-only modules say so", () => {
     const missing = all
       .filter((p) => rel(p).startsWith("lib/server/"))

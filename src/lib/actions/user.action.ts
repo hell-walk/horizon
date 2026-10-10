@@ -67,6 +67,19 @@ const strings = (value: unknown, keys: string[], max = 200): value is Record<str
     keys.every((k) => typeof (value as Record<string, unknown>)[k] === "string" && ((value as Record<string, string>)[k]).length <= max);
 const BAD_INPUT: AuthResult = { ok: false, error: "Check the details and try again." };
 
+// The sign-up form's rule, enforced where it cannot be skipped. Not exported:
+// every export of this file is a public endpoint.
+const COMMON_PASSWORDS = new Set(["password", "password1", "password123", "12345678", "123456789", "1234567890", "qwerty123", "qwertyuiop", "iloveyou", "11111111", "00000000", "abcd1234", "admin123", "letmein1", "welcome1"]);
+const passwordProblem = (password: string, email: string): string | null => {
+    if (password.length < 8) return "Use at least 8 characters.";
+    if (password.length > 128) return "Use at most 128 characters.";
+    const lower = password.toLowerCase();
+    if (COMMON_PASSWORDS.has(lower) || /^(.)\1+$/.test(password)) return "That password is too common. Choose another.";
+    const name = email.split("@")[0]?.toLowerCase() ?? "";
+    if (name.length >= 4 && lower.includes(name)) return "Do not use your email in your password.";
+    return null;
+};
+
 export const signIn = async (input: signInProps): Promise<AuthResult> => {
     if (!strings(input, ["email", "password"], 256)) return BAD_INPUT;
     const { email, password } = input;
@@ -94,6 +107,8 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     if (!strings(userData, ["email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return BAD_INPUT;
     const { email, password, firstName, lastName, address1, city, state, postalCode } = userData
     const profile = { address1, city, state, postalCode };
+    const weak = passwordProblem(password, email);
+    if (weak) return { ok: false, error: weak };
     if (!(await allowAuthAttempt(email))) return { ok: false, error: TOO_MANY };
     // Each sign-up creates real accounts (Appwrite, maybe Dwolla): a tighter cap per network.
     if (!allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE)) return { ok: false, error: TOO_MANY };
@@ -170,7 +185,9 @@ export const logoutAccount = async () => {
         logError('Error deleting the Appwrite session', error);
     }
 
-    (await cookies()).delete(SESSION_COOKIE);
+    const jar = await cookies();
+    jar.delete(SESSION_COOKIE);
+    jar.delete("setu-consent"); // a half-finished bank link belongs to this user only
 
     return true;
 }
@@ -178,6 +195,8 @@ export const logoutAccount = async () => {
 export const createLinkToken = async () => {
     try {
         const user = await requireUser();
+        // Each call costs a Plaid API request.
+        if (!allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE)) return null;
         const response = await plaidClient.linkTokenCreate({
             user: { client_user_id: authIdOf(user) },
             client_name: "Horizon",
@@ -195,7 +214,8 @@ export const createLinkToken = async () => {
 export const exchangePublicToken = async ({ publicToken }: { publicToken: string }) => {
     try {
         const user = await requireUser();
-        if (typeof publicToken !== "string" || !publicToken) return null;
+        if (typeof publicToken !== "string" || !publicToken || publicToken.length > 200) return null;
+        if (!allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE)) return null;
 
         // Exchange the short-lived public token for a permanent access token
         const response = await plaidClient.itemPublicTokenExchange({ public_token: publicToken });

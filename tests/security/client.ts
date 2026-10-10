@@ -82,6 +82,9 @@ export const accounts = {
   a: { email: process.env.HORIZON_TEST_EMAIL ?? "", password: process.env.HORIZON_TEST_PASSWORD ?? "" },
   b: { email: process.env.HORIZON_TEST_EMAIL_2 ?? "", password: process.env.HORIZON_TEST_PASSWORD_2 ?? "" },
 };
+/** Skipping is a failure unless explicitly allowed: a run that tested nothing must not look green. */
+export const allowSkip = process.env.HORIZON_SECURITY_ALLOW_SKIP === "1";
+
 export const haveAccounts = Boolean(accounts.a.email && accounts.a.password && accounts.b.email && accounts.b.password);
 
 /** Values from the local .env (Appwrite ids for the direct-access test); never printed. */

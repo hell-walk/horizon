@@ -24,7 +24,9 @@ npm run test:security
 ```
 
 - `HORIZON_URL` points somewhere else than `http://localhost:3100`.
-- Without the account variables only the anonymous tests run.
+- Without the account variables the run fails (with `HORIZON_SECURITY_ALLOW_SKIP=1`, only the anonymous tests run).
+- `npm run test:security` fails if anything is skipped or fewer than 72 tests ran; `HORIZON_SECURITY_ALLOW_SKIP=1` relaxes that for local poking.
+- Behind a real proxy (staging), set `HORIZON_BEHIND_PROXY=1` to add the forged-`X-Forwarded-Host` check.
 - The tests read server action ids from `.next/server/server-reference-manifest.json`,
   so the build must be the one the server is running.
 - They write a little data to the two test accounts (a "Victim Test Bank" for

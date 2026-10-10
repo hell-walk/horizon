@@ -61,7 +61,15 @@ type ReadInput = {
 
 /** Reads any supported file into rows of cells, before any column is interpreted. */
 export async function readStatementRows(input: ReadInput): Promise<Cell[][]> {
-  const rows = await readRows(input);
+  let rows: Cell[][];
+  try {
+    rows = await readRows(input);
+  } catch (error) {
+    if (error instanceof StatementParseError || error instanceof StatementPasswordError) throw error;
+    // A damaged file makes the PDF/Excel libraries throw all sorts of things
+    // (TypeErrors, strings); the user gets one clear message instead.
+    throw new StatementParseError("This file could not be read. It may be damaged or not a bank statement. Download it again from your bank and retry.");
+  }
   checkRows(rows.length);
   return rows;
 }

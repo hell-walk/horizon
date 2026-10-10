@@ -85,10 +85,14 @@ const { getOwnBank } = await import("@/lib/server/banks");
 const { sealSecret } = await import("@/lib/server/crypto");
 const { plaidClient } = await import("@/lib/plaid");
 
-const signedIn = () => {
+// A fresh profile id per call where asked, so per-user rate limits do not leak between tests.
+let fresh = 0;
+const signedIn = (profileId = "profile-1") => {
   state.sessionUser = { $id: "auth-1", email: "test@example.com", name: "Test User", prefs: { statementLayouts: {} }, targets: [] };
-  state.profile = { $id: "profile-1", userId: "auth-1", firstName: "Test", ssn: "1234", dateOfBirth: "1990-01-01", dwollaCustomerUrl: "https://x" };
+  state.profile = { $id: profileId, userId: "auth-1", firstName: "Test", ssn: "1234", dateOfBirth: "1990-01-01", dwollaCustomerUrl: "https://x" };
+  return profileId;
 };
+const signedInFresh = () => signedIn(`profile-fresh-${++fresh}`);
 
 let ip = 0;
 beforeEach(() => {
@@ -181,6 +185,24 @@ describe("signUp", () => {
   });
 });
 
+describe("password policy (enforced on the server, not just the form)", () => {
+  const base = { firstName: "Ada", lastName: "L", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "1990-01-01", ssn: "1234" };
+
+  it.each([
+    ["short", "Use at least 8 characters."],
+    ["x".repeat(129), "Use at most 128 characters."],
+    ["password123", "That password is too common. Choose another."],
+    ["aaaaaaaaaa", "That password is too common. Choose another."],
+    ["adalovelace!2026", "Do not use your email in your password."],
+  ])("refuses %j", async (password, error) => {
+    expect(await userActions.signUp({ ...base, email: `adalovelace-${Math.random()}@example.com`.replace(/-[\d.]+@/, "@"), password })).toEqual({ ok: false, error });
+  });
+
+  it.each(["Str0ng!Passw0rd", "correct horse battery staple", "ab12CD34ef"])("accepts %j", async (password) => {
+    expect(await userActions.signUp({ ...base, email: `user-${Math.random()}@example.com`, password })).toMatchObject({ ok: true });
+  });
+});
+
 describe("the signed-in user handed to pages", () => {
   it("never carries SSN, date of birth, preferences or the Dwolla URL", async () => {
     signedIn();
@@ -240,7 +262,7 @@ describe("bank ownership", () => {
 describe("Setu consent", () => {
   it("createSetuConsent requires a session and a valid mobile number", async () => {
     expect(await createSetuConsent({ mobile: "9876543210" })).toEqual({ error: "You need to be signed in." });
-    signedIn();
+    signedInFresh();
     expect(await createSetuConsent({ mobile: "98765; DROP TABLE" })).toMatchObject({ error: expect.stringMatching(/10-digit/) });
     // @ts-expect-error: wrong type on purpose
     expect(await createSetuConsent({ mobile: { length: 10 } })).toMatchObject({ error: expect.any(String) });
@@ -249,16 +271,78 @@ describe("Setu consent", () => {
     expect(state.cookies.get("setu-consent")?.options).toMatchObject({ httpOnly: true });
   });
 
-  it("only completes the consent this browser started", async () => {
-    signedIn();
-    expect(await completeSetuConsent({ consentId: "someone-elses-consent" })).toMatchObject({ status: "MISSING" });
-    state.cookies.set("setu-consent", { value: "consent-1" });
+  it("only completes the consent this user started in this browser", async () => {
+    signedInFresh();
+    expect(await completeSetuConsent({ consentId: "consent-1" })).toMatchObject({ status: "MISSING" }); // nothing started
+    await createSetuConsent({ mobile: "9876543210" });
     expect(await completeSetuConsent({ consentId: "someone-elses-consent" })).toMatchObject({ status: "MISSING" });
     expect(await completeSetuConsent({ consentId: "consent-1" })).toMatchObject({ status: "ACTIVE" });
   });
 
-  it("does nothing without a session", async () => {
-    state.cookies.set("setu-consent", { value: "consent-1" });
+  it("the pending cookie is sealed: a hand-made one is ignored", async () => {
+    const me = signedInFresh();
+    await createSetuConsent({ mobile: "9876543210" });
+    const value = state.cookies.get("setu-consent")!.value;
+    expect(value).not.toContain("consent-1");
+    expect(value).not.toContain(me);
+    for (const forged of ["consent-1", JSON.stringify({ ownerId: me, consentId: "consent-1" }), value.slice(0, -4) + "AAAA"]) {
+      state.cookies.set("setu-consent", { value: forged });
+      expect(await completeSetuConsent({ consentId: "consent-1" }), forged.slice(0, 20)).toMatchObject({ status: "MISSING" });
+    }
+  });
+
+  it("on a shared browser, the next person to sign in cannot finish someone else's consent", async () => {
+    signedIn(); // A starts linking a bank...
+    await createSetuConsent({ mobile: "9876543210" });
+    // ...and B signs in on the same browser, with A's pending cookie still there.
+    state.sessionUser = { $id: "auth-2", email: "b@example.com", name: "B" };
+    state.profile = { $id: "profile-2", userId: "auth-2", firstName: "B" };
     expect(await completeSetuConsent({ consentId: "consent-1" })).toMatchObject({ status: "MISSING" });
+    expect(await completeSetuConsent({})).toMatchObject({ status: "MISSING" });
+  });
+
+  it("signing out clears a half-finished bank link", async () => {
+    signedInFresh();
+    await createSetuConsent({ mobile: "9876543210" });
+    expect(state.cookies.has("setu-consent")).toBe(true);
+    await userActions.logoutAccount();
+    expect(state.cookies.has("setu-consent")).toBe(false);
+    expect(state.cookies.has("banking-session")).toBe(false);
+  });
+
+  it("does nothing without a session", async () => {
+    signedInFresh();
+    await createSetuConsent({ mobile: "9876543210" });
+    state.sessionUser = null;
+    expect(await completeSetuConsent({ consentId: "consent-1" })).toMatchObject({ status: "MISSING" });
+  });
+});
+
+describe("limits on actions that call paid providers", () => {
+  it("createLinkToken stops after 20 Plaid calls in 10 minutes", async () => {
+    signedInFresh();
+    vi.mocked(plaidClient.linkTokenCreate).mockClear();
+    const results = [];
+    for (let i = 0; i < 22; i++) results.push(await userActions.createLinkToken());
+    expect(results.slice(0, 20).every((r) => r?.linkToken)).toBe(true);
+    expect(results.slice(20)).toEqual([null, null]);
+    expect(plaidClient.linkTokenCreate).toHaveBeenCalledTimes(20);
+  });
+
+  it("exchangePublicToken stops after 10 calls and refuses oversized tokens", async () => {
+    signedInFresh();
+    vi.mocked(plaidClient.itemPublicTokenExchange).mockClear();
+    expect(await userActions.exchangePublicToken({ publicToken: "p".repeat(500) })).toBeNull();
+    for (let i = 0; i < 12; i++) await userActions.exchangePublicToken({ publicToken: `public-sandbox-${i}` });
+    expect(plaidClient.itemPublicTokenExchange).toHaveBeenCalledTimes(10);
+  });
+
+  it("setCardDesign stops after 60 changes in 10 minutes", async () => {
+    const me = signedInFresh();
+    state.banks = { mine: { $id: "mine", userId: me, accessToken: "x" } };
+    const results = [];
+    for (let i = 0; i < 61; i++) results.push(await setCardDesign({ appwriteItemId: "mine", design: "auto" }));
+    expect(results[59]).toEqual({ ok: true });
+    expect(results[60]).toMatchObject({ ok: false, error: expect.stringMatching(/Too many/) });
   });
 });
