@@ -93,12 +93,12 @@ const AuthForm = ({ type }: { type: string }) => {
           password: data.password,
         });
 
-        if (!newUser) setErrorMessage("We could not create your account. Check the details and try again.");
-        setUser(newUser);
+        if (!newUser.ok) setErrorMessage(newUser.error);
+        else setUser(newUser.user ?? null);
       } else {
         const response = await signIn({ email: data.email, password: data.password });
-        if (response) router.push("/");
-        else setErrorMessage("Invalid email or password.");
+        if (response.ok) router.push("/");
+        else setErrorMessage(response.error);
       }
     } catch (error) {
       console.error(error);

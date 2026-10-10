@@ -1,11 +1,11 @@
-"use server";
+import "server-only";
 
 import { cache } from "react";
 
 import { parseStringify } from "../utils";
-import { getTransactionsByBankId } from "./transaction.actions";
-import { getBanks, getBank } from "./user.action";
-import { saveSetuSessionId } from "./setu.action";
+import { loadLoggedInUser } from "./auth";
+import { getBanks, getOwnBank, saveSetuSessionId } from "./banks";
+import { getTransactionsByBankId } from "./transactions";
 import { getPlaidInstitution, getPlaidTransactions, toPlaidAccount } from "../providers/plaid";
 import {
   findSessionAccount,
@@ -96,7 +96,7 @@ async function loadAccountOnly(bank: Bank): Promise<Account | null> {
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
   try {
-    const banks: Bank[] = (await getBanks({ userId })) ?? [];
+    const banks = await getBanks({ userId });
 
     const accounts = (await Promise.all(banks.map(loadAccountOnly))).filter(
       (account): account is Account => account !== null
@@ -125,11 +125,10 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 // and the right sidebar both need it.
 const loadAccount = cache(async (appwriteItemId: string) => {
   try {
-    const bank: Bank | undefined = await getBank({ documentId: appwriteItemId });
-    if (!bank) {
-      console.error("No bank found for id", appwriteItemId);
-      return null;
-    }
+    // Only the signed-in user's own accounts: the id comes from the URL or a cookie.
+    const user = await loadLoggedInUser();
+    const bank = user ? await getOwnBank(user.$id, appwriteItemId) : null;
+    if (!bank) return null;
 
     // Transfers made inside Horizon live in Appwrite regardless of provider.
     const [loaded, transferTransactionsData] = await Promise.all([
@@ -179,16 +178,5 @@ export const getInstitution = async ({ institutionId }: getInstitutionProps) => 
     return parseStringify(institution);
   } catch (error) {
     console.error("An error occurred while getting the institution:", error);
-  }
-};
-
-// Get transactions for a Plaid item (kept for callers that still pass an access token).
-export const getTransactions = async ({ accessToken }: getTransactionsProps) => {
-  try {
-    const transactions = await getPlaidTransactions(accessToken);
-    return parseStringify(transactions);
-  } catch (error) {
-    console.error("An error occurred while getting transactions:", error);
-    return [];
   }
 };

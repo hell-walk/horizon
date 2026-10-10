@@ -16,7 +16,7 @@ const SetuCallback = async ({ searchParams }: SearchParamProps) => {
     .map((v) => (Array.isArray(v) ? v[0] : v))
     .find(Boolean);
 
-  const result = await completeSetuConsent({ consentId, user: loggedIn });
+  const result = await completeSetuConsent({ consentId });
 
   if (result.status === "ACTIVE") redirect("/");
 

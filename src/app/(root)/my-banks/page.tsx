@@ -8,7 +8,7 @@ import BankShowcase from "@/components/bankShowcase";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import type { SpendingByAccount } from "@/components/spendingThin";
-import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { groupBySpendType } from "@/lib/spending";

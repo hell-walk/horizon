@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { ID, Query } from "node-appwrite";
 
 import { createAdminClient } from "../server/appwrite";
-import { encryptId } from "../utils";
 import { invalidate } from "../cache";
 import { MANUAL_PROVIDER } from "../providers/manual";
 import {
@@ -22,7 +21,11 @@ import {
   type StatementMapping,
   type StatementSample,
 } from "../statements/parse";
-import { createBankAccount, getLoggedInUser } from "./user.action";
+import { accountIdOf } from "../server/auth";
+import { createBankAccount } from "../server/banks";
+import { newSharableId } from "../server/crypto";
+import { allow, MINUTE } from "../server/rateLimit";
+import { getLoggedInUser } from "./user.action";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -89,9 +92,6 @@ async function rememberLayout(userId: string, signature: string, mapping: Statem
   }
 }
 
-// The signed-in user merges the auth account with the profile row, whose $id wins; prefs belong to the auth account.
-const accountIdOf = (user: { $id: string; userId?: string }) => user.userId ?? user.$id;
-
 const mappingFrom = (formData: FormData): unknown => {
   const value = formData.get("mapping");
   if (typeof value !== "string" || !value) return undefined;
@@ -108,6 +108,10 @@ const mappingFrom = (formData: FormData): unknown => {
  * detection. When none of those work, the caller gets sample rows to label.
  */
 async function readStatement(formData: FormData, userId: string): Promise<ReadOutcome> {
+  // Reading PDFs and unlocking files is heavy work; cap how often one user can ask for it.
+  if (!allow(`statement:${userId}`, 30, 10 * MINUTE)) {
+    return { ok: false, error: "Too many files in a short time. Wait a few minutes and try again." };
+  }
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
   if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 10 MB." };
@@ -192,7 +196,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
         accountId,
         accessToken: "manual",
         fundingSourceUrl: "",
-        sharableId: encryptId(accountId),
+        sharableId: newSharableId(),
         provider: MANUAL_PROVIDER,
         currency: parsed.currency,
         institutionName: institution,

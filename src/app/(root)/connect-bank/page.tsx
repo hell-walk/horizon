@@ -7,7 +7,7 @@ import ImportStatement from "@/components/importStatement";
 import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
 import HeaderBox from "@/components/ui/headerBox";
-import { getAccounts } from "@/lib/actions/bank.actions";
+import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 
 export const metadata: Metadata = {

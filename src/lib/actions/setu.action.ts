@@ -5,7 +5,11 @@ import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
 import { createAdminClient } from "../server/appwrite";
-import { encryptId, parseStringify } from "../utils";
+import { requireUser } from "../server/auth";
+import { createBankAccount } from "../server/banks";
+import { newSharableId } from "../server/crypto";
+import { allow, MINUTE } from "../server/rateLimit";
+import { parseStringify } from "../utils";
 import { invalidate } from "../cache";
 import {
   consentDataRange,
@@ -15,7 +19,6 @@ import {
   isSetuConfigured,
   SETU_PROVIDER,
 } from "../providers/setu";
-import { createBankAccount } from "./user.action";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -33,11 +36,15 @@ const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:300
  * mobile number and hand back the approval URL to redirect them to.
  */
 export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
+  const user = await requireUser().catch(() => null);
+  if (!user) return { error: "You need to be signed in." };
+  if (!allow(`setu:${user.$id}`, 5, 10 * MINUTE)) return { error: "Too many attempts. Wait a few minutes and try again." };
+
   if (!isSetuConfigured()) {
     return { error: "Setu is not configured on this server yet." };
   }
 
-  const vua = mobile.trim();
+  const vua = String(mobile ?? "").trim();
   // A bare 10-digit Indian mobile, or mobile@aa-handle.
   if (!/^\d{10}(@[a-z0-9-]+)?$/i.test(vua)) {
     return { error: "Enter a 10-digit mobile number, optionally followed by @aa-handle." };
@@ -49,14 +56,15 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
     (await cookies()).set(PENDING_CONSENT_COOKIE, consent.id, {
       path: "/",
       httpOnly: true,
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // must survive the redirect back from the AA
       maxAge: 60 * 30,
     });
 
     return parseStringify({ consentId: consent.id, url: consent.url });
   } catch (error) {
     console.error("[setu] createConsent failed", error);
-    return { error: error instanceof Error ? error.message : "Could not start the Setu consent." };
+    return { error: "Could not start the bank connection. Please try again." };
   }
 };
 
@@ -65,16 +73,16 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
  * store one bank row per linked account, and start a data session so the home
  * page has data ready.
  */
-export const completeSetuConsent = async ({
-  consentId,
-  user,
-}: {
-  consentId?: string;
-  user: User;
-}) => {
+export const completeSetuConsent = async ({ consentId }: { consentId?: string }) => {
+  const user = await requireUser().catch(() => null);
+  if (!user) return { status: "MISSING" as const, added: 0 };
+
+  // Only the consent this browser started: a consent id in the URL alone could be
+  // someone else's, and would attach their accounts to this user.
   const cookieStore = await cookies();
-  const id = consentId || cookieStore.get(PENDING_CONSENT_COOKIE)?.value;
-  if (!id) return { status: "MISSING" as const, added: 0 };
+  const pending = cookieStore.get(PENDING_CONSENT_COOKIE)?.value;
+  if (!pending || (consentId && consentId !== pending)) return { status: "MISSING" as const, added: 0 };
+  const id = pending;
 
   try {
     const consent = await getConsent(id);
@@ -112,7 +120,7 @@ export const completeSetuConsent = async ({
         accountId: account.linkRefNumber,
         accessToken: id,
         fundingSourceUrl: "",
-        sharableId: encryptId(account.linkRefNumber),
+        sharableId: newSharableId(),
         provider: SETU_PROVIDER,
         currency: "INR",
         dataSessionId,
@@ -128,24 +136,6 @@ export const completeSetuConsent = async ({
     return { status: "ACTIVE" as const, added, total: accounts.length };
   } catch (error) {
     console.error("[setu] completeSetuConsent failed", error);
-    return { status: "ERROR" as const, added: 0, error: error instanceof Error ? error.message : String(error) };
-  }
-};
-
-/** Remembers the latest data session for every bank row under a consent. */
-export const saveSetuSessionId = async ({ consentId, sessionId }: { consentId: string; sessionId: string }) => {
-  try {
-    const { database } = await createAdminClient();
-    const banks = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [
-      Query.equal("bankId", [consentId]),
-    ]);
-    await Promise.all(
-      banks.documents.map((bank) =>
-        database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bank.$id, { dataSessionId: sessionId })
-      )
-    );
-    invalidate("banks:");
-  } catch (error) {
-    console.error("[setu] could not persist the data session id", error);
+    return { status: "ERROR" as const, added: 0, error: "Could not finish linking the bank. Please try again." };
   }
 };
