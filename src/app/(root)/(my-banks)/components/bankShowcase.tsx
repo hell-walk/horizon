@@ -8,8 +8,8 @@ import { PROVIDER_LABELS } from "@/constants";
 import { formatAmount, maskLabel } from "@/lib/utils";
 
 import CardDesignPicker from "./cardDesignPicker";
-import CardStack from "./cardStack";
-import Copy from "./Copy";
+import CardStack from "@/components/cardStack";
+import Copy from "@/components/Copy";
 import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
 
 // My Banks: the card deck on the left, the selected account's details on the

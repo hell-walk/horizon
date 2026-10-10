@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "../ui/select";
 import { PROVIDER_LABELS } from "@/constants";
 import { rememberAccount } from "@/lib/selectedAccount";
 import { formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";

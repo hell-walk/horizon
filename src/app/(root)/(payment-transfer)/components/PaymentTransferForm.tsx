@@ -11,9 +11,9 @@ import { sendTransfer } from "@/lib/actions/transfer.action";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { BankDropdown } from "./BankDropdown";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "../ui/textarea";
 
 const formSchema = z.object({
   email: z.string().email("Enter a valid email address"),
