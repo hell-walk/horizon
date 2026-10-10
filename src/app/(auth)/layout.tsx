@@ -4,6 +4,7 @@ import LanguageSwitch from "@/components/languageSwitch";
 import Logo from "@/components/logo";
 import SiteFooter from "@/components/siteFooter";
 import { getT } from "@/lib/i18n/server";
+import { isTestMode } from "@/lib/server/razorpay";
 
 export default async function AuthLayout({ children }: Readonly<{ children: ReactNode }>) {
   const t = await getT();
@@ -21,10 +22,13 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
       <header className="flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line bg-surface-low px-4 py-2 sm:px-6">
         <Logo href="/sign-in" />
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-          <span className="chip">
-            <span className="dot bg-lime" />
-            {t("auth.testMode")}
-          </span>
+          {/* Only while payments run on Razorpay's test keys. */}
+          {isTestMode() && (
+            <span className="chip">
+              <span className="dot bg-lime" />
+              {t("auth.testMode")}
+            </span>
+          )}
           <LanguageSwitch />
         </div>
       </header>

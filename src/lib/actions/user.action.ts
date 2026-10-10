@@ -8,33 +8,25 @@
 // Sign-in is Supabase's job (who you are); the profile, banks and statements
 // stay in Appwrite, found by the Supabase user id.
 
-import { ID } from "node-appwrite";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
-import { isCountry, needsStateAndPostal } from "../countries";
 import { passwordProblemKey } from "../passwordRules";
 import { getT } from "../i18n/server";
 import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
-import { createAdminClient } from "../server/appwrite";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount, getUserInfo } from "../server/banks";
+import { createProfile, pendingFrom, PROFILE_FIELDS, profileIsValid, type ProfileInput } from "../server/profile";
 import { newSharableId } from "../server/crypto";
-import { addFundingSource, createDwollaCustomer } from "../server/dwolla";
+import { addFundingSource } from "../server/dwolla";
 import { allow, clientIp, isBlocked, MINUTE, record } from "../server/rateLimit";
-import { clearSessionCookies, createSupabaseAdmin, createSupabaseServerClient } from "../server/supabase";
-import { extractCustomerIdFromUrl } from "../utils";
+import { clearSessionCookies, createSupabaseServerClient } from "../server/supabase";
 import { plaidClient } from "../plaid";
 import { logError } from "../server/log";
 
-const {
-    APPWRITE_DATABASE_ID: DATABASE_ID,
-    APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
-} = process.env;
-
-export type AuthResult = { ok: true; user?: User } | { ok: false; error: string };
+export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string };
 
 // Where Supabase sends people back to (Google sign-in, password reset links).
 // From the configuration, never from the request: a forged Host header must
@@ -82,6 +74,8 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
         const supabase = await createSupabaseServerClient();
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (isRateLimited(error)) return tooMany(t);
+        // Only said after the right password, so it tells nothing to a guesser.
+        if ((error as { code?: string } | null)?.code === "email_not_confirmed") return { ok: false, error: t("auth.errorNotConfirmed") };
         if (error) throw error;
         return { ok: true };
     } catch {
@@ -92,115 +86,42 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
     }
 }
 
-const US_STATES = new Set(("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC").split(" "));
-const isUsAddress = (state: string, postalCode: string) =>
-    US_STATES.has(state.trim().toUpperCase()) && /^\d{5}(-\d{4})?$/.test(postalCode.trim());
-
-// Date of birth and SSN go to Dwolla once, to open the payments customer, and are
-// never needed again, so Horizon does not keep them.
-const NOT_KEPT = "not-kept";
-
-const PROFILE_FIELDS = ["country", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"];
-type ProfileInput = Omit<SignUpParams, "email" | "password">;
-
-/** What sign-up and "finish setting up" ask, checked the same way: true when it is fine. */
-const profileIsValid = (p: ProfileInput) => {
-    if (!isCountry(p.country)) return false;
-    if (p.firstName.trim().length < 2 || p.lastName.trim().length < 2 || p.address1.trim().length < 3 || p.city.trim().length < 2) return false;
-    // The US payment partner needs a US address, date of birth and SSN; nobody else is asked.
-    if (needsStateAndPostal(p.country) && (p.state.trim().length < 2 || !/^[A-Za-z0-9 -]{3,10}$/.test(p.postalCode.trim()))) return false;
-    if (p.country === "US" && (!isUsAddress(p.state, p.postalCode) || !/^\d{4}-\d{2}-\d{2}$/.test(p.dateOfBirth) || p.ssn.trim().length < 4)) return false;
-    return true;
-};
-
-/** Creates the Appwrite profile for a Supabase login. Returns the profile row's id. */
-const createProfile = async (authId: string, email: string, p: ProfileInput) => {
-    // Dwolla (US transfers) only accepts US addresses. Everyone else signs up
-    // without a Dwolla customer: they can still link banks and import
-    // statements, only transfers stay unavailable.
-    const dwolla: { dwollaCustomerId?: string; dwollaCustomerUrl?: string } = {};
-    if (p.country === "US") {
-        try {
-            const dwollaCustomerUrl = await createDwollaCustomer({ ...p, email, type: 'personal' });
-            if (dwollaCustomerUrl) {
-                dwolla.dwollaCustomerUrl = dwollaCustomerUrl;
-                dwolla.dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
-            }
-        } catch {
-            console.warn('Dwolla customer not created; continuing without transfers');
-        }
-    }
-
-    const { database } = await createAdminClient();
-    const row = await database.createDocument(DATABASE_ID!, USER_COLLECTION_ID!, ID.unique(), {
-        address1: p.address1.trim(),
-        city: p.city.trim(),
-        state: p.state.trim(),
-        postalCode: p.postalCode.trim(),
-        email,
-        firstName: p.firstName.trim(),
-        lastName: p.lastName.trim(),
-        dateOfBirth: NOT_KEPT,
-        ssn: NOT_KEPT,
-        userId: authId,
-        // The person's settings start with their country (see server/prefs.ts).
-        prefs: JSON.stringify({ country: p.country }),
-        ...dwolla,
-    });
-    return row.$id;
-};
-
+/**
+ * Sign-up. Nothing is usable yet: Supabase emails a link, and only a confirmed
+ * login gets a Horizon profile (on /welcome). Otherwise someone could sign up
+ * with another person's email, and when that person later used "Continue with
+ * Google", Supabase would join the two and let the first one in. The details
+ * typed here wait on the login meanwhile (never the date of birth or SSN: the
+ * US partner's questions are asked after confirming).
+ */
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     const t = await getT();
     if (!strings(userData, ["email", "password", ...PROFILE_FIELDS], 256)) return badInput(t);
     const { email, password, firstName, lastName } = userData;
-    if (!profileIsValid(userData)) return badInput(t);
+    if (!profileIsValid(userData, { identity: false })) return badInput(t);
     const weak = passwordProblem(password, email, t);
     if (weak) return { ok: false, error: weak };
     if (!(await allowAuthAttempt(email))) return tooMany(t);
-    // Each sign-up creates real accounts (Supabase, Appwrite, maybe Dwolla): a tighter cap per network.
+    // Each sign-up sends an email: a tighter cap per network.
     if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
 
-    let authId: string | undefined;
-    let profileId: string | undefined;
     try {
-        // Created as already confirmed: Horizon does not send a confirmation email.
-        const admin = createSupabaseAdmin();
-        const { data, error } = await admin.auth.admin.createUser({
+        const supabase = await createSupabaseServerClient();
+        const { error } = await supabase.auth.signUp({
             email: email.trim(),
             password,
-            email_confirm: true,
-            user_metadata: { full_name: `${firstName.trim()} ${lastName.trim()}` },
+            options: {
+                emailRedirectTo: `${siteUrl()}/auth/callback`,
+                data: { full_name: `${firstName.trim()} ${lastName.trim()}`, pending_profile: pendingFrom(userData), terms_accepted_at: new Date().toISOString() },
+            },
         });
-        if (error || !data.user) throw error ?? new Error("Supabase returned no user");
-        authId = data.user.id;
-
-        profileId = await createProfile(authId, email.trim(), userData);
-
-        const supabase = await createSupabaseServerClient();
-        const signedIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (signedIn.error) throw signedIn.error;
-
-        return { ok: true, user: { $id: profileId, userId: authId, email: email.trim(), firstName, lastName, name: `${firstName} ${lastName}` } as User };
+        if (isRateLimited(error)) return tooMany(t);
+        if (error) throw error;
+        // The same answer when the email already has an account (Supabase then
+        // sends nothing): the reply never tells whether an email is registered.
+        return { ok: true, checkEmail: true };
     } catch (error) {
-        logError("sign-up failed", error)
-
-        // Roll back what was made, so a failed sign-up can be retried with the same email.
-        if (profileId) {
-            try {
-                const { database } = await createAdminClient();
-                await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profileId);
-            } catch (cleanupError) {
-                logError('Could not remove the partially created profile', cleanupError);
-            }
-        }
-        if (authId) {
-            try {
-                await createSupabaseAdmin().auth.admin.deleteUser(authId);
-            } catch (cleanupError) {
-                logError('Could not remove the partially created user', cleanupError);
-            }
-        }
+        logError("sign-up failed", error);
         return { ok: false, error: t("auth.errorSignUp") };
     }
 }
@@ -228,14 +149,14 @@ export const signInWithGoogle = async (): Promise<{ ok: true; url: string } | { 
 }
 
 /**
- * "Finish setting up": signed in (with Google) but no Horizon profile yet. Asks
- * what sign-up asks, minus the email and password Google already settled.
+ * "Finish setting up": a confirmed login (Google, or a US sign-up that still
+ * owes the payment partner's questions) with no Horizon profile yet.
  */
 export const completeProfile = async (input: ProfileInput & { terms: boolean }): Promise<AuthResult> => {
     const t = await getT();
     const session = await loadSession();
     if (!session) return { ok: false, error: t("auth.errorSignIn") };
-    if (!strings(input, PROFILE_FIELDS, 256) || input.terms !== true || !profileIsValid(input)) return badInput(t);
+    if (!strings(input, PROFILE_FIELDS, 256) || input.terms !== true || !profileIsValid(input, { identity: true })) return badInput(t);
     if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
     // One profile per login, even when the form is sent twice.
     if (!(await allow(`welcome:${session.id}`, 1, MINUTE))) return tooMany(t);

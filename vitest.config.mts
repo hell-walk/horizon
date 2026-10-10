@@ -21,7 +21,10 @@ export default defineConfig({
           name: "unit",
           include: ["tests/unit/**/*.test.ts"],
           setupFiles: ["tests/setup.ts"],
-          testTimeout: 30_000,
+          // Reading real PDF and Excel statements takes seconds, and over a minute
+          // on a busy machine (a build or server running alongside): generous, so
+          // only a real hang fails.
+          testTimeout: 180_000,
         },
       },
       {

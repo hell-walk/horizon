@@ -208,7 +208,7 @@ export const authFormSchema = (type: string, t: Translate) => {
       if ((needsStateAndPostal(country) || postal) && !/^[A-Za-z0-9 -]{3,10}$/.test(postal)) {
         ctx.addIssue({ code: "custom", path: ["postalCode"], message: t("auth.errorPostalCode") });
       }
-      if (needsUsIdentity(country)) {
+      if (welcome && needsUsIdentity(country)) {
         const dob = data.dob ?? "";
         if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) ctx.addIssue({ code: "custom", path: ["dob"], message: t("auth.errorDobFormat") });
         else if (Number.isNaN(Date.parse(dob)) || new Date(dob) >= new Date()) ctx.addIssue({ code: "custom", path: ["dob"], message: t("auth.errorDobPast") });

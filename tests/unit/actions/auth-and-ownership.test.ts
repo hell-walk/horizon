@@ -24,6 +24,8 @@ const state = vi.hoisted(() => {
     oauth: [] as Record<string, unknown>[],
     resets: [] as { email: string; options: Record<string, unknown> }[],
     passwordUpdates: [] as string[],
+    signUps: [] as { email: string; password: string; options: { emailRedirectTo: string; data: Record<string, unknown> } }[],
+    notConfirmed: false,
   };
 });
 
@@ -49,12 +51,17 @@ vi.mock("@supabase/ssr", () => ({
       signInWithPassword: async () => {
         state.sessionCalls++;
         if (!state.passwordOk) return { data: {}, error: Object.assign(new Error("Invalid login credentials"), { status: 400 }) };
+        if (state.notConfirmed) return { data: {}, error: Object.assign(new Error("Email not confirmed"), { status: 400, code: "email_not_confirmed" }) };
         options.cookies.setAll([{ name: "horizon-session", value: "base64-token", options: { path: "/", sameSite: "lax", httpOnly: false, maxAge: 400 * 86400 } }], {});
         return { data: { session: {} }, error: null };
       },
       signOut: async () => {
         options.cookies.setAll([{ name: "horizon-session", value: "", options: { path: "/", maxAge: 0 } }], {});
         return { error: null };
+      },
+      signUp: async (args: (typeof state.signUps)[number]) => {
+        state.signUps.push(args);
+        return { data: { user: { id: "auth-pending" }, session: null }, error: null };
       },
       signInWithOAuth: async (args: Record<string, unknown>) => {
         state.oauth.push(args);
@@ -84,6 +91,7 @@ vi.mock("@supabase/supabase-js", () => ({
           return { data: {}, error: null };
         },
         signOut: async () => ({ error: null }),
+        updateUserById: async () => ({ data: {}, error: null }),
       },
     },
   }),
@@ -171,6 +179,8 @@ beforeEach(() => {
   state.oauth = [];
   state.resets = [];
   state.passwordUpdates = [];
+  state.signUps = [];
+  state.notConfirmed = false;
 });
 
 describe("signIn", () => {
@@ -237,39 +247,40 @@ describe("signIn", () => {
 });
 
 describe("signUp", () => {
-  it("does not store the SSN or date of birth and returns no personal data", async () => {
-    const result = await userActions.signUp({
-      country: "IN",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      address1: "1 Main St",
-      city: "Pune",
-      state: "MH",
-      postalCode: "411001",
-      dateOfBirth: "1990-01-01",
-      ssn: "123456789",
-      email: `new-${Math.random()}@example.com`,
-      password: "Str0ng!Passw0rd",
-    });
-    expect(result.ok).toBe(true);
-    const profile = state.created.find((d) => "firstName" in d)!;
-    expect(profile.ssn).toBe("not-kept");
-    expect(profile.dateOfBirth).toBe("not-kept");
-    expect(profile.userId).toBe("auth-new"); // linked to the Supabase login
-    expect(JSON.stringify(result)).not.toMatch(/123456789|1990-01-01|1 Main St/);
-    // Created as confirmed: Horizon sends no confirmation email.
-    expect(state.newLogins.at(-1)).toMatchObject({ email_confirm: true });
+  const details = {
+    country: "IN",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    address1: "1 Main St",
+    city: "Pune",
+    state: "MH",
+    postalCode: "411001",
+    dateOfBirth: "1990-01-01",
+    ssn: "123456789",
+    password: "Str0ng!Passw0rd",
+  };
+
+  it("only sends a confirmation email: no session, no profile, nothing usable until the link is opened", async () => {
+    const email = `new-${Math.random()}@example.com`;
+    expect(await userActions.signUp({ ...details, email })).toEqual({ ok: true, checkEmail: true });
+    expect(state.created).toEqual([]); // the profile comes after confirming (/welcome)
+    expect(state.newLogins).toEqual([]); // never created as already confirmed
+    expect(state.cookies.has("horizon-session")).toBe(false);
+    expect(state.signUps.at(-1)).toMatchObject({ email, options: { emailRedirectTo: "https://horizon.test/auth/callback" } });
   });
 
-  it("rolls back the login when the profile cannot be saved, so the email can try again", async () => {
-    state.failProfile = true;
-    const result = await userActions.signUp({
-      country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001",
-      dateOfBirth: "", ssn: "", email: `rollback-${Math.random()}@example.com`, password: "Str0ng!Passw0rd",
-    });
-    expect(result).toMatchObject({ ok: false });
-    expect(state.deletedLogins).toEqual(["auth-new"]);
-    expect(state.cookies.has("horizon-session")).toBe(false);
+  it("keeps the typed details on the login meanwhile, but never the date of birth or SSN", async () => {
+    await userActions.signUp({ ...details, email: `new-${Math.random()}@example.com` });
+    const data = state.signUps.at(-1)!.options.data;
+    expect(data.pending_profile).toEqual({ country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001" });
+    expect(data.terms_accepted_at).toEqual(expect.any(String));
+    expect(JSON.stringify(data)).not.toMatch(/123456789|1990-01-01/);
+  });
+
+  it("an unconfirmed account gets its own message after the right password, and it is not counted as a guess", async () => {
+    state.notConfirmed = true;
+    const email = `pending-${Math.random()}@example.com`;
+    for (let i = 0; i < 9; i++) expect(await userActions.signIn({ email, password: "right" })).toEqual({ ok: false, error: expect.stringMatching(/Confirm your email/) });
   });
 });
 
@@ -293,7 +304,7 @@ describe("sign-up by country", () => {
     vi.mocked(createDwollaCustomer).mockClear();
     expect(await userActions.signUp(person({ country: "IN", state: "MH", postalCode: "411001" }))).toMatchObject({ ok: true });
     expect(createDwollaCustomer).not.toHaveBeenCalled();
-    expect(JSON.parse(String(state.created.at(-1)?.prefs))).toEqual({ country: "IN" });
+    expect(state.signUps.at(-1)?.options.data.pending_profile).toMatchObject({ country: "IN" });
   });
 
   it("UK: no region needed, a postal code if given", async () => {
@@ -306,12 +317,15 @@ describe("sign-up by country", () => {
     expect(await userActions.signUp(person({ country: "IN" }))).toMatchObject({ ok: false });
   });
 
-  it("US: a US address, date of birth and SSN, all three", async () => {
+  it("US: a US address at sign-up; date of birth and SSN only when the profile is made", async () => {
     const us = { country: "US", state: "NY", postalCode: "10001" };
-    expect(await userActions.signUp(person(us))).toMatchObject({ ok: false }); // no SSN or date of birth
-    expect(await userActions.signUp(person({ ...us, dateOfBirth: "1990-01-01" }))).toMatchObject({ ok: false });
-    expect(await userActions.signUp(person({ ...us, state: "MH", postalCode: "411001", dateOfBirth: "1990-01-01", ssn: "1234" }))).toMatchObject({ ok: false });
-    expect(await userActions.signUp(person({ ...us, dateOfBirth: "1990-01-01", ssn: "1234" }))).toMatchObject({ ok: true });
+    expect(await userActions.signUp(person({ ...us, state: "MH", postalCode: "411001" }))).toMatchObject({ ok: false });
+    expect(await userActions.signUp(person(us))).toMatchObject({ ok: true });
+    const finish = { country: "US", firstName: "Ada", lastName: "Lovelace", address1: "1 Main Street", city: "Town", state: "NY", postalCode: "10001", terms: true };
+    state.sessionUser = login(`auth-us-${++fresh}`, "us@example.com");
+    expect(await userActions.completeProfile({ ...finish, dateOfBirth: "", ssn: "" })).toMatchObject({ ok: false });
+    expect(await userActions.completeProfile({ ...finish, dateOfBirth: "1990-01-01", ssn: "1234" })).toMatchObject({ ok: true });
+    expect(state.created.at(-1)).toMatchObject({ ssn: "not-kept", dateOfBirth: "not-kept" });
   });
 
   it("refuses a country that does not exist, or none", async () => {

@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -50,6 +51,8 @@ export default async function PrivacyPage() {
           <li>
             <strong>Your account:</strong> name, email address, the country you live in, postal address and a
             password. Your password is held by our sign-in provider, Supabase, in hashed form; we cannot read it.
+            Until you confirm your email address, the details you typed when signing up wait with Supabase; once
+            you confirm, they move to your profile and Supabase&apos;s copy is removed.
           </li>
           <li>
             <strong>Signing in with Google:</strong> if you choose it, Google tells us your name and email
@@ -207,7 +210,7 @@ export default async function PrivacyPage() {
         <h2>Contact</h2>
         <p>
           Questions, requests and complaints about your data go to{" "}
-          <a href="mailto:support@horizon.app">support@horizon.app</a>.
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </div>
     </>

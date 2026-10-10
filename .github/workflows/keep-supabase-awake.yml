@@ -1,0 +1,34 @@
+# Free Supabase projects pause after a week without use, and a paused project
+# means nobody can sign in. This touches it every three days, for free.
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL, SUPABASE_ANON_KEY   (never the service role key)
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 6 */3 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Touch Supabase sign-in and its database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Add SUPABASE_URL and SUPABASE_ANON_KEY as repository secrets."; exit 1
+          fi
+          curl -fsS -o /dev/null -w "health %{http_code}\n" "$SUPABASE_URL/auth/v1/health" -H "apikey: $SUPABASE_ANON_KEY"
+          # A sign-in for an address that cannot exist: Supabase looks it up in its
+          # database (that is the activity that counts) and answers "invalid".
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" \
+            -d '{"email":"keep-awake@example.invalid","password":"not-a-real-account"}')
+          echo "lookup $code"
+          [ "$code" = "400" ] || [ "$code" = "422" ] || exit 1

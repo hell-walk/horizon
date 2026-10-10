@@ -61,12 +61,14 @@ const GoogleMark = () => (
  * the profile; `email` is the Google account's). `notice`: a message to show
  * first, e.g. when coming back from Google did not work.
  */
-const AuthForm = ({ type, email, notice }: { type: string; email?: string; notice?: string }) => {
+const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: string; notice?: string; defaults?: Partial<Record<string, string>> }) => {
   const t = useT();
   const locale = useLocale();
   const countries = useMemo(() => countryList(LOCALE_TAGS[locale]), [locale]);
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  // After sign-up: the address the confirmation link went to.
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(notice ?? null);
   const [googleBusy, setGoogleBusy] = useState(false);
@@ -82,13 +84,13 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
       password: "",
       confirmPassword: "",
       terms: false,
-      country: "",
-      firstName: "",
-      lastName: "",
-      address1: "",
-      city: "",
-      state: "",
-      postalCode: "",
+      country: defaults?.country ?? "",
+      firstName: defaults?.firstName ?? "",
+      lastName: defaults?.lastName ?? "",
+      address1: defaults?.address1 ?? "",
+      city: defaults?.city ?? "",
+      state: defaults?.state ?? "",
+      postalCode: defaults?.postalCode ?? "",
       dob: "",
       ssn: "",
     },
@@ -97,7 +99,8 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
   const password = form.watch("password") ?? "";
   const typedEmail = form.watch("email") ?? "";
   const country = form.watch("country") ?? "";
-  const usIdentity = needsUsIdentity(country);
+  // The US partner's questions come after the email is confirmed, on the welcome step.
+  const usIdentity = needsUsIdentity(country) && isWelcome;
   const regionRequired = needsStateAndPostal(country);
   const strength = strengthOf(password);
 
@@ -135,15 +138,15 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
           city: data.city!,
           state: data.state ?? "",
           postalCode: data.postalCode ?? "",
-          // Only the US payment partner needs these; nobody else is asked, or sends them.
-          dateOfBirth: needsUsIdentity(data.country ?? "") ? (data.dob ?? "") : "",
-          ssn: needsUsIdentity(data.country ?? "") ? (data.ssn ?? "") : "",
+          // Asked after the email is confirmed (welcome step), never at sign-up.
+          dateOfBirth: "",
+          ssn: "",
           email: data.email!,
           password: data.password!,
         });
 
         if (!newUser.ok) setErrorMessage(newUser.error);
-        else setUser(newUser.user ?? null);
+        else setSentTo(data.email!.trim());
       } else {
         const response = await signIn({ email: data.email!, password: data.password! });
         if (response.ok) router.push("/");
@@ -210,15 +213,33 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
     />
   );
 
-  const eyebrow = user ? "auth.eyebrowNextStep" : isWelcome ? "auth.eyebrowWelcome" : isSignUp ? "auth.eyebrowSignUp" : "auth.eyebrowSignIn";
-  const heading = user ? "auth.headingAddBank" : isWelcome ? "auth.headingWelcome" : isSignUp ? "auth.headingSignUp" : "auth.headingSignIn";
-  const intro = user
-    ? t("auth.introAddBank")
-    : isWelcome
-      ? t("auth.introWelcome", { email: email ?? "" })
-      : isSignUp
-        ? t("auth.introSignUp")
-        : t("auth.introSignIn");
+  const eyebrow = sentTo
+    ? "auth.eyebrowCheckEmail"
+    : user
+      ? "auth.eyebrowNextStep"
+      : isWelcome
+        ? "auth.eyebrowWelcome"
+        : isSignUp
+          ? "auth.eyebrowSignUp"
+          : "auth.eyebrowSignIn";
+  const heading = sentTo
+    ? "auth.headingCheckEmail"
+    : user
+      ? "auth.headingAddBank"
+      : isWelcome
+        ? "auth.headingWelcome"
+        : isSignUp
+          ? "auth.headingSignUp"
+          : "auth.headingSignIn";
+  const intro = sentTo
+    ? t("auth.introCheckEmail", { email: sentTo })
+    : user
+      ? t("auth.introAddBank")
+      : isWelcome
+        ? t("auth.introWelcome", { email: email ?? "" })
+        : isSignUp
+          ? t("auth.introSignUp")
+          : t("auth.introSignIn");
   const submitLabel = isWelcome ? t("auth.finishButton") : isSignUp ? t("auth.createAccountButton") : t("auth.signInButton");
 
   return (
@@ -229,7 +250,16 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
         <p className="text-14 text-ink-muted">{intro}</p>
       </header>
 
-      {user ? (
+      {sentTo ? (
+        <div className="flex flex-col gap-3">
+          <p className="rounded-md border border-line bg-surface-low px-4 py-3 text-14 text-ink" role="status">
+            {t("auth.checkEmailHelp")}
+          </p>
+          <Link href="/sign-in" className="btn-ghost">
+            {t("auth.backToSignIn")} <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      ) : user ? (
         <div className="flex flex-col gap-3">
           <PlaidLink user={user} variant="primary" />
           <SetuLink user={user} variant="primary" />
@@ -322,6 +352,7 @@ const AuthForm = ({ type, email, notice }: { type: string; email?: string; notic
                           placeholder={t("auth.lastNamePlaceholder")}
                           autoComplete="family-name"
                         />
+                        {isSignUp && needsUsIdentity(country) && <p className="text-13 text-ink-muted sm:col-span-2">{t("auth.usLaterNote")}</p>}
                         {usIdentity && (
                           <>
                             <p className="text-13 text-ink-muted sm:col-span-2">{t("auth.usOnlyNote")}</p>
