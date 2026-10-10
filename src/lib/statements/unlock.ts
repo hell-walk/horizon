@@ -113,6 +113,9 @@ export async function parsePdfRows(buffer: Buffer, password?: string): Promise<C
     data: new Uint8Array(buffer),
     password,
     useSystemFonts: true,
+    // Errors only: pdf.js warnings quote raw bytes from the file, which would put
+    // pieces of someone's statement into the server logs.
+    verbosity: 0,
   });
 
   let doc;

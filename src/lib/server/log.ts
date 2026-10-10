@@ -5,17 +5,9 @@ import "server-only";
 // with access tokens. So only a short summary is ever logged, and even that
 // is scrubbed of anything that looks like a token, account number or email.
 
-const SCRUB: [RegExp, string][] = [
-  [/\b(access|public|processor|link)-(sandbox|development|production)-[0-9a-f-]+/gi, "$1-<token>"],
-  [/enc:v1:[\w-]+/g, "<sealed>"],
-  [/\b(secret|password|passwd|token|authorization|api[-_]?key|client[-_]?id)\b(["']?\s*[:=]\s*["']?)[^\s"',}&]+/gi, "$1$2<redacted>"],
-  [/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, "<email>"],
-  [/\b\d{9,18}\b/g, "<number>"], // account and card numbers
-];
+import { redact } from "../scrub";
 
-export function redact(text: string): string {
-  return SCRUB.reduce((out, [pattern, replacement]) => out.replace(pattern, replacement), text);
-}
+export { redact };
 
 type ErrorLike = {
   name?: string;

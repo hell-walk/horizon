@@ -1,9 +1,15 @@
 // What someone without an account can reach.
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { actionIds, BASE, callAction, callFormAction, getPage, serverIsUp } from "./client";
+import { actionIds, allowSkip, BASE, callAction, callFormAction, getPage, serverIsUp } from "./client";
 
 const up = await serverIsUp();
+
+describe("security test environment", () => {
+  it(`a production build of Horizon answers at ${BASE}`, () => {
+    if (!allowSkip) expect(up, "Start one with: npm run build && npx next start -p 3100").toBe(true);
+  });
+});
 
 describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   let signInPage: Awaited<ReturnType<typeof getPage>>;
@@ -99,15 +105,20 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       expect(raw).not.toMatch(/"ok":/);
     });
 
-    it("rejects a forged Host/X-Forwarded-Host pairing", async () => {
-      const { status } = await callAction("signIn", [{ email: "x@example.com", password: "x" }], {
-        origin: "https://evil.example",
-        headers: { "X-Forwarded-Host": "evil.example" },
+    // Next.js compares Origin with X-Forwarded-Host. Only a proxy in front of the
+    // app can stop a client from choosing that header, so this check means
+    // something only behind one (staging or production): set HORIZON_BEHIND_PROXY=1.
+    // Locally there is no proxy and the header is the client's own.
+    if (process.env.HORIZON_BEHIND_PROXY === "1") {
+      it("rejects a forged Origin even with a matching forged X-Forwarded-Host", async () => {
+        const { status, raw } = await callAction("signIn", [{ email: "x@example.com", password: "x" }], {
+          origin: "https://evil.example",
+          headers: { "X-Forwarded-Host": "evil.example" },
+        });
+        expect(status).toBeGreaterThanOrEqual(400);
+        expect(raw).not.toMatch(/"ok":/);
       });
-      // Next compares Origin with the forwarded host; with no trusted proxy configured this may pass,
-      // so the deployment must strip client-sent X-Forwarded-Host. Recorded either way.
-      expect([200, 403, 500]).toContain(status);
-    });
+    }
   });
 
   describe("brute force", () => {

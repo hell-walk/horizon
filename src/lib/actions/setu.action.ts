@@ -7,7 +7,7 @@ import { Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";
 import { ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
-import { newSharableId } from "../server/crypto";
+import { newSharableId, openSealed, sealSecret } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
 import { parseStringify } from "../utils";
 import { invalidate } from "../cache";
@@ -29,6 +29,20 @@ const {
 // Remembers which consent the user started, in case Setu's redirect back does not
 // carry the consent id in the query string.
 const PENDING_CONSENT_COOKIE = "setu-consent";
+
+// The cookie holds who started the consent as well as which one, sealed so it can
+// be neither read nor forged: on a shared browser, the next person to sign in
+// must not be able to finish someone else's consent and get their accounts.
+const pendingValue = (ownerId: string, consentId: string) => sealSecret(JSON.stringify({ ownerId, consentId }));
+const readPending = (value: string | undefined): { ownerId: string; consentId: string } | null => {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(openSealed(value)); // a hand-made, unsealed cookie is refused
+    return typeof parsed?.ownerId === "string" && typeof parsed?.consentId === "string" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
 
 const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -54,7 +68,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
   try {
     const consent = await createConsent({ mobile: vua, redirectUrl: `${siteUrl()}/setu/callback` });
 
-    (await cookies()).set(PENDING_CONSENT_COOKIE, consent.id, {
+    (await cookies()).set(PENDING_CONSENT_COOKIE, pendingValue(ownerIdOf(user), consent.id), {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -77,13 +91,16 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
 export const completeSetuConsent = async ({ consentId }: { consentId?: string }) => {
   const user = await requireUser().catch(() => null);
   if (!user) return { status: "MISSING" as const, added: 0 };
+  if (!allow(`setu:complete:${ownerIdOf(user)}`, 20, 10 * MINUTE)) return { status: "MISSING" as const, added: 0 };
 
-  // Only the consent this browser started: a consent id in the URL alone could be
-  // someone else's, and would attach their accounts to this user.
+  // Only the consent this user started in this browser: a consent id in the URL
+  // alone could be someone else's, and would attach their accounts to this user.
   const cookieStore = await cookies();
-  const pending = cookieStore.get(PENDING_CONSENT_COOKIE)?.value;
-  if (!pending || (consentId && consentId !== pending)) return { status: "MISSING" as const, added: 0 };
-  const id = pending;
+  const pending = readPending(cookieStore.get(PENDING_CONSENT_COOKIE)?.value);
+  if (!pending || pending.ownerId !== ownerIdOf(user) || (consentId && consentId !== pending.consentId)) {
+    return { status: "MISSING" as const, added: 0 };
+  }
+  const id = pending.consentId;
 
   try {
     const consent = await getConsent(id);

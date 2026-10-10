@@ -6,8 +6,10 @@
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and integration (Vitest) | `npm test` | **233 / 233 pass** · 71% statement coverage of `src/lib` |
-| Security, black-box | `npm run test:security` | **71 / 71 pass** |
+| Unit and integration (Vitest) | `npm test` | **275 / 275 pass**, including about 2,000 fuzzed statement files per run |
+| Security, black-box | `npm run test:security` | **72 / 72 pass, 0 skipped** (the runner fails on any skip or a short count; results kept in `reports/security-results.json`) |
+| Secret scan | `node scripts/scan-secrets.mjs` | **Clean**: 265 tracked files and all 74 commits; no `.env` secret value appears anywhere. Two warnings: Plaid *sandbox* tokens from the tutorial's sample data in commits `23d35e36`/`ae25aaa4` (removed since; useless without that sandbox's client secret). |
+| Dependency audit | `npm audit` | 11 findings (7 high, 4 moderate), all in build tooling (Tailwind 3's watcher, ESLint config) or `exceljs`'s `uuid`; none reachable from requests. Cleared by the Tailwind 4 upgrade. |
 
 The security suite attacks the running app the way an outsider would: raw HTTP, server actions called by id with no UI, forged headers and cookies, hostile files, a second account going after the first one's data, and direct calls to Appwrite with a user's own session. See `tests/security/README.md` to run it.
 
@@ -23,6 +25,18 @@ The security suite attacks the running app the way an outsider would: raw HTTP, 
 | 6 | Low | The column-mapping validator read inherited (prototype) properties. Not reachable through `JSON.parse`, but relied on that. | Own keys only, and the action passes on a clean copy (`cleanMapping`). |
 | 7 | Low | `src/lib/server/selectedAccount.ts` was not marked server-only. | Marked; covered by the structure test. |
 | 8 | Low | `signIn`/`signUp` called with a non-object crashed with a TypeError (no data leaked, the client saw only a digest). | Both check the input shape and length first. |
+
+### Second round (after two external code reviews)
+
+| # | Severity | Finding | Fix |
+|---|---|---|---|
+| 9 | Medium | **Setu consent was bound to the browser, not the user.** On a shared browser, a second person signing in could finish the first person's pending consent and get their accounts. (Setu is not enabled yet, so not exploitable today.) | The pending cookie now holds the owner and consent, sealed with AES-256-GCM; completion requires the same user; hand-made or unsealed cookies are refused; sign-out clears it. |
+| 10 | Medium | **Sentry 11 collects request bodies, cookies, headers and query strings by default.** A failing sign-in request would carry the password to Sentry. | `dataCollection` turned off explicitly in browser, server and edge configs; every event goes through `scrubEvent` (drops request data, masks tokens/emails/account numbers); replay masks all text and inputs and records no network bodies. |
+| 11 | Medium | **pdf.js wrote raw bytes from uploaded PDFs to the server console** in its warnings (found by fuzzing), bypassing the redacting logger. | pdf.js runs with `verbosity: 0` (errors only). |
+| 12 | Medium | **The security suite skipped silently** when the server or the test accounts were missing, so a run could look green without testing anything; one proxy-header test accepted any status. | Missing server or accounts now fail; `npm run test:security` fails on any skipped test or fewer than 72; the forged `X-Forwarded-Host` test exists only behind a real proxy (`HORIZON_BEHIND_PROXY=1`) and must reject there. |
+| 13 | Low | Actions that call paid providers had no limits: `createLinkToken`, `exchangePublicToken`, `completeSetuConsent`, `setCardDesign`. | 20, 10, 20 and 60 per user per 10 minutes. |
+| 14 | Low | Damaged PDF/Excel files made the libraries throw TypeErrors and raw strings (fuzzing: 2,000 mutations per run). Caught by the action, but unclear to the user. | Any reader failure becomes one clear "file could not be read" message. |
+| 15 | Low | The password rule (8+ characters) lived only in the form. | Enforced on the server: 8 to 128 characters, not a common password, not built from the email. |
 
 ## What held up
 
@@ -45,7 +59,9 @@ The security suite attacks the running app the way an outsider would: raw HTTP, 
 | Account lockout | Anyone who knows an email can lock its sign-in for 10 minutes with 8 wrong passwords. | Accepted trade-off for now; a password-reset flow or per-IP lockout keys would soften it. |
 | Proxy headers | Origin checking and client IPs rely on `X-Forwarded-Host` / `X-Forwarded-For` set by a trusted proxy. Locally a client can send its own. | Deploy behind a proxy that overwrites both (Vercel, Netlify, Render and nginx do); set `TRUSTED_PROXY_HOPS`. |
 | CSP allows inline scripts | Needed by Next.js without per-request nonces. | Nonce-based CSP when it is worth making every page dynamic. |
-| Old rows | Bank tokens stored before encryption, and SSN/date of birth from sign-ups before 10 Oct 2026, are still in Appwrite. | One-time migration (waiting on approval). |
+| Old rows | Dry run of `scripts/migrate-legacy-secrets.mjs`: **8 of 13** bank tokens are still plain text, 8 sharable ids are old-style, and **5 of 5** profiles still hold an SSN or date of birth. | Run with `--apply` (writes a sealed backup first, then verifies). Waiting on approval. |
+| Setu | Code is present but switched off: it needs three credentials that are not in `.env`. | Keep the credentials out of production until Setu is ready; the consent flow is already user-bound. |
+| Not built yet | Multi-factor sign-in; a password-reset flow; formal compliance work (PCI DSS, GDPR, SOC 2). | Appwrite supports TOTP MFA; compliance is a separate exercise from testing. |
 | Not tested | Real Plaid/Dwolla transfers end to end; Setu with a live consent; load beyond a single user. | Sandbox end-to-end run before launch. |
 
 ## Test data left behind

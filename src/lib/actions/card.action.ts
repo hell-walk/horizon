@@ -6,6 +6,7 @@ import { invalidate } from "../cache";
 import { isKnownDesign } from "../cardDesigns";
 import { createAdminClient } from "../server/appwrite";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
+import { allow, MINUTE } from "../server/rateLimit";
 import { logError } from "../server/log";
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID } = process.env;
@@ -16,6 +17,7 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
 
   const user = await getLoggedInUser();
   if (!user) return { ok: false as const, error: "You need to be signed in." };
+  if (!allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false as const, error: "Too many changes. Wait a few minutes and try again." };
 
   try {
     const { database } = await createAdminClient();

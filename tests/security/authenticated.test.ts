@@ -5,9 +5,15 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { sampleStatement, readStatementRows } from "@/lib/statements/parse";
 
 import { longPdf, zipBomb } from "../helpers/files";
-import { accounts, BASE, callAction, callFormAction, getPage, haveAccounts, localEnv, serverIsUp, signIn } from "./client";
+import { accounts, allowSkip, BASE, callAction, callFormAction, getPage, haveAccounts, localEnv, serverIsUp, signIn } from "./client";
 
 const up = await serverIsUp();
+
+describe("security test accounts", () => {
+  it("two throwaway accounts are configured", () => {
+    if (!allowSkip) expect(haveAccounts, "Set HORIZON_TEST_EMAIL/_PASSWORD and HORIZON_TEST_EMAIL_2/_PASSWORD_2").toBe(true);
+  });
+});
 
 // B's statement: fixed content, so re-runs reuse the same bank and rows.
 const VICTIM_BANK = "Victim Test Bank";
