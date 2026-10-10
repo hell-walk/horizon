@@ -75,5 +75,17 @@
   "searchButton": "खोजें",
   "searchClear": "खोज हटाएँ",
   "searchFound_one": "\"{query}\" के लिए {count} एंट्री मिली।",
-  "searchFound_other": "\"{query}\" के लिए {count} एंट्री मिलीं।"
+  "searchFound_other": "\"{query}\" के लिए {count} एंट्री मिलीं।",
+  "monthTitle": "महीने-दर-महीने",
+  "monthHint": "हर महीने कितना पैसा आया, कितना गया और कितना बचा। अपने ही खातों के बीच भेजा गया पैसा इसमें नहीं गिना गया है।",
+  "monthIn": "आया",
+  "monthOut": "गया",
+  "monthLeft": "बचा",
+  "monthOverspent": "आमदनी से ज़्यादा खर्च",
+  "monthTop": "सबसे ज़्यादा खर्च:",
+  "monthEmpty": "इस महीने की कोई एंट्री नहीं। क्या कोई स्टेटमेंट छूट गया है?",
+  "monthSoFar": "अब तक",
+  "monthFrom": "सिर्फ़ {date} से",
+  "monthOlder_one": "{count} पुराना महीना देखें",
+  "monthOlder_other": "{count} पुराने महीने देखें"
 }

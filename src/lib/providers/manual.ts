@@ -35,17 +35,30 @@ export function toManualAccount(bank: Bank): Account {
   };
 }
 
-/** Imported transactions for one manual bank, newest first, cached briefly. */
+// Read in pages of this size, up to a ceiling no real account comes near
+// (ten years of a busy account is around 20,000 entries).
+const PAGE = 1000;
+const MAX_ENTRIES = 50_000;
+
+/** Every imported transaction for one manual bank, newest first, cached briefly. */
 export const getStatementTransactions = (bank: Bank) =>
   cached(`statement:${bank.$id}`, TTL.short, async () => {
     const { database } = await createAdminClient();
-    const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
-      Query.equal("bankId", [bank.$id]),
-      Query.orderDesc("date"),
-      Query.limit(1000),
-    ]);
+    const documents = [];
+    let cursor: string | undefined;
+    while (documents.length < MAX_ENTRIES) {
+      const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
+        Query.equal("bankId", [bank.$id]),
+        Query.orderDesc("date"),
+        Query.limit(PAGE),
+        ...(cursor ? [Query.cursorAfter(cursor)] : []),
+      ]);
+      documents.push(...result.documents);
+      if (result.documents.length < PAGE) break;
+      cursor = result.documents[result.documents.length - 1].$id;
+    }
 
-    return result.documents.map((doc) => ({
+    return documents.map((doc) => ({
       id: doc.$id,
       name: doc.name as string,
       paymentChannel: "other",

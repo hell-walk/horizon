@@ -75,5 +75,17 @@
   "searchButton": "Search",
   "searchClear": "Clear search",
   "searchFound_one": "{count} entry found for \"{query}\".",
-  "searchFound_other": "{count} entries found for \"{query}\"."
+  "searchFound_other": "{count} entries found for \"{query}\".",
+  "monthTitle": "Month by month",
+  "monthHint": "Money in, money out and what was left each month. Money moved between your own accounts is left out.",
+  "monthIn": "In",
+  "monthOut": "Out",
+  "monthLeft": "Left over",
+  "monthOverspent": "Spent more than came in",
+  "monthTop": "Most spent on:",
+  "monthEmpty": "No entries this month. Is a statement missing?",
+  "monthSoFar": "So far",
+  "monthFrom": "From {date} only",
+  "monthOlder_one": "Show {count} older month",
+  "monthOlder_other": "Show {count} older months"
 }

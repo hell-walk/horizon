@@ -6,13 +6,14 @@ import { BankTabItem } from "@/components/BankTabItem";
 import { Search, X } from "lucide-react";
 
 import { Pagination } from "@/components/Pagination";
+import MonthlyFlow from "../components/monthlyFlow";
 import PayeePanel from "../components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 import { dataLabel } from "@/lib/i18n/labels";
-import { groupByPayee } from "@/lib/payees";
+import { groupByPayee, type PayeeSpend } from "@/lib/payees";
 import { spendType } from "@/lib/spending";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
@@ -121,8 +122,10 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
             />
           </div>
 
+          <MonthlyFlow transactions={all} currency={currency} />
+
           <div id="payees" className="scroll-mt-6">
-            <PayeePanel groups={groupByPayee(all, 8)} currency={currency} arrive={from === "chart"} />
+            <PayeePanel groups={forBrowser(groupByPayee(all, 8))} currency={currency} arrive={from === "chart"} />
           </div>
 
           <section className="panel">
@@ -193,6 +196,16 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
     </section>
   );
 };
+
+// The payee panel runs in the browser and lists every payment: send only the
+// fields it shows, so a big account does not mean a big page.
+const forBrowser = (groups: PayeeSpend[]): PayeeSpend[] =>
+  groups.map((g) => ({
+    ...g,
+    transactions: g.transactions.map(
+      ({ id, name, amount, date, type, category, currency, shownName, userCategory }) => ({ id, name, amount, date, type, category, currency, shownName, userCategory }) as Transaction
+    ),
+  }));
 
 const Tile = ({ label, value, entries, tone }: { label: string; value: string; entries: string; tone: "success" | "danger" }) => (
   <article className="panel flex flex-col gap-1 p-4">
