@@ -7,8 +7,9 @@ import { Suspense, useState } from "react";
 import { useT } from "@/components/i18nProvider";
 import { PROVIDER_LABELS } from "@/constants";
 import type { Translate } from "@/lib/i18n/translate";
-import { formatAmount, maskLabel } from "@/lib/utils";
+import { formatAmount, maskKnown, maskLabel } from "@/lib/utils";
 
+import AddDigits from "./addDigits";
 import CardDesignPicker from "./cardDesignPicker";
 import CardStack from "@/components/cardStack";
 import Copy from "@/components/Copy";
@@ -76,9 +77,11 @@ const BankShowcase = ({
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
             <Fact label={t("banks.balance")} value={formatAmount(account.currentBalance, account.currency)} mono />
             <Fact label={t("banks.available")} value={formatAmount(account.availableBalance ?? account.currentBalance, account.currency)} mono />
-            <Fact label={t("banks.lastDigits")} value={maskLabel(account.mask)} mono />
+            <Fact label={t("banks.lastDigits")} value={maskKnown(account.mask) ? maskLabel(account.mask) : t("banks.digitsUnknown")} mono={maskKnown(account.mask)} />
             <Fact label={t("banks.accountType")} value={labelFor(t, `banks.type_${accountType.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`, accountType)} />
           </dl>
+
+          {account.provider === "manual" && !maskKnown(account.mask) && <AddDigits appwriteItemId={account.appwriteItemId} />}
 
           {/* The receiving code only means something where money can be sent (US accounts via Plaid). */}
           {canTransfer(account) && <Copy title={account.sharableId} />}

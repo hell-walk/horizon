@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { PROVIDER_LABELS } from "@/constants";
 import { cardBackground, resolveCardDesign } from "@/lib/cardDesigns";
-import { formatAmount } from "@/lib/utils";
+import { formatAmount, maskKnown } from "@/lib/utils";
 
 import { canTransfer } from "@/lib/transfers";
 
@@ -86,7 +86,7 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
         </div>
 
         <p translate="no" className="amount relative text-18 tracking-[0.2em]">
-          <span className="opacity-60">•••• •••• ••••</span> {account.mask || "0000"}
+          <span className="opacity-60">•••• •••• ••••</span> {maskKnown(account.mask) ? account.mask : <span className="opacity-60">••••</span>}
         </p>
 
         <div className="relative flex items-end justify-between gap-3">

@@ -121,6 +121,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "sendFeedback",
           "saveGoal",
           "sendTransfer",
+          "setAccountDigits",
           "setCardDesign",
           "setNewPassword",
           "signIn",

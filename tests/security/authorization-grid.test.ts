@@ -46,6 +46,8 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
 
   // [action, args as A, what must hold]
   const grid: [string, () => unknown[], (value: unknown) => void][] = [
+    // B's account, with A's session: never A's to change.
+    ["setAccountDigits", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, digits: "4321" }], (v) => expect(v).toMatchObject({ ok: false })],
     ["setCardDesign", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, design: "auto" }], (v) => expect(v).toMatchObject({ ok: false })],
     [
       "sendTransfer",

@@ -36,6 +36,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The "N" badge Next.js shows in development (never in production). Errors
+  // still reach the browser console and the full-screen error overlay.
+  devIndicators: false,
   // Loaded at runtime on the server only (PDF text and Office decryption).
   serverExternalPackages: ["pdfjs-dist", "officecrypto-tool", "xlsx", "exceljs"],
   // The statement-reading worker is loaded by path at runtime; ship it with the server.

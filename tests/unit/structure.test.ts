@@ -100,3 +100,14 @@ describe("rate limits", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+// Settings (goals, corrections, column layouts) live on the profile row since
+// the move to Supabase sign-in: reading them by the login id finds nothing.
+describe("settings are read by the profile id", () => {
+  it("never with authIdOf", () => {
+    const offenders = files(src)
+      .filter((p) => /(loadGoals|loadCorrections|readPrefs|updatePrefs|storeGoals|storeCorrections)\(\s*authIdOf/.test(readFileSync(p, "utf8")))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});

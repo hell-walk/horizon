@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import BottomNav from "./components/bottomNav";
 import PlanBanner from "./components/planBanner";
+import ScrollCalm from "./components/scrollCalm";
 import Topbar from "./components/topbar";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
@@ -28,6 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         {children}
       </main>
       <BottomNav />
+      <ScrollCalm />
     </div>
   );
 }

@@ -635,6 +635,12 @@
   }
 }
 
+/* While scrolling, content passing under a still pointer must not react as
+   if hovered (see app/(root)/components/scrollCalm.tsx). */
+html[data-scrolling] .page * {
+  pointer-events: none !important;
+}
+
 .chart-arrive {
   animation: chart-arrive 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }

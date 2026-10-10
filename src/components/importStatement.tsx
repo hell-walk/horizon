@@ -283,12 +283,19 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           <Input
             id="statement-mask"
             name="mask"
-            placeholder={preview?.ok && preview.mask ? preview.mask : "0000"}
+            placeholder={preview?.ok && preview.mask ? preview.mask : "1234"}
             className="field-input font-mono"
+            aria-describedby={preview?.ok && !preview.mask ? "statement-mask-missing" : undefined}
             translate="no"
             maxLength={4}
             inputMode="numeric"
           />
+          {/* The file had no account number: ask, so later statements land in the same account. */}
+          {preview?.ok && !preview.mask && (
+            <p id="statement-mask-missing" className="field-hint text-warn-ink">
+              {t("connect.last4Missing")}
+            </p>
+          )}
         </div>
       </div>
 

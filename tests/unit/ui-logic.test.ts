@@ -60,7 +60,9 @@ describe("formatting helpers", () => {
   });
   it("masks account numbers", () => {
     expect(maskLabel("4821")).toBe("••4821");
-    expect(maskLabel()).toBe("••0000");
+    // Not known (no number in the statement, saved as "0000"): never shown as if it were real.
+    expect(maskLabel()).toBe("••");
+    expect(maskLabel("0000")).toBe("••");
   });
   it("pulls the customer id out of a Dwolla URL", () => {
     expect(extractCustomerIdFromUrl("https://api-sandbox.dwolla.com/customers/abc-123")).toBe("abc-123");
