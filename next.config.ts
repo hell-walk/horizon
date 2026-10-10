@@ -43,6 +43,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Loaded at runtime on the server only (PDF text and Office decryption).
   serverExternalPackages: ["pdfjs-dist", "officecrypto-tool", "xlsx"],
+  experimental: {
+    // Statement uploads go through a server action; the default 1 MB cap rejected
+    // most PDF statements. Matches MAX_FILE_BYTES in statement.action.ts (plus form overhead).
+    serverActions: { bodySizeLimit: "11mb" },
+  },
   // Dev only: let the dev server be reached through a tunnel (Cloudflare,
   // ngrok, localtunnel) so hot reload and assets work from a public URL.
   allowedDevOrigins: ["*.trycloudflare.com", "*.ngrok-free.app", "*.ngrok.io", "*.loca.lt"],

@@ -22,11 +22,10 @@ import {
   type StatementMapping,
   type StatementSample,
 } from "../statements/parse";
-import { authIdOf, ownerIdOf } from "../server/auth";
+import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
-import { getLoggedInUser } from "./user.action";
 import { logError } from "../server/log";
 
 const {

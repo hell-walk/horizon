@@ -30,6 +30,17 @@ export function allow(key: string, limit: number, windowMs: number): boolean {
   return entry.count <= limit;
 }
 
+/** True once `limit` events were recorded for `key` in the current window (records nothing). */
+export function isBlocked(key: string, limit: number): boolean {
+  const entry = windows.get(key);
+  return Boolean(entry && entry.resetAt > Date.now() && entry.count >= limit);
+}
+
+/** Records one event (e.g. a failed password) without asking whether it is allowed. */
+export function record(key: string, windowMs: number) {
+  allow(key, Number.MAX_SAFE_INTEGER, windowMs);
+}
+
 /**
  * The caller's IP. Each proxy appends the address it received the request
  * from to X-Forwarded-For, so only the entries added by our own proxies can be

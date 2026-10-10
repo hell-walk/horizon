@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 
 import BottomNav from "./components/bottomNav";
 import Topbar from "./components/topbar";
-import { getLoggedInUser } from "@/lib/actions/user.action";
-import { ownerIdOf } from "@/lib/server/auth";
+import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
 
 // Every page in this group depends on the session cookie, so never prerender them.

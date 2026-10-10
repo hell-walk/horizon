@@ -11,11 +11,11 @@ import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
 import { createAdminClient, createSessionClient } from "../server/appwrite";
-import { authIdOf, loadLoggedInUser, ownerIdOf, requireUser } from "../server/auth";
+import { authIdOf, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { addFundingSource, createDwollaCustomer } from "../server/dwolla";
-import { allow, clientIp, MINUTE } from "../server/rateLimit";
+import { allow, clientIp, isBlocked, MINUTE, record } from "../server/rateLimit";
 import { extractCustomerIdFromUrl } from "../utils";
 import { plaidClient } from "../plaid";
 import { logError } from "../server/log";
@@ -48,15 +48,28 @@ const setSessionCookie = async (session: { secret: string; expire?: string }) =>
 };
 
 // The server talks to Appwrite with an API key, which skips Appwrite's own
-// per-IP limits, so sign-in and sign-up are limited here instead. The email
-// limit stops password guessing on one account; the IP limit is generous
-// because a whole college or office can share one public IP.
+// per-IP limits, so sign-in and sign-up are limited here instead.
+// - Per email: 8 wrong passwords in 10 minutes. Only failures count, so someone
+//   signing in on several devices is never locked out.
+// - Per IP: 100 attempts in 10 minutes, generous because a whole college or
+//   office can share one public IP.
+const EMAIL_FAILURES = 8;
+const emailKey = (email: string) => `auth:fail:${String(email ?? "").trim().toLowerCase()}`;
+
 const allowAuthAttempt = async (email: string) => {
-    const ip = await clientIp();
-    return allow(`auth:email:${String(email ?? "").trim().toLowerCase()}`, 8, 10 * MINUTE) && allow(`auth:ip:${ip}`, 100, 10 * MINUTE);
+    if (isBlocked(emailKey(email), EMAIL_FAILURES)) return false;
+    return allow(`auth:ip:${await clientIp()}`, 100, 10 * MINUTE);
 };
 
-export const signIn = async ({ email, password }: signInProps): Promise<AuthResult> => {
+// Callers can send anything, not just what the form sends: check the shape first.
+const strings = (value: unknown, keys: string[], max = 200): value is Record<string, string> =>
+    typeof value === "object" && value !== null &&
+    keys.every((k) => typeof (value as Record<string, unknown>)[k] === "string" && ((value as Record<string, string>)[k]).length <= max);
+const BAD_INPUT: AuthResult = { ok: false, error: "Check the details and try again." };
+
+export const signIn = async (input: signInProps): Promise<AuthResult> => {
+    if (!strings(input, ["email", "password"], 256)) return BAD_INPUT;
+    const { email, password } = input;
     if (!(await allowAuthAttempt(email))) return { ok: false, error: TOO_MANY };
     try {
         const { account } = await createAdminClient();
@@ -64,6 +77,7 @@ export const signIn = async ({ email, password }: signInProps): Promise<AuthResu
         await setSessionCookie(session);
         return { ok: true };
     } catch {
+        record(emailKey(email), 10 * MINUTE);
         return { ok: false, error: "Invalid email or password." };
     }
 }
@@ -77,9 +91,12 @@ const isUsAddress = (state: string, postalCode: string) =>
 const NOT_KEPT = "not-kept";
 
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
+    if (!strings(userData, ["email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return BAD_INPUT;
     const { email, password, firstName, lastName, address1, city, state, postalCode } = userData
     const profile = { address1, city, state, postalCode };
     if (!(await allowAuthAttempt(email))) return { ok: false, error: TOO_MANY };
+    // Each sign-up creates real accounts (Appwrite, maybe Dwolla): a tighter cap per network.
+    if (!allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE)) return { ok: false, error: TOO_MANY };
 
     let newUserAccount;
     try {
@@ -142,10 +159,6 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
         }
         return { ok: false, error: "We could not create your account. Check the details and try again." };
     }
-}
-
-export async function getLoggedInUser() {
-    return loadLoggedInUser();
 }
 
 export const logoutAccount = async () => {

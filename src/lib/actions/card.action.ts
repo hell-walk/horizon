@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache";
 import { invalidate } from "../cache";
 import { isKnownDesign } from "../cardDesigns";
 import { createAdminClient } from "../server/appwrite";
-import { ownerIdOf } from "../server/auth";
-import { getLoggedInUser } from "./user.action";
+import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { logError } from "../server/log";
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID } = process.env;

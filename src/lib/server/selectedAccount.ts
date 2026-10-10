@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cookies } from "next/headers";
 
 import { resolveAccountId, SELECTED_ACCOUNT_COOKIE } from "../selectedAccount";
