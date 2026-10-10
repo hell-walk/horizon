@@ -5,6 +5,7 @@ import { cache } from "react";
 import { readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
 import { getUserInfo } from "./banks";
+import { readPending, type ProfileInput } from "./profile";
 import { createSupabaseServerClient } from "./supabase";
 
 // Fields that never leave the server. The signed-in user is handed to client
@@ -25,6 +26,8 @@ export type SessionUser = {
   joinedAt: number;
   /** What they pay for, if anything. Kept in app_metadata, which only the server can write. */
   subscription: Subscription | null;
+  /** Details typed at sign-up, waiting for the profile to be created (after the email is confirmed). */
+  pendingProfile: ProfileInput | null;
 };
 
 // Asks Supabase on every request (getUser, not the cookie alone), so a deleted
@@ -45,6 +48,7 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
       lastSignInAt: Date.parse(data.user.last_sign_in_at ?? "") || 0,
       joinedAt: Date.parse(data.user.created_at ?? "") || Date.now(),
       subscription: readSubscription(data.user.app_metadata?.subscription),
+      pendingProfile: data.user.user_metadata?.terms_accepted_at ? readPending(meta.pending_profile) : null,
     };
   } catch {
     return null;

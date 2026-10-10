@@ -5,5 +5,11 @@
   "termsTitle": "Terms & conditions",
   "termsDescription": "The terms that apply when you use Horizon.",
   "lastUpdated": "Last updated {date}",
-  "englishOnlyNote": "The full text below is only in English for now."
+  "englishOnlyNote": "The full text below is only in English for now.",
+  "pricingTitle": "Pricing",
+  "pricingDescription": "Horizon's free trial and plans, in Indian rupees.",
+  "refundsTitle": "Refund & cancellation policy",
+  "refundsDescription": "How to cancel a Horizon plan and when payments are refunded.",
+  "contactTitle": "Contact us",
+  "contactDescription": "How to reach the people behind Horizon."
 }

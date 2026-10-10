@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { TRIAL_CHANGES_PER_DAY, TRIAL_DAYS } from "@/lib/plans";
+import { CONTACT_EMAIL } from "@/lib/site";
+import Link from "next/link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("legal.termsTitle"), description: t("legal.termsDescription") };
 }
 
-const UPDATED = Date.UTC(2026, 9, 9); // 9 October 2026
+const UPDATED = Date.UTC(2026, 9, 11); // 11 October 2026
 
 // Template text. Review it with a lawyer before publishing; edit freely.
 export default async function TermsPage() {
@@ -40,6 +43,28 @@ export default async function TermsPage() {
           <li>Only connect or import accounts that belong to you or that you are authorised to access.</li>
         </ul>
 
+        <h2>Free trial, plans and payments</h2>
+        <ul>
+          <li>
+            New accounts get a {TRIAL_DAYS}-day free trial with up to {TRIAL_CHANGES_PER_DAY} changes a day (imports,
+            corrections, goals, bank links, transfers). No payment details are needed for the trial.
+          </li>
+          <li>
+            After the trial, Horizon stays available for viewing. Making changes needs a paid plan, at the prices on
+            the <Link href="/pricing">pricing page</Link>.
+          </li>
+          <li>
+            Plans are paid through Razorpay and renew automatically each month or year until you cancel. You can
+            cancel any time on the Plans page and keep access until the end of the period already paid.
+          </li>
+          <li>
+            Refunds follow the <Link href="/refunds">refund and cancellation policy</Link>.
+          </li>
+          <li>
+            Viewing your data, downloading it, removing a bank and deleting your account are always free.
+          </li>
+        </ul>
+
         <h2>Bank data</h2>
         <p>
           Balances and transactions are shown as reported by your bank or statement. They can lag behind
@@ -67,7 +92,7 @@ export default async function TermsPage() {
 
         <h2>Contact</h2>
         <p>
-          Questions about these terms go to <a href="mailto:support@horizon.app">support@horizon.app</a>.
+          Questions about these terms go to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </div>
     </>
