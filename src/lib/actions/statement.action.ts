@@ -19,6 +19,7 @@ import {
   StatementPasswordError,
   transactionHashes,
   type BalanceCheck,
+  type DateOrder,
   type ParsedStatement,
   type StatementMapping,
   type StatementSample,
@@ -31,6 +32,7 @@ import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
+import { SUPPORTED_CURRENCIES } from "../utils";
 import { logError } from "../server/log";
 
 const {
@@ -89,6 +91,18 @@ async function withFixes(formData: FormData, parsed: ParsedStatement) {
 }
 
 /** The bank name and account ending the entries go to: what the user typed, else what the file says. */
+/** The date order the user chose on the preview, if any. */
+const dateOrderFrom = (formData: FormData): DateOrder | undefined => {
+  const value = formData.get("dateOrder");
+  return value === "dmy" || value === "mdy" ? value : undefined;
+};
+
+/** The currency the user chose on the form, else the one the statement shows. */
+const currencyFrom = (formData: FormData, parsed: ParsedStatement) => {
+  const value = String(formData.get("currency") || "");
+  return SUPPORTED_CURRENCIES.includes(value) ? value : parsed.currency;
+};
+
 const accountFrom = (formData: FormData, parsed: ParsedStatement) => ({
   institution: String(formData.get("institution") || "").trim() || parsed.institutionName || "My Bank",
   mask: String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000",
@@ -201,18 +215,18 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
     if (chosen !== undefined) {
       const problem = mappingProblem(chosen, found.width);
       if (problem) return needsMapping(problem);
-      const parsed = buildStatement(rows, file.name, cleanMapping(chosen));
+      const parsed = buildStatement(rows, file.name, cleanMapping(chosen), { dateOrder: dateOrderFrom(formData) });
       if (!parsed.transactions.length) return needsMapping(t("connect.stNoRowsWithColumns"));
       return { ok: true, parsed, sample: found, source: "manual" };
     }
 
     const saved = (await savedLayouts(userId))[found.signature];
     if (saved && !mappingProblem(saved, found.width)) {
-      const parsed = buildStatement(rows.map((r) => [...r]), file.name, cleanMapping(saved));
+      const parsed = buildStatement(rows.map((r) => [...r]), file.name, cleanMapping(saved), { dateOrder: dateOrderFrom(formData) });
       if (parsed.transactions.length) return { ok: true, parsed, sample: found, source: "saved" };
     }
 
-    const parsed = buildStatement(rows, file.name);
+    const parsed = buildStatement(rows, file.name, undefined, { dateOrder: dateOrderFrom(formData) });
     if (!parsed.transactions.length) {
       return needsMapping(t("connect.stNoRowsFound", { columns: parsed.headers.filter(Boolean).join(", ") || t("connect.stNone") }));
     }
@@ -271,7 +285,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
         fundingSourceUrl: "",
         sharableId: newSharableId(),
         provider: MANUAL_PROVIDER,
-        currency: parsed.currency,
+        currency: currencyFrom(formData, parsed),
         institutionName: institution,
         accountMask: mask,
         currentBalance: parsed.closingBalance,
@@ -318,7 +332,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     if (parsed.closingBalance !== undefined) {
       await database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bankId, {
         currentBalance: parsed.closingBalance,
-        currency: parsed.currency,
+        currency: currencyFrom(formData, parsed),
       });
     }
 
@@ -353,6 +367,9 @@ export type PreviewResult =
       institution?: string;
       mask?: string;
       currency: string;
+      /** What the statement itself shows, before any choice on the form. */
+      detectedCurrency: string;
+      dateOrder: { order: DateOrder; sure: boolean; numeric: boolean };
       total: number;
       closingBalance?: number;
       headers: string[];
@@ -423,7 +440,9 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
     },
     institution: parsed.institutionName,
     mask: parsed.accountMask,
-    currency: parsed.currency,
+    currency: currencyFrom(formData, parsed),
+    detectedCurrency: parsed.currency,
+    dateOrder: parsed.dateOrder,
     total: parsed.transactions.length,
     closingBalance: parsed.closingBalance,
     headers: parsed.headers.filter(Boolean),

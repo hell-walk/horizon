@@ -204,5 +204,13 @@
   "doubtSkippedDone_one": "{count} skipped, as you chose.",
   "doubtSkippedDone_other": "{count} skipped, as you chose.",
   "doubtHandled_one": "{count} row needed a look. It is taken care of.",
-  "doubtHandled_other": "{count} rows needed a look. All are taken care of."
+  "doubtHandled_other": "{count} rows needed a look. All are taken care of.",
+  "currency": "Currency",
+  "currencyAuto": "As the file shows",
+  "currencyFromFile": "As the file shows ({currency})",
+  "datesDmy": "Dates are read day first: 03/04/2026 is 3 April 2026.",
+  "datesMdy": "Dates are read month first: 03/04/2026 is 4 March 2026.",
+  "datesUnsure": "The file does not show whether dates are day first or month first, so this is our best guess.",
+  "datesSwitchToMdy": "Read month first instead",
+  "datesSwitchToDmy": "Read day first instead"
 }

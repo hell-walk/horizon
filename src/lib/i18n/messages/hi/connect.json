@@ -204,5 +204,13 @@
   "doubtSkippedDone_one": "{count} छोड़ी गई, जैसा आपने चुना।",
   "doubtSkippedDone_other": "{count} छोड़ी गईं, जैसा आपने चुना।",
   "doubtHandled_one": "{count} पंक्ति को देखना था। वह ठीक हो गई।",
-  "doubtHandled_other": "{count} पंक्तियों को देखना था। सब ठीक हो गईं।"
+  "doubtHandled_other": "{count} पंक्तियों को देखना था। सब ठीक हो गईं।",
+  "currency": "मुद्रा",
+  "currencyAuto": "जैसा फ़ाइल में है",
+  "currencyFromFile": "जैसा फ़ाइल में है ({currency})",
+  "datesDmy": "तारीखें पहले दिन से पढ़ी गई हैं: 03/04/2026 यानी 3 अप्रैल 2026।",
+  "datesMdy": "तारीखें पहले महीने से पढ़ी गई हैं: 03/04/2026 यानी 4 मार्च 2026।",
+  "datesUnsure": "फ़ाइल से पता नहीं चलता कि तारीख में पहले दिन है या महीना, इसलिए यह हमारा अंदाज़ा है।",
+  "datesSwitchToMdy": "पहले महीने से पढ़ें",
+  "datesSwitchToDmy": "पहले दिन से पढ़ें"
 }

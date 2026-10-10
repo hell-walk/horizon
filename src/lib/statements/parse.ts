@@ -22,6 +22,9 @@ export type ParsedTransaction = {
   reference?: string;
 };
 
+/** How numeric dates are written: day first (India, UK, Europe) or month first (US). */
+export type DateOrder = "dmy" | "mdy";
+
 export type ParsedStatement = {
   transactions: ParsedTransaction[];
   closingBalance?: number;
@@ -31,6 +34,11 @@ export type ParsedStatement = {
   headers: string[];
   columns: StatementMapping; // which column was read as what, so the user can correct it
   check: BalanceCheck;
+  /**
+   * How the dates were read; whether the file itself settled it (else it was a best guess);
+   * and whether the file writes dates as numbers at all (only then does the order matter).
+   */
+  dateOrder: { order: DateOrder; sure: boolean; numeric: boolean };
 };
 
 export { StatementParseError };
@@ -100,7 +108,7 @@ export class StatementLayoutError extends StatementParseError {}
  * given, else a header row, else inference from the data. Transactions are put
  * in date order and their running balances are checked.
  */
-export function buildStatement(rows: Cell[][], name: string, mapping?: StatementMapping): ParsedStatement {
+export function buildStatement(rows: Cell[][], name: string, mapping?: StatementMapping, options: { dateOrder?: DateOrder } = {}): ParsedStatement {
   const header: { index: number; columns: Columns; raw: string[] } | null = mapping
     ? { index: -1, columns: mapping, raw: mappingLabels(mapping) }
     : (findHeaderRow(rows) ?? inferColumns(rows));
@@ -129,14 +137,20 @@ export function buildStatement(rows: Cell[][], name: string, mapping?: Statement
 
   // A user-mapped single amount column with no Dr/Cr: the running balance says which way each row went.
   if (mapping && mapping.amount !== undefined && mapping.type === undefined && mapping.balance !== undefined) {
-    const data = rows.filter((row) => parseDate(row[mapping.date] ?? null));
+    const data = rows.filter((row) => isDateCell(row[mapping.date] ?? null));
     signFromBalance(balanceDeltas(data, mapping.date, mapping.balance), mapping.amount);
   }
+
+  // Which way round the dates are: the user's choice, else what the file itself shows.
+  const preamble = detectMetadata(rows.slice(0, Math.max(header.index + 1, 0)), name);
+  const dateCells = rows.slice(header.index + 1).map((row) => row[header.columns.date] ?? null);
+  const detected = detectDateOrder(dateCells, preamble.currency === "USD" ? "mdy" : "dmy");
+  const dateOrder = options.dateOrder ? { ...detected, order: options.dateOrder, sure: true } : detected;
 
   const inFileOrder: ParsedTransaction[] = [];
   let firstDataRow = -1;
   rows.slice(header.index + 1).forEach((row, i) => {
-    const transaction = toTransaction(row, header.columns);
+    const transaction = toTransaction(row, header.columns, dateOrder.order);
     if (!transaction) return;
     if (firstDataRow < 0) firstDataRow = header.index + 1 + i;
     inFileOrder.push(transaction);
@@ -159,6 +173,7 @@ export function buildStatement(rows: Cell[][], name: string, mapping?: Statement
     headers: header.raw,
     columns: header.columns,
     check: checkBalances(transactions),
+    dateOrder,
   };
 }
 
@@ -400,8 +415,12 @@ function cellValue(value: ExcelJS.CellValue): Cell {
 
 type Columns = StatementMapping;
 
+// Accents folded to plain letters ("Débit" -> "debit", "Libellé" -> "libelle") so headings in
+// other languages match like English ones.
 const norm = (cell: Cell) =>
   String(cell ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9/]+/g, " ")
     .trim();
@@ -413,15 +432,39 @@ function findHeaderRow(rows: Cell[][]): { index: number; columns: Columns; raw: 
     const cells = rows[i].map(norm);
     if (cells.filter(Boolean).length < 3) continue;
 
-    const date = match(cells, [/^(txn|tran|trans|transaction|value|posting|post)? ?date$/, /^date/, /date$/, /^(txn|tran|trans|value|post) dt$/]);
-    const name = match(cells, [/narration/, /description/, /particular/, /details/, /remarks/, /transaction (details|remarks)/]);
+    // English first, then German, French, Spanish, Italian, Dutch and Portuguese bank exports.
+    const date = match(cells, [
+      /^(txn|tran|trans|transaction|value|posting|post)? ?date$/,
+      /^date/,
+      /date$/,
+      /^(txn|tran|trans|value|post) dt$/,
+      /^(buchungs)?datum$/,
+      /^buchungstag$/,
+      /^fecha/,
+      /^data( |$)/,
+    ]);
+    const name = match(cells, [
+      /narration/,
+      /description/,
+      /particular/,
+      /details/,
+      /remarks/,
+      /transaction (details|remarks)/,
+      /^(payee|memo|merchant)$/,
+      /buchungstext|verwendungszweck|beschreibung/,
+      /^libelle/,
+      /descripcion|concepto|detalle/,
+      /descrizione|causale/,
+      /omschrijving|mededeling/,
+      /descricao|historico/,
+    ]);
     if (date < 0 || name < 0 || date === name) continue;
 
-    const debit = match(cells, [/withdrawal/, /debit/, /^dr$/, /dr amount/, /paid out/, /money out/]);
-    const credit = match(cells, [/deposit/, /credit/, /^cr$/, /cr amount/, /paid in/, /money in/]);
-    const amount = match(cells, [/^amount/, /transaction amount/, /^amt/]);
+    const debit = match(cells, [/withdrawal/, /debit/, /^dr$/, /dr amount/, /paid out/, /money out/, /^soll$|belastung/, /cargo/, /addebit/, /^af$/]);
+    const credit = match(cells, [/deposit/, /credit/, /^cr$/, /cr amount/, /paid in/, /money in/, /^haben$|gutschrift/, /abono/, /accredit/, /^bij$/]);
+    const amount = match(cells, [/^amount/, /transaction amount/, /^amt/, /^betrag/, /^montant/, /^importe?$|^importo/, /^bedrag/, /^valor$/, /^umsatz/]);
     const type = match(cells, [/^(dr|cr)\s*\/?\s*(dr|cr)$/, /^type$/, /^txn type$/, /^transaction type$/, /dr cr/]);
-    const balance = match(cells, [/balance/, /^bal$/, /^bal\b/, /closing bal/]);
+    const balance = match(cells, [/balance/, /^bal$/, /^bal\b/, /closing bal/, /^saldo/, /^solde/, /kontostand/]);
     const reference = match(cells, [/chq/, /cheque/, /ref/, /utr/, /transaction id/, /^id$/]);
 
     const hasAmounts = (debit >= 0 && credit >= 0) || amount >= 0;
@@ -471,7 +514,7 @@ const isEmptyCell = (cell: Cell) => cell === null || EMPTY.test(text(cell));
 function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: string[] } | null {
   const dataIdx = rows
     .map((row, i) => ({ row, i }))
-    .filter(({ row }) => row.some((c) => parseDate(c)) && row.filter(isMoney).length >= 2)
+    .filter(({ row }) => row.some(isDateCell) && row.filter(isMoney).length >= 2)
     .map(({ i }) => i);
   if (dataIdx.length < 2) return null;
 
@@ -480,7 +523,7 @@ function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: s
   const n = data.length;
   const share = (fn: (c: Cell) => boolean, j: number) => data.filter((r) => fn(r[j] ?? null)).length / n;
 
-  const dateCol = [...Array(width).keys()].find((j) => share((c) => Boolean(parseDate(c)), j) >= 0.8);
+  const dateCol = [...Array(width).keys()].find((j) => share(isDateCell, j) >= 0.8);
   if (dateCol === undefined) return null;
 
   // Money columns: mostly money or empty markers, with at least some money.
@@ -546,8 +589,8 @@ function inferColumns(rows: Cell[][]): { index: number; columns: Columns; raw: s
 /** How much the running balance moved on each row, taken in date order. */
 function balanceDeltas(data: Cell[][], dateCol: number, balance: number): Map<Cell[], number> {
   const chronological = [...data];
-  const first = parseDate(chronological[0]?.[dateCol] ?? null) ?? "";
-  const last = parseDate(chronological[chronological.length - 1]?.[dateCol] ?? null) ?? "";
+  const first = anyDate(chronological[0]?.[dateCol] ?? null) ?? "";
+  const last = anyDate(chronological[chronological.length - 1]?.[dateCol] ?? null) ?? "";
   if (first > last) chronological.reverse(); // newest-first statements
   const deltas = new Map<Cell[], number>();
   for (let k = 1; k < chronological.length; k++) {
@@ -589,7 +632,7 @@ const display = (cell: Cell) => (cell instanceof Date ? (parseDate(cell) ?? "") 
 export function sampleStatement(rows: Cell[][]): StatementSample {
   // Looser than isMoney: an unknown layout may print "640" or "-640" with no paise.
   const isNumber = (c: Cell) => isMoney(c) || /^[-+(]?\s*\d+(?:\.\d+)?\s*\)?$/.test(text(c));
-  const isDataRow = (row: Cell[]) => row.some((c) => parseDate(c)) && row.some(isNumber);
+  const isDataRow = (row: Cell[]) => row.some(isDateCell) && row.some(isNumber);
   const firstData = rows.findIndex(isDataRow);
   const data = rows.filter(isDataRow);
   const picked = (data.length ? data : rows.filter((r) => r.filter((c) => display(c)).length >= 3)).slice(0, SAMPLE_ROWS);
@@ -599,7 +642,7 @@ export function sampleStatement(rows: Cell[][]): StatementSample {
   let labels: string[] = [];
   for (let i = firstData - 1; i >= Math.max(0, firstData - 3); i--) {
     const cells = rows[i].map(display);
-    if (cells.filter((c) => c && !isNumber(c) && !parseDate(c)).length >= 3) {
+    if (cells.filter((c) => c && !isNumber(c) && !isDateCell(c)).length >= 3) {
       labels = Array.from({ length: width }, (_, j) => cells[j] ?? "");
       break;
     }
@@ -610,7 +653,7 @@ export function sampleStatement(rows: Cell[][]): StatementSample {
   const cols = [...Array(width).keys()];
   // Empty columns count as money so a month without any credits keeps the same fingerprint.
   const kinds = cols.map((j) =>
-    share((c) => Boolean(parseDate(c)), j) >= 0.6 ? "d" : share((c) => isNumber(c) || isEmptyCell(c), j) >= 0.9 ? "m" : "t"
+    share(isDateCell, j) >= 0.6 ? "d" : share((c) => isNumber(c) || isEmptyCell(c), j) >= 0.9 ? "m" : "t"
   );
 
   const date = kinds.indexOf("d");
@@ -669,8 +712,8 @@ export function cleanMapping(value: unknown): StatementMapping {
 /* Row conversion                                                      */
 /* ------------------------------------------------------------------ */
 
-function toTransaction(row: Cell[], columns: Columns): ParsedTransaction | null {
-  const date = parseDate(row[columns.date]);
+function toTransaction(row: Cell[], columns: Columns, order: DateOrder = "dmy"): ParsedTransaction | null {
+  const date = parseDate(row[columns.date], order);
   if (!date) return null; // totals, blank lines, footers
 
   const name = String(row[columns.name] ?? "").replace(/\s+/g, " ").trim();
@@ -723,8 +766,12 @@ const MONTHS: Record<string, number> = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
 };
 
-/** Accepts the date styles Indian banks use (day first) and returns YYYY-MM-DD. */
-export function parseDate(cell: Cell): string | null {
+/**
+ * Reads a statement date and returns YYYY-MM-DD. Numeric dates follow `order`
+ * (day first by default, as Indian, British and European banks write them;
+ * month first for US banks). Dates with the month written out are read either way.
+ */
+export function parseDate(cell: Cell, order: DateOrder = "dmy"): string | null {
   if (cell instanceof Date && !isNaN(cell.getTime())) return iso(cell.getUTCFullYear(), cell.getUTCMonth() + 1, cell.getUTCDate());
   if (typeof cell === "number") {
     // Excel serial date
@@ -740,13 +787,51 @@ export function parseDate(cell: Cell): string | null {
   let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); // ISO
   if (m) return iso(+m[1], +m[2], +m[3]);
 
-  m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/); // dd/mm/yyyy
-  if (m) return iso(fullYear(+m[3]), +m[2], +m[1]);
+  m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/); // dd/mm/yyyy or mm/dd/yyyy
+  if (m) return order === "mdy" ? iso(fullYear(+m[3]), +m[1], +m[2]) : iso(fullYear(+m[3]), +m[2], +m[1]);
 
   m = s.match(/^(\d{1,2})[ /-]([a-z]{3,9})[ /,-]*(\d{2,4})/i); // 05 Oct 2026, 05-Oct-26
   if (m && MONTHS[m[2].slice(0, 3).toLowerCase()]) return iso(fullYear(+m[3]), MONTHS[m[2].slice(0, 3).toLowerCase()], +m[1]);
 
+  m = s.match(/^([a-z]{3,9})\.?[ -](\d{1,2})(?:st|nd|rd|th)?,?[ -](\d{2,4})/i); // Oct 5, 2026 (US)
+  if (m && MONTHS[m[1].slice(0, 3).toLowerCase()]) return iso(fullYear(+m[3]), MONTHS[m[1].slice(0, 3).toLowerCase()], +m[2]);
+
   return null;
+}
+
+/** A date in either order: for finding the date column before the order is known. */
+const anyDate = (cell: Cell) => parseDate(cell, "dmy") ?? parseDate(cell, "mdy");
+export const isDateCell = (cell: Cell) => anyDate(cell) !== null;
+
+/**
+ * Works out whether a file writes dates day first or month first:
+ *   1. a first number above 12 means day first; a second number above 12, month first;
+ *   2. when every number is 12 or less, the reading that keeps the rows in date order
+ *      (statements are sorted, oldest or newest first) wins;
+ *   3. otherwise the hint (from the currency), marked as not sure.
+ */
+export function detectDateOrder(cells: Cell[], hint: DateOrder = "dmy"): { order: DateOrder; sure: boolean; numeric: boolean } {
+  const numeric = cells
+    .map((c) => (typeof c === "string" ? c.trim().match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/) : null))
+    .filter((m): m is RegExpMatchArray => m !== null);
+  if (numeric.length === 0) return { order: hint, sure: true, numeric: false }; // written-out months or real dates: order does not matter
+
+  const firstBig = numeric.some((m) => +m[1] > 12);
+  const secondBig = numeric.some((m) => +m[2] > 12);
+  if (firstBig && !secondBig) return { order: "dmy", sure: true, numeric: true };
+  if (secondBig && !firstBig) return { order: "mdy", sure: true, numeric: true };
+
+  const sorted = (order: DateOrder) => {
+    const dates = cells.map((c) => parseDate(c, order)).filter((d): d is string => d !== null);
+    const up = dates.every((d, i) => i === 0 || d >= dates[i - 1]);
+    const down = dates.every((d, i) => i === 0 || d <= dates[i - 1]);
+    return dates.length > 1 && (up || down);
+  };
+  const dmySorted = sorted("dmy");
+  const mdySorted = sorted("mdy");
+  if (dmySorted && !mdySorted) return { order: "dmy", sure: true, numeric: true };
+  if (mdySorted && !dmySorted) return { order: "mdy", sure: true, numeric: true };
+  return { order: hint, sure: false, numeric: true };
 }
 
 const fullYear = (y: number) => (y < 100 ? 2000 + y : y);
@@ -790,6 +875,35 @@ const BANKS: [RegExp, string][] = [
   [/au small/i, "AU Small Finance Bank"],
 ];
 
+// Currency names and signs as statements write them. "$" alone is the US dollar unless a
+// country is named ("S$", "A$", "CAD"...), which the more specific patterns catch first.
+const CURRENCY_SIGNS: [string, RegExp][] = [
+  ["INR", /\bINR\b|₹|\brs\.?\s?\d|\brupees?\b/gi],
+  ["SGD", /\bSGD\b|S\$/g],
+  ["AUD", /\bAUD\b|A\$/g],
+  ["CAD", /\bCAD\b|C\$/g],
+  ["USD", /\bUSD\b|US\$|(?<![A-Z])\$/g],
+  ["EUR", /\bEUR\b|€/g],
+  ["GBP", /\bGBP\b|£/g],
+  ["AED", /\bAED\b|د\.إ|\bdirhams?\b/gi],
+  ["JPY", /\bJPY\b|¥|円/g],
+  ["CHF", /\bCHF\b/g],
+];
+
+/** The currency a statement is in: the sign or code it uses most, rupees when it names none. */
+export function detectCurrency(text: string): string {
+  let best = "INR";
+  let most = 0;
+  for (const [code, pattern] of CURRENCY_SIGNS) {
+    const count = text.match(pattern)?.length ?? 0;
+    if (count > most) {
+      best = code;
+      most = count;
+    }
+  }
+  return best;
+}
+
 function detectMetadata(rows: Cell[][], fileName: string) {
   const text = [fileName, ...rows.map((r) => r.map((c) => String(c ?? "")).join(" "))].join("\n");
 
@@ -798,9 +912,7 @@ function detectMetadata(rows: Cell[][], fileName: string) {
   const account = text.match(/(?:a\/?c|account)\s*(?:no|number|#)?\.?\s*[:.\-]?\s*_?([xX*\d]{6,20})/i)?.[1];
   const accountMask = account?.replace(/\D/g, "").slice(-4) || undefined;
 
-  const currency = /\bUSD\b|\$/.test(text) && !/\bINR\b|₹|rs\.?/i.test(text) ? "USD" : "INR";
-
-  return { institutionName, accountMask, currency };
+  return { institutionName, accountMask, currency: detectCurrency(text) };
 }
 
 /* ------------------------------------------------------------------ */

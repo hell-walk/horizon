@@ -68,14 +68,31 @@ export const formatDateTime = (dateString: Date) => {
 };
 
 // Locale per currency so grouping and symbol placement follow the money, not the viewer.
-const CURRENCY_LOCALES: Record<string, string> = { INR: "en-IN", USD: "en-US", GBP: "en-GB", EUR: "de-DE" };
+// How each currency is usually written where it is used (₹1,24,560.50, $124,560.50, 124.560,50 €).
+const CURRENCY_LOCALES: Record<string, string> = {
+  INR: "en-IN",
+  USD: "en-US",
+  GBP: "en-GB",
+  EUR: "de-DE",
+  AED: "en-AE",
+  SGD: "en-SG",
+  AUD: "en-AU",
+  CAD: "en-CA",
+  JPY: "ja-JP",
+  CHF: "de-CH",
+};
+
+/** Currencies Horizon reads from statements and shows; also the choices on the import form. */
+export const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_LOCALES);
 
 export function formatAmount(amount: number | string, currency: string = "USD"): string {
   const code = currency || "USD";
   const formatter = new Intl.NumberFormat(CURRENCY_LOCALES[code] ?? "en-US", {
     style: "currency",
     currency: code,
-    minimumFractionDigits: 2,
+    // Yen has no smaller unit; everything else shows two decimals.
+    minimumFractionDigits: code === "JPY" ? 0 : 2,
+    maximumFractionDigits: code === "JPY" ? 0 : 2,
   });
 
   return formatter.format(typeof amount === "string" ? parseFloat(amount) || 0 : amount);
