@@ -30,7 +30,7 @@ export async function saveGoal(input: {
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("goals.errSignIn") };
-  if (!allow(`goals:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false, error: t("goals.errTooMany") };
+  if (!(await allow(`goals:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false, error: t("goals.errTooMany") };
 
   const goal = readGoal(input, thisMonth());
   if (!goal) return { ok: false, error: t("goals.errInvalid") };
@@ -63,7 +63,7 @@ export async function deleteGoal(input: { id: string }): Promise<GoalResult> {
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("goals.errSignIn") };
-  if (!allow(`goals:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false, error: t("goals.errTooMany") };
+  if (!(await allow(`goals:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false, error: t("goals.errTooMany") };
   if (!isId(input?.id)) return { ok: false, error: t("goals.errNotFound") };
 
   try {

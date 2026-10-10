@@ -59,8 +59,8 @@ const EMAIL_FAILURES = 8;
 const emailKey = (email: string) => `auth:fail:${String(email ?? "").trim().toLowerCase()}`;
 
 const allowAuthAttempt = async (email: string) => {
-    if (isBlocked(emailKey(email), EMAIL_FAILURES)) return false;
-    return allow(`auth:ip:${await clientIp()}`, 100, 10 * MINUTE);
+    if (await isBlocked(emailKey(email), EMAIL_FAILURES)) return false;
+    return await allow(`auth:ip:${await clientIp()}`, 100, 10 * MINUTE);
 };
 
 // Callers can send anything, not just what the form sends: check the shape first.
@@ -95,7 +95,7 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
         await setSessionCookie(session);
         return { ok: true };
     } catch {
-        record(emailKey(email), 10 * MINUTE);
+        await record(emailKey(email), 10 * MINUTE);
         return { ok: false, error: t("auth.errorSignIn") };
     }
 }
@@ -121,7 +121,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     if (weak) return { ok: false, error: weak };
     if (!(await allowAuthAttempt(email))) return tooMany(t);
     // Each sign-up creates real accounts (Appwrite, maybe Dwolla): a tighter cap per network.
-    if (!allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE)) return tooMany(t);
+    if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
 
     let newUserAccount;
     try {
@@ -210,7 +210,7 @@ export const createLinkToken = async () => {
     try {
         const user = await requireUser();
         // Each call costs a Plaid API request.
-        if (!allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE)) return null;
+        if (!(await allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return null;
         const response = await plaidClient.linkTokenCreate({
             user: { client_user_id: authIdOf(user) },
             client_name: "Horizon",
@@ -229,7 +229,7 @@ export const exchangePublicToken = async ({ publicToken }: { publicToken: string
     try {
         const user = await requireUser();
         if (typeof publicToken !== "string" || !publicToken || publicToken.length > 200) return null;
-        if (!allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE)) return null;
+        if (!(await allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return null;
 
         // Exchange the short-lived public token for a permanent access token
         const response = await plaidClient.itemPublicTokenExchange({ public_token: publicToken });

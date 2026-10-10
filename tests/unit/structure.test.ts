@@ -79,3 +79,24 @@ describe("one folder per page", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+// The rate limiter answers with a Promise. "if (!allow(...))" on a Promise is
+// always false and compiles without complaint, which would silently switch the
+// limit off. Every call must wait for its answer.
+describe("rate limits", () => {
+  it("every limiter call is awaited", () => {
+    const offenders: string[] = [];
+    for (const file of files(src)) {
+      if (rel(file) === "lib/server/rateLimit.ts") continue;
+      readFileSync(file, "utf8")
+        .split(/\r?\n/)
+        .forEach((line, i) => {
+          for (const m of line.matchAll(/(^|[^\w.])(allow|isBlocked|record)\(/g)) {
+            const before = line.slice(0, m.index! + m[1].length);
+            if (!/await\s*$/.test(before) && !/function\s*$/.test(before)) offenders.push(`${rel(file)}:${i + 1}`);
+          }
+        });
+    }
+    expect(offenders).toEqual([]);
+  });
+});

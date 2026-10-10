@@ -55,7 +55,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
   const t = await getT();
   const user = await requireUser().catch(() => null);
   if (!user) return { error: t("connect.errSignIn") };
-  if (!allow(`setu:${ownerIdOf(user)}`, 5, 10 * MINUTE)) return { error: t("connect.setuTooMany") };
+  if (!(await allow(`setu:${ownerIdOf(user)}`, 5, 10 * MINUTE))) return { error: t("connect.setuTooMany") };
 
   if (!isSetuConfigured()) {
     return { error: t("connect.setuNotConfigured") };
@@ -93,7 +93,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
 export const completeSetuConsent = async ({ consentId }: { consentId?: string }) => {
   const user = await requireUser().catch(() => null);
   if (!user) return { status: "MISSING" as const, added: 0 };
-  if (!allow(`setu:complete:${ownerIdOf(user)}`, 20, 10 * MINUTE)) return { status: "MISSING" as const, added: 0 };
+  if (!(await allow(`setu:complete:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return { status: "MISSING" as const, added: 0 };
 
   // Only the consent this user started in this browser: a consent id in the URL
   // alone could be someone else's, and would attach their accounts to this user.

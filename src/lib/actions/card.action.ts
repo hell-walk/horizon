@@ -19,7 +19,7 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
 
   const user = await getLoggedInUser();
   if (!user) return { ok: false as const, error: t("connect.errSignIn") };
-  if (!allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE)) return { ok: false as const, error: t("connect.cardTooMany") };
+  if (!(await allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
 
   try {
     const { database } = await createAdminClient();

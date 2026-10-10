@@ -21,7 +21,7 @@ export async function deleteBank(input: { appwriteItemId: string }): Promise<Pri
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("data.errSignIn") };
-  if (!allow(`privacy:bank:${ownerIdOf(user)}`, 20, 10 * MINUTE)) return { ok: false, error: t("data.errTooMany") };
+  if (!(await allow(`privacy:bank:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return { ok: false, error: t("data.errTooMany") };
 
   const bank = await getOwnBank(ownerIdOf(user), String(input?.appwriteItemId ?? ""));
   if (!bank) return { ok: false, error: t("data.errNotYours") };
@@ -40,7 +40,7 @@ export async function exportMyData(): Promise<{ ok: true; json: string } | { ok:
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("data.errSignIn") };
-  if (!allow(`privacy:export:${ownerIdOf(user)}`, 5, 60 * MINUTE)) return { ok: false, error: t("data.errTooMany") };
+  if (!(await allow(`privacy:export:${ownerIdOf(user)}`, 5, 60 * MINUTE))) return { ok: false, error: t("data.errTooMany") };
   try {
     return { ok: true, json: JSON.stringify(await exportUserData(user), null, 2) };
   } catch (error) {
@@ -57,7 +57,7 @@ export async function deleteMyAccount(input: { password: string }): Promise<Priv
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("data.errSignIn") };
-  if (!allow(`privacy:delete:${ownerIdOf(user)}`, 5, 10 * MINUTE)) return { ok: false, error: t("data.errTooMany") };
+  if (!(await allow(`privacy:delete:${ownerIdOf(user)}`, 5, 10 * MINUTE))) return { ok: false, error: t("data.errTooMany") };
 
   const password = typeof input?.password === "string" ? input.password : "";
   if (!password || password.length > 256) return { ok: false, error: t("data.errPassword") };
