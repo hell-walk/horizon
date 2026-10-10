@@ -10,6 +10,7 @@ const state = vi.hoisted(() => ({
   created: [] as Record<string, unknown>[],
   updated: [] as { id: string; data: Record<string, unknown> }[],
   sessionCalls: 0,
+  prefsSaved: [] as { id: string; prefs: Record<string, unknown> }[],
   passwordOk: true,
 }));
 
@@ -60,7 +61,13 @@ vi.mock("@/lib/server/appwrite", () => ({
         return {};
       },
     },
-    user: { delete: async () => ({}) },
+    user: {
+      delete: async () => ({}),
+      updatePrefs: async (id: string, prefs: Record<string, unknown>) => {
+        state.prefsSaved.push({ id, prefs });
+        return prefs;
+      },
+    },
   }),
 }));
 vi.mock("@/lib/server/dwolla", () => ({ createDwollaCustomer: vi.fn(async () => undefined), addFundingSource: vi.fn() }));
@@ -166,6 +173,7 @@ describe("signIn", () => {
 describe("signUp", () => {
   it("does not store the SSN or date of birth and returns no personal data", async () => {
     const result = await userActions.signUp({
+      country: "IN",
       firstName: "Ada",
       lastName: "Lovelace",
       address1: "1 Main St",
@@ -185,8 +193,55 @@ describe("signUp", () => {
   });
 });
 
+describe("sign-up by country", () => {
+  const person = (extra: Record<string, string>) => ({
+    firstName: "Ada",
+    lastName: "Lovelace",
+    address1: "1 Main Street",
+    city: "Town",
+    state: "",
+    postalCode: "",
+    dateOfBirth: "",
+    ssn: "",
+    email: `country-${Math.random()}@example.com`,
+    password: "Str0ng!Passw0rd",
+    ...extra,
+  }) as SignUpParams;
+
+  it("India: state and PIN, no date of birth or SSN, and nothing goes to the US payment partner", async () => {
+    const { createDwollaCustomer } = await import("@/lib/server/dwolla");
+    vi.mocked(createDwollaCustomer).mockClear();
+    expect(await userActions.signUp(person({ country: "IN", state: "MH", postalCode: "411001" }))).toMatchObject({ ok: true });
+    expect(createDwollaCustomer).not.toHaveBeenCalled();
+    expect(state.prefsSaved.at(-1)?.prefs).toEqual({ country: "IN" });
+  });
+
+  it("UK: no region needed, a postal code if given", async () => {
+    expect(await userActions.signUp(person({ country: "GB" }))).toMatchObject({ ok: true });
+    expect(await userActions.signUp(person({ country: "GB", postalCode: "SW1A 1AA" }))).toMatchObject({ ok: true });
+    expect(await userActions.signUp(person({ country: "AE" }))).toMatchObject({ ok: true }); // no postal codes there
+  });
+
+  it("India and the US need their state and postal code", async () => {
+    expect(await userActions.signUp(person({ country: "IN" }))).toMatchObject({ ok: false });
+  });
+
+  it("US: a US address, date of birth and SSN, all three", async () => {
+    const us = { country: "US", state: "NY", postalCode: "10001" };
+    expect(await userActions.signUp(person(us))).toMatchObject({ ok: false }); // no SSN or date of birth
+    expect(await userActions.signUp(person({ ...us, dateOfBirth: "1990-01-01" }))).toMatchObject({ ok: false });
+    expect(await userActions.signUp(person({ ...us, state: "MH", postalCode: "411001", dateOfBirth: "1990-01-01", ssn: "1234" }))).toMatchObject({ ok: false });
+    expect(await userActions.signUp(person({ ...us, dateOfBirth: "1990-01-01", ssn: "1234" }))).toMatchObject({ ok: true });
+  });
+
+  it("refuses a country that does not exist, or none", async () => {
+    expect(await userActions.signUp(person({ country: "XX" }))).toMatchObject({ ok: false });
+    expect(await userActions.signUp(person({ country: "" }))).toMatchObject({ ok: false });
+  });
+});
+
 describe("password policy (enforced on the server, not just the form)", () => {
-  const base = { firstName: "Ada", lastName: "L", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "1990-01-01", ssn: "1234" };
+  const base = { country: "IN", firstName: "Ada", lastName: "L", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "" };
 
   it.each([
     ["short", "Use at least 8 characters."],

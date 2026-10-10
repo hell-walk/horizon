@@ -8,6 +8,8 @@ declare type SearchParamProps = {
 // ========================================
 
 declare type SignUpParams = {
+  /** ISO 3166-1 alpha-2, e.g. "IN", "US", "GB". */
+  country: string;
   firstName: string;
   lastName: string;
   address1: string;
