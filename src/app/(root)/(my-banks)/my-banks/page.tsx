@@ -10,6 +10,7 @@ import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import type { SpendingByAccount } from "../components/spendingThin";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
+import { ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { groupBySpendType } from "@/lib/spending";
 
@@ -28,7 +29,7 @@ const MyBanks = async () => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
-  const accounts = await getAccounts({ userId: loggedIn.$id });
+  const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   const accountsData: Account[] = accounts?.data ?? [];
   const holder = `${loggedIn.firstName} ${loggedIn.lastName}`;
 

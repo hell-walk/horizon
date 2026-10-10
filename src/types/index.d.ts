@@ -129,6 +129,7 @@ declare type TransferParams = {
   sourceFundingSourceUrl: string;
   destinationFundingSourceUrl: string;
   amount: string;
+  idempotencyKey: string; // same key = same transfer; Dwolla will not create it twice
 };
 
 declare type AddFundingSourceParams = {

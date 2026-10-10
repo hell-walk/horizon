@@ -8,6 +8,7 @@
 import ExcelJS from "exceljs";
 import { createHash } from "node:crypto";
 
+import { checkRows, checkZip, StatementParseError } from "./limits";
 import { decryptXlsx, isEncryptedXlsx, parseLegacyXlsRows, parsePdfRows, StatementPasswordError } from "./unlock";
 
 export { StatementPasswordError };
@@ -32,7 +33,7 @@ export type ParsedStatement = {
   check: BalanceCheck;
 };
 
-export class StatementParseError extends Error {}
+export { StatementParseError };
 
 const MAX_HEADER_SCAN_ROWS = 60;
 
@@ -59,7 +60,13 @@ type ReadInput = {
 };
 
 /** Reads any supported file into rows of cells, before any column is interpreted. */
-export async function readStatementRows({ name, buffer: input, password }: ReadInput): Promise<Cell[][]> {
+export async function readStatementRows(input: ReadInput): Promise<Cell[][]> {
+  const rows = await readRows(input);
+  checkRows(rows.length);
+  return rows;
+}
+
+async function readRows({ name, buffer: input, password }: ReadInput): Promise<Cell[][]> {
   const ext = name.toLowerCase().split(".").pop() ?? "";
   const buffer = toUtf8(input);
   // Trust the bytes over the extension: banks hand out HTML tables and tab-separated
@@ -331,6 +338,7 @@ function parseCsv(text: string, delimiter = ","): Cell[][] {
 }
 
 async function parseXlsx(buffer: Buffer): Promise<Cell[][]> {
+  checkZip(buffer); // before unpacking anything
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
   const sheet = workbook.worksheets[0];

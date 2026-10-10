@@ -3,6 +3,7 @@
 // too. The password is used once, in memory, to open the file; nothing about
 // it is stored or logged.
 
+import { checkPdfPages, checkTextItems, LIMITS, startBudget } from "./limits";
 import type { Cell } from "./parse";
 
 /** Thrown when a file needs a password, or the one given does not open it. */
@@ -24,6 +25,10 @@ type OfficeCrypto = {
 const officeCrypto = async (): Promise<OfficeCrypto> => (await import("officecrypto-tool")) as unknown as OfficeCrypto;
 
 export async function isEncryptedXlsx(buffer: Buffer) {
+  // An encrypted workbook is an OLE container, never a plain zip. Answering for
+  // zips here also keeps officecrypto from unpacking one (a zip bomb would
+  // otherwise be expanded before the size check runs).
+  if (buffer.length >= 4 && buffer.readUInt32LE(0) === 0x04034b50) return false;
   const { isEncrypted } = await officeCrypto();
   return isEncrypted(buffer);
 }
@@ -60,7 +65,7 @@ export async function parseLegacyXlsRows(buffer: Buffer, password?: string): Pro
   }
 
   const XLSX = await import("xlsx");
-  const workbook = XLSX.read(data, { type: "buffer", cellDates: true, raw: true });
+  const workbook = XLSX.read(data, { type: "buffer", cellDates: true, raw: true, sheetRows: LIMITS.rows + 1 });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   if (!sheet) return [];
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: null, blankrows: false });
@@ -127,9 +132,15 @@ export async function parsePdfRows(buffer: Buffer, password?: string): Promise<C
 
   const pages: Line[][] = [];
   try {
+    checkPdfPages(doc.numPages);
+    const withinBudget = startBudget();
+    let items = 0;
     for (let p = 1; p <= doc.numPages; p++) {
+      withinBudget();
       const page = await doc.getPage(p);
       const content = await page.getTextContent();
+      items += content.items.length;
+      checkTextItems(items);
       pages.push(toLines((content.items as TextItem[]).filter((item) => item.str && item.str.trim().length > 0)));
       page.cleanup();
     }

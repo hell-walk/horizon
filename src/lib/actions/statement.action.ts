@@ -21,11 +21,12 @@ import {
   type StatementMapping,
   type StatementSample,
 } from "../statements/parse";
-import { accountIdOf } from "../server/auth";
+import { authIdOf, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
 import { getLoggedInUser } from "./user.action";
+import { logError } from "../server/log";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -72,7 +73,7 @@ async function savedLayouts(userId: string): Promise<SavedLayouts> {
     // A plain copy: the SDK's objects cannot be passed on to the browser.
     return layouts && typeof layouts === "object" ? (JSON.parse(JSON.stringify(layouts)) as SavedLayouts) : {};
   } catch (error) {
-    console.error("[statement] could not read saved column layouts", error);
+    logError("statement: could not read saved column layouts", error);
     return {};
   }
 }
@@ -88,7 +89,7 @@ async function rememberLayout(userId: string, signature: string, mapping: Statem
     const kept = Object.fromEntries(Object.entries(layouts).slice(-MAX_SAVED_LAYOUTS));
     await user.updatePrefs(userId, { ...prefs, statementLayouts: kept });
   } catch (error) {
-    console.error("[statement] could not save the column layout", error);
+    logError("statement: could not save the column layout", error);
   }
 }
 
@@ -107,11 +108,29 @@ const mappingFrom = (formData: FormData): unknown => {
  * layout they chose last time for files shaped like this, or automatic
  * detection. When none of those work, the caller gets sample rows to label.
  */
+// Statements read at the same time on this server. Each one can use real CPU and
+// memory (PDF text extraction, decryption), so a burst waits its turn instead of
+// stacking up.
+const MAX_PARALLEL_READS = 3;
+let readsInProgress = 0;
+
 async function readStatement(formData: FormData, userId: string): Promise<ReadOutcome> {
   // Reading PDFs and unlocking files is heavy work; cap how often one user can ask for it.
   if (!allow(`statement:${userId}`, 30, 10 * MINUTE)) {
     return { ok: false, error: "Too many files in a short time. Wait a few minutes and try again." };
   }
+  if (readsInProgress >= MAX_PARALLEL_READS) {
+    return { ok: false, error: "Horizon is reading other statements right now. Try again in a few seconds." };
+  }
+  readsInProgress++;
+  try {
+    return await readStatementNow(formData, userId);
+  } finally {
+    readsInProgress--;
+  }
+}
+
+async function readStatementNow(formData: FormData, userId: string): Promise<ReadOutcome> {
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
   if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 10 MB." };
@@ -154,7 +173,7 @@ async function readStatement(formData: FormData, userId: string): Promise<ReadOu
       };
     }
     if (error instanceof StatementParseError) return { ok: false, error: error.message };
-    console.error("[statement] read failed", error);
+    logError("statement: read failed", error);
     return { ok: false, error: "The file could not be read. Export it again as CSV or XLSX and retry." };
   }
 }
@@ -168,10 +187,10 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: "You need to be signed in to import a statement." };
 
-  const read = await readStatement(formData, accountIdOf(user));
+  const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
   const { parsed, sample, source } = read;
-  if (source === "manual") await rememberLayout(accountIdOf(user), sample.signature, parsed.columns);
+  if (source === "manual") await rememberLayout(authIdOf(user), sample.signature, parsed.columns);
 
   const institution = String(formData.get("institution") || "").trim() || parsed.institutionName || "My Bank";
   const mask = String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000";
@@ -181,7 +200,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
     // Reuse the bank if this institution + account was imported before.
     const existing = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [
-      Query.equal("userId", [user.$id]),
+      Query.equal("userId", [ownerIdOf(user)]),
       Query.equal("provider", [MANUAL_PROVIDER]),
       Query.equal("institutionName", [institution]),
       Query.equal("accountMask", [mask]),
@@ -191,7 +210,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     if (!bankId) {
       const accountId = `manual-${ID.unique()}`;
       const bank = await createBankAccount({
-        userId: user.$id,
+        userId: ownerIdOf(user),
         bankId: accountId,
         accountId,
         accessToken: "manual",
@@ -216,7 +235,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
           try {
             await database.createDocument(DATABASE_ID!, STATEMENT_COLLECTION_ID!, ID.unique(), {
               bankId,
-              userId: user.$id,
+              userId: ownerIdOf(user),
               date: t.date,
               name: t.name.slice(0, 255),
               amount: t.amount,
@@ -251,7 +270,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
     return { ok: true, bankId, institution, mask, imported, skipped, total: parsed.transactions.length };
   } catch (error) {
-    console.error("[statement] import failed", error);
+    logError("statement: import failed", error);
     return { ok: false, error: "Saving the statement failed. Check the server log for details." };
   }
 };
@@ -284,7 +303,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: "You need to be signed in to import a statement." };
 
-  const read = await readStatement(formData, accountIdOf(user));
+  const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
   const { parsed, sample, source } = read;
 

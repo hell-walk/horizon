@@ -4,12 +4,14 @@ import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";
 import { parseStringify } from "../utils";
 import { cached, invalidate, TTL } from "../cache";
+import { logError } from "./log";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
   APPWRITE_TRANSACTION_COLLECTION_ID: TRANSACTION_COLLECTION_ID,
 } = process.env;
 
+/** Saves a transfer record; null when it could not be saved (the caller must say so). */
 export const createTransaction = async (transaction: CreateTransactionProps) => {
   try {
     const { database } = await createAdminClient();
@@ -29,7 +31,8 @@ export const createTransaction = async (transaction: CreateTransactionProps) => 
 
     return parseStringify(newTransaction);
   } catch (error) {
-    console.log(error);
+    logError("transactions: could not save a transfer record", error);
+    return null;
   }
 }
 
@@ -58,6 +61,6 @@ export const getTransactionsByBankId = async ({bankId}: getTransactionsByBankIdP
 
     return parseStringify(transactions);
   } catch (error) {
-    console.log(error);
+    logError("transactions", error);
   }
 }

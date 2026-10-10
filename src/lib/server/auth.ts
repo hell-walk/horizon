@@ -41,5 +41,16 @@ export async function requireUser(): Promise<User> {
   return user;
 }
 
-/** The auth account id (Appwrite user), as opposed to the profile document id in $id. */
-export const accountIdOf = (user: User) => (user as User & { userId?: string }).userId ?? user.$id;
+// Two ids, two jobs:
+// - ownerIdOf: what banks, statements and transfers are stored under (bank.userId).
+//   It is the profile document id ($id); for an account without a profile row,
+//   the auth id (there is nothing else to point at).
+// - authIdOf: the Appwrite auth account, for things that belong to the login
+//   itself: account preferences (saved column layouts) and Plaid's user id.
+// Never mix them: ownership checks compare against ownerIdOf only.
+
+/** The id every bank, statement and transfer row is stored under. */
+export const ownerIdOf = (user: User) => user.$id;
+
+/** The Appwrite auth account id, as opposed to the profile document id. */
+export const authIdOf = (user: User) => (user as User & { userId?: string }).userId ?? user.$id;

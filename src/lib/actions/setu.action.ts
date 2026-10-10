@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
 import { createAdminClient } from "../server/appwrite";
-import { requireUser } from "../server/auth";
+import { ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -19,6 +19,7 @@ import {
   isSetuConfigured,
   SETU_PROVIDER,
 } from "../providers/setu";
+import { logError } from "../server/log";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -38,7 +39,7 @@ const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:300
 export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
   const user = await requireUser().catch(() => null);
   if (!user) return { error: "You need to be signed in." };
-  if (!allow(`setu:${user.$id}`, 5, 10 * MINUTE)) return { error: "Too many attempts. Wait a few minutes and try again." };
+  if (!allow(`setu:${ownerIdOf(user)}`, 5, 10 * MINUTE)) return { error: "Too many attempts. Wait a few minutes and try again." };
 
   if (!isSetuConfigured()) {
     return { error: "Setu is not configured on this server yet." };
@@ -63,7 +64,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
 
     return parseStringify({ consentId: consent.id, url: consent.url });
   } catch (error) {
-    console.error("[setu] createConsent failed", error);
+    logError("setu: createConsent failed", error);
     return { error: "Could not start the bank connection. Please try again." };
   }
 };
@@ -96,7 +97,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
 
     const { database } = await createAdminClient();
     const existing = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [
-      Query.equal("userId", [user.$id]),
+      Query.equal("userId", [ownerIdOf(user)]),
       Query.equal("provider", [SETU_PROVIDER]),
     ]);
     const known = new Set(existing.documents.map((bank) => bank.accountId as string));
@@ -107,7 +108,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
       const session = await createDataSession(id, consentDataRange(consent));
       dataSessionId = session.id;
     } catch (error) {
-      console.error("[setu] could not start the first data session", error);
+      logError("setu: could not start the first data session", error);
     }
 
     let added = 0;
@@ -115,7 +116,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
       if (known.has(account.linkRefNumber)) continue;
 
       await createBankAccount({
-        userId: user.$id,
+        userId: ownerIdOf(user),
         bankId: id,
         accountId: account.linkRefNumber,
         accessToken: id,
@@ -135,7 +136,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
 
     return { status: "ACTIVE" as const, added, total: accounts.length };
   } catch (error) {
-    console.error("[setu] completeSetuConsent failed", error);
+    logError("setu: completeSetuConsent failed", error);
     return { status: "ERROR" as const, added: 0, error: "Could not finish linking the bank. Please try again." };
   }
 };
