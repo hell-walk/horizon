@@ -228,3 +228,37 @@ describe("entries already saved from another file", () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe("rows that need a look", () => {
+  // The refund was read as money out; the balance shows it came in.
+  const flipped = "Date,Narration,Debit,Credit,Balance\n01/04/2024,SALARY,,50000.00,50000.00\n02/04/2024,REFUND,400.00,,50400.00\n03/04/2024,TEA,20.00,,50380.00\n";
+
+  it("the preview lists them with the likely fix", async () => {
+    const result = await previewStatement(form(csv(flipped)));
+    expect(result).toMatchObject({
+      ok: true,
+      check: { status: "mismatch" },
+      doubtful: { count: 1, rows: [{ index: 1, name: "REFUND", reasons: ["balance"], suggestion: { type: "credit" } }] },
+    });
+  });
+
+  it("reading again with the fix shows the balance adding up", async () => {
+    const result = await previewStatement(form(csv(flipped), { fixes: JSON.stringify({ 1: { type: "credit" } }) }));
+    expect(result).toMatchObject({ ok: true, check: { status: "ok" }, changed: 1, doubtfulSkipped: 0 });
+  });
+
+  it("the import saves the fixed row, or skips it", async () => {
+    expect(await importStatement(form(csv(flipped), { fixes: JSON.stringify({ 1: { type: "credit" } }) }))).toMatchObject({ ok: true, imported: 3, changed: 1 });
+    expect(state.documents.find((d) => d.name === "REFUND")).toMatchObject({ type: "credit", amount: 400 });
+
+    state.documents = [];
+    expect(await importStatement(form(csv(flipped), { skipDoubtful: "1" }))).toMatchObject({ ok: true, imported: 2, doubtfulSkipped: 1 });
+    expect(state.documents.map((d) => d.name)).toEqual(["SALARY", "TEA"]);
+  });
+
+  it("refuses fixes for rows that were not flagged, and saves nothing", async () => {
+    const result = await importStatement(form(csv(flipped), { fixes: JSON.stringify({ 0: { amount: 999999 } }) }));
+    expect(result).toMatchObject({ ok: false });
+    expect(state.documents).toHaveLength(0);
+  });
+});

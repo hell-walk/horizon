@@ -109,6 +109,15 @@ describe.skipIf(!up || !haveAccounts)(`signed-in attacker against ${BASE}`, () =
       );
       expect(value).toMatchObject({ ok: true });
     });
+
+    it("fixes for rows that were not flagged, or malformed ones, are refused", async () => {
+      // A clean file: nothing is flagged, so no row may be changed through "fixes".
+      const file = csv("Date,Narration,Debit,Credit,Balance\n01/04/2024,CLEAN,1.00,,99.00\n02/04/2024,CLEAN 2,1.00,,98.00\n");
+      for (const fixes of [JSON.stringify({ 0: { amount: 999999 } }), JSON.stringify({ 1: { type: "credit" } }), "{not json", "x".repeat(200_000)]) {
+        const { value } = await callFormAction("previewStatement", { file, fixes }, { cookie: a });
+        expect(value, fixes.slice(0, 30)).toMatchObject({ ok: false });
+      }
+    });
   });
 
   describe("hostile files (as a signed-in user)", () => {

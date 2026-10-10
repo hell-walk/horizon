@@ -6,12 +6,14 @@ import { useRef, useState } from "react";
 
 import { importStatement, previewStatement, type ImportResult, type PreviewResult } from "@/lib/actions/statement.action";
 import { STATEMENT_BANKS, type StatementBankId } from "@/lib/bankGuides";
+import type { Fixes, RowFix } from "@/lib/statements/doubtful";
 import type { StatementMapping, StatementSample } from "@/lib/statements/parse";
 import { cn, formatAmount } from "@/lib/utils";
 
 import BalanceCheckNote from "./balanceCheck";
 import { useT } from "./i18nProvider";
 import ColumnMapper, { mappingHint } from "./columnMapper";
+import DoubtfulRows from "./doubtfulRows";
 import { Input } from "./ui/input";
 
 type Props = { variant?: "primary" | "card" };
@@ -36,6 +38,20 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [mapperOpen, setMapperOpen] = useState(false);
   // "These are new, save them too", for entries that look like ones already saved from another file.
   const [keepLikely, setKeepLikely] = useState(false);
+  // Fixes for rows that need a look, keyed by their place in the file. "dirty" until the
+  // file has been read again with them, so the counts and the balance check are current.
+  const [fixes, setFixes] = useState<Fixes>({});
+  const [skipAll, setSkipAll] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const fixRow = (index: number, fix: RowFix | null) => {
+    setFixes((current) => {
+      const next = { ...current };
+      if (fix) next[index] = fix;
+      else delete next[index];
+      return next;
+    });
+    setDirty(true);
+  };
   // Guided import: which bank the statement is from, to show how to get it and its usual password.
   const t = useT();
   const [bank, setBank] = useState<StatementBankId | "">("");
@@ -52,6 +68,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     setPreview(null);
     setResult(null);
     setKeepLikely(false);
+    setFixes({});
+    setSkipAll(false);
+    setDirty(false);
   };
 
   const mappingBefore = useRef<Partial<StatementMapping> | null>(null);
@@ -67,14 +86,27 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     setMapping(mappingBefore.current); // back to what the shown preview was read with
   };
 
-  const runPreview = async () => {
+  // keepChoices: read again with the user's fixes (same file, same columns). Otherwise
+  // it is a fresh read, and fixes for the old reading would point at the wrong rows.
+  const runPreview = async (keepChoices = false) => {
     if (!formRef.current) return;
     setBusy("preview");
     setResult(null);
     try {
-      const outcome = await previewStatement(new FormData(formRef.current));
+      const data = new FormData(formRef.current);
+      if (!keepChoices) {
+        data.delete("fixes");
+        data.delete("skipDoubtful");
+        data.delete("keepLikely");
+      }
+      const outcome = await previewStatement(data);
       setPreview(outcome);
-      setKeepLikely(false);
+      if (!keepChoices) {
+        setKeepLikely(false);
+        setFixes({});
+        setSkipAll(false);
+      }
+      setDirty(false);
       if (!outcome.ok && outcome.needsPassword) setShowPassword(true);
       if (!outcome.ok && outcome.needsMapping && outcome.sample) {
         // Keep what the user already picked; otherwise start from the parser's guess.
@@ -141,7 +173,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       ref={formRef}
       onSubmit={(e) => {
         e.preventDefault();
-        if (preview?.ok && !mapperOpen) runImport();
+        if (preview?.ok && !mapperOpen && dirty) runPreview(true);
+        else if (preview?.ok && !mapperOpen) runImport();
         else runPreview();
       }}
       className={cn("flex w-full flex-col gap-4", variant === "primary" && "rounded-md border border-line bg-surface-low p-4")}
@@ -318,6 +351,28 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </table>
           </div>
           <BalanceCheckNote check={preview.check} currency={preview.currency} />
+          {preview.doubtful.count > 0 && (
+            <DoubtfulRows
+              count={preview.doubtful.count}
+              rows={preview.doubtful.rows}
+              total={preview.total + preview.doubtfulSkipped}
+              currency={preview.currency}
+              fixes={fixes}
+              onFix={fixRow}
+              skipAll={skipAll}
+              onSkipAll={(skip) => {
+                setSkipAll(skip);
+                setDirty(true);
+              }}
+            />
+          )}
+          {(preview.changed > 0 || preview.doubtfulSkipped > 0) && !dirty && (
+            <p className="border-t border-line px-3 py-2 text-13 text-ink">
+              {t("connect.doubtApplied", { changed: preview.changed, skipped: preview.doubtfulSkipped })}
+            </p>
+          )}
+          <input type="hidden" name="fixes" value={JSON.stringify(fixes)} />
+          {skipAll && <input type="hidden" name="skipDoubtful" value="1" />}
           {preview.alreadySaved > 0 && (
             <p className="flex items-start gap-2 border-t border-line px-3 py-2 text-13 text-ink">
               <CopyCheck className="mt-0.5 size-4 shrink-0 text-ink-muted" aria-hidden /> {t("connect.alreadySaved", { count: preview.alreadySaved })}
@@ -399,7 +454,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="submit"
-          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null) || (!mapperOpen && toSave === 0)}
+          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null) || (!mapperOpen && !dirty && toSave === 0)}
           className={preview?.ok && !mapperOpen ? "btn-primary" : "btn-secondary"}
         >
           {busy === "preview" ? (
@@ -412,6 +467,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             </>
           ) : mapperOpen ? (
             t("connect.readWithColumns")
+          ) : preview?.ok && !mapperOpen && dirty ? (
+            t("connect.doubtCheckAgain")
           ) : preview?.ok && toSave === 0 ? (
             t("connect.nothingNew")
           ) : preview?.ok ? (
@@ -443,6 +500,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           : {t("connect.savedNew", { count: result.imported })}
           {result.skipped ? ` ${t("connect.alreadyThere", { count: result.skipped })}` : ""}
           {result.likelySkipped ? ` ${t("connect.likelySkipped", { count: result.likelySkipped })}` : ""}
+          {result.changed ? ` ${t("connect.doubtChangedDone", { count: result.changed })}` : ""}
+          {result.doubtfulSkipped ? ` ${t("connect.doubtSkippedDone", { count: result.doubtfulSkipped })}` : ""}
         </p>
       )}
 
