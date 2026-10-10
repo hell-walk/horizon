@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { BankTabItem } from "@/components/BankTabItem";
 import { Search, X } from "lucide-react";
 
+import InsightsPanel from "@/components/insightsPanel";
 import { Pagination } from "@/components/Pagination";
 import MonthlyFlow from "../components/monthlyFlow";
 import PayeePanel from "../components/payeePanel";
@@ -13,6 +14,7 @@ import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 import { dataLabel } from "@/lib/i18n/labels";
+import { findInsights } from "@/lib/insights";
 import { groupByPayee, type PayeeSpend } from "@/lib/payees";
 import { spendType } from "@/lib/spending";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
@@ -123,6 +125,8 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
           </div>
 
           <MonthlyFlow transactions={all} currency={currency} />
+
+          <InsightsPanel result={findInsights(all)} currency={currency} />
 
           <div id="payees" className="scroll-mt-6">
             <PayeePanel groups={forBrowser(groupByPayee(all, 8))} currency={currency} arrive={from === "chart"} />
