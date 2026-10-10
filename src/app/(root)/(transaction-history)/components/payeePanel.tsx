@@ -38,7 +38,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
 
   // Rows for the list under the chart: one payee's payments, or all of them.
   const listed = showAll
-    ? groups.flatMap((g) => g.transactions.map((tx) => ({ tx, payee: payeeName(tx.name || "") }))) // own name, even inside "Other"
+    ? groups.flatMap((g) => g.transactions.map((tx) => ({ tx, payee: tx.shownName || payeeName(tx.name || "") }))) // own name, even inside "Other"
     : active
       ? active.transactions.map((tx) => ({ tx, payee: active.name }))
       : [];
