@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Create a Horizon account and connect your first bank in minutes.",
   robots: { index: true, follow: true },
 };
-import AuthForm from '@/components/authForm'
+import AuthForm from '../components/authForm'
 const SignUp = async () => {
   return (
     <section className="flex w-full justify-center">

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
-import AllocationPanel from "@/components/allocationPanel";
-import CategoryPanel from "@/components/categoryPanel";
-import SpendingStrip from "@/components/spendingStrip";
-import QuickActions from "@/components/quickActions";
-import RecentTransaction from "@/components/recentTransaction";
-import RightSideBar from "@/components/rightSideBar";
+import AllocationPanel from "./components/allocationPanel";
+import CategoryPanel from "./components/categoryPanel";
+import SpendingStrip from "./components/spendingStrip";
+import QuickActions from "./components/quickActions";
+import RecentTransaction from "./components/recentTransaction";
+import RightSideBar from "./components/rightSideBar";
 import { ChartPanelSkeleton, RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/skeletons";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import PaymentTransferForm from "@/components/PaymentTransferForm";
+import PaymentTransferForm from "../components/PaymentTransferForm";
 import HeaderBox from "@/components/ui/headerBox";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";

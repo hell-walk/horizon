@@ -4,8 +4,8 @@ import Link from "next/link";
 import { PROVIDER_LABELS } from "@/constants";
 
 import BankInfo from "./BankInfo";
-import CardStack from "./cardStack";
-import Copy from "./Copy";
+import CardStack from "@/components/cardStack";
+import Copy from "@/components/Copy";
 
 // Right column on Home. Pinned while the main column scrolls: it holds the
 // card deck, the profile and the account switcher, which are all actionable.

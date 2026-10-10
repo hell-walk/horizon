@@ -14,9 +14,9 @@ import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";
-import ImportStatement from "./importStatement";
-import PlaidLink from "./plaidLink";
-import SetuLink from "./setuLink";
+import ImportStatement from "@/components/importStatement";
+import PlaidLink from "@/components/plaidLink";
+import SetuLink from "@/components/setuLink";
 
 const SECTIONS = [
   { index: "01", title: "Identity" },

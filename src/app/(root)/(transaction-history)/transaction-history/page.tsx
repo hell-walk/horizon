@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { BankTabItem } from "@/components/BankTabItem";
 import { Pagination } from "@/components/Pagination";
-import PayeePanel from "@/components/payeePanel";
+import PayeePanel from "../components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";

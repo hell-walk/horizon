@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import TransactionTable from "@/components/transactionTable";
 
-import { BankTabItem } from "./BankTabItem";
-import { Pagination } from "./Pagination";
+import { BankTabItem } from "@/components/BankTabItem";
+import { Pagination } from "@/components/Pagination";
 
 const ROWS_PER_PAGE = 10;
 

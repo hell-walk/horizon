@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Sign in to Horizon to see your accounts, balances and transactions.",
   robots: { index: true, follow: true },
 };
-import AuthForm from '@/components/authForm'
+import AuthForm from '../components/authForm'
 const SignIn = () => {
   return (
     <section className="flex w-full justify-center">

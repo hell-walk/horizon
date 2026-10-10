@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { logoutAccount } from "@/lib/actions/user.action";
 
-import ThemeSwitch from "./themeSwitch";
+import ThemeSwitch from "@/components/themeSwitch";
 
 // Avatar button in the top bar. Opens a panel with the account, the theme
 // slider (useful on phones, where the bar has no room for it) and log out.

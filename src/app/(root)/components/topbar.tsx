@@ -1,6 +1,6 @@
-import Logo from "./logo";
+import Logo from "@/components/logo";
 import Navbar from "./navbar";
-import ThemeSwitch from "./themeSwitch";
+import ThemeSwitch from "@/components/themeSwitch";
 import UserMenu from "./userMenu";
 
 // The only chrome above a signed-in page: wordmark, the floating pill
