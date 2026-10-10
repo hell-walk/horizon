@@ -10,6 +10,7 @@ import { readCorrections } from "../corrections";
 import { readGoals } from "../goals";
 import { getBanks, getUserInfo } from "./banks";
 import { deactivateCustomer, removeFundingSource } from "./dwolla";
+import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
 
 // What the privacy page offers: a copy of your data, removing a bank, and
@@ -72,6 +73,7 @@ export async function removeBank(bank: Bank): Promise<{ statements: number }> {
   const { database } = await createAdminClient();
   await database.deleteDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bank.$id);
   invalidate("banks:");
+  await forgetLeftOver(bank.userId);
   invalidate(`statement:${bank.$id}`);
   return { statements };
 }

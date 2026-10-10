@@ -9,6 +9,7 @@ import { getT } from "../i18n/server";
 import { getAccountUncached } from "../server/accounts";
 import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadCorrections, storeCorrections } from "../server/corrections";
+import { forgetLeftOver } from "../server/leftover";
 import { logError } from "../server/log";
 import { allow, MINUTE } from "../server/rateLimit";
 
@@ -71,6 +72,7 @@ export async function correctTransaction(input: Target & { name?: string; catego
     }
     await storeCorrections(authIdOf(user), corrections);
     invalidate("banks:leftover:");
+    await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
@@ -97,6 +99,7 @@ export async function undoCorrection(input: Target): Promise<CorrectionResult> {
     if (key) delete corrections.payees[key];
     await storeCorrections(authIdOf(user), corrections);
     invalidate("banks:leftover:");
+    await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {

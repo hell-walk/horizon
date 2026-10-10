@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cached, TTL } from "../cache";
+import { forget, get, put } from "./shared";
 import { monthlyFlow } from "../cashflow";
 import type { UsualLeftOver } from "../goals";
 import { getAccount, getAccounts } from "./accounts";
@@ -14,10 +15,19 @@ const MONTHS = 3;
  * A month is left out when it is still running, or when the statements start
  * after its 3rd or end before its 25th.
  */
-export const usualLeftOver = (ownerId: string, today = new Date()): Promise<UsualLeftOver[]> =>
-  // Reads every account, so it is kept for a few minutes. The key starts with "banks:", so
-  // an import or a removed bank (which clear "banks:") clears it too.
-  cached(`banks:leftover:${ownerId}`, 5 * TTL.minute, () => work(ownerId, today));
+export async function usualLeftOver(ownerId: string, today = new Date()): Promise<UsualLeftOver[]> {
+  // Reads every account, so it is kept for five minutes, in Redis when configured so every
+  // server copy shares it. Anything that changes the user's banks or entries calls
+  // forgetLeftOver(), so it is never older than the last change.
+  const shared = await get<UsualLeftOver[]>("leftover", ownerId);
+  if (shared) return shared;
+  const value = await cached(`banks:leftover:${ownerId}`, 5 * TTL.minute, () => work(ownerId, today));
+  await put("leftover", ownerId, value, 5 * TTL.minute);
+  return value;
+}
+
+/** Call after any change to a user's banks, entries or categories. */
+export const forgetLeftOver = (ownerId: string) => forget("leftover", ownerId);
 
 async function work(ownerId: string, today: Date): Promise<UsualLeftOver[]> {
   const accounts = ((await getAccounts({ userId: ownerId }))?.data as Account[] | undefined) ?? [];

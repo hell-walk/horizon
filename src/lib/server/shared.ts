@@ -40,6 +40,12 @@ export async function put(kind: string, key: string, value: unknown, ms: number)
   }
 }
 
+/** Forgets a remembered value (everywhere, when Redis is configured). */
+export async function forget(kind: string, key: string) {
+  const done = await tryRedis((r) => r.del(redisKey(kind, key)));
+  if (done === undefined) values.delete(`${kind}:${key}`);
+}
+
 export async function get<T>(kind: string, key: string): Promise<T | null> {
   const shared = await tryRedis((r) => r.get<string>(redisKey(kind, key)));
   const raw = shared !== undefined ? shared : (values.get(`${kind}:${key}`)?.expires ?? 0) > Date.now() ? values.get(`${kind}:${key}`)!.value : null;

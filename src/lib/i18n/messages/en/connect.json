@@ -149,7 +149,7 @@
   "stTooMany": "Too many files in a short time. Wait a few minutes and try again.",
   "stBusy": "Horizon is reading other statements right now. Try again in a few seconds.",
   "stNoFile": "Choose a statement file first.",
-  "stTooBig": "The file is larger than 10 MB.",
+  "stTooBig": "The file is larger than {max} MB. Most banks let you download a shorter period, for example three months at a time.",
   "stNoRowsWithColumns": "No transactions could be read with those columns. Check the date and amount columns.",
   "stNoRowsFound": "No transactions found. Columns detected: {columns}. Pick the columns below.",
   "stNone": "none",

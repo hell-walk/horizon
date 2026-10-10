@@ -20,6 +20,7 @@ import {
   isSetuConfigured,
   SETU_PROVIDER,
 } from "../providers/setu";
+import { forgetLeftOver } from "../server/leftover";
 import { logError } from "../server/log";
 
 const {
@@ -151,6 +152,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
 
     cookieStore.delete(PENDING_CONSENT_COOKIE);
     invalidate("banks:");
+    await forgetLeftOver(ownerIdOf(user));
     invalidate(`setu:session:${id}`);
     revalidatePath("/");
 

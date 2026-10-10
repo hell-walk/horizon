@@ -6,6 +6,7 @@ import { cached, invalidate, TTL } from "../cache";
 import { parseStringify } from "../utils";
 import { createAdminClient } from "./appwrite";
 import { openSecret, sealSecret } from "./crypto";
+import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
 
 // Data access for users and banks. Server-only on purpose: none of these check
@@ -107,6 +108,7 @@ export async function createBankAccount({
       ...(currentBalance !== undefined ? { currentBalance } : {}),
     });
     invalidate("banks:");
+    await forgetLeftOver(userId);
     return withOpenToken(parseStringify(bankAccount));
   } catch (error) {
     logError("An error occurred while creating the bank account", error);
