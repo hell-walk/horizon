@@ -27,7 +27,8 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
             [Query.equal("userId", [userId])]
         );
 
-        return parseStringify(user.documents[0]);
+        const info = user.documents[0];
+        return info ? parseStringify(info) : null;
     } catch (error) {
         console.error("Error fetching user info", error);
     }
