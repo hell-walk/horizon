@@ -74,5 +74,6 @@
   "label_service": "Service",
   "label_utilities": "Utilities",
   "label_interest": "Interest",
-  "label_loan_payments": "Loan Payments"
+  "label_loan_payments": "Loan Payments",
+  "label_between_my_accounts": "Between my accounts"
 }

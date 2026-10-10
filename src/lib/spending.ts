@@ -1,3 +1,4 @@
+import { OWN_TRANSFER } from "./corrections";
 import { isPersonPayment, PEOPLE_GROUP } from "./payees";
 
 // Plain-language spending buckets. Every debit lands in one bucket that a
@@ -51,8 +52,9 @@ const FROM_CATEGORY: Record<string, string> = {
 // Categories that say nothing about what was bought (the statement parser's default is "Transfer").
 const GENERIC_CATEGORIES = new Set(["", "transfer", "payment", "other", "bank fees"]);
 
-/** The plain-language bucket a debit belongs to. */
-export function spendType(t: Pick<Transaction, "name" | "category" | "paymentChannel">): string {
+/** The plain-language bucket a debit belongs to. The user's own choice wins. */
+export function spendType(t: Pick<Transaction, "name" | "category" | "paymentChannel" | "userCategory">): string {
+  if (t.userCategory) return t.userCategory;
   const text = t.name ?? "";
   for (const [name, pattern] of PURPOSE) if (pattern.test(text)) return name;
   for (const [name, pattern] of METHOD) if (pattern.test(text)) return name;
@@ -78,6 +80,7 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
     if (!isDebit || amount === 0) continue;
 
     const name = spendType(t);
+    if (name === OWN_TRANSFER) continue; // moving money between your own accounts is not spending
     const bucket = totals.get(name) ?? { key: name.toLowerCase(), name, amount: 0, count: 0, share: 0 };
     bucket.amount += amount;
     bucket.count += 1;

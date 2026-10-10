@@ -3,7 +3,9 @@ import "server-only";
 import { cache } from "react";
 
 import { parseStringify } from "../utils";
-import { loadLoggedInUser, ownerIdOf } from "./auth";
+import { applyCorrections } from "../corrections";
+import { authIdOf, loadLoggedInUser, ownerIdOf } from "./auth";
+import { loadCorrections } from "./corrections";
 import { getBanks, getOwnBank, saveSetuSessionId } from "./banks";
 import { getTransactionsByBankId } from "./transactions";
 import { getPlaidInstitution, getPlaidTransactions, toPlaidAccount } from "../providers/plaid";
@@ -124,7 +126,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
 // Get one bank account. cache() dedupes it within a request: the transactions list
 // and the right sidebar both need it.
-const loadAccount = cache(async (appwriteItemId: string) => {
+async function loadAccountNow(appwriteItemId: string) {
   try {
     // Only the signed-in user's own accounts: the id comes from the URL or a cookie.
     const user = await loadLoggedInUser();
@@ -132,9 +134,10 @@ const loadAccount = cache(async (appwriteItemId: string) => {
     if (!bank) return null;
 
     // Transfers made inside Horizon live in Appwrite regardless of provider.
-    const [loaded, transferTransactionsData] = await Promise.all([
+    const [loaded, transferTransactionsData, corrections] = await Promise.all([
       loadBank(bank),
       getTransactionsByBankId({ bankId: bank.$id }),
+      loadCorrections(authIdOf(user!)),
     ]);
     if (!loaded) return null;
 
@@ -158,13 +161,22 @@ const loadAccount = cache(async (appwriteItemId: string) => {
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
-    return parseStringify({ data: account, transactions: allTransactions });
+    // The user's own names and categories, on every screen that shows this account.
+    return parseStringify({ data: account, transactions: applyCorrections(allTransactions, corrections) });
   } catch (error) {
     logError("An error occurred while getting the account", error);
   }
-});
+}
+const loadAccount = cache(loadAccountNow);
 
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => loadAccount(appwriteItemId);
+
+/**
+ * The same, without the per-request cache. For server actions that change
+ * what an account shows: a cached copy taken before the change would be
+ * reused when the page is drawn again after it.
+ */
+export const getAccountUncached = async ({ appwriteItemId }: getAccountProps) => loadAccountNow(appwriteItemId);
 
 // Get bank info. Only Plaid institutions need a lookup; the others carry their name.
 export const getInstitution = async ({ institutionId }: getInstitutionProps) => {

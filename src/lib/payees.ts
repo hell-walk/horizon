@@ -76,8 +76,15 @@ const isNoise = (t: string) => {
 /** A stable, readable label for whoever a transaction went to. */
 export function payeeName(raw: string): string {
   const alias = ALIASES.find(([pattern]) => pattern.test(raw));
-  if (alias) return alias[1];
+  return alias ? alias[1] : payeeWords(raw);
+}
 
+/**
+ * The payee as the bank wrote it, cleaned, without the brand and group
+ * aliases: "Mutual fund SIP" stays itself instead of becoming "Investments".
+ * "Other" when nothing readable is left.
+ */
+export function payeeWords(raw: string): string {
   // Narrations are segmented by the rail: "UPI/DR/531/ZOMATO/SBIN/zomato@ybl".
   // The payee is the first segment with real words left after the noise goes.
   const segments = raw
@@ -132,8 +139,11 @@ export function groupByPayee(transactions: Transaction[] = [], limit = 8): Payee
     const isDebit = t.type === "debit" || Number(t.amount) < 0;
     if (!isDebit || amount === 0) continue;
 
-    // Money sent to people goes into one bracket; the rows keep each name.
-    const name = isPersonPayment(t.name || "") ? PEOPLE_GROUP : payeeName(t.name || "");
+    if (t.userCategory === "Between my accounts") continue; // not spending (lib/corrections OWN_TRANSFER)
+
+    // A name the user chose wins. Otherwise money sent to people goes into one
+    // bracket; the rows keep each name.
+    const name = t.shownName || (isPersonPayment(t.name || "") ? PEOPLE_GROUP : payeeName(t.name || ""));
     const key = name.toLowerCase();
     const group = groups.get(key) ?? { key, name, amount: 0, count: 0, share: 0, transactions: [] };
     group.amount += amount;

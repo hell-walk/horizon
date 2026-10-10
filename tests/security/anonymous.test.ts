@@ -61,7 +61,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   describe("the server action surface", () => {
     it("exposes exactly the intended actions", () => {
       expect(Object.keys(actionIds()).sort()).toEqual(
-        ["completeSetuConsent", "createLinkToken", "createSetuConsent", "deleteBank", "deleteMyAccount", "exchangePublicToken", "exportMyData", "importStatement", "logoutAccount", "previewStatement", "sendTransfer", "setCardDesign", "signIn", "signUp"].sort()
+        ["completeSetuConsent", "correctTransaction", "createLinkToken", "createSetuConsent", "deleteBank", "deleteMyAccount", "exchangePublicToken", "exportMyData", "importStatement", "logoutAccount", "previewStatement", "sendTransfer", "setCardDesign", "signIn", "signUp", "undoCorrection"].sort()
       );
     });
 
@@ -84,6 +84,8 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       ["deleteBank", [{ appwriteItemId: "x" }]],
       ["exportMyData", []],
       ["deleteMyAccount", [{ password: "x" }]],
+      ["correctTransaction", [{ accountId: "x", transactionId: "x", category: "Rent" }]],
+      ["undoCorrection", [{ accountId: "x", transactionId: "x" }]],
     ])("%s refuses without a session", async (name, args) => {
       const { status, value } = await callAction(name, args);
       expect(status).toBe(200);

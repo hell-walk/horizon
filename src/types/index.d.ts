@@ -86,6 +86,12 @@ declare type Transaction = {
   senderBankId: string;
   receiverBankId: string;
   currency?: string;
+  /** The user's own name for this entry (lib/corrections); the bank's text stays in name. */
+  shownName?: string;
+  /** The category the user chose, one of CATEGORIES in lib/corrections. */
+  userCategory?: string;
+  /** Whether the change was made for this entry only or for everyone with the same payee. */
+  changedBy?: "row" | "payee";
 };
 
 declare type Bank = {
@@ -264,6 +270,8 @@ declare interface CategoryBadgeProps {
 
 declare interface TransactionTableProps {
   transactions: Transaction[];
+  /** When set, each entry gets a button to change its name or category. */
+  accountId?: string;
 }
 
 declare interface CategoryProps {
