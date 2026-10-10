@@ -13,16 +13,13 @@ vi.mock("@/lib/server/auth", () => ({
   ownerIdOf: (u: { $id: string }) => u.$id,
   authIdOf: (u: { userId: string }) => u.userId,
 }));
-vi.mock("@/lib/server/appwrite", () => ({
-  createAdminClient: async () => ({
-    user: {
-      getPrefs: async () => JSON.parse(JSON.stringify(state.prefs)),
-      updatePrefs: async (_id: string, prefs: Record<string, unknown>) => {
-        state.writes++;
-        state.prefs = prefs;
-      },
-    },
-  }),
+vi.mock("@/lib/server/prefs", () => ({
+  readPrefs: async () => JSON.parse(JSON.stringify(state.prefs)),
+  updatePrefs: async (_id: string, change: Record<string, unknown>) => {
+    state.writes++;
+    state.prefs = { ...state.prefs, ...JSON.parse(JSON.stringify(change)) };
+    return state.prefs;
+  },
 }));
 
 const { saveGoal, deleteGoal } = await import("@/lib/actions/goal.action");

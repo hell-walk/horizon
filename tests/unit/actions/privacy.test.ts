@@ -72,7 +72,6 @@ vi.mock("@/lib/server/appwrite", () => ({
       deleteDocument: async (_db: string, c: string, id: string) => col(c).delete(id),
     },
     user: {
-      getPrefs: async () => ({ statementLayouts: { sig: { date: 0 } } }),
       delete: async (id: string) => db.deletedAuthUsers.push(id),
       deleteSession: async (_u: string, s: string) => db.deletedSessions.push(s),
     },
@@ -91,7 +90,7 @@ const seed = () => {
   calls.removeFundingSource = [];
   calls.deactivate = [];
   db.sessionUser = { $id: "a-me", email: "me@example.com", name: "Me" };
-  col(COL.users).set("p-me", { userId: "a-me", firstName: "Me", lastName: "Self", address1: "1 Road", city: "Pune", state: "MH", postalCode: "411001", ssn: "not-kept", dateOfBirth: "not-kept", dwollaCustomerUrl: "https://dwolla/customers/me" });
+  col(COL.users).set("p-me", { userId: "a-me", prefs: JSON.stringify({ statementLayouts: { sig: { date: 0 } } }), firstName: "Me", lastName: "Self", address1: "1 Road", city: "Pune", state: "MH", postalCode: "411001", ssn: "not-kept", dateOfBirth: "not-kept", dwollaCustomerUrl: "https://dwolla/customers/me" });
   col(COL.users).set("p-them", { userId: "a-them", firstName: "Them", lastName: "Other" });
   col(COL.banks).set("bank-mine", { userId: "p-me", provider: "plaid", accessToken: "access-sandbox-mine-123", fundingSourceUrl: "https://dwolla/fs/mine", institutionName: "HDFC Bank", accountMask: "4821", sharableId: "s1" });
   col(COL.banks).set("bank-mine-2", { userId: "p-me", provider: "manual", accessToken: "manual", institutionName: "SBI", accountMask: "1111", sharableId: "s2" });

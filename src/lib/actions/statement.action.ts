@@ -29,7 +29,8 @@ import { findOverlap, type Overlap } from "../statements/overlap";
 import { applyFixes, findDoubtful, readFixes, type Doubtful } from "../statements/doubtful";
 import { findImportedBank, savedStatementRows } from "../server/statementRows";
 import { forgetLeftOver } from "../server/leftover";
-import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
+import { getLoggedInUser, ownerIdOf } from "../server/auth";
+import { readPrefs, updatePrefs } from "../server/prefs";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -133,12 +134,11 @@ const MAX_SAVED_LAYOUTS = 20;
 
 type SavedLayouts = Record<string, StatementMapping>;
 
-// Layouts live in the account's preferences: every user has them, whatever else is set up.
-async function savedLayouts(userId: string): Promise<SavedLayouts> {
+// Layouts live in the person's settings on their profile (prefs.ts).
+async function savedLayouts(ownerId: string): Promise<SavedLayouts> {
   try {
-    const { user } = await createAdminClient();
-    const layouts = (await user.getPrefs(userId)).statementLayouts;
-    // A plain copy: the SDK's objects cannot be passed on to the browser.
+    const layouts = (await readPrefs(ownerId)).statementLayouts;
+    // A plain copy: nothing stored is trusted as is.
     return layouts && typeof layouts === "object" ? (JSON.parse(JSON.stringify(layouts)) as SavedLayouts) : {};
   } catch (error) {
     logError("statement: could not read saved column layouts", error);
@@ -147,15 +147,13 @@ async function savedLayouts(userId: string): Promise<SavedLayouts> {
 }
 
 /** Remembers the user's column mapping for this layout, so the next statement from the same bank just works. */
-async function rememberLayout(userId: string, signature: string, mapping: StatementMapping) {
+async function rememberLayout(ownerId: string, signature: string, mapping: StatementMapping) {
   try {
-    const { user } = await createAdminClient();
-    const prefs = await user.getPrefs(userId);
-    const layouts: SavedLayouts = prefs.statementLayouts && typeof prefs.statementLayouts === "object" ? JSON.parse(JSON.stringify(prefs.statementLayouts)) : {};
+    const layouts = await savedLayouts(ownerId);
     delete layouts[signature]; // re-insert so the newest is kept when trimming
     layouts[signature] = mapping;
     const kept = Object.fromEntries(Object.entries(layouts).slice(-MAX_SAVED_LAYOUTS));
-    await user.updatePrefs(userId, { ...prefs, statementLayouts: kept });
+    await updatePrefs(ownerId, { statementLayouts: kept });
   } catch (error) {
     logError("statement: could not save the column layout", error);
   }
@@ -259,13 +257,13 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("connect.stSignIn") };
 
-  const read = await readStatement(formData, authIdOf(user));
+  const read = await readStatement(formData, ownerIdOf(user));
   if (!read.ok) return read;
   const { sample, source } = read;
   const fixed = await withFixes(formData, read.parsed);
   if (!fixed.ok) return fixed;
   const { parsed } = fixed;
-  if (source === "manual") await rememberLayout(authIdOf(user), sample.signature, parsed.columns);
+  if (source === "manual") await rememberLayout(ownerIdOf(user), sample.signature, parsed.columns);
 
   const { institution, mask } = accountFrom(formData, parsed);
   // Ticked by the user in the preview: "these are new, save them too".
@@ -406,7 +404,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("connect.stSignIn") };
 
-  const read = await readStatement(formData, authIdOf(user));
+  const read = await readStatement(formData, ownerIdOf(user));
   if (!read.ok) return read;
   const { sample, source } = read;
   const fixed = await withFixes(formData, read.parsed);

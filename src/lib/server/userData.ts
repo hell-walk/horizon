@@ -12,6 +12,7 @@ import { getBanks, getUserInfo } from "./banks";
 import { deactivateCustomer, removeFundingSource } from "./dwolla";
 import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
+import { readPrefs } from "./prefs";
 
 // What the privacy page offers: a copy of your data, removing a bank, and
 // deleting the account. Server-only; the actions in actions/privacy.action.ts
@@ -87,8 +88,7 @@ export async function exportUserData(user: User) {
     listAll(TRANSACTION_COLLECTION_ID!, [Query.equal("senderId", [owner])]),
     listAll(TRANSACTION_COLLECTION_ID!, [Query.equal("receiverId", [owner])]),
   ]);
-  const { user: users } = await createAdminClient();
-  const prefs = await users.getPrefs(authIdOf(user)).catch(() => ({}) as Record<string, unknown>);
+  const prefs = (await readPrefs(ownerIdOf(user)).catch(() => ({}))) as Record<string, unknown>;
 
   const accounts = [];
   for (const bank of banks) {

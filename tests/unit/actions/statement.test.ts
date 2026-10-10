@@ -40,13 +40,13 @@ vi.mock("@/lib/server/appwrite", () => ({
       }),
       updateDocument: vi.fn(async () => ({})),
     },
-    user: {
-      getPrefs: vi.fn(async () => state.prefs),
-      updatePrefs: vi.fn(async (_id: string, prefs: Record<string, unknown>) => {
-        state.prefs = prefs;
-        return prefs;
-      }),
-    },
+  }),
+}));
+vi.mock("@/lib/server/prefs", () => ({
+  readPrefs: vi.fn(async () => state.prefs),
+  updatePrefs: vi.fn(async (_id: string, change: Record<string, unknown>) => {
+    state.prefs = { ...state.prefs, ...change };
+    return state.prefs;
   }),
 }));
 

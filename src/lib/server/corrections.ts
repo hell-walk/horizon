@@ -2,23 +2,20 @@ import "server-only";
 
 import { cached, remember, TTL } from "../cache";
 import { readCorrections, type Corrections } from "../corrections";
-import { createAdminClient } from "./appwrite";
 import { logError } from "./log";
+import { readPrefs, updatePrefs } from "./prefs";
 
-// Corrections live in the account's preferences, next to the saved statement
-// layouts: every user has them, and deleting the account deletes them.
-// Writes go through the cache, so the page shown right after a change never
-// reads an older copy back from Appwrite.
+// Corrections live in the person's settings on their profile (prefs.ts), next
+// to the saved statement layouts; deleting the account deletes them. Writes go
+// through the cache, so the page shown right after a change never reads an
+// older copy back.
 
-const key = (authId: string) => `corrections:${authId}`;
+const key = (ownerId: string) => `corrections:${ownerId}`;
 const KEEP = 5 * TTL.minute;
 
-export async function loadCorrections(authId: string): Promise<Corrections> {
+export async function loadCorrections(ownerId: string): Promise<Corrections> {
   try {
-    const stored = await cached(key(authId), KEEP, async () => {
-      const { user } = await createAdminClient();
-      return readCorrections((await user.getPrefs(authId)).corrections);
-    });
+    const stored = await cached(key(ownerId), KEEP, async () => readCorrections((await readPrefs(ownerId)).corrections));
     return structuredClone(stored); // callers may change their copy
   } catch (error) {
     logError("corrections: could not read", error);
@@ -26,9 +23,7 @@ export async function loadCorrections(authId: string): Promise<Corrections> {
   }
 }
 
-export async function storeCorrections(authId: string, corrections: Corrections) {
-  const { user } = await createAdminClient();
-  const prefs = await user.getPrefs(authId);
-  await user.updatePrefs(authId, { ...JSON.parse(JSON.stringify(prefs)), corrections });
-  remember(key(authId), structuredClone(corrections), KEEP);
+export async function storeCorrections(ownerId: string, corrections: Corrections) {
+  await updatePrefs(ownerId, { corrections });
+  remember(key(ownerId), structuredClone(corrections), KEEP);
 }
