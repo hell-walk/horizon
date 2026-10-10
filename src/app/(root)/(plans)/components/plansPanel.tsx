@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -143,6 +144,15 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
         </div>
       )}
 
+      <p className="text-13 text-ink-muted">
+        <Link href="/pricing" className="underline underline-offset-4 hover:text-ink">
+          {t("plan.seePricing")}
+        </Link>
+        {" · "}
+        <Link href="/refunds" className="underline underline-offset-4 hover:text-ink">
+          {t("plan.seeRefunds")}
+        </Link>
+      </p>
       {testMode && <p className="text-13 text-ink-muted">{t("plan.testMode")}</p>}
       {message && (
         <p role={message.bad ? "alert" : "status"} className={message.bad ? "field-error" : "text-14 text-ink"}>

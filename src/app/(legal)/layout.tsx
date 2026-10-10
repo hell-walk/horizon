@@ -17,6 +17,9 @@ export default async function LegalLayout({ children }: { children: ReactNode })
         <Logo compact className="hidden max-sm:flex" />
         <div className="flex items-center gap-2">
           {/* Under 420px only the other language's button shows, so the bar fits a 320px phone. */}
+          <Link href="/pricing" className="font-mono text-[12px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:text-ink hover:underline max-[420px]:hidden">
+            {t("common.footerPricing")}
+          </Link>
           <LanguageSwitch className="max-[420px]:[&>[aria-pressed=true]]:hidden" />
           <ThemeSwitch />
           <Link href="/sign-in" className="btn-primary btn-sm whitespace-nowrap">
