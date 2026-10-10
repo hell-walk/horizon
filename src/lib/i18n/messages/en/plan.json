@@ -41,5 +41,6 @@
   "errNothing": "There is no subscription to change.",
   "errAlready": "You are already subscribed.",
   "seePricing": "Full pricing",
-  "seeRefunds": "Refund and cancellation policy"
+  "seeRefunds": "Refund and cancellation policy",
+  "errInProgress": "A payment page is already opening. Wait a moment."
 }

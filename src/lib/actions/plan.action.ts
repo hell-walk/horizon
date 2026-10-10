@@ -9,6 +9,7 @@ import { logError } from "../server/log";
 import { saveSubscription } from "../server/plan";
 import { cancelSubscription, createSubscription, fetchSubscription, isRazorpayConfigured, toSubscription } from "../server/razorpay";
 import { allow, MINUTE } from "../server/rateLimit";
+import { claim, release } from "../server/shared";
 
 // The plans page's three actions. Every export here is a public endpoint: each
 // one takes the person from the session, and only ever touches the
@@ -26,6 +27,9 @@ export async function startSubscription(input: { period: Period }): Promise<{ ok
   if (!isRazorpayConfigured(period)) return { ok: false, error: t("plan.errNotReady") };
   if (!(await allow(`plan:start:${session.id}`, 5, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
   if (planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: 0 }).kind === "subscribed") return { ok: false, error: t("plan.errAlready") };
+  // One at a time per login (two tabs, a double click): the second waits for
+  // the first instead of opening a second subscription. Shared through Redis.
+  if (!(await claim("plan-start", session.id, 30_000))) return { ok: false, error: t("plan.errInProgress") };
 
   try {
     // A payment page already opened for this plan and not paid yet: send them back to it.
@@ -42,6 +46,8 @@ export async function startSubscription(input: { period: Period }): Promise<{ ok
   } catch (error) {
     logError("plan: could not start a subscription", error);
     return { ok: false, error: t("plan.errStart") };
+  } finally {
+    await release("plan-start", session.id);
   }
 }
 

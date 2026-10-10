@@ -114,6 +114,34 @@ describe("with Redis (shared by every server instance)", () => {
     expect(await allow(key, 1, MINUTE)).toBe(false);
   });
 
+  it("with several server copies and Redis down, each copy allows only a quarter (abuse stays bounded)", async () => {
+    setRedisForTests(failing as never);
+    vi.stubEnv("MULTI_INSTANCE", "1");
+    try {
+      const key = `auth:fail:${Math.random()}@example.com`;
+      const results = [];
+      for (let i = 0; i < 9; i++) results.push(await allow(key, 8, MINUTE));
+      expect(results.filter(Boolean)).toHaveLength(2); // ceil(8 / 4)
+      for (let i = 0; i < 2; i++) await record(`fail:${key}`, MINUTE);
+      expect(await isBlocked(`fail:${key}`, 8)).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("one server copy without Redis at all keeps the full limit", async () => {
+    setRedisForTests(null);
+    vi.stubEnv("MULTI_INSTANCE", "1");
+    try {
+      const key = `none:${Math.random()}`;
+      const results = [];
+      for (let i = 0; i < 9; i++) results.push(await allow(key, 8, MINUTE));
+      expect(results.filter(Boolean)).toHaveLength(8);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("locks and remembers for the transfer guard", async () => {
     setRedisForTests(fake as never);
     expect(await claim("transfer-lock", "k1", MINUTE)).toBe(true);

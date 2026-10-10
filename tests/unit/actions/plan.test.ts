@@ -127,6 +127,16 @@ describe("startSubscription", () => {
     expect(state.saved).toEqual([{ id: me, subscription: { id: "sub_1", period: "yearly", status: "created", until: 0 } }]);
   });
 
+  it("two clicks at once open one subscription, not two", async () => {
+    login();
+    const [a, b] = await Promise.all([startSubscription({ period: "monthly" }), startSubscription({ period: "monthly" })]);
+    expect([a, b].filter((r) => r.ok)).toHaveLength(1);
+    expect([a, b].find((r) => !r.ok)).toMatchObject({ error: expect.stringMatching(/already opening/) });
+    expect(state.razorpay.filter((c) => c.method === "POST" && c.path === "/subscriptions")).toHaveLength(1);
+    // Once the first is done, the lock is gone (a later click is not stuck).
+    expect(await startSubscription({ period: "yearly" })).toMatchObject({ ok: true });
+  });
+
   it("refuses when already subscribed", async () => {
     login({ subscription: { id: "sub_x", period: "monthly", status: "active", until: Date.now() + DAY } });
     expect(await startSubscription({ period: "monthly" })).toEqual({ ok: false, error: "You are already subscribed." });

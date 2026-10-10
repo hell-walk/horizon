@@ -83,6 +83,15 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     it("refuses a made-up signature", async () => {
       expect((await post({ "X-Razorpay-Signature": "a".repeat(64) })).status).toBe(401);
     });
+
+    it("refuses an oversized body before reading it all", async () => {
+      const res = await fetch(`${BASE}/api/razorpay/webhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Razorpay-Signature": "a".repeat(64) },
+        body: JSON.stringify({ padding: "x".repeat(200_000) }),
+      });
+      expect(res.status).toBe(413);
+    });
   });
 
   describe("coming back from Google or a reset email (/auth/callback)", () => {

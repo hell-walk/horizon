@@ -14,3 +14,20 @@ export const BUSINESS_NAME = process.env.NEXT_PUBLIC_BUSINESS_NAME || "Horizon";
 export const BUSINESS_ADDRESS = process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "";
 /** Phone number for the contact page; left out when not set. */
 export const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || "";
+
+/**
+ * This site's own address, for links that leave it and come back: Google
+ * sign-in, confirmation and password-reset emails, bank consent pages. Taken
+ * from the configuration, never from the request (a forged Host header must not
+ * redirect anyone). On the live Vercel site it must be the https address: a
+ * leftover localhost would send every new user to a page that does not exist,
+ * so it refuses (and the error is reported) instead.
+ */
+export function siteUrl(): string {
+  const url = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const live = process.env.VERCEL_ENV === "production";
+  if (live && (!url.startsWith("https://") || /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(url))) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must be this site's https address in production");
+  }
+  return url;
+}

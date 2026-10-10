@@ -14,6 +14,7 @@ import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestPr
 
 import { passwordProblemKey } from "../passwordRules";
 import { getT } from "../i18n/server";
+import { siteUrl } from "../site";
 import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
@@ -28,10 +29,6 @@ import { logError } from "../server/log";
 
 export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string };
 
-// Where Supabase sends people back to (Google sign-in, password reset links).
-// From the configuration, never from the request: a forged Host header must
-// not be able to point a reset link at someone else's site.
-const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 // The server talks to Supabase from one address for everyone, so its per-IP
 // limits cannot tell people apart: sign-in and sign-up are limited here instead.

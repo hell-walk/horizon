@@ -13,6 +13,7 @@ const db = vi.hoisted(() => {
   deletedAuthUsers: [] as string[],
   deletedSessions: [] as string[],
   passwordOk: true,
+  deleteUserFails: false,
   };
 });
 const calls = vi.hoisted(() => ({ itemRemove: [] as string[], removeFundingSource: [] as string[], deactivate: [] as string[], cancelled: [] as string[], cancelFails: false }));
@@ -68,7 +69,12 @@ vi.mock("@supabase/supabase-js", () => ({
       signInWithPassword: async () =>
         db.passwordOk ? { data: { session: { access_token: "extra-session" } }, error: null } : { data: {}, error: Object.assign(new Error("Invalid login credentials"), { status: 400 }) },
       admin: {
-        deleteUser: async (id: string) => db.deletedAuthUsers.push(id),
+        // Like Supabase: a failure is returned, not thrown.
+        deleteUser: async (id: string) => {
+          if (db.deleteUserFails) return { data: null, error: Object.assign(new Error("Supabase is down"), { status: 503 }) };
+          db.deletedAuthUsers.push(id);
+          return { data: {}, error: null };
+        },
         signOut: async (jwt: string) => db.deletedSessions.push(jwt),
       },
     },
@@ -103,6 +109,7 @@ const seed = () => {
   db.deletedAuthUsers = [];
   db.deletedSessions = [];
   db.passwordOk = true;
+  db.deleteUserFails = false;
   calls.itemRemove = [];
   calls.removeFundingSource = [];
   calls.deactivate = [];
@@ -213,6 +220,21 @@ describe("deleteMyAccount", () => {
     expect(db.deletedAuthUsers).toEqual(["a-me"]);
     expect(db.deletedSessions).toEqual(["extra-session"]); // the password check's own session
     expect([...db.cookies.keys()]).toEqual([]);
+  });
+
+  it("a deletion that fails half-way says so, and simply finishes when tried again", async () => {
+    const me = freshUser();
+    db.deleteUserFails = true; // banks and entries are gone; the login and the profile are not
+    expect(await deleteMyAccount({ password: "right" })).toMatchObject({ ok: false });
+    expect([...col(COL.banks).keys()]).toEqual(["bank-theirs"]);
+    expect(db.deletedAuthUsers).toEqual([]);
+    expect(col(COL.users).has(me)).toBe(true); // so the person is still signed in and can retry
+    // Still signed in (the login exists), the person tries again: nothing breaks on what is already gone.
+    db.deleteUserFails = false;
+    expect(await deleteMyAccount({ password: "right" })).toEqual({ ok: true });
+    expect(db.deletedAuthUsers).toEqual(["a-me"]);
+    expect(col(COL.users).has(me)).toBe(false);
+    expect(col(COL.users).has("p-them")).toBe(true);
   });
 
   it("stops a running subscription first, and deletes nothing if it cannot", async () => {
