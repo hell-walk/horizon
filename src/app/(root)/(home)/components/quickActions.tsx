@@ -1,12 +1,14 @@
-import { ArrowLeftRight, FileUp, PlugZap } from "lucide-react";
+import { CalendarClock, FileUp, Target } from "lucide-react";
 import Link from "next/link";
 
 import { getT } from "@/lib/i18n/server";
 
+// Statement upload first: it is how most people keep Horizon up to date. Sending money
+// (US only) and connecting a bank are in the menus.
 const ACTIONS = [
-  { labelKey: "home.actionSend", href: "/payment-transfer", icon: ArrowLeftRight },
-  { labelKey: "nav.connect", href: "/connect-bank", icon: PlugZap },
   { labelKey: "home.actionUpload", href: "/connect-bank#statement", icon: FileUp },
+  { labelKey: "nav.bills", href: "/bills", icon: CalendarClock },
+  { labelKey: "nav.goals", href: "/goals", icon: Target },
 ];
 
 // Three shortcut cards under the Home header.
