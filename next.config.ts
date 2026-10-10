@@ -12,10 +12,10 @@ const appwriteOrigin = (() => {
 
 // What the browser may load. Next.js inlines its bootstrap scripts, hence
 // 'unsafe-inline' for scripts; everything else is limited to this site plus
-// Plaid Link and Sentry. Bank redirects (Setu) are navigations, not loads.
+// Plaid Link (and Sentry's error endpoint). Bank redirects (Setu) are navigations, not loads.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com https://browser.sentry-cdn.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

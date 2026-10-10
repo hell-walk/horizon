@@ -12,13 +12,10 @@ Sentry.init({
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
-
-  // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
+  // No session replay: recording visits would need each visitor's consent under
+  // GDPR, and a finance app has no business recording screens. Errors only.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
@@ -29,25 +26,6 @@ Sentry.init({
   dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
   beforeSend: (event) => scrubEvent(event),
 });
-
-// Session Replay is the heaviest part of the Sentry SDK (~460 KB). Load it from
-// Sentry's CDN after startup instead of shipping it in the initial bundle.
-Sentry.lazyLoadIntegration("replayIntegration")
-  .then((replayIntegration) =>
-    Sentry.addIntegration(
-      // Stated explicitly rather than trusting defaults: replays show the page's
-      // shape, never balances, names, transactions or anything typed.
-      replayIntegration({
-        maskAllText: true,
-        maskAllInputs: true,
-        blockAllMedia: true,
-        networkDetailAllowUrls: [], // no request or response bodies
-      })
-    )
-  )
-  .catch(() => {
-    // Replay is optional; errors are still reported without it.
-  });
 
 // Instruments client-side navigations so Sentry can trace route transitions.
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

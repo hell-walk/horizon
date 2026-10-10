@@ -14,9 +14,11 @@ describe("Sentry privacy", () => {
     expect(text).toContain("beforeSend: (event) => scrubEvent(event)");
   });
 
-  it("session replay masks all text and inputs and records no network bodies", () => {
+  it("records no sessions at all (no replay integration, both sample rates 0)", () => {
     const text = readFileSync(join(root, "src/instrumentation-client.ts"), "utf8");
-    for (const option of ["maskAllText: true", "maskAllInputs: true", "blockAllMedia: true", "networkDetailAllowUrls: []"]) expect(text).toContain(option);
+    expect(text).toContain("replaysSessionSampleRate: 0,");
+    expect(text).toContain("replaysOnErrorSampleRate: 0,");
+    expect(text).not.toContain("replayIntegration");
   });
 
   it("scrubEvent drops what a request carried and masks secrets in messages", () => {
