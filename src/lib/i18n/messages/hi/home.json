@@ -47,5 +47,10 @@
   "profile": "प्रोफ़ाइल",
   "linkedAccounts": "जुड़े हुए खाते",
   "noLinkedAccounts": "अभी कोई खाता नहीं जुड़ा है।",
-  "connectAnother": "एक और बैंक जोड़ें"
+  "connectAnother": "एक और बैंक जोड़ें",
+  "combinedTitle": "सब मिलाकर, {currency} में",
+  "combinedAbout": "लगभग",
+  "combinedRate": "1 {currency} = {rate}",
+  "combinedMissing": "शामिल नहीं: {currencies}। इसकी कोई प्रकाशित दर नहीं है।",
+  "combinedSource": "{date} की यूरोपियन सेंट्रल बैंक की संदर्भ दर पर बदला गया। बैंक और मनी चेंजर अपनी दरें लगाते हैं, इसलिए इसे अंदाज़ा मानें।"
 }

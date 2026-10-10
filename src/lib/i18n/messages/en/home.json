@@ -47,5 +47,10 @@
   "profile": "Profile",
   "linkedAccounts": "Linked accounts",
   "noLinkedAccounts": "No accounts linked yet.",
-  "connectAnother": "Connect another bank"
+  "connectAnother": "Connect another bank",
+  "combinedTitle": "All together, in {currency}",
+  "combinedAbout": "about",
+  "combinedRate": "1 {currency} = {rate}",
+  "combinedMissing": "Not included: {currencies}. There is no published rate for it.",
+  "combinedSource": "Converted at the European Central Bank's reference rate of {date}. Banks and money changers use their own rates, so treat this as a guide."
 }

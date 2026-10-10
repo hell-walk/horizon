@@ -102,6 +102,10 @@ export default async function PrivacyPage() {
             servers we remove cookies, request contents, email addresses, account numbers and keys. Sentry is
             set not to keep your name or IP address, and it does not record your screen.
           </li>
+          <li>
+            <strong>Frankfurter</strong> supplies the European Central Bank&apos;s exchange rates when you hold more than one
+            currency. It is sent only currency codes (like INR and USD), never anything about you.
+          </li>
           <li><strong>Our hosting provider</strong> runs the website and sees the requests your browser makes, as any website host does.</li>
         </ul>
         <p>

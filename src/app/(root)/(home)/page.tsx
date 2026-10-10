@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
+import CombinedTotal from "./components/combinedTotal";
 import ComingUp from "./components/comingUp";
 import YourWeek from "./components/yourWeek";
 import ForecastPanel from "@/components/forecastPanel";
@@ -74,6 +75,13 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             totalsByCurrency={accounts.totalsByCurrency}
             primaryCurrency={accounts.primaryCurrency}
           />
+
+          <Suspense fallback={null}>
+            <CombinedTotal
+              totals={accounts.totalsByCurrency}
+              base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency}
+            />
+          </Suspense>
 
           <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
 
