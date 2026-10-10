@@ -6,6 +6,7 @@ import { Query } from "node-appwrite";
 
 import { createAdminClient } from "../server/appwrite";
 import { cached, TTL } from "../cache";
+import { categorize } from "../categories";
 
 export const MANUAL_PROVIDER = "manual" as const;
 
@@ -67,7 +68,8 @@ export const getStatementTransactions = (bank: Bank) =>
       accountId: bank.accountId,
       amount: doc.amount as number,
       pending: false,
-      category: (doc.category as string) || "Transfer",
+      // Worked out again from the bank's wording, so better rules also fix entries imported earlier.
+      category: categorize(doc.name as string),
       date: doc.date as string,
       image: "",
       currency: bank.currency ?? "INR",

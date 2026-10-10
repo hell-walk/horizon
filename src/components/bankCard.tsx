@@ -7,6 +7,8 @@ import { PROVIDER_LABELS } from "@/constants";
 import { cardBackground, resolveCardDesign } from "@/lib/cardDesigns";
 import { formatAmount } from "@/lib/utils";
 
+import { canTransfer } from "@/lib/transfers";
+
 import Copy from "./Copy";
 import { useT } from "./i18nProvider";
 
@@ -103,7 +105,7 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
         </div>
       </CardShell>
 
-      {showBalance && withCopy && <Copy title={account.sharableId} />}
+      {showBalance && withCopy && canTransfer(account) && <Copy title={account.sharableId} />}
     </div>
   );
 };

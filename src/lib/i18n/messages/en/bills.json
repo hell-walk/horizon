@@ -75,5 +75,6 @@
   "fcSeeBills": "See all bills and the full forecast",
   "fcWithout_one": "{count} account without a forecast yet",
   "fcWithout_other": "{count} accounts without a forecast yet",
-  "fcToday": "Today"
+  "fcToday": "Today",
+  "whySeenOnce": "Why we think so: a subscription service, seen once so far. We guess it renews monthly; another month's statement will tell."
 }

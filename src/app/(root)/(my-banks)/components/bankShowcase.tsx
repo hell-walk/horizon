@@ -12,6 +12,7 @@ import { formatAmount, maskLabel } from "@/lib/utils";
 import CardDesignPicker from "./cardDesignPicker";
 import CardStack from "@/components/cardStack";
 import Copy from "@/components/Copy";
+import { canTransfer } from "@/lib/transfers";
 import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
 
 // A translated label for a value that comes from data, or the value itself when there is no key for it.
@@ -79,20 +80,23 @@ const BankShowcase = ({
             <Fact label={t("banks.accountType")} value={labelFor(t, `banks.type_${accountType.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`, accountType)} />
           </dl>
 
-          <Copy title={account.sharableId} />
+          {/* The receiving code only means something where money can be sent (US accounts via Plaid). */}
+          {canTransfer(account) && <Copy title={account.sharableId} />}
 
           <CardDesignPicker
             account={account}
             onPick={(design) => setDesigns((d) => ({ ...d, [account.appwriteItemId]: design }))}
           />
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className={canTransfer(account) ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
             <Link href={`/transaction-history/?id=${account.appwriteItemId}`} className="btn-secondary">
               <ReceiptText className="size-4" /> {t("banks.viewEntries")}
             </Link>
-            <Link href={`/payment-transfer/?id=${account.appwriteItemId}`} className="btn-primary">
-              <ArrowLeftRight className="size-4" /> {t("banks.sendMoney")}
-            </Link>
+            {canTransfer(account) && (
+              <Link href={`/payment-transfer/?id=${account.appwriteItemId}`} className="btn-primary">
+                <ArrowLeftRight className="size-4" /> {t("banks.sendMoney")}
+              </Link>
+            )}
           </div>
         </div>
       </section>

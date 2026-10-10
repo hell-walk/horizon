@@ -1,3 +1,4 @@
+import { PAY_LATER } from "./categories";
 import { OWN_TRANSFER } from "./corrections";
 import { isPersonPayment, PEOPLE_GROUP } from "./payees";
 
@@ -16,10 +17,7 @@ type Rule = [name: string, pattern: RegExp];
 // the Gulf, Singapore and Australia. Order matters: "Uber Eats" is Food before
 // "Uber" is Travel; "Whole Foods" is Groceries before "food" is Food.
 const PURPOSE: Rule[] = [
-  [
-    "EMI & pay later",
-    /snapmint|\bslice\b|sliceit|lazypay|\bsimpl\b|zestmoney|kreditbee|moneyview|bajaj\s*fin|home\s*credit|tata\s*capital|\bnavi\b|\bemi\b|loan|\bbnpl\b|\baffirm\b|klarna|afterpay|clearpay|\btabby\b|\btamara\b|\bzip\s*pay/i,
-  ],
+  ["EMI & pay later", PAY_LATER],
   [
     "Investments",
     /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney|vanguard|fidelity|schwab|robinhood|e\*?trade|coinbase|trading\s*212|hargreaves|\bisa\b/i,
@@ -39,11 +37,11 @@ const PURPOSE: Rule[] = [
   ],
   [
     "Subscriptions",
-    /netflix|spotify|prime\s*video|hotstar|youtube|apple\.com|google\s*play|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i,
+    /netflix|spotify|prime\s*video|hotstar|youtube|crunchyroll|ellation|sony\s*liv|\bzee5\b|jio\s*cinema|jiohotstar|\bvoot\b|mx\s*player|erosnow|altbalaji|hoichoi|sun\s*nxt|gaana|jiosaavn|wynk|apple\s*music|apple\.com|google\s*play|play\s*store|playstore|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i,
   ],
   [
     "Bills & recharges",
-    /airtel|\bjio\b|vodafone|\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|recharge|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
+    /airtel|air\s*fib|\bjio\b|vodafone|(?<!paid\s)\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|recharge|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
   ],
   [
     "Travel",
@@ -123,7 +121,12 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
   for (const b of sorted) b.share = total ? b.amount / total : 0;
   if (sorted.length <= limit) return sorted;
 
-  const head = sorted.filter((b) => b.name !== "Other").slice(0, limit - 1);
+  // EMIs and pay-later are money already promised: always shown on their own,
+  // however small, never hidden inside "Other".
+  const pinned = sorted.filter((b) => b.name === "EMI & pay later");
+  const head = [...pinned, ...sorted.filter((b) => b.name !== "Other" && !pinned.includes(b)).slice(0, limit - 1 - pinned.length)].sort(
+    (a, b) => b.amount - a.amount
+  );
   const rest = sorted.filter((b) => !head.includes(b));
   return [
     ...head,

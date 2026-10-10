@@ -919,19 +919,5 @@ function detectMetadata(rows: Cell[][], fileName: string) {
 /* Categories shown as chips in the transaction table                  */
 /* ------------------------------------------------------------------ */
 
-const CATEGORY_RULES: [RegExp, string][] = [
-  [/swiggy|zomato|dominos|mcdonald|starbucks|kfc|pizza|cafe|restaurant|food|bakery|dunkin|subway/i, "Food and Drink"],
-  [/salary|sal cr|payroll|interest|int\.?\s*cr|dividend|refund|cashback/i, "Income"],
-  [/amazon|flipkart|myntra|ajio|nykaa|bigbasket|blinkit|zepto|dmart|reliance|mart|store/i, "Shopping"],
-  [/uber|ola|rapido|irctc|indigo|air india|vistara|makemytrip|redbus|metro|fuel|petrol|hpcl|bpcl|ioc/i, "Travel"],
-  [/netflix|spotify|prime|hotstar|youtube|google|apple|jio|airtel|vi\b|bsnl|recharge|broadband|electricity|bescom|tneb|gas|water/i, "Bills"],
-  [/atm|cash wdl|cash withdrawal|cwdr/i, "Cash"],
-  [/emi|loan|insurance|lic |premium|sip|mutual fund|zerodha|groww|upstox/i, "Finance"],
-  [/charge|fee|gst|penalty|sms chg|amb chg/i, "Bank Fees"],
-  [/upi|paytm|phonepe|gpay|google pay|bharatpe/i, "Payment"],
-  [/neft|imps|rtgs|ft\b|transfer|trf/i, "Transfer"],
-];
-
-export function categorize(name: string) {
-  return CATEGORY_RULES.find(([pattern]) => pattern.test(name))?.[1] ?? "Transfer";
-}
+// The rules live in ../categories.ts (light, shared with the rest of the app).
+export { categorize } from "../categories";
