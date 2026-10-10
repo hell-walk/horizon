@@ -199,65 +199,72 @@ describe.skipIf(!up || !haveAccounts)(`signed-in attacker against ${BASE}`, () =
     });
   });
 
-  describe("going around Horizon, straight to Appwrite with A's own session", () => {
+  describe("going around Horizon, straight to Appwrite", () => {
     const env = localEnv();
     const endpoint = env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-    const appwrite = (path: string, init: RequestInit = {}) =>
+    // What anyone can do: the project id is public. Horizon's sign-in is not an
+    // Appwrite one, so there is no Appwrite session to borrow.
+    const outsider = (path: string, init: RequestInit = {}) =>
       fetch(`${endpoint}${path}`, {
         ...init,
-        headers: {
-          "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT,
-          "X-Appwrite-Session": decodeURIComponent(a.split("=")[1]),
-          "Content-Type": "application/json",
-          ...(init.headers ?? {}),
-        },
+        headers: { "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT, "Content-Type": "application/json", ...(init.headers ?? {}) },
       });
+    // The server key, for this test's own setup only.
+    const server = (path: string, init: RequestInit = {}) => outsider(path, { ...init, headers: { "X-Appwrite-Key": env.NEXT_APPWRITE_KEY } });
+    const profiles = `/databases/${env.APPWRITE_DATABASE_ID}/collections/${env.APPWRITE_USER_COLLECTION_ID}/documents`;
 
     it.each(["APPWRITE_USER_COLLECTION_ID", "APPWRITE_BANK_COLLECTION_ID", "APPWRITE_TRANSACTION_COLLECTION_ID", "APPWRITE_STATEMENT_COLLECTION_ID"])(
       "cannot list %s",
       async (key) => {
-        const res = await appwrite(`/databases/${env.APPWRITE_DATABASE_ID}/collections/${env[key]}/documents`);
+        const res = await outsider(`/databases/${env.APPWRITE_DATABASE_ID}/collections/${env[key]}/documents`);
         expect(res.status).toBe(401);
       }
     );
 
     it("cannot write a bank row directly", async () => {
-      const res = await appwrite(`/databases/${env.APPWRITE_DATABASE_ID}/collections/${env.APPWRITE_BANK_COLLECTION_ID}/documents`, {
+      const res = await outsider(`/databases/${env.APPWRITE_DATABASE_ID}/collections/${env.APPWRITE_BANK_COLLECTION_ID}/documents`, {
         method: "POST",
         body: JSON.stringify({ documentId: "unique()", data: { userId: "x", bankId: "x", accountId: "x", accessToken: "x", sharableId: "x" } }),
       });
       expect(res.status).toBe(401);
     });
 
-    it("the session really is A's (so the 401s above are permissions, not a bad session)", async () => {
-      const res = await appwrite("/account");
-      expect(res.status).toBe(200);
+    it("Horizon's session cookie opens nothing in Appwrite", async () => {
+      const token = decodeURIComponent(a.split(";")[0].split("=")[1]);
+      const res = await outsider("/account", { headers: { "X-Appwrite-Session": token } });
+      expect(res.status).toBe(401);
     });
 
-    it("a poisoned saved layout in A's own preferences is ignored by the server", async () => {
+    it("a poisoned saved layout in A's own settings is ignored by the server", async () => {
       const oddText = "Kontoauszug\nBuchung;Vorgang;Ref;Betrag;Saldo\n01.04.2024;Swiggy;R1;-640;1000\n02.04.2024;Salary;R2;5000;6000\n";
       const { signature } = sampleStatement(await readStatementRows({ name: "o.csv", buffer: Buffer.from(oddText) }));
-      const current = (await (await appwrite("/account/prefs")).json()) as Record<string, unknown>;
-      const poisoned = { ...current, statementLayouts: { [signature]: { date: "constructor", name: { $gt: "" }, amount: -1 } } };
-      expect((await appwrite("/account/prefs", { method: "PATCH", body: JSON.stringify({ prefs: poisoned }) })).status).toBe(200);
+      const query = encodeURIComponent(JSON.stringify({ method: "equal", attribute: "email", values: [accounts.a.email] }));
+      const profile = ((await (await server(`${profiles}?queries[]=${query}`)).json()) as { documents: { $id: string; prefs?: string }[] }).documents[0];
+      expect(profile?.$id).toBeTruthy();
+      const current = profile.prefs ?? "";
+      const poisoned = { ...JSON.parse(current || "{}"), statementLayouts: { [signature]: { date: "constructor", name: { $gt: "" }, amount: -1 } } };
+      const save = (prefs: string) => server(`${profiles}/${profile.$id}`, { method: "PATCH", body: JSON.stringify({ data: { prefs } }) });
+      expect((await save(JSON.stringify(poisoned))).status).toBe(200);
       try {
         const { value } = await callFormAction("previewStatement", { file: csv(oddText) }, { cookie: a });
         expect(value).toMatchObject({ ok: false, needsMapping: true }); // treated as no saved layout
       } finally {
-        await appwrite("/account/prefs", { method: "PATCH", body: JSON.stringify({ prefs: current }) });
+        await save(current);
       }
     });
   });
 
   describe("session lifecycle", () => {
-    it("the session cookie is HttpOnly, SameSite=Strict, Secure and short-lived", async () => {
+    it("every piece of the session cookie is HttpOnly, SameSite=Lax, Secure and lasts at most 30 days", async () => {
       const { result } = await signIn(accounts.a.email, accounts.a.password);
-      const cookie = result.setCookies.find((c) => c.startsWith("banking-session="))!;
-      expect(cookie).toMatch(/HttpOnly/i);
-      expect(cookie).toMatch(/SameSite=Strict/i);
-      expect(cookie).toMatch(/Secure/i);
-      const expires = Date.parse(cookie.match(/Expires=([^;]+)/i)![1]);
-      expect(expires - Date.now()).toBeLessThanOrEqual(30 * 86400_000 + 60_000);
+      const pieces = result.setCookies.filter((c) => /^horizon-session(\.\d+)?=./.test(c));
+      expect(pieces.length).toBeGreaterThan(0);
+      for (const cookie of pieces) {
+        expect(cookie).toMatch(/HttpOnly/i);
+        expect(cookie).toMatch(/SameSite=Lax/i);
+        expect(cookie).toMatch(/Secure/i);
+        expect(Number(cookie.match(/Max-Age=(\d+)/i)![1])).toBeLessThanOrEqual(30 * 86400);
+      }
     });
 
     it("logging out kills the session on the server, not just in the browser", async () => {

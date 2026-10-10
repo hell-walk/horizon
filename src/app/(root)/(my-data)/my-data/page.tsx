@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
-import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
 
 import DeleteAccount from "../components/deleteAccount";
@@ -33,7 +33,7 @@ const MyData = async () => {
       <div className="flex max-w-3xl flex-col gap-6">
         <DownloadData />
         <RemoveBanks banks={banks} />
-        <DeleteAccount />
+        <DeleteAccount hasPassword={(await loadSession())?.hasPassword ?? true} />
       </div>
     </section>
   );

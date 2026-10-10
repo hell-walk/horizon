@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { useLocale, useT } from "@/components/i18nProvider";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { signIn, signUp } from "@/lib/actions/user.action";
+import { completeProfile, logoutAccount, signIn, signInWithGoogle, signUp } from "@/lib/actions/user.action";
 import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/countries";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { authFormSchema, cn } from "@/lib/utils";
@@ -42,15 +42,36 @@ const Section = ({ title, hint, children }: { title: string; hint?: string; chil
 const strengthOf = (password: string) =>
   [password.length >= 8, /\d/.test(password), /[^A-Za-z0-9]/.test(password) || /[A-Z]/.test(password)].filter(Boolean).length;
 
-const AuthForm = ({ type }: { type: string }) => {
+// Google's "G", in its colours (Google's sign-in button guidelines ask for it).
+const GoogleMark = () => (
+  <svg viewBox="0 0 48 48" className="size-4" aria-hidden="true">
+    <path
+      fill="#FFC107"
+      d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"
+    />
+    <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+  </svg>
+);
+
+/**
+ * type: "sign-in", "sign-up", or "welcome" (signed in with Google, finishing
+ * the profile; `email` is the Google account's). `notice`: a message to show
+ * first, e.g. when coming back from Google did not work.
+ */
+const AuthForm = ({ type, email, notice }: { type: string; email?: string; notice?: string }) => {
   const t = useT();
   const locale = useLocale();
   const countries = useMemo(() => countryList(LOCALE_TAGS[locale]), [locale]);
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(notice ?? null);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const isSignUp = type === "sign-up";
+  const isWelcome = type === "welcome";
+  const asksProfile = isSignUp || isWelcome;
   const formSchema = authFormSchema(type, t);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -87,7 +108,23 @@ const AuthForm = ({ type }: { type: string }) => {
     setErrorMessage(null);
 
     try {
-      if (isSignUp) {
+      if (isWelcome) {
+        const done = await completeProfile({
+          country: data.country!,
+          firstName: data.firstName!,
+          lastName: data.lastName!,
+          address1: data.address1!,
+          city: data.city!,
+          state: data.state ?? "",
+          postalCode: data.postalCode ?? "",
+          dateOfBirth: needsUsIdentity(data.country ?? "") ? (data.dob ?? "") : "",
+          ssn: needsUsIdentity(data.country ?? "") ? (data.ssn ?? "") : "",
+          terms: Boolean(data.terms),
+        });
+        if (!done.ok) setErrorMessage(done.error);
+        else if (done.user) setUser(done.user);
+        else router.push("/");
+      } else if (isSignUp) {
         const newUser = await signUp({
           country: data.country!,
           firstName: data.firstName!,
@@ -99,14 +136,14 @@ const AuthForm = ({ type }: { type: string }) => {
           // Only the US payment partner needs these; nobody else is asked, or sends them.
           dateOfBirth: needsUsIdentity(data.country ?? "") ? (data.dob ?? "") : "",
           ssn: needsUsIdentity(data.country ?? "") ? (data.ssn ?? "") : "",
-          email: data.email,
-          password: data.password,
+          email: data.email!,
+          password: data.password!,
         });
 
         if (!newUser.ok) setErrorMessage(newUser.error);
         else setUser(newUser.user ?? null);
       } else {
-        const response = await signIn({ email: data.email, password: data.password });
+        const response = await signIn({ email: data.email!, password: data.password! });
         if (response.ok) router.push("/");
         else setErrorMessage(response.error);
       }
@@ -118,12 +155,76 @@ const AuthForm = ({ type }: { type: string }) => {
     }
   };
 
+  // Google sends the person back to /auth/callback, then on to the app (or /welcome).
+  const continueWithGoogle = async () => {
+    setGoogleBusy(true);
+    setErrorMessage(null);
+    try {
+      const result = await signInWithGoogle();
+      if (result.ok) {
+        window.location.assign(result.url);
+        return; // stays busy while the browser leaves
+      }
+      setErrorMessage(result.error);
+    } catch {
+      setErrorMessage(t("auth.errorGoogle"));
+    }
+    setGoogleBusy(false);
+  };
+
+  const useDifferentAccount = async () => {
+    await logoutAccount();
+    router.push("/sign-in");
+  };
+
+  const termsField = (
+    <FormField
+      control={form.control}
+      name="terms"
+      render={({ field }) => (
+        <FormItem className="field">
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border border-line bg-surface-low p-3 text-13 text-ink-muted">
+            <input
+              type="checkbox"
+              checked={Boolean(field.value)}
+              onChange={(e) => field.onChange(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 accent-[rgb(var(--primary))]"
+            />
+            <span>
+              {t("auth.termsBefore")}{" "}
+              <Link href="/terms" className="font-semibold text-ink underline underline-offset-4">
+                {t("auth.termsLink")}
+              </Link>{" "}
+              {t("auth.termsAnd")}{" "}
+              <Link href="/privacy" className="font-semibold text-ink underline underline-offset-4">
+                {t("auth.privacyLink")}
+              </Link>
+              {t("auth.termsAfter")}
+            </span>
+          </label>
+          <FormMessage className="field-error" />
+        </FormItem>
+      )}
+    />
+  );
+
+  const eyebrow = user ? "auth.eyebrowNextStep" : isWelcome ? "auth.eyebrowWelcome" : isSignUp ? "auth.eyebrowSignUp" : "auth.eyebrowSignIn";
+  const heading = user ? "auth.headingAddBank" : isWelcome ? "auth.headingWelcome" : isSignUp ? "auth.headingSignUp" : "auth.headingSignIn";
+  const intro = user
+    ? t("auth.introAddBank")
+    : isWelcome
+      ? t("auth.introWelcome", { email: email ?? "" })
+      : isSignUp
+        ? t("auth.introSignUp")
+        : t("auth.introSignIn");
+  const submitLabel = isWelcome ? t("auth.finishButton") : isSignUp ? t("auth.createAccountButton") : t("auth.signInButton");
+
   return (
     <section className="flex w-full max-w-[560px] flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <p className="eyebrow">{user ? t("auth.eyebrowNextStep") : isSignUp ? t("auth.eyebrowSignUp") : t("auth.eyebrowSignIn")}</p>
-        <h1 className="h-display">{user ? t("auth.headingAddBank") : isSignUp ? t("auth.headingSignUp") : t("auth.headingSignIn")}</h1>
-        <p className="text-14 text-ink-muted">{user ? t("auth.introAddBank") : isSignUp ? t("auth.introSignUp") : t("auth.introSignIn")}</p>
+        <p className="eyebrow">{t(eyebrow)}</p>
+        <h1 className="h-display">{t(heading)}</h1>
+        <p className="text-14 text-ink-muted">{intro}</p>
       </header>
 
       {user ? (
@@ -137,9 +238,23 @@ const AuthForm = ({ type }: { type: string }) => {
         </div>
       ) : (
         <>
-          {isSignUp && (
-            <nav className="grid grid-cols-3 gap-1" aria-label={t("auth.formSections")}>
-              {SECTIONS.map((s) => (
+          {!isWelcome && (
+            <>
+              <button type="button" onClick={continueWithGoogle} disabled={googleBusy || isLoading} className="btn-ghost h-12 w-full justify-center gap-3">
+                {googleBusy ? <Loader2 className="size-4 animate-spin" /> : <GoogleMark />}
+                {t("auth.continueWithGoogle")}
+              </button>
+              <div className="flex items-center gap-3 text-13 text-ink-muted" role="separator">
+                <span className="h-px flex-1 bg-line" />
+                {t("auth.orDivider")}
+                <span className="h-px flex-1 bg-line" />
+              </div>
+            </>
+          )}
+
+          {asksProfile && (
+            <nav className={cn("grid gap-1", isWelcome ? "grid-cols-2" : "grid-cols-3")} aria-label={t("auth.formSections")}>
+              {(isWelcome ? SECTIONS.slice(0, 2) : SECTIONS).map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
@@ -153,7 +268,7 @@ const AuthForm = ({ type }: { type: string }) => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-8" noValidate>
-              {isSignUp && (
+              {asksProfile && (
                 <>
                   <div id="section-01" className="scroll-mt-6">
                     <Section title={t("auth.sectionAbout")} hint={t("auth.sectionAboutHint")}>
@@ -191,8 +306,20 @@ const AuthForm = ({ type }: { type: string }) => {
                             </FormItem>
                           )}
                         />
-                        <CustomInput control={form.control} name="firstName" label={t("auth.firstName")} placeholder={t("auth.firstNamePlaceholder")} autoComplete="given-name" />
-                        <CustomInput control={form.control} name="lastName" label={t("auth.lastName")} placeholder={t("auth.lastNamePlaceholder")} autoComplete="family-name" />
+                        <CustomInput
+                          control={form.control}
+                          name="firstName"
+                          label={t("auth.firstName")}
+                          placeholder={t("auth.firstNamePlaceholder")}
+                          autoComplete="given-name"
+                        />
+                        <CustomInput
+                          control={form.control}
+                          name="lastName"
+                          label={t("auth.lastName")}
+                          placeholder={t("auth.lastNamePlaceholder")}
+                          autoComplete="family-name"
+                        />
                         {usIdentity && (
                           <>
                             <p className="text-13 text-ink-muted sm:col-span-2">{t("auth.usOnlyNote")}</p>
@@ -216,10 +343,22 @@ const AuthForm = ({ type }: { type: string }) => {
                     <Section title={t("auth.sectionAddress")} hint={t("auth.sectionAddressHint")}>
                       <div className="grid gap-4 sm:grid-cols-6">
                         <div className="sm:col-span-6">
-                          <CustomInput control={form.control} name="address1" label={t("auth.street")} placeholder={t("auth.streetPlaceholder")} autoComplete="address-line1" />
+                          <CustomInput
+                            control={form.control}
+                            name="address1"
+                            label={t("auth.street")}
+                            placeholder={t("auth.streetPlaceholder")}
+                            autoComplete="address-line1"
+                          />
                         </div>
                         <div className="sm:col-span-3">
-                          <CustomInput control={form.control} name="city" label={t("auth.city")} placeholder={t("auth.cityPlaceholder")} autoComplete="address-level2" />
+                          <CustomInput
+                            control={form.control}
+                            name="city"
+                            label={t("auth.city")}
+                            placeholder={t("auth.cityPlaceholder")}
+                            autoComplete="address-level2"
+                          />
                         </div>
                         <div className="sm:col-span-1">
                           <CustomInput
@@ -246,74 +385,70 @@ const AuthForm = ({ type }: { type: string }) => {
                 </>
               )}
 
-              <div id="section-03" className="scroll-mt-6">
-                <Section title={t("auth.sectionLogin")} hint={isSignUp ? t("auth.sectionLoginHint") : undefined}>
-                  <CustomInput control={form.control} name="email" label={t("auth.email")} placeholder={t("auth.emailPlaceholder")} type="email" autoComplete="email" />
-                  <CustomInput
-                    control={form.control}
-                    name="password"
-                    label={t("auth.password")}
-                    placeholder={isSignUp ? t("auth.passwordPlaceholderNew") : t("auth.passwordPlaceholder")}
-                    type="password"
-                    autoComplete={isSignUp ? "new-password" : "current-password"}
-                  />
-                  {isSignUp && (
-                    <>
-                      <div className="flex items-center gap-2" aria-hidden="true">
-                        {[1, 2, 3].map((level) => (
-                          <span
-                            key={level}
-                            className={cn(
-                              "h-1 flex-1 rounded-full bg-surface-container transition-colors",
-                              strength >= level && (strength === 3 ? "bg-success" : strength === 2 ? "bg-warn" : "bg-danger")
-                            )}
-                          />
-                        ))}
-                        <span className={cn("eyebrow w-16 text-right", strength === 3 && "text-success", strength === 2 && "text-warn-ink", strength === 1 && "text-danger")}>
-                          {["", t("auth.strengthWeak"), t("auth.strengthFair"), t("auth.strengthStrong")][strength]}
-                        </span>
-                      </div>
-                      <CustomInput
-                        control={form.control}
-                        name="confirmPassword"
-                        label={t("auth.confirmPassword")}
-                        placeholder={t("auth.confirmPasswordPlaceholder")}
-                        type="password"
-                        autoComplete="new-password"
-                      />
+              {isWelcome && termsField}
 
-                      <FormField
-                        control={form.control}
-                        name="terms"
-                        render={({ field }) => (
-                          <FormItem className="field">
-                            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-line bg-surface-low p-3 text-13 text-ink-muted">
-                              <input
-                                type="checkbox"
-                                checked={Boolean(field.value)}
-                                onChange={(e) => field.onChange(e.target.checked)}
-                                className="mt-0.5 size-4 shrink-0 accent-[rgb(var(--primary))]"
-                              />
-                              <span>
-                                {t("auth.termsBefore")}{" "}
-                                <Link href="/terms" className="font-semibold text-ink underline underline-offset-4">
-                                  {t("auth.termsLink")}
-                                </Link>{" "}
-                                {t("auth.termsAnd")}{" "}
-                                <Link href="/privacy" className="font-semibold text-ink underline underline-offset-4">
-                                  {t("auth.privacyLink")}
-                                </Link>
-                                {t("auth.termsAfter")}
-                              </span>
-                            </label>
-                            <FormMessage className="field-error" />
-                          </FormItem>
-                        )}
-                      />
-                    </>
-                  )}
-                </Section>
-              </div>
+              {!isWelcome && (
+                <div id="section-03" className="scroll-mt-6">
+                  <Section title={t("auth.sectionLogin")} hint={isSignUp ? t("auth.sectionLoginHint") : undefined}>
+                    <CustomInput
+                      control={form.control}
+                      name="email"
+                      label={t("auth.email")}
+                      placeholder={t("auth.emailPlaceholder")}
+                      type="email"
+                      autoComplete="email"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="password"
+                      label={t("auth.password")}
+                      placeholder={isSignUp ? t("auth.passwordPlaceholderNew") : t("auth.passwordPlaceholder")}
+                      type="password"
+                      autoComplete={isSignUp ? "new-password" : "current-password"}
+                    />
+                    {!isSignUp && (
+                      <Link href="/forgot-password" className="-mt-2 self-end text-13 text-ink-muted underline underline-offset-4 hover:text-ink">
+                        {t("auth.forgotPasswordLink")}
+                      </Link>
+                    )}
+                    {isSignUp && (
+                      <>
+                        <div className="flex items-center gap-2" aria-hidden="true">
+                          {[1, 2, 3].map((level) => (
+                            <span
+                              key={level}
+                              className={cn(
+                                "h-1 flex-1 rounded-full bg-surface-container transition-colors",
+                                strength >= level && (strength === 3 ? "bg-success" : strength === 2 ? "bg-warn" : "bg-danger"),
+                              )}
+                            />
+                          ))}
+                          <span
+                            className={cn(
+                              "eyebrow w-16 text-right",
+                              strength === 3 && "text-success",
+                              strength === 2 && "text-warn-ink",
+                              strength === 1 && "text-danger",
+                            )}
+                          >
+                            {["", t("auth.strengthWeak"), t("auth.strengthFair"), t("auth.strengthStrong")][strength]}
+                          </span>
+                        </div>
+                        <CustomInput
+                          control={form.control}
+                          name="confirmPassword"
+                          label={t("auth.confirmPassword")}
+                          placeholder={t("auth.confirmPasswordPlaceholder")}
+                          type="password"
+                          autoComplete="new-password"
+                        />
+
+                        {termsField}
+                      </>
+                    )}
+                  </Section>
+                </div>
+              )}
 
               <input id="company-website" name="company-website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
 
@@ -326,19 +461,29 @@ const AuthForm = ({ type }: { type: string }) => {
               <button type="submit" disabled={isLoading} className="btn-primary h-12 w-full justify-between px-5">
                 <span className="flex items-center gap-2">
                   <span className="size-2 bg-lime" />
-                  {isLoading ? t("auth.working") : isSignUp ? t("auth.createAccountButton") : t("auth.signInButton")}
+                  {isLoading ? t("auth.working") : submitLabel}
                 </span>
                 {isLoading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
               </button>
             </form>
           </Form>
 
-          <footer className="flex items-center justify-between rounded-md border border-line bg-surface-low px-4 py-3 text-13 text-ink-muted">
-            <span>{isSignUp ? t("auth.haveAccount") : t("auth.newToHorizon")}</span>
-            <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="font-mono text-[12px] uppercase tracking-wider text-ink underline underline-offset-4">
-              {isSignUp ? t("auth.signInButton") : t("auth.createAccountButton")}
-            </Link>
-          </footer>
+          {isWelcome ? (
+            <button
+              type="button"
+              onClick={useDifferentAccount}
+              className="self-start font-mono text-[12px] uppercase tracking-wider text-ink-muted underline underline-offset-4 hover:text-ink"
+            >
+              {t("auth.useDifferentAccount")}
+            </button>
+          ) : (
+            <footer className="flex items-center justify-between rounded-md border border-line bg-surface-low px-4 py-3 text-13 text-ink-muted">
+              <span>{isSignUp ? t("auth.haveAccount") : t("auth.newToHorizon")}</span>
+              <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="font-mono text-[12px] uppercase tracking-wider text-ink underline underline-offset-4">
+                {isSignUp ? t("auth.signInButton") : t("auth.createAccountButton")}
+              </Link>
+            </footer>
+          )}
         </>
       )}
     </section>

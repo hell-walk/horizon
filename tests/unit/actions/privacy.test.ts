@@ -2,14 +2,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // An in-memory Appwrite with two users: "me" (profile p-me, auth a-me) and "them".
 type Doc = Record<string, unknown> & { $id: string };
-const db = vi.hoisted(() => ({
+const db = vi.hoisted(() => {
+  process.env.SUPABASE_URL = "https://supabase.test";
+  process.env.SUPABASE_ANON_KEY = "anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
+  return {
   collections: new Map<string, Map<string, Record<string, unknown>>>(),
   cookies: new Map<string, string>(),
   sessionUser: null as null | Record<string, unknown>,
   deletedAuthUsers: [] as string[],
   deletedSessions: [] as string[],
   passwordOk: true,
-}));
+  };
+});
 const calls = vi.hoisted(() => ({ itemRemove: [] as string[], removeFundingSource: [] as string[], deactivate: [] as string[] }));
 
 const COL = { users: "users", banks: "banks", tx: "transactions", st: "statements" };
@@ -31,7 +36,12 @@ const matches = (doc: Record<string, unknown>, queries: string[]) =>
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ get: (n: string) => (db.cookies.has(n) ? { value: db.cookies.get(n) } : undefined), set: vi.fn(), delete: (n: string) => db.cookies.delete(n) }),
+  cookies: async () => ({
+    get: (n: string) => (db.cookies.has(n) ? { value: db.cookies.get(n) } : undefined),
+    getAll: () => [...db.cookies].map(([name, value]) => ({ name, value })),
+    set: vi.fn(),
+    delete: (n: string) => db.cookies.delete(n),
+  }),
   headers: async () => ({ get: () => null }),
 }));
 vi.mock("@/lib/plaid", () => ({ plaidClient: { itemRemove: vi.fn(async ({ access_token }: { access_token: string }) => calls.itemRemove.push(access_token)) } }));
@@ -39,22 +49,26 @@ vi.mock("@/lib/server/dwolla", () => ({
   removeFundingSource: vi.fn(async (url: string) => calls.removeFundingSource.push(url)),
   deactivateCustomer: vi.fn(async (url: string) => calls.deactivate.push(url)),
 }));
-vi.mock("@/lib/server/appwrite", () => ({
-  createSessionClient: async () => ({
-    account: {
-      get: async () => {
-        if (!db.sessionUser) throw new Error("No session");
-        return db.sessionUser;
+// Supabase: who is signed in, the password check, and deleting the login.
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: () => ({
+    auth: { getUser: async () => (db.sessionUser ? { data: { user: db.sessionUser }, error: null } : { data: { user: null }, error: new Error("Auth session missing") }) },
+  }),
+}));
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      signInWithPassword: async () =>
+        db.passwordOk ? { data: { session: { access_token: "extra-session" } }, error: null } : { data: {}, error: Object.assign(new Error("Invalid login credentials"), { status: 400 }) },
+      admin: {
+        deleteUser: async (id: string) => db.deletedAuthUsers.push(id),
+        signOut: async (jwt: string) => db.deletedSessions.push(jwt),
       },
     },
   }),
+}));
+vi.mock("@/lib/server/appwrite", () => ({
   createAdminClient: async () => ({
-    account: {
-      createEmailPasswordSession: async () => {
-        if (!db.passwordOk) throw Object.assign(new Error("Invalid credentials"), { code: 401 });
-        return { $id: "extra-session", secret: "x" };
-      },
-    },
     database: {
       listDocuments: async (_db: string, c: string, queries: string[]) => {
         const limit = queries.map((q) => JSON.parse(q)).find((q) => q.method === "limit")?.values?.[0] ?? 25;
@@ -71,10 +85,6 @@ vi.mock("@/lib/server/appwrite", () => ({
       updateDocument: async (_db: string, c: string, id: string, data: Record<string, unknown>) => col(c).set(id, { ...col(c).get(id), ...data }),
       deleteDocument: async (_db: string, c: string, id: string) => col(c).delete(id),
     },
-    user: {
-      delete: async (id: string) => db.deletedAuthUsers.push(id),
-      deleteSession: async (_u: string, s: string) => db.deletedSessions.push(s),
-    },
   }),
 }));
 
@@ -89,7 +99,7 @@ const seed = () => {
   calls.itemRemove = [];
   calls.removeFundingSource = [];
   calls.deactivate = [];
-  db.sessionUser = { $id: "a-me", email: "me@example.com", name: "Me" };
+  db.sessionUser = { id: "a-me", email: "me@example.com", app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, last_sign_in_at: new Date().toISOString() };
   col(COL.users).set("p-me", { userId: "a-me", prefs: JSON.stringify({ statementLayouts: { sig: { date: 0 } } }), firstName: "Me", lastName: "Self", address1: "1 Road", city: "Pune", state: "MH", postalCode: "411001", ssn: "not-kept", dateOfBirth: "not-kept", dwollaCustomerUrl: "https://dwolla/customers/me" });
   col(COL.users).set("p-them", { userId: "a-them", firstName: "Them", lastName: "Other" });
   col(COL.banks).set("bank-mine", { userId: "p-me", provider: "plaid", accessToken: "access-sandbox-mine-123", fundingSourceUrl: "https://dwolla/fs/mine", institutionName: "HDFC Bank", accountMask: "4821", sharableId: "s1" });
@@ -179,7 +189,7 @@ describe("deleteMyAccount", () => {
 
   it("removes everything of mine, anonymises my side of transfers, and leaves the other user alone", async () => {
     const me = freshUser();
-    db.cookies.set("banking-session", "s").set("horizon-account", "bank-mine").set("setu-consent", "x");
+    db.cookies.set("horizon-session", "s").set("horizon-session.1", "s2").set("horizon-account", "bank-mine").set("setu-consent", "x");
     expect(await deleteMyAccount({ password: "right" })).toEqual({ ok: true });
 
     expect([...col(COL.banks).keys()]).toEqual(["bank-theirs"]);
@@ -194,5 +204,18 @@ describe("deleteMyAccount", () => {
     expect(db.deletedAuthUsers).toEqual(["a-me"]);
     expect(db.deletedSessions).toEqual(["extra-session"]); // the password check's own session
     expect([...db.cookies.keys()]).toEqual([]);
+  });
+
+  it("a Google login (no password) types its email instead, soon after signing in", async () => {
+    freshUser();
+    db.sessionUser = { ...db.sessionUser, app_metadata: { provider: "google", providers: ["google"] } };
+    expect(await deleteMyAccount({ password: "anything" })).toMatchObject({ ok: false });
+    expect(await deleteMyAccount({ email: "someone@else.com" })).toEqual({ ok: false, error: "That is not this account's email." });
+    db.sessionUser = { ...db.sessionUser, last_sign_in_at: new Date(Date.now() - 60 * 60_000).toISOString() };
+    expect(await deleteMyAccount({ email: "me@example.com" })).toMatchObject({ ok: false, error: expect.stringMatching(/sign in again/) });
+    expect(db.deletedAuthUsers).toEqual([]);
+    db.sessionUser = { ...db.sessionUser, last_sign_in_at: new Date().toISOString() };
+    expect(await deleteMyAccount({ email: " ME@example.com " })).toEqual({ ok: true });
+    expect(db.deletedAuthUsers).toEqual(["a-me"]);
   });
 });

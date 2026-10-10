@@ -73,6 +73,24 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ["createLinkToken", () => [forged(victimProfile, victimBank)], () => {}],
     ["signIn", () => [{ email: accounts.b.email, password: "not-bs-password", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     ["signUp", () => [{ email: accounts.b.email, password: "x", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    // A already has a profile: finishing one again creates nothing, whatever ids it names.
+    [
+      "completeProfile",
+      () => [{ country: "IN", firstName: "Grid", lastName: "Test", address1: "1 Grid Road", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "", terms: true, ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toEqual({ ok: true }),
+    ],
+    // A weak password, so A's real one never changes: the rules apply before anything else.
+    ["setNewPassword", () => [{ password: "password123", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    // The same answer for any address; a made-up one, so no email is sent.
+    ["requestPasswordReset", () => [{ email: "grid-nobody@example.invalid", ...forged(victimProfile, victimBank) }], (v) => expect(v).toEqual({ ok: true })],
+    [
+      "signInWithGoogle",
+      () => [forged(victimProfile, victimBank)],
+      (v) => {
+        expect(v).toMatchObject({ ok: true, url: expect.stringMatching(/^https:\/\//) });
+        expect(JSON.stringify(v)).not.toContain(victimProfile);
+      },
+    ],
   ];
 
   it("covers every public action", () => {

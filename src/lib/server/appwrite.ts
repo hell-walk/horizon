@@ -1,30 +1,12 @@
-
-// Server-only: these clients carry the session secret or the admin API key.
+// Server-only: this client carries the admin API key.
 // Never "use server" here: that would turn each function into a public endpoint.
 import "server-only";
 
-import { Client, Account, Databases, Users } from "node-appwrite";
-import { cookies } from "next/headers";
+import { Client, Databases } from "node-appwrite";
 
-export async function createSessionClient() {
-  const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
-
-  const session = (await cookies()).get("banking-session");
-  if (!session || !session.value) {
-    throw new Error("No session");
-  }
-
-  client.setSession(session.value);
-
-  return {
-    get account() {
-      return new Account(client);
-    },
-  };
-}
-
+// Appwrite keeps Horizon's data: profiles, banks, statements, transfers. Who
+// is signed in is Supabase's job (supabase.ts); every query here is limited
+// to the signed-in person by the code that calls it (ownerIdOf).
 export async function createAdminClient() {
   const client = new Client()
     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
@@ -32,15 +14,8 @@ export async function createAdminClient() {
     .setKey(process.env.NEXT_APPWRITE_KEY!);
 
   return {
-    get account() {
-      return new Account(client);
-    },
     get database() {
       return new Databases(client);
     },
-    get user() {
-      return new Users(client);
-    },
-
   };
 }
