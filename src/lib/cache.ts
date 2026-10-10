@@ -37,3 +37,8 @@ export function invalidate(prefix: string) {
     if (key.startsWith(prefix)) store.delete(key);
   }
 }
+
+/** Stores a value the app just wrote, so the next read does not depend on the upstream catching up. */
+export function remember(key: string, value: unknown, ttlMs: number) {
+  store.set(key, { value, expires: Date.now() + ttlMs });
+}

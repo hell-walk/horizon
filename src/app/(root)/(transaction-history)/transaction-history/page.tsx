@@ -3,13 +3,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { BankTabItem } from "@/components/BankTabItem";
+import { Search, X } from "lucide-react";
+
 import { Pagination } from "@/components/Pagination";
 import PayeePanel from "../components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
+import { dataLabel } from "@/lib/i18n/labels";
 import { groupByPayee } from "@/lib/payees";
+import { spendType } from "@/lib/spending";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
@@ -29,9 +33,10 @@ const FILTERS = [
 ] as const;
 
 const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
-  const { id, page, type, from } = await searchParams;
+  const { id, page, type, from, q } = await searchParams;
   const currentPage = Number(page as string) || 1;
   const filter = type === "credit" || type === "debit" ? type : "all";
+  const query = typeof q === "string" ? q.trim().slice(0, 80) : "";
 
   const t = await getT();
   const loggedIn = await getLoggedInUser();
@@ -45,7 +50,17 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
 
   const all: Transaction[] = account?.transactions ?? [];
+  const needle = query.toLowerCase();
+  // Search matches the name shown, the bank's text, the category (in English
+  // and in the screen's language) and the amount ("450" finds 450.00).
+  const matches = (tx: Transaction) => {
+    if (!needle) return true;
+    const category = spendType(tx);
+    const haystack = [tx.shownName, tx.name, category, dataLabel(t, category), String(Math.abs(Number(tx.amount) || 0))];
+    return haystack.some((value) => value?.toLowerCase().includes(needle));
+  };
   const filtered = all.filter((tx) => {
+    if (!matches(tx)) return false;
     if (filter === "all") return true;
     const isDebit = tx.type === "debit" || Number(tx.amount) < 0;
     return filter === "debit" ? isDebit : !isDebit;
@@ -61,7 +76,8 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const providerText = t(`banks.provider_${providerKey}`);
   const providerName = provider ? (providerText === `banks.provider_${providerKey}` ? provider.name : providerText) : null;
 
-  const filterHref = (key: string) => `/transaction-history/?id=${appwriteItemId}${key === "all" ? "" : `&type=${key}`}`;
+  const filterHref = (key: string) =>
+    `/transaction-history/?id=${appwriteItemId}${key === "all" ? "" : `&type=${key}`}${query ? `&q=${encodeURIComponent(query)}` : ""}`;
 
   return (
     <section className="page">
@@ -131,7 +147,40 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
               </div>
             </header>
 
-            <TransactionsTable transactions={current} />
+            <form role="search" action="/transaction-history" method="get" className="flex flex-wrap items-end gap-2 border-b border-line px-4 py-3">
+              <input type="hidden" name="id" value={appwriteItemId ?? ""} />
+              {filter !== "all" && <input type="hidden" name="type" value={filter} />}
+              <div className="field min-w-0 flex-1">
+                <label htmlFor="history-search" className="field-label">
+                  {t("history.searchLabel")}
+                </label>
+                <input
+                  id="history-search"
+                  name="q"
+                  type="search"
+                  defaultValue={query}
+                  maxLength={80}
+                  placeholder={t("history.searchPlaceholder")}
+                  className="field-input"
+                  autoComplete="off"
+                />
+              </div>
+              <button type="submit" className="btn-secondary">
+                <Search className="size-4" aria-hidden /> {t("history.searchButton")}
+              </button>
+              {query && (
+                <Link href={filterHref(filter).replace(/&q=[^&]*/, "")} className="btn-ghost">
+                  <X className="size-4" aria-hidden /> {t("history.searchClear")}
+                </Link>
+              )}
+            </form>
+            {query && (
+              <p role="status" className="px-4 pt-3 text-14 text-ink">
+                {t("history.searchFound", { count: filtered.length, query })}
+              </p>
+            )}
+
+            <TransactionsTable transactions={current} accountId={appwriteItemId ?? undefined} />
 
             {totalPages > 1 && (
               <div className="border-t border-line px-4 py-3">

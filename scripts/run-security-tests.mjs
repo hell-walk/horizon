@@ -8,7 +8,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync } from "node:fs";
 
-const MIN_TESTS = 91; // 75 attack tests + 15 in the authorization grid + 1 account deletion
+const MIN_TESTS = 95; // 77 attack tests + 17 in the authorization grid + 1 account deletion
 const OUTPUT = "reports/security-results.json";
 const allowSkip = process.env.HORIZON_SECURITY_ALLOW_SKIP === "1";
 

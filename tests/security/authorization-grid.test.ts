@@ -53,6 +53,8 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
       (v) => expect(v).toMatchObject({ ok: false, field: "senderBank" }),
     ],
     ["completeSetuConsent", () => [{ consentId: "consent-of-b", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ status: "MISSING" })],
+    ["correctTransaction", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any", category: "Rent", everyPayment: true }], (v) => expect(v).toMatchObject({ ok: false })],
+    ["undoCorrection", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any" }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteBank", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteMyAccount", () => [{ ...forged(victimProfile, victimBank), password: "not-the-password" }], (v) => expect(v).toMatchObject({ ok: false })],
     [
