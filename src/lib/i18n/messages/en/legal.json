@@ -1,1 +1,9 @@
-{}
+{
+  "signIn": "Sign in",
+  "privacyTitle": "Privacy policy",
+  "privacyDescription": "How Horizon collects, uses and protects your financial data.",
+  "termsTitle": "Terms & conditions",
+  "termsDescription": "The terms that apply when you use Horizon.",
+  "lastUpdated": "Last updated {date}",
+  "englishOnlyNote": "The full text below is only in English for now."
+}

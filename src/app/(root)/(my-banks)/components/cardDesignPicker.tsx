@@ -3,6 +3,7 @@
 import { Check, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { setCardDesign } from "@/lib/actions/card.action";
 import { cardBackground, designChoices } from "@/lib/cardDesigns";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
  * card updates at once; the choice is saved to the account.
  */
 const CardDesignPicker = ({ account, onPick }: { account: Account; onPick: (design: string) => void }) => {
+  const t = useT();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const current = account.cardDesign || "auto";
@@ -31,14 +33,24 @@ const CardDesignPicker = ({ account, onPick }: { account: Account; onPick: (desi
     });
   };
 
+  // Bank skins keep the bank's own name; Auto and the themes are translated.
+  const nameOf = ({ id, label, design }: ReturnType<typeof designChoices>[number]) => {
+    if (id === "auto") return design.kind === "bank" ? t("banks.designAutoBank", { bank: design.label }) : t("banks.designAuto");
+    const key = `banks.design_${id}`;
+    const text = t(key);
+    return text === key ? label : text;
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="eyebrow">Card design</span>
+        <span className="eyebrow">{t("banks.cardDesign")}</span>
         {pending && <Loader2 className="size-3.5 animate-spin text-ink-faint" />}
       </div>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Card design">
-        {designChoices(account).map(({ id, label, design }) => {
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("banks.cardDesign")}>
+        {designChoices(account).map((choice) => {
+          const { id, design } = choice;
+          const label = nameOf(choice);
           const active = id === current;
           return (
             <button
@@ -55,7 +67,7 @@ const CardDesignPicker = ({ account, onPick }: { account: Account; onPick: (desi
               )}
               style={{ background: cardBackground(design) }}
             >
-              {id === "auto" && <span className="absolute inset-x-0 bottom-0 bg-black/50 py-px text-center font-mono text-[11px] uppercase text-white">Auto</span>}
+              {id === "auto" && <span className="absolute inset-x-0 bottom-0 bg-black/50 py-px text-center font-mono text-[11px] uppercase text-white">{t("banks.designAuto")}</span>}
               {active && id !== "auto" && <Check className="absolute right-1 top-1 size-3 text-white" />}
             </button>
           );

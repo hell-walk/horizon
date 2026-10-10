@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { chartColorClass } from "@/constants";
 import { payeeName } from "@/lib/payees";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
@@ -14,15 +15,16 @@ type Person = { name: string; amount: number; count: number; transactions: Trans
  * then a row per person with their total; tap a person to see each payment.
  */
 const UpiBreakdown = ({ transactions, currency }: { transactions: Transaction[]; currency?: string }) => {
+  const t = useT();
   const [open, setOpen] = useState<string | null>(null);
 
   const byName = new Map<string, Person>();
-  for (const t of transactions) {
-    const name = payeeName(t.name || "");
+  for (const tx of transactions) {
+    const name = payeeName(tx.name || "");
     const person = byName.get(name) ?? { name, amount: 0, count: 0, transactions: [] };
-    person.amount += Math.abs(Number(t.amount) || 0);
+    person.amount += Math.abs(Number(tx.amount) || 0);
     person.count += 1;
-    person.transactions.push(t);
+    person.transactions.push(tx);
     byName.set(name, person);
   }
   const people = [...byName.values()].sort((a, b) => b.amount - a.amount);
@@ -45,7 +47,7 @@ const UpiBreakdown = ({ transactions, currency }: { transactions: Transaction[];
           ))}
         </div>
         <p className="eyebrow mt-2">
-          {people.length} {people.length === 1 ? "person" : "people"} · {transactions.length} {transactions.length === 1 ? "payment" : "payments"}
+          {t("history.people", { count: people.length })} · {t("history.payments", { count: transactions.length })}
         </p>
       </div>
 
@@ -62,11 +64,15 @@ const UpiBreakdown = ({ transactions, currency }: { transactions: Transaction[];
               >
                 <span className="flex min-w-0 items-center gap-3">
                   <span className={cn("size-2.5 shrink-0 rounded-sm", colourOf(i))} />
-                  <span className="truncate text-14 font-semibold text-ink">{p.name}</span>
+                  <span translate="no" className="truncate text-14 font-semibold text-ink">
+                    {p.name}
+                  </span>
                   <span className="eyebrow">×{p.count}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="amount text-14 font-semibold text-ink">{formatAmount(p.amount, currency)}</span>
+                  <span translate="no" className="amount text-14 font-semibold text-ink">
+                    {formatAmount(p.amount, currency)}
+                  </span>
                   <span className="eyebrow w-9 text-right">{total ? Math.round((p.amount / total) * 100) : 0}%</span>
                   <ChevronDown className={cn("size-4 text-ink-faint transition-transform", expanded && "rotate-180")} />
                 </span>
@@ -76,14 +82,18 @@ const UpiBreakdown = ({ transactions, currency }: { transactions: Transaction[];
                 <ul className="divide-y divide-line bg-surface-low">
                   {[...p.transactions]
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map((t) => (
-                      <li key={t.id} className="flex items-center justify-between gap-3 py-2 pl-10 pr-4">
+                    .map((tx) => (
+                      <li key={tx.id} className="flex items-center justify-between gap-3 py-2 pl-10 pr-4">
                         <span className="flex min-w-0 flex-col">
-                          <span className="truncate text-13 text-ink">{t.name}</span>
-                          <span className="eyebrow">{formatDateTime(new Date(t.date)).dateOnly}</span>
+                          <span translate="no" className="truncate text-13 text-ink">
+                            {tx.name}
+                          </span>
+                          <span translate="no" className="eyebrow">
+                            {formatDateTime(new Date(tx.date)).dateOnly}
+                          </span>
                         </span>
-                        <span className="amount shrink-0 text-13 font-semibold text-danger">
-                          -{formatAmount(Math.abs(Number(t.amount) || 0), t.currency ?? currency)}
+                        <span translate="no" className="amount shrink-0 text-13 font-semibold text-danger">
+                          -{formatAmount(Math.abs(Number(tx.amount) || 0), tx.currency ?? currency)}
                         </span>
                       </li>
                     ))}

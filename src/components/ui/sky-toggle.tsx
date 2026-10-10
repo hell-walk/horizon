@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -18,8 +19,9 @@ type Props = {
  * the stars rise. Ported from the styled-components original to the plain
  * ".sky-switch" styles in globals.css so it needs no extra dependency.
  */
-const SkyToggle = ({ checked, onChange, ariaLabel = "Dark mode", className, size }: Props) => {
+const SkyToggle = ({ checked, onChange, ariaLabel, className, size }: Props) => {
   const id = useId();
+  const t = useT();
 
   return (
     <label htmlFor={id} className={cn("sky-switch", className)} style={size ? ({ "--toggle-size": `${size}px` } as React.CSSProperties) : undefined}>
@@ -29,7 +31,7 @@ const SkyToggle = ({ checked, onChange, ariaLabel = "Dark mode", className, size
         className="sky-switch__checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? t("common.darkMode")}
       />
       <div className="sky-switch__container">
         <div className="sky-switch__clouds" />

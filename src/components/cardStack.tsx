@@ -8,6 +8,7 @@ import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, maskLabel } from "@/lib/utils";
 
 import BankCard from "./bankCard";
+import { useT } from "./i18nProvider";
 
 const CARD_HEIGHT = 190;
 const STEP = 30; // vertical offset between stacked cards: the strip you can click
@@ -29,6 +30,7 @@ type Props = {
  * brings it forward and selects that account.
  */
 const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: Props) => {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [front, setFront] = useState(selected ?? accounts[0]?.appwriteItemId);
@@ -119,7 +121,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                       }
                     }
               }
-              aria-label={isFront ? undefined : `Show ${account.name}`}
+              aria-label={isFront ? undefined : t("banks.showAccount", { name: account.name })}
               className={cn(
                 "absolute inset-x-0 top-0 origin-top transition-[transform,opacity,filter] duration-500",
                 isFront ? "z-30" : "cursor-pointer [&_a]:ring-white/25 hover:[&_a]:ring-lime",
@@ -145,12 +147,12 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
           <button
             type="button"
             onClick={() => step(-1)}
-            aria-label="Previous account"
+            aria-label={t("banks.previousAccount")}
             className="flex-center size-8 rounded-full border border-line bg-card text-ink-muted transition-colors hover:bg-surface-container hover:text-ink"
           >
             <ChevronLeft className="size-4" />
           </button>
-          <div className="flex items-center" role="group" aria-label="Accounts">
+          <div className="flex items-center" role="group" aria-label={t("banks.accounts")}>
             {accounts.map((a) => {
               const active = a.appwriteItemId === front;
               return (
@@ -170,7 +172,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
           <button
             type="button"
             onClick={() => step(1)}
-            aria-label="Next account"
+            aria-label={t("banks.nextAccount")}
             className="flex-center size-8 rounded-full border border-line bg-card text-ink-muted transition-colors hover:bg-surface-container hover:text-ink"
           >
             <ChevronRight className="size-4" />

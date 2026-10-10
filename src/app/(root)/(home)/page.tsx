@@ -13,19 +13,21 @@ import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { getT } from "@/lib/i18n/server";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 
-export const metadata: Metadata = {
-  title: "Home",
-  description: "Your balances and recent transactions across every linked bank.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("home.metaTitle"), description: t("home.metaDescription") };
+}
 
-const greeting = () => {
+/** Message key for the greeting at this hour. */
+const greetingKey = () => {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "home.greetingMorning";
+  if (hour < 18) return "home.greetingAfternoon";
+  return "home.greetingEvening";
 };
 
 const Home = async ({ searchParams }: SearchParamProps) => {
@@ -35,6 +37,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
+  const t = await getT();
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   if (!accounts) return;
 
@@ -48,14 +51,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <HeaderBox
             type="greeting"
-            eyebrow="Overview // portfolio"
-            title={greeting()}
-            user={loggedIn.firstName || loggedIn.name || "there"}
-            subtext={
-              accountsData.length > 0
-                ? `Balances and activity across ${accountsData.length} linked ${accountsData.length === 1 ? "account" : "accounts"}.`
-                : "Connect a bank or import a statement to get started."
-            }
+            eyebrow={t("home.eyebrow")}
+            title={t(greetingKey())}
+            user={loggedIn.firstName || loggedIn.name || t("home.greetingFallbackName")}
+            subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
           />
 
           <QuickActions />

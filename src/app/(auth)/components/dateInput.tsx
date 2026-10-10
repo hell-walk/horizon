@@ -5,12 +5,12 @@ import { useRef } from "react";
 import { Control, FieldPath } from "react-hook-form";
 import z from "zod";
 
+import { useT } from "@/components/i18nProvider";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authFormSchema } from "@/lib/utils";
 
-const formSchema = authFormSchema("sign-up");
-type Values = z.infer<typeof formSchema>;
+type Values = z.infer<ReturnType<typeof authFormSchema>>;
 
 // Keeps only digits and inserts the dashes of YYYY-MM-DD as the user types.
 export const maskDate = (raw: string) => {
@@ -37,6 +37,7 @@ type Props = {
  * YYYY-MM-DD string the server expects.
  */
 const DateInput = ({ control, name, label, hint }: Props) => {
+  const t = useT();
   const pickerRef = useRef<HTMLInputElement>(null);
 
   const openPicker = () => {
@@ -59,7 +60,8 @@ const DateInput = ({ control, name, label, hint }: Props) => {
           <div className="relative">
             <FormControl>
               <Input
-                placeholder="YYYY-MM-DD"
+                placeholder={t("auth.dobPlaceholder")}
+                translate="no"
                 inputMode="numeric"
                 autoComplete="bday"
                 maxLength={10}
@@ -75,7 +77,7 @@ const DateInput = ({ control, name, label, hint }: Props) => {
             <button
               type="button"
               onClick={openPicker}
-              aria-label="Open calendar"
+              aria-label={t("auth.openCalendar")}
               className="absolute right-1 top-1/2 flex-center size-9 -translate-y-1/2 rounded-sm text-ink-faint hover:text-ink"
             >
               <CalendarDays className="size-4" />

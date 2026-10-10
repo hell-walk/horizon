@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
+import { getT } from "../i18n/server";
 import { createAdminClient } from "../server/appwrite";
 import { ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
@@ -51,18 +52,19 @@ const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:300
  * mobile number and hand back the approval URL to redirect them to.
  */
 export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
+  const t = await getT();
   const user = await requireUser().catch(() => null);
-  if (!user) return { error: "You need to be signed in." };
-  if (!allow(`setu:${ownerIdOf(user)}`, 5, 10 * MINUTE)) return { error: "Too many attempts. Wait a few minutes and try again." };
+  if (!user) return { error: t("connect.errSignIn") };
+  if (!allow(`setu:${ownerIdOf(user)}`, 5, 10 * MINUTE)) return { error: t("connect.setuTooMany") };
 
   if (!isSetuConfigured()) {
-    return { error: "Setu is not configured on this server yet." };
+    return { error: t("connect.setuNotConfigured") };
   }
 
   const vua = String(mobile ?? "").trim();
   // A bare 10-digit Indian mobile, or mobile@aa-handle.
   if (!/^\d{10}(@[a-z0-9-]+)?$/i.test(vua)) {
-    return { error: "Enter a 10-digit mobile number, optionally followed by @aa-handle." };
+    return { error: t("connect.setuMobileInvalid") };
   }
 
   try {
@@ -79,7 +81,7 @@ export const createSetuConsent = async ({ mobile }: { mobile: string }) => {
     return parseStringify({ consentId: consent.id, url: consent.url });
   } catch (error) {
     logError("setu: createConsent failed", error);
-    return { error: "Could not start the bank connection. Please try again." };
+    return { error: t("connect.setuStartFailed") };
   }
 };
 
@@ -101,6 +103,7 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
     return { status: "MISSING" as const, added: 0 };
   }
   const id = pending.consentId;
+  const t = await getT();
 
   try {
     const consent = await getConsent(id);
@@ -154,6 +157,6 @@ export const completeSetuConsent = async ({ consentId }: { consentId?: string })
     return { status: "ACTIVE" as const, added, total: accounts.length };
   } catch (error) {
     logError("setu: completeSetuConsent failed", error);
-    return { status: "ERROR" as const, added: 0, error: "Could not finish linking the bank. Please try again." };
+    return { status: "ERROR" as const, added: 0, error: t("connect.setuFinishFailed") };
   }
 };

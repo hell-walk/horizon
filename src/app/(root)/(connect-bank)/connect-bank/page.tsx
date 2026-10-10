@@ -7,13 +7,14 @@ import ImportStatement from "@/components/importStatement";
 import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
 import HeaderBox from "@/components/ui/headerBox";
+import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 
-export const metadata: Metadata = {
-  title: "Connect a bank",
-  description: "Link a bank through Plaid or Setu, or import a statement export.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("connect.metaTitle"), description: t("connect.metaDescription") };
+}
 
 const ConnectBank = async () => {
   const loggedIn = await getLoggedInUser();
@@ -22,41 +23,45 @@ const ConnectBank = async () => {
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   const accountsData: Account[] = accounts?.data ?? [];
   const count = (provider: string) => accountsData.filter((a) => (a.provider ?? "plaid") === provider).length;
+  const t = await getT();
+  const linkedLabel = (linked: number) => (linked > 0 ? t("connect.linked", { count: linked }) : t("connect.notLinked"));
 
   return (
     <section className="page">
       <HeaderBox
-        eyebrow="Gateway // connect institutions"
-        title="Connect a bank"
-        subtext="Three ways in: a US bank through Plaid, an Indian bank through the Account Aggregator network, or a statement export from net banking."
+        eyebrow={t("connect.eyebrow")}
+        title={t("connect.title")}
+        subtext={t("connect.subtext")}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <ProviderCard
-          index="01"
+          label={t("connect.plaidEyebrow")}
           icon={Landmark}
           title="Plaid"
-          region="United States · sandbox"
+          region={t("connect.plaidRegion")}
           linked={count("plaid")}
-          description="Checking and savings at US banks with instant sign-in. Uses the Plaid sandbox, so pick any institution and sign in with the test credentials."
+          linkedLabel={linkedLabel(count("plaid"))}
+          description={t("connect.plaidDescription")}
           facts={[
-            ["Sync", "Real time"],
-            ["Transfers", "Supported"],
+            [t("connect.plaidFactUpdates"), t("connect.plaidFactUpdatesValue")],
+            [t("connect.plaidFactSend"), t("connect.plaidFactSendValue")],
           ]}
         >
           <PlaidLink user={loggedIn} />
         </ProviderCard>
 
         <ProviderCard
-          index="02"
+          label={t("connect.setuEyebrow")}
           icon={ShieldCheck}
-          title="Setu Account Aggregator"
-          region="India · sandbox"
+          title={t("connect.setuTitle")}
+          region={t("connect.setuRegion")}
           linked={count("setu")}
-          description="Indian bank accounts through the RBI-regulated Account Aggregator consent flow. You approve sharing on the AA, then return here."
+          linkedLabel={linkedLabel(count("setu"))}
+          description={t("connect.setuDescription")}
           facts={[
-            ["Consent", "Read only"],
-            ["Validity", "Renewable"],
+            [t("connect.setuFactAccess"), t("connect.setuFactAccessValue")],
+            [t("connect.setuFactApproval"), t("connect.setuFactApprovalValue")],
           ]}
           accent
         >
@@ -64,19 +69,20 @@ const ConnectBank = async () => {
         </ProviderCard>
 
         <ProviderCard
-          index="03"
+          label={t("connect.fileEyebrow")}
           icon={FileSpreadsheet}
-          title="Statement import"
-          region="Any bank · real data"
+          title={t("connect.fileTitle")}
+          region={t("connect.fileRegion")}
           linked={count("manual")}
-          description="Upload a CSV or XLSX export from your net banking. Columns are detected automatically and you confirm before anything is saved."
+          linkedLabel={linkedLabel(count("manual"))}
+          description={t("connect.fileDescription")}
           facts={[
-            ["Formats", "CSV, XLSX"],
-            ["Storage", "This app only"],
+            [t("connect.fileFactFiles"), t("connect.fileFactFilesValue")],
+            [t("connect.fileFactSaved"), t("connect.fileFactSavedValue")],
           ]}
         >
           <a href="#statement" className="btn-secondary w-full">
-            Upload a statement
+            {t("connect.uploadStatement")}
           </a>
         </ProviderCard>
       </div>
@@ -84,12 +90,12 @@ const ConnectBank = async () => {
       <section id="statement" className="panel scroll-mt-6">
         <header className="panel-head">
           <div className="flex items-center gap-2">
-            <span className="eyebrow">Statement import</span>
-            <span className="eyebrow text-ink">{"// preview, then import"}</span>
+            <span className="eyebrow">{t("connect.statementSection")}</span>
+            <span className="eyebrow text-ink">{t("connect.statementSectionHint")}</span>
           </div>
           <span className="chip">
             <span className="dot bg-lime" />
-            Parser ready
+            {t("connect.ready")}
           </span>
         </header>
         <div className="panel-body">
@@ -103,21 +109,23 @@ const ConnectBank = async () => {
 };
 
 const ProviderCard = ({
-  index,
+  label,
   icon: Icon,
   title,
   region,
   linked,
+  linkedLabel,
   description,
   facts,
   accent = false,
   children,
 }: {
-  index: string;
+  label: string;
   icon: typeof Landmark;
   title: string;
   region: string;
   linked: number;
+  linkedLabel: string;
   description: string;
   facts: [string, string][];
   accent?: boolean;
@@ -125,8 +133,8 @@ const ProviderCard = ({
 }) => (
   <article className="panel flex flex-col">
     <header className="panel-head">
-      <span className="eyebrow">Method {"// "}{index}</span>
-      <span className={linked > 0 ? "chip-lime" : "chip"}>{linked > 0 ? `${linked} linked` : "Not linked"}</span>
+      <span className="eyebrow">{label}</span>
+      <span className={linked > 0 ? "chip-lime" : "chip"}>{linkedLabel}</span>
     </header>
     <div className="panel-body flex flex-1 flex-col gap-4">
       <div className="flex items-start gap-3">

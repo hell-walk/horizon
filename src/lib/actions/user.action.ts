@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
+import { getT } from "../i18n/server";
+import type { Translate } from "../i18n/translate";
 import { createAdminClient, createSessionClient } from "../server/appwrite";
 import { authIdOf, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount } from "../server/banks";
@@ -28,7 +30,6 @@ const {
 export type AuthResult = { ok: true; user?: User } | { ok: false; error: string };
 
 const SESSION_COOKIE = "banking-session";
-const TOO_MANY = "Too many attempts. Wait a few minutes and try again.";
 
 const MAX_SESSION_DAYS = 30;
 
@@ -65,25 +66,28 @@ const allowAuthAttempt = async (email: string) => {
 const strings = (value: unknown, keys: string[], max = 200): value is Record<string, string> =>
     typeof value === "object" && value !== null &&
     keys.every((k) => typeof (value as Record<string, unknown>)[k] === "string" && ((value as Record<string, string>)[k]).length <= max);
-const BAD_INPUT: AuthResult = { ok: false, error: "Check the details and try again." };
+// Messages come from en/auth.json and hi/auth.json ("auth.errorCheckDetails" etc.).
+const badInput = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorCheckDetails") });
+const tooMany = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorTooMany") });
 
 // The sign-up form's rule, enforced where it cannot be skipped. Not exported:
 // every export of this file is a public endpoint.
 const COMMON_PASSWORDS = new Set(["password", "password1", "password123", "12345678", "123456789", "1234567890", "qwerty123", "qwertyuiop", "iloveyou", "11111111", "00000000", "abcd1234", "admin123", "letmein1", "welcome1"]);
-const passwordProblem = (password: string, email: string): string | null => {
-    if (password.length < 8) return "Use at least 8 characters.";
-    if (password.length > 128) return "Use at most 128 characters.";
+const passwordProblem = (password: string, email: string, t: Translate): string | null => {
+    if (password.length < 8) return t("auth.passwordTooShort");
+    if (password.length > 128) return t("auth.passwordTooLong");
     const lower = password.toLowerCase();
-    if (COMMON_PASSWORDS.has(lower) || /^(.)\1+$/.test(password)) return "That password is too common. Choose another.";
+    if (COMMON_PASSWORDS.has(lower) || /^(.)\1+$/.test(password)) return t("auth.passwordCommon");
     const name = email.split("@")[0]?.toLowerCase() ?? "";
-    if (name.length >= 4 && lower.includes(name)) return "Do not use your email in your password.";
+    if (name.length >= 4 && lower.includes(name)) return t("auth.passwordHasEmail");
     return null;
 };
 
 export const signIn = async (input: signInProps): Promise<AuthResult> => {
-    if (!strings(input, ["email", "password"], 256)) return BAD_INPUT;
+    const t = await getT();
+    if (!strings(input, ["email", "password"], 256)) return badInput(t);
     const { email, password } = input;
-    if (!(await allowAuthAttempt(email))) return { ok: false, error: TOO_MANY };
+    if (!(await allowAuthAttempt(email))) return tooMany(t);
     try {
         const { account } = await createAdminClient();
         const session = await account.createEmailPasswordSession(email, password);
@@ -91,7 +95,7 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
         return { ok: true };
     } catch {
         record(emailKey(email), 10 * MINUTE);
-        return { ok: false, error: "Invalid email or password." };
+        return { ok: false, error: t("auth.errorSignIn") };
     }
 }
 
@@ -104,14 +108,15 @@ const isUsAddress = (state: string, postalCode: string) =>
 const NOT_KEPT = "not-kept";
 
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
-    if (!strings(userData, ["email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return BAD_INPUT;
+    const t = await getT();
+    if (!strings(userData, ["email", "password", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"], 256)) return badInput(t);
     const { email, password, firstName, lastName, address1, city, state, postalCode } = userData
     const profile = { address1, city, state, postalCode };
-    const weak = passwordProblem(password, email);
+    const weak = passwordProblem(password, email, t);
     if (weak) return { ok: false, error: weak };
-    if (!(await allowAuthAttempt(email))) return { ok: false, error: TOO_MANY };
+    if (!(await allowAuthAttempt(email))) return tooMany(t);
     // Each sign-up creates real accounts (Appwrite, maybe Dwolla): a tighter cap per network.
-    if (!allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE)) return { ok: false, error: TOO_MANY };
+    if (!allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE)) return tooMany(t);
 
     let newUserAccount;
     try {
@@ -172,7 +177,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
                 logError('Could not remove the partially created user', cleanupError);
             }
         }
-        return { ok: false, error: "We could not create your account. Check the details and try again." };
+        return { ok: false, error: t("auth.errorSignUp") };
     }
 }
 

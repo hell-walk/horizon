@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { useT } from "@/components/i18nProvider";
 import { PROVIDER_LABELS } from "@/constants";
 import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { cn, formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";
 // One account row. Clicking it selects that account on the current page.
 const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
   const router = useRouter();
+  const t = useT();
   const searchParams = useSearchParams();
   const isActive = appwriteItemId === account?.appwriteItemId;
   const provider = PROVIDER_LABELS[account.provider] ?? PROVIDER_LABELS.plaid;
@@ -29,13 +31,15 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
       )}
     >
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-14 font-semibold text-ink">{account.name}</span>
+        <span translate="no" className="truncate text-14 font-semibold text-ink">
+          {account.name}
+        </span>
         <span className="eyebrow">
-          {maskLabel(account.mask)} · {provider.name}
+          <span translate="no">{maskLabel(account.mask)}</span> · {t(provider.nameKey)}
           {type === "full" && ` · ${account.subtype}`}
         </span>
       </span>
-      <span className="amount shrink-0 text-14 font-semibold text-ink">{formatAmount(account.currentBalance, account.currency)}</span>
+      <span translate="no" className="amount shrink-0 text-14 font-semibold text-ink">{formatAmount(account.currentBalance, account.currency)}</span>
     </button>
   );
 };

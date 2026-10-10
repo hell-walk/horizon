@@ -3,11 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { useT } from "@/components/i18nProvider";
 import { sendTransfer } from "@/lib/actions/transfer.action";
+import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { BankDropdown } from "./BankDropdown";
@@ -15,19 +17,28 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
 
-const formSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  name: z.string().min(4, "Add a short note (at least 4 characters)"),
-  amount: z
-    .string()
-    .refine((v) => Number(v) > 0, "Enter an amount greater than zero"),
-  senderBank: z.string().min(4, "Choose the account to send from"),
-  sharableId: z.string().min(8, "Paste the recipient's sharable id"),
-});
+// The same checks in the reader's language; the server checks everything again.
+const makeSchema = (t: Translate) =>
+  z.object({
+    email: z.string().email(t("transfer.errEmailInvalid")),
+    name: z.string().min(4, t("transfer.errNoteShort")),
+    amount: z
+      .string()
+      .refine((v) => Number(v) > 0, t("transfer.formAmount")),
+    senderBank: z.string().min(4, t("transfer.formSender")),
+    sharableId: z.string().min(8, t("transfer.formReceivingCode")),
+  });
 
-type Values = z.infer<typeof formSchema>;
+type Values = z.infer<ReturnType<typeof makeSchema>>;
 
-const Step = ({ index, title, hint, children }: { index: string; title: string; hint?: string; children: React.ReactNode }) => (
+/** Puts data (money, names, emails) into a translated sentence at its {placeholder}, as its own element. */
+const fill = (text: string, data: Record<string, ReactNode>) =>
+  text.split(/(\{\w+\})/).map((part, i) => {
+    const name = /^\{(\w+)\}$/.exec(part)?.[1];
+    return <Fragment key={i}>{name && name in data ? data[name] : part}</Fragment>;
+  });
+
+const Step = ({ index, title, hint, children }: { index: string; title: string; hint?: ReactNode; children: React.ReactNode }) => (
   <section className="panel">
     <header className="panel-head">
       <div className="flex items-center gap-3">
@@ -42,6 +53,8 @@ const Step = ({ index, title, hint, children }: { index: string; title: string; 
 
 const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) => {
   const router = useRouter();
+  const t = useT();
+  const formSchema = useMemo(() => makeSchema(t), [t]);
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -94,7 +107,7 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
       router.push("/");
     } catch {
       // No answer (network): keep the key, so trying again cannot send it twice.
-      setFormError("Could not reach the server. Check your connection and try again.");
+      setFormError(t("common.notReachable"));
     } finally {
       setIsLoading(false);
     }
@@ -105,25 +118,30 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
       <form onSubmit={form.handleSubmit((data) => setReview(data))} className="grid gap-6 xl:grid-cols-[1fr_340px] xl:items-start">
         {/* Locked while the user is asked to confirm, so what they confirm is what is sent. */}
         <fieldset disabled={review !== null || isLoading} className="flex min-w-0 flex-col gap-4">
-          <Step index="01" title="Source account" hint={source ? `${currency} · ${maskLabel(source.mask)}` : undefined}>
+          <Step
+            index="1"
+            title={t("transfer.stepFrom")}
+            hint={source ? <span translate="no">{`${currency} · ${maskLabel(source.mask)}`}</span> : undefined}
+          >
             <FormField
               control={form.control}
               name="senderBank"
               render={() => (
                 <FormItem className="field">
-                  <FormLabel className="field-label">Send from</FormLabel>
+                  <FormLabel className="field-label">{t("transfer.sendFrom")}</FormLabel>
                   <FormControl>
                     <BankDropdown accounts={accounts} setValue={form.setValue} initialId={defaultSender?.appwriteItemId} />
                   </FormControl>
                   {source && (
                     <p className="field-hint">
-                      Available: <span className="amount text-ink">{formatAmount(source.currentBalance, currency)}</span>
+                      {t("transfer.available")}{" "}
+                      <span translate="no" className="amount text-ink">
+                        {formatAmount(source.currentBalance, currency)}
+                      </span>
                     </p>
                   )}
                   {!canSend && (
-                    <p className="field-error">
-                      Transfers run on the Dwolla sandbox, so only Plaid-linked US accounts can send money.
-                    </p>
+                    <p className="field-error">{t("transfer.cannotSend")}</p>
                   )}
                   <FormMessage className="field-error" />
                 </FormItem>
@@ -131,16 +149,16 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
             />
           </Step>
 
-          <Step index="02" title="Recipient" hint="Horizon user">
+          <Step index="2" title={t("transfer.stepTo")} hint={t("transfer.stepToHint")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem className="field">
-                    <FormLabel className="field-label">Recipient email</FormLabel>
+                    <FormLabel className="field-label">{t("transfer.emailLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" className="field-input" autoComplete="off" {...field} />
+                      <Input placeholder={t("transfer.emailPlaceholder")} className="field-input" autoComplete="off" translate="no" {...field} />
                     </FormControl>
                     <FormMessage className="field-error" />
                   </FormItem>
@@ -151,30 +169,33 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
                 name="sharableId"
                 render={({ field }) => (
                   <FormItem className="field">
-                    <FormLabel className="field-label">Recipient sharable id</FormLabel>
+                    <FormLabel className="field-label">{t("transfer.receivingCodeLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Paste the id from their bank card" className="field-input font-mono" {...field} />
+                      <Input placeholder={t("transfer.receivingCodePlaceholder")} className="field-input font-mono" translate="no" {...field} />
                     </FormControl>
                     <FormMessage className="field-error" />
                   </FormItem>
                 )}
               />
             </div>
-            <p className="field-hint">The recipient copies their sharable id from any bank card on their Horizon account.</p>
+            <p className="field-hint">{t("transfer.receivingCodeHint")}</p>
           </Step>
 
-          <Step index="03" title="Amount" hint={`${currency} · fixed`}>
+          <Step index="3" title={t("transfer.stepAmount")} hint={t("transfer.amountHint", { currency })}>
             <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem className="field">
-                  <FormLabel className="field-label">Amount to send</FormLabel>
+                  <FormLabel className="field-label">{t("transfer.amountLabel")}</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-3 rounded-md border border-line bg-surface-low px-4 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
-                      <span className="eyebrow text-ink">{currency}</span>
+                      <span translate="no" className="eyebrow text-ink">
+                        {currency}
+                      </span>
                       <Input
                         placeholder="0.00"
+                        translate="no"
                         inputMode="decimal"
                         className="amount h-14 flex-1 border-0 bg-transparent px-0 text-28 font-semibold shadow-none focus-visible:ring-0"
                         {...field}
@@ -187,15 +208,15 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
             />
           </Step>
 
-          <Step index="04" title="Note" hint="Shown to both parties">
+          <Step index="4" title={t("transfer.stepNote")} hint={t("transfer.stepNoteHint")}>
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem className="field">
-                  <FormLabel className="field-label">Transfer note</FormLabel>
+                  <FormLabel className="field-label">{t("transfer.noteLabel")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="What is this transfer for?" className="field-input min-h-24 py-3" {...field} />
+                    <Textarea placeholder={t("transfer.notePlaceholder")} className="field-input min-h-24 py-3" {...field} />
                   </FormControl>
                   <FormMessage className="field-error" />
                 </FormItem>
@@ -207,34 +228,34 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-0">
           <section className="panel">
             <header className="panel-head">
-              <span className="eyebrow">Summary</span>
+              <span className="eyebrow">{t("transfer.summary")}</span>
               <span className="chip">
                 <span className="dot bg-lime" />
-                Live
+                {t("transfer.live")}
               </span>
             </header>
             <dl className="panel-body flex flex-col divide-y divide-line [&>div]:flex [&>div]:items-start [&>div]:justify-between [&>div]:gap-4 [&>div]:py-2.5">
               <div>
-                <dt className="eyebrow">From</dt>
-                <dd className="text-right text-14 font-semibold text-ink">
+                <dt className="eyebrow">{t("transfer.from")}</dt>
+                <dd translate="no" className="text-right text-14 font-semibold text-ink">
                   {source ? `${source.name} ${maskLabel(source.mask)}` : "—"}
                 </dd>
               </div>
               <div>
-                <dt className="eyebrow">To</dt>
-                <dd className="max-w-[60%] truncate text-right text-14 font-semibold text-ink">{watched.email || "—"}</dd>
+                <dt className="eyebrow">{t("transfer.to")}</dt>
+                <dd translate="no" className="max-w-[60%] truncate text-right text-14 font-semibold text-ink">{watched.email || "—"}</dd>
               </div>
               <div>
-                <dt className="eyebrow">Amount</dt>
-                <dd className="amount text-right text-18 font-semibold text-ink">{formatAmount(amountNumber, currency)}</dd>
+                <dt className="eyebrow">{t("transfer.amount")}</dt>
+                <dd translate="no" className="amount text-right text-18 font-semibold text-ink">{formatAmount(amountNumber, currency)}</dd>
               </div>
               <div>
-                <dt className="eyebrow">Fee</dt>
-                <dd className="text-right text-14 text-success">None</dd>
+                <dt className="eyebrow">{t("transfer.fee")}</dt>
+                <dd className="text-right text-14 text-success">{t("transfer.feeNone")}</dd>
               </div>
               <div>
-                <dt className="eyebrow">Settlement</dt>
-                <dd className="text-right text-14 text-ink-muted">Dwolla sandbox · same day</dd>
+                <dt className="eyebrow">{t("transfer.arrives")}</dt>
+                <dd className="text-right text-14 text-ink-muted">{t("transfer.arrivesValue")}</dd>
               </div>
             </dl>
           </section>
@@ -254,17 +275,27 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
             <section className="panel border-primary" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-body">
               <div className="panel-body flex flex-col gap-3">
                 <h2 id="confirm-title" className="font-display text-16 font-semibold text-ink">
-                  Send <span translate="no">{formatAmount(Number(review.amount), currency)}</span>?
+                  {fill(t("transfer.confirmTitle"), { amount: <span translate="no">{formatAmount(Number(review.amount), currency)}</span> })}
                 </h2>
                 <p id="confirm-body" className="text-14 text-ink-muted">
-                  From <span translate="no" className="font-semibold text-ink">{source ? `${source.name} ${maskLabel(source.mask)}` : "—"}</span> to{" "}
-                  <span translate="no" className="font-semibold text-ink">{review.email}</span>. Once sent, this money cannot be taken back.
+                  {fill(t("transfer.confirmBody"), {
+                    from: (
+                      <span translate="no" className="font-semibold text-ink">
+                        {source ? `${source.name} ${maskLabel(source.mask)}` : "—"}
+                      </span>
+                    ),
+                    to: (
+                      <span translate="no" className="font-semibold text-ink">
+                        {review.email}
+                      </span>
+                    ),
+                  })}
                 </p>
                 <button type="button" autoFocus onClick={() => submit(review)} className="btn-primary h-12 w-full">
-                  Yes, send <span translate="no">{formatAmount(Number(review.amount), currency)}</span>
+                  {fill(t("transfer.confirmYes"), { amount: <span translate="no">{formatAmount(Number(review.amount), currency)}</span> })}
                 </button>
                 <button type="button" onClick={() => setReview(null)} className="btn-secondary w-full">
-                  No, go back and change it
+                  {t("transfer.confirmNo")}
                 </button>
               </div>
             </section>
@@ -273,15 +304,15 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
               <button type="submit" disabled={isLoading || !canSend} className={cn("btn-primary h-12 w-full")}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" /> Sending
+                    <Loader2 className="size-4 animate-spin" /> {t("transfer.sending")}
                   </>
                 ) : (
                   <>
-                    Review transfer <ArrowRight className="size-4" />
+                    {t("transfer.review")} <ArrowRight className="size-4" />
                   </>
                 )}
               </button>
-              <p className="eyebrow text-center">You will be asked to confirm before anything is sent</p>
+              <p className="eyebrow text-center">{t("transfer.reviewHint")}</p>
             </>
           )}
         </aside>

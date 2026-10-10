@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useT } from "@/components/i18nProvider";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { signIn, signUp } from "@/lib/actions/user.action";
 import { authFormSchema, cn } from "@/lib/utils";
@@ -18,20 +19,18 @@ import ImportStatement from "@/components/importStatement";
 import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
 
+// Sign-up sections: anchor id and the message key of the title.
 const SECTIONS = [
-  { index: "01", title: "Identity" },
-  { index: "02", title: "Address" },
-  { index: "03", title: "Credentials" },
+  { id: "section-01", title: "auth.sectionAbout" },
+  { id: "section-02", title: "auth.sectionAddress" },
+  { id: "section-03", title: "auth.sectionLogin" },
 ];
 
-const Section = ({ index, title, hint, children }: { index: string; title: string; hint?: string; children: React.ReactNode }) => (
+const Section = ({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) => (
   <fieldset className="flex flex-col gap-4">
-    <legend className="mb-4 flex w-full items-center justify-between border-b border-line pb-2">
-      <span className="flex items-center gap-2">
-        <span className="font-mono text-[12px] text-ink-faint">{index}</span>
-        <span className="font-display text-13 font-semibold uppercase tracking-wide text-ink">{title}</span>
-      </span>
-      {hint && <span className="eyebrow">{hint}</span>}
+    <legend className="mb-4 flex w-full items-center justify-between gap-3 border-b border-line pb-2">
+      <span className="font-display text-13 font-semibold uppercase tracking-wide text-ink">{title}</span>
+      {hint && <span className="eyebrow text-right">{hint}</span>}
     </legend>
     {children}
   </fieldset>
@@ -42,12 +41,13 @@ const strengthOf = (password: string) =>
   [password.length >= 8, /\d/.test(password), /[^A-Za-z0-9]/.test(password) || /[A-Z]/.test(password)].filter(Boolean).length;
 
 const AuthForm = ({ type }: { type: string }) => {
+  const t = useT();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isSignUp = type === "sign-up";
-  const formSchema = authFormSchema(type);
+  const formSchema = authFormSchema(type, t);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,7 +102,7 @@ const AuthForm = ({ type }: { type: string }) => {
       }
     } catch (error) {
       console.error(error);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage(t("common.tryAgain"));
     } finally {
       setIsLoading(false);
     }
@@ -111,15 +111,9 @@ const AuthForm = ({ type }: { type: string }) => {
   return (
     <section className="flex w-full max-w-[560px] flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <p className="eyebrow">{user ? "Step 02 // link an account" : isSignUp ? "Registration" : "Access"}</p>
-        <h1 className="h-display">{user ? "Link your first bank" : isSignUp ? "Create your account" : "Sign in"}</h1>
-        <p className="text-14 text-ink-muted">
-          {user
-            ? "Connect a bank now or skip and do it later from the Connect Bank page."
-            : isSignUp
-              ? "A few details to open your ledger. Nothing is shared with banks until you connect one."
-              : "Enter your email and password to open your accounts."}
-        </p>
+        <p className="eyebrow">{user ? t("auth.eyebrowNextStep") : isSignUp ? t("auth.eyebrowSignUp") : t("auth.eyebrowSignIn")}</p>
+        <h1 className="h-display">{user ? t("auth.headingAddBank") : isSignUp ? t("auth.headingSignUp") : t("auth.headingSignIn")}</h1>
+        <p className="text-14 text-ink-muted">{user ? t("auth.introAddBank") : isSignUp ? t("auth.introSignUp") : t("auth.introSignIn")}</p>
       </header>
 
       {user ? (
@@ -128,20 +122,20 @@ const AuthForm = ({ type }: { type: string }) => {
           <SetuLink user={user} variant="primary" />
           <ImportStatement variant="primary" />
           <Link href="/" className="btn-ghost">
-            Skip for now <ArrowRight className="size-4" />
+            {t("auth.skipForNow")} <ArrowRight className="size-4" />
           </Link>
         </div>
       ) : (
         <>
           {isSignUp && (
-            <nav className="grid grid-cols-3 gap-1" aria-label="Form sections">
+            <nav className="grid grid-cols-3 gap-1" aria-label={t("auth.formSections")}>
               {SECTIONS.map((s) => (
                 <a
-                  key={s.index}
-                  href={`#section-${s.index}`}
-                  className="flex items-center justify-center gap-2 rounded-sm border border-line bg-card py-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted hover:bg-surface-container"
+                  key={s.id}
+                  href={`#${s.id}`}
+                  className="flex items-center justify-center gap-2 rounded-sm border border-line bg-card px-1 py-2 text-center font-mono text-[12px] uppercase tracking-wider text-ink-muted hover:bg-surface-container"
                 >
-                  <span className="text-ink-faint">{s.index}</span> {s.title}
+                  {t(s.title)}
                 </a>
               ))}
             </nav>
@@ -152,30 +146,45 @@ const AuthForm = ({ type }: { type: string }) => {
               {isSignUp && (
                 <>
                   <div id="section-01" className="scroll-mt-6">
-                    <Section index="01" title="Identity" hint="As on your ID">
+                    <Section title={t("auth.sectionAbout")} hint={t("auth.sectionAboutHint")}>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <CustomInput control={form.control} name="firstName" label="First name" placeholder="Alex" autoComplete="given-name" />
-                        <CustomInput control={form.control} name="lastName" label="Last name" placeholder="Sharma" autoComplete="family-name" />
-                        <DateInput control={form.control} name="dob" label="Date of birth" hint="Type or pick" />
-                        <CustomInput control={form.control} name="ssn" label="SSN / tax id" placeholder="Last 4 digits" hint="Sandbox: 1234" autoComplete="off" mono />
+                        <CustomInput control={form.control} name="firstName" label={t("auth.firstName")} placeholder={t("auth.firstNamePlaceholder")} autoComplete="given-name" />
+                        <CustomInput control={form.control} name="lastName" label={t("auth.lastName")} placeholder={t("auth.lastNamePlaceholder")} autoComplete="family-name" />
+                        <DateInput control={form.control} name="dob" label={t("auth.dob")} hint={t("auth.dobHint")} />
+                        <CustomInput
+                          control={form.control}
+                          name="ssn"
+                          label={t("auth.taxId")}
+                          placeholder={t("auth.taxIdPlaceholder")}
+                          hint={t("auth.taxIdHint")}
+                          autoComplete="off"
+                          mono
+                        />
                       </div>
                     </Section>
                   </div>
 
                   <div id="section-02" className="scroll-mt-6">
-                    <Section index="02" title="Address" hint="Billing address">
+                    <Section title={t("auth.sectionAddress")} hint={t("auth.sectionAddressHint")}>
                       <div className="grid gap-4 sm:grid-cols-6">
                         <div className="sm:col-span-6">
-                          <CustomInput control={form.control} name="address1" label="Street address" placeholder="12 Market Street" autoComplete="address-line1" />
+                          <CustomInput control={form.control} name="address1" label={t("auth.street")} placeholder={t("auth.streetPlaceholder")} autoComplete="address-line1" />
                         </div>
                         <div className="sm:col-span-3">
-                          <CustomInput control={form.control} name="city" label="City" placeholder="Mumbai" autoComplete="address-level2" />
+                          <CustomInput control={form.control} name="city" label={t("auth.city")} placeholder={t("auth.cityPlaceholder")} autoComplete="address-level2" />
                         </div>
                         <div className="sm:col-span-1">
-                          <CustomInput control={form.control} name="state" label="State" placeholder="Maharashtra" autoComplete="address-level1" />
+                          <CustomInput control={form.control} name="state" label={t("auth.state")} placeholder={t("auth.statePlaceholder")} autoComplete="address-level1" />
                         </div>
                         <div className="sm:col-span-2">
-                          <CustomInput control={form.control} name="postalCode" label="Postal code" placeholder="400001" autoComplete="postal-code" mono />
+                          <CustomInput
+                            control={form.control}
+                            name="postalCode"
+                            label={t("auth.postalCode")}
+                            placeholder={t("auth.postalCodePlaceholder")}
+                            autoComplete="postal-code"
+                            mono
+                          />
                         </div>
                       </div>
                     </Section>
@@ -184,13 +193,13 @@ const AuthForm = ({ type }: { type: string }) => {
               )}
 
               <div id="section-03" className="scroll-mt-6">
-                <Section index={isSignUp ? "03" : "01"} title="Credentials" hint={isSignUp ? "Min. 8 characters" : undefined}>
-                  <CustomInput control={form.control} name="email" label="Email address" placeholder="name@example.com" type="email" autoComplete="email" />
+                <Section title={t("auth.sectionLogin")} hint={isSignUp ? t("auth.sectionLoginHint") : undefined}>
+                  <CustomInput control={form.control} name="email" label={t("auth.email")} placeholder={t("auth.emailPlaceholder")} type="email" autoComplete="email" />
                   <CustomInput
                     control={form.control}
                     name="password"
-                    label="Password"
-                    placeholder={isSignUp ? "Create a password" : "Your password"}
+                    label={t("auth.password")}
+                    placeholder={isSignUp ? t("auth.passwordPlaceholderNew") : t("auth.passwordPlaceholder")}
                     type="password"
                     autoComplete={isSignUp ? "new-password" : "current-password"}
                   />
@@ -207,10 +216,17 @@ const AuthForm = ({ type }: { type: string }) => {
                           />
                         ))}
                         <span className={cn("eyebrow w-16 text-right", strength === 3 && "text-success", strength === 2 && "text-warn-ink", strength === 1 && "text-danger")}>
-                          {["", "Weak", "Fair", "Strong"][strength]}
+                          {["", t("auth.strengthWeak"), t("auth.strengthFair"), t("auth.strengthStrong")][strength]}
                         </span>
                       </div>
-                      <CustomInput control={form.control} name="confirmPassword" label="Confirm password" placeholder="Repeat the password" type="password" autoComplete="new-password" />
+                      <CustomInput
+                        control={form.control}
+                        name="confirmPassword"
+                        label={t("auth.confirmPassword")}
+                        placeholder={t("auth.confirmPasswordPlaceholder")}
+                        type="password"
+                        autoComplete="new-password"
+                      />
 
                       <FormField
                         control={form.control}
@@ -225,15 +241,15 @@ const AuthForm = ({ type }: { type: string }) => {
                                 className="mt-0.5 size-4 shrink-0 accent-[rgb(var(--primary))]"
                               />
                               <span>
-                                I agree to the{" "}
+                                {t("auth.termsBefore")}{" "}
                                 <Link href="/terms" className="font-semibold text-ink underline underline-offset-4">
-                                  terms
+                                  {t("auth.termsLink")}
                                 </Link>{" "}
-                                and{" "}
+                                {t("auth.termsAnd")}{" "}
                                 <Link href="/privacy" className="font-semibold text-ink underline underline-offset-4">
-                                  privacy policy
+                                  {t("auth.privacyLink")}
                                 </Link>
-                                , and to Horizon reading account data I choose to connect.
+                                {t("auth.termsAfter")}
                               </span>
                             </label>
                             <FormMessage className="field-error" />
@@ -256,7 +272,7 @@ const AuthForm = ({ type }: { type: string }) => {
               <button type="submit" disabled={isLoading} className="btn-primary h-12 w-full justify-between px-5">
                 <span className="flex items-center gap-2">
                   <span className="size-2 bg-lime" />
-                  {isLoading ? "Working" : isSignUp ? "Create account" : "Sign in"}
+                  {isLoading ? t("auth.working") : isSignUp ? t("auth.createAccountButton") : t("auth.signInButton")}
                 </span>
                 {isLoading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
               </button>
@@ -264,9 +280,9 @@ const AuthForm = ({ type }: { type: string }) => {
           </Form>
 
           <footer className="flex items-center justify-between rounded-md border border-line bg-surface-low px-4 py-3 text-13 text-ink-muted">
-            <span>{isSignUp ? "Already have an account?" : "New to Horizon?"}</span>
+            <span>{isSignUp ? t("auth.haveAccount") : t("auth.newToHorizon")}</span>
             <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="font-mono text-[12px] uppercase tracking-wider text-ink underline underline-offset-4">
-              {isSignUp ? "Sign in" : "Create account"}
+              {isSignUp ? t("auth.signInButton") : t("auth.createAccountButton")}
             </Link>
           </footer>
         </>

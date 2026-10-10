@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useT } from "@/components/i18nProvider";
 import { formatAmount } from "@/lib/utils";
 
 import { RadialBarChart } from "./DoughnutChartLazy";
@@ -17,6 +18,7 @@ const UNFOLD_MS = 560;
  */
 const CategoryChartLink = ({ items, currency, total, href }: { items: RadialBarItem[]; currency?: string; total: number; href: string }) => {
   const router = useRouter();
+  const t = useT();
   const [unfolding, setUnfolding] = useState(false);
 
   // Warm the destination so the hand-off is instant when the animation ends.
@@ -38,16 +40,18 @@ const CategoryChartLink = ({ items, currency, total, href }: { items: RadialBarI
     <button
       type="button"
       onClick={open}
-      aria-label="Open the full spending breakdown"
+      aria-label={t("home.openBreakdown")}
       className="group relative mx-auto block size-[180px] cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-card md:size-[200px]"
     >
       <span className={`absolute inset-0 block ${unfolding ? "chart-unfold" : "transition-transform duration-300 group-hover:scale-[1.04]"}`}>
         <RadialBarChart items={items} currency={currency} unfold={unfolding} />
       </span>
       <span className={`pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center transition-opacity duration-200 ${unfolding ? "opacity-0" : ""}`}>
-        <span className="eyebrow">Spent</span>
-        <span className="amount text-16 font-semibold text-ink">{formatAmount(total, currency)}</span>
-        <span className="eyebrow mt-1 text-ink-faint transition-colors group-hover:text-ink">Tap to open</span>
+        <span className="eyebrow">{t("home.spent")}</span>
+        <span translate="no" className="amount text-16 font-semibold text-ink">
+          {formatAmount(total, currency)}
+        </span>
+        <span className="eyebrow mt-1 text-ink-faint transition-colors group-hover:text-ink">{t("home.tapToOpen")}</span>
       </span>
     </button>
   );

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getT } from "../i18n/server";
+
 import { ownerIdOf, requireUser, NotSignedInError } from "../server/auth";
 import { getBankBySharableId, getOwnBank } from "../server/banks";
 import { createTransfer } from "../server/dwolla";
@@ -46,6 +48,7 @@ const remember = (key: string, result: TransferResult) => {
  * the source account is theirs, the currency and the amount.
  */
 export async function sendTransfer(input: TransferInput): Promise<TransferResult> {
+  const t = await getT();
   let user;
   try {
     user = await requireUser();
@@ -55,32 +58,32 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
   }
 
   const key = String(input?.idempotencyKey ?? "");
-  if (!UUID.test(key)) return { ok: false, error: "Reload the page and try again." };
+  if (!UUID.test(key)) return { ok: false, error: t("transfer.errReload") };
   const scopedKey = `${ownerIdOf(user)}:${key}`;
   const earlier = finished.get(scopedKey);
   if (earlier) return earlier.result;
-  if (inFlight.has(scopedKey)) return { ok: false, error: "This transfer is already being sent." };
+  if (inFlight.has(scopedKey)) return { ok: false, error: t("transfer.errInFlight") };
 
   if (!allow(`transfer:${ownerIdOf(user)}`, 10, 10 * MINUTE)) {
-    return { ok: false, error: "Too many transfers in a short time. Wait a few minutes and try again." };
+    return { ok: false, error: t("transfer.errTooMany") };
   }
 
   const amount = String(input?.amount ?? "").trim();
   if (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
-    return { ok: false, field: "amount", error: "Enter an amount greater than zero, with at most two decimals." };
+    return { ok: false, field: "amount", error: t("transfer.errAmountFormat") };
   }
-  if (Number(amount) > MAX_TRANSFER) return { ok: false, field: "amount", error: `Transfers are limited to $${MAX_TRANSFER.toLocaleString("en-US")} at a time.` };
+  if (Number(amount) > MAX_TRANSFER) return { ok: false, field: "amount", error: t("transfer.errAmountMax", { max: `$${MAX_TRANSFER.toLocaleString("en-US")}` }) };
   const name = String(input?.name ?? "").trim().slice(0, 140);
-  if (name.length < 4) return { ok: false, field: "name", error: "Add a short note (at least 4 characters)." };
+  if (name.length < 4) return { ok: false, field: "name", error: t("transfer.errNoteShort") };
   const email = String(input?.email ?? "").trim().slice(0, 254);
-  if (!EMAIL.test(email)) return { ok: false, field: "email", error: "Enter a valid email address." };
+  if (!EMAIL.test(email)) return { ok: false, field: "email", error: t("transfer.errEmailInvalid") };
 
   // Transfers run on Dwolla, which only moves US dollars between Plaid-linked US accounts.
   const isUsdPlaid = (bank: Bank) => (!bank.provider || bank.provider === "plaid") && (!bank.currency || bank.currency === "USD");
 
   const senderBank = await getOwnBank(ownerIdOf(user), String(input?.senderBank ?? ""));
   if (!senderBank?.fundingSourceUrl || !isUsdPlaid(senderBank)) {
-    return { ok: false, field: "senderBank", error: "This account cannot send transfers. Choose a Plaid-linked US account." };
+    return { ok: false, field: "senderBank", error: t("transfer.errSenderCannot") };
   }
 
   const receiverBank = await getBankBySharableId(String(input?.sharableId ?? "").trim());
@@ -88,10 +91,10 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
     return {
       ok: false,
       field: "sharableId",
-      error: "This account cannot receive transfers yet. Only Plaid-linked US accounts are supported.",
+      error: t("transfer.errReceiverCannot"),
     };
   }
-  if (receiverBank.$id === senderBank.$id) return { ok: false, field: "sharableId", error: "Choose a different account to send to." };
+  if (receiverBank.$id === senderBank.$id) return { ok: false, field: "sharableId", error: t("transfer.errSameAccount") };
 
   inFlight.add(scopedKey);
   try {
@@ -102,7 +105,7 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
       idempotencyKey: key,
     });
     // Declined is final for this key: the same form must not be retried as is.
-    if (!transfer) return remember(scopedKey, { ok: false, error: "The transfer was declined by the payment network. Check the amount and try again." });
+    if (!transfer) return remember(scopedKey, { ok: false, error: t("transfer.errDeclined") });
 
     const record = await createTransaction({
       name,
@@ -121,7 +124,7 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
       logError(`transfer: sent but not recorded, dwolla=${transfer.split("/").pop()} sender=${senderBank.$id} receiver=${receiverBank.$id} amount=${amount}`);
       return remember(scopedKey, {
         ok: true,
-        warning: "The transfer was sent, but Horizon could not save it to your history yet. Please do not send it again.",
+        warning: t("transfer.warnNotSaved"),
       });
     }
     return remember(scopedKey, { ok: true });

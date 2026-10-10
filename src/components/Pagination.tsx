@@ -5,7 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { formUrlQuery } from "@/lib/utils";
 
+import { useT } from "./i18nProvider";
+
 export const Pagination = ({ page, totalPages }: PaginationProps) => {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams()!;
 
@@ -17,13 +20,11 @@ export const Pagination = ({ page, totalPages }: PaginationProps) => {
   return (
     <div className="flex items-center justify-between gap-3">
       <button type="button" className="btn-secondary btn-sm" onClick={() => go(page - 1)} disabled={page <= 1}>
-        <ChevronLeft className="size-3.5" /> Prev
+        <ChevronLeft className="size-3.5" /> {t("history.previousPage")}
       </button>
-      <p className="eyebrow">
-        Page <span className="text-ink">{String(page).padStart(2, "0")}</span> / {String(totalPages).padStart(2, "0")}
-      </p>
+      <p className="eyebrow">{t("history.pageOf", { page, total: totalPages })}</p>
       <button type="button" className="btn-secondary btn-sm" onClick={() => go(page + 1)} disabled={page >= totalPages}>
-        Next <ChevronRight className="size-3.5" />
+        {t("history.nextPage")} <ChevronRight className="size-3.5" />
       </button>
     </div>
   );

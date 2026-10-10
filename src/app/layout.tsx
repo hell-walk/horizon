@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Noto_Sans_Devanagari, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 
 import { I18nProvider } from "@/components/i18nProvider";
 import { ThemeProvider } from "@/components/themeProvider";
@@ -12,6 +12,8 @@ import "./globals.css";
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+// Self-hosted like the others; only downloaded by browsers when a page shows Devanagari text.
+const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600", "700"], variable: "--font-devanagari", display: "swap" });
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -45,7 +47,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     // next-themes sets the class on <html> before paint; the warning it would
     // otherwise trigger is expected.
     <html lang={LOCALE_TAGS[locale]} suppressHydrationWarning>
-      <body className={`${sans.variable} ${display.variable} ${mono.variable}`}>
+      <body className={`${sans.variable} ${display.variable} ${mono.variable} ${devanagari.variable}`}>
         <a href="#main" className="skip-link">
           {t("common.skipToContent")}
         </a>

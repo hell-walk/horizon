@@ -8,6 +8,7 @@ import PayeePanel from "../components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
+import { getT } from "@/lib/i18n/server";
 import { groupByPayee } from "@/lib/payees";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
@@ -15,16 +16,16 @@ import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import { cn, formatAmount, maskLabel, summarizeTransactions } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Transaction history",
-  description: "Browse every transaction on a linked bank account.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("history.metaTitle"), description: t("history.metaDescription") };
+}
 
 const ROWS_PER_PAGE = 10;
 const FILTERS = [
-  { key: "all", label: "All" },
-  { key: "credit", label: "Credits" },
-  { key: "debit", label: "Debits" },
+  { key: "all", label: "history.filterAll" },
+  { key: "credit", label: "history.filterIn" },
+  { key: "debit", label: "history.filterOut" },
 ] as const;
 
 const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
@@ -32,6 +33,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const currentPage = Number(page as string) || 1;
   const filter = type === "credit" || type === "debit" ? type : "all";
 
+  const t = await getT();
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) redirect("/sign-in");
 
@@ -43,9 +45,9 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
 
   const all: Transaction[] = account?.transactions ?? [];
-  const filtered = all.filter((t) => {
+  const filtered = all.filter((tx) => {
     if (filter === "all") return true;
-    const isDebit = t.type === "debit" || Number(t.amount) < 0;
+    const isDebit = tx.type === "debit" || Number(tx.amount) < 0;
     return filter === "debit" ? isDebit : !isDebit;
   });
 
@@ -54,7 +56,10 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   const current = filtered.slice(start, start + ROWS_PER_PAGE);
   const summary = summarizeTransactions(all);
   const currency = account?.data?.currency;
-  const provider = account ? PROVIDER_LABELS[account.data.provider as string] ?? PROVIDER_LABELS.plaid : null;
+  const providerKey = account && (account.data.provider as string) in PROVIDER_LABELS ? (account.data.provider as string) : "plaid";
+  const provider = account ? PROVIDER_LABELS[providerKey] : null;
+  const providerText = t(`banks.provider_${providerKey}`);
+  const providerName = provider ? (providerText === `banks.provider_${providerKey}` ? provider.name : providerText) : null;
 
   const filterHref = (key: string) => `/transaction-history/?id=${appwriteItemId}${key === "all" ? "" : `&type=${key}`}`;
 
@@ -62,17 +67,13 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
     <section className="page">
       <RememberAccount id={appwriteItemId} />
       <HeaderBox
-        eyebrow="Audit // transaction history"
-        title="Transaction history"
-        subtext={
-          accountsData.length > 0
-            ? `Complete ledger for each linked account. ${all.length} entries on the selected account.`
-            : "Link an account to see its transactions here."
-        }
+        eyebrow={t("history.eyebrow")}
+        title={t("history.title")}
+        subtext={accountsData.length > 0 ? t("history.subtext", { count: all.length }) : t("history.subtextEmpty")}
       />
 
       {accountsData.length > 1 && (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto" role="group" aria-label="Choose an account">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto" role="group" aria-label={t("history.chooseAccount")}>
           {accountsData.map((a) => (
             <BankTabItem key={a.appwriteItemId} account={a} appwriteItemId={appwriteItemId} />
           ))}
@@ -83,19 +84,23 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <article className="panel flex flex-col gap-1 p-4 max-md:col-span-2">
-              <p className="eyebrow">Account</p>
-              <p className="truncate text-16 font-semibold text-ink">{account.data.name}</p>
-              <p className="eyebrow">
-                {maskLabel(account.data.mask)} · {provider?.name}
+              <p className="eyebrow">{t("history.account")}</p>
+              <p translate="no" className="truncate text-16 font-semibold text-ink">
+                {account.data.name}
               </p>
-              <p className="amount mt-2 text-20 font-semibold text-ink">{formatAmount(account.data.currentBalance, currency)}</p>
+              <p className="eyebrow">
+                <span translate="no">{maskLabel(account.data.mask)}</span> · {providerName}
+              </p>
+              <p translate="no" className="amount mt-2 text-20 font-semibold text-ink">
+                {formatAmount(account.data.currentBalance, currency)}
+              </p>
             </article>
-            <Tile label="Inflow" value={formatAmount(summary.inflow, currency)} count={summary.credits} tone="success" />
-            <Tile label="Outflow" value={formatAmount(summary.outflow, currency)} count={summary.debits} tone="danger" />
+            <Tile label={t("history.moneyIn")} value={formatAmount(summary.inflow, currency)} entries={t("history.entries", { count: summary.credits })} tone="success" />
+            <Tile label={t("history.moneyOut")} value={formatAmount(summary.outflow, currency)} entries={t("history.entries", { count: summary.debits })} tone="danger" />
             <Tile
-              label="Net"
+              label={t("history.net")}
               value={`${summary.net < 0 ? "-" : "+"}${formatAmount(Math.abs(summary.net), currency)}`}
-              count={all.length}
+              entries={t("history.entries", { count: all.length })}
               tone={summary.net < 0 ? "danger" : "success"}
             />
           </div>
@@ -107,8 +112,8 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
           <section className="panel">
             <header className="panel-head">
               <div className="flex items-center gap-2">
-                <span className="eyebrow">Ledger</span>
-                <span className="eyebrow text-ink">{"// "}{filtered.length} entries</span>
+                <span className="eyebrow">{t("history.listTitle")}</span>
+                <span className="eyebrow text-ink">{t("history.shown", { count: filtered.length })}</span>
               </div>
               <div className="flex gap-1">
                 {FILTERS.map((f) => (
@@ -120,7 +125,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
                       filter === f.key ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card text-ink-muted hover:bg-surface-container"
                     )}
                   >
-                    {f.label}
+                    {t(f.label)}
                   </Link>
                 ))}
               </div>
@@ -140,16 +145,16 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
   );
 };
 
-const Tile = ({ label, value, count, tone }: { label: string; value: string; count: number; tone: "success" | "danger" }) => (
+const Tile = ({ label, value, entries, tone }: { label: string; value: string; entries: string; tone: "success" | "danger" }) => (
   <article className="panel flex flex-col gap-1 p-4">
     <div className="flex items-center justify-between">
       <p className="eyebrow">{label}</p>
       <span className={cn("dot", tone === "success" ? "bg-success" : "bg-danger")} />
     </div>
-    <p className={cn("amount truncate text-20 font-semibold", tone === "success" ? "text-success" : "text-danger")}>{value}</p>
-    <p className="eyebrow">
-      {count} {count === 1 ? "entry" : "entries"}
+    <p translate="no" className={cn("amount truncate text-20 font-semibold", tone === "success" ? "text-success" : "text-danger")}>
+      {value}
     </p>
+    <p className="eyebrow">{entries}</p>
   </article>
 );
 

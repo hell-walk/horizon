@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 
+import { useT } from "@/components/i18nProvider";
 import { cn } from "@/lib/utils";
 
 // Slow, soft slide for both discs. Inline so no utility class can be dropped.
@@ -20,6 +21,7 @@ interface ThemeToggleProps {
  * slide is deliberately slow (600 ms) so the hand-off reads.
  */
 export function ThemeToggle({ isDark, onChange, className }: ThemeToggleProps) {
+  const t = useT();
   const toggle = () => onChange(!isDark);
 
   return (
@@ -39,7 +41,7 @@ export function ThemeToggle({ isDark, onChange, className }: ThemeToggleProps) {
       }}
       role="switch"
       aria-checked={isDark}
-      aria-label="Dark mode"
+      aria-label={t("common.darkMode")}
       tabIndex={0}
     >
       <div className="flex w-full items-center justify-between">

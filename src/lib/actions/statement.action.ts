@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ID, Query } from "node-appwrite";
 
+import { getT } from "../i18n/server";
 import { createAdminClient } from "../server/appwrite";
 import { invalidate } from "../cache";
 import { MANUAL_PROVIDER } from "../providers/manual";
@@ -115,12 +116,13 @@ const MAX_PARALLEL_READS = 3;
 let readsInProgress = 0;
 
 async function readStatement(formData: FormData, userId: string): Promise<ReadOutcome> {
+  const t = await getT();
   // Reading PDFs and unlocking files is heavy work; cap how often one user can ask for it.
   if (!allow(`statement:${userId}`, 30, 10 * MINUTE)) {
-    return { ok: false, error: "Too many files in a short time. Wait a few minutes and try again." };
+    return { ok: false, error: t("connect.stTooMany") };
   }
   if (readsInProgress >= MAX_PARALLEL_READS) {
-    return { ok: false, error: "Horizon is reading other statements right now. Try again in a few seconds." };
+    return { ok: false, error: t("connect.stBusy") };
   }
   readsInProgress++;
   try {
@@ -131,9 +133,10 @@ async function readStatement(formData: FormData, userId: string): Promise<ReadOu
 }
 
 async function readStatementNow(formData: FormData, userId: string): Promise<ReadOutcome> {
+  const t = await getT();
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a statement file first." };
-  if (file.size > MAX_FILE_BYTES) return { ok: false, error: "The file is larger than 10 MB." };
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: t("connect.stNoFile") };
+  if (file.size > MAX_FILE_BYTES) return { ok: false, error: t("connect.stTooBig") };
 
   let sample: StatementSample | undefined;
   try {
@@ -148,7 +151,7 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
       const problem = mappingProblem(chosen, found.width);
       if (problem) return needsMapping(problem);
       const parsed = buildStatement(rows, file.name, cleanMapping(chosen));
-      if (!parsed.transactions.length) return needsMapping("No transactions could be read with those columns. Check the date and amount columns.");
+      if (!parsed.transactions.length) return needsMapping(t("connect.stNoRowsWithColumns"));
       return { ok: true, parsed, sample: found, source: "manual" };
     }
 
@@ -160,7 +163,7 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
 
     const parsed = buildStatement(rows, file.name);
     if (!parsed.transactions.length) {
-      return needsMapping(`No transactions found. Columns detected: ${parsed.headers.filter(Boolean).join(", ") || "none"}. Pick the columns below.`);
+      return needsMapping(t("connect.stNoRowsFound", { columns: parsed.headers.filter(Boolean).join(", ") || t("connect.stNone") }));
     }
     return { ok: true, parsed, sample: found, source: "auto" };
   } catch (error) {
@@ -168,14 +171,14 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
     if (error instanceof StatementLayoutError && sample?.rows.length) {
       return {
         ok: false,
-        error: "Horizon could not tell which column is which in this file. Pick them below and it will remember this layout.",
+        error: t("connect.stLayoutUnknown"),
         needsMapping: true,
         sample,
       };
     }
     if (error instanceof StatementParseError) return { ok: false, error: error.message };
     logError("statement: read failed", error);
-    return { ok: false, error: "The file could not be read. Export it again as CSV or XLSX and retry." };
+    return { ok: false, error: t("connect.stUnreadable") };
   }
 }
 
@@ -185,8 +188,9 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
  * transaction that is not already there.
  */
 export const importStatement = async (formData: FormData): Promise<ImportResult> => {
+  const t = await getT();
   const user = await getLoggedInUser();
-  if (!user) return { ok: false, error: "You need to be signed in to import a statement." };
+  if (!user) return { ok: false, error: t("connect.stSignIn") };
 
   const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
@@ -224,7 +228,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
         currentBalance: parsed.closingBalance,
       });
       bankId = bank?.$id;
-      if (!bankId) return { ok: false, error: "Could not create the bank record." };
+      if (!bankId) return { ok: false, error: t("connect.stBankFailed") };
     }
 
     let imported = 0;
@@ -232,19 +236,19 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     for (let i = 0; i < parsed.transactions.length; i += INSERT_BATCH) {
       const batch = parsed.transactions.slice(i, i + INSERT_BATCH);
       await Promise.all(
-        batch.map(async (t) => {
+        batch.map(async (entry) => {
           try {
             await database.createDocument(DATABASE_ID!, STATEMENT_COLLECTION_ID!, ID.unique(), {
               bankId,
               userId: ownerIdOf(user),
-              date: t.date,
-              name: t.name.slice(0, 255),
-              amount: t.amount,
-              type: t.type,
-              category: categorize(t.name),
-              balance: t.balance ?? null,
-              reference: t.reference?.slice(0, 255) ?? null,
-              hash: transactionHash(bankId!, t),
+              date: entry.date,
+              name: entry.name.slice(0, 255),
+              amount: entry.amount,
+              type: entry.type,
+              category: categorize(entry.name),
+              balance: entry.balance ?? null,
+              reference: entry.reference?.slice(0, 255) ?? null,
+              hash: transactionHash(bankId!, entry),
             });
             imported++;
           } catch (error) {
@@ -272,7 +276,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     return { ok: true, bankId, institution, mask, imported, skipped, total: parsed.transactions.length };
   } catch (error) {
     logError("statement: import failed", error);
-    return { ok: false, error: "Saving the statement failed. Check the server log for details." };
+    return { ok: false, error: t("connect.stSaveFailed") };
   }
 };
 
@@ -301,8 +305,9 @@ const PREVIEW_ROWS = 6;
  * columns were understood before importing.
  */
 export const previewStatement = async (formData: FormData): Promise<PreviewResult> => {
+  const t = await getT();
   const user = await getLoggedInUser();
-  if (!user) return { ok: false, error: "You need to be signed in to import a statement." };
+  if (!user) return { ok: false, error: t("connect.stSignIn") };
 
   const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
@@ -320,13 +325,13 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
     columns: parsed.columns,
     source,
     sample,
-    rows: parsed.transactions.slice(0, PREVIEW_ROWS).map((t) => ({
-      date: t.date,
-      name: t.name,
-      amount: t.amount,
-      type: t.type,
-      category: categorize(t.name),
-      balance: t.balance,
+    rows: parsed.transactions.slice(0, PREVIEW_ROWS).map((entry) => ({
+      date: entry.date,
+      name: entry.name,
+      amount: entry.amount,
+      type: entry.type,
+      category: categorize(entry.name),
+      balance: entry.balance,
     })),
   };
 };

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { createSetuConsent } from "@/lib/actions/setu.action";
 import { cn } from "@/lib/utils";
 
+import { useT } from "./i18nProvider";
 import { Input } from "./ui/input";
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
  * The AA redirects back to /setu/callback when the customer is done.
  */
 const SetuLink = ({ user, variant = "card" }: Props) => {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +35,9 @@ const SetuLink = ({ user, variant = "card" }: Props) => {
         window.location.href = result.url;
         return;
       }
-      setError((result && "error" in result && result.error) || "Could not start the bank connection.");
+      setError((result && "error" in result && result.error) || t("connect.setuCouldNotStart"));
     } catch {
-      setError("Could not reach the server. Please try again.");
+      setError(t("common.notReachable"));
     } finally {
       setLoading(false);
     }
@@ -49,7 +51,7 @@ const SetuLink = ({ user, variant = "card" }: Props) => {
         className={cn(variant === "primary" ? "btn-accent h-12 w-full" : "btn-accent w-full")}
         aria-expanded={open}
       >
-        Authenticate via Setu AA <ArrowRight className="size-4" />
+        {t("connect.setuOpen")} <ArrowRight className="size-4" />
       </button>
 
       {open && (
@@ -61,12 +63,12 @@ const SetuLink = ({ user, variant = "card" }: Props) => {
           }}
         >
           <label className="field-label" htmlFor="setu-mobile">
-            Mobile number registered with your bank
+            {t("connect.setuMobileLabel")}
           </label>
           <Input
             id="setu-mobile"
             inputMode="numeric"
-            placeholder="10-digit mobile"
+            placeholder={t("connect.setuMobilePlaceholder")}
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
             className="field-input font-mono"
@@ -76,14 +78,14 @@ const SetuLink = ({ user, variant = "card" }: Props) => {
           <button type="submit" disabled={loading || mobile.trim().length < 10} className="btn-primary">
             {loading ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> Starting
+                <Loader2 className="size-4 animate-spin" /> {t("connect.setuStarting")}
               </>
             ) : (
-              "Continue to Account Aggregator"
+              t("connect.setuContinue")
             )}
           </button>
           <p className="field-hint">
-            You will approve sharing with {user.firstName ?? "Horizon"} on the Account Aggregator, then return here.
+            {t("connect.setuHint", { name: user.firstName ?? "Horizon" })}
           </p>
         </form>
       )}

@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import React from 'react'
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to Horizon to see your accounts, balances and transactions.",
-  robots: { index: true, follow: true },
-};
-import AuthForm from '../components/authForm'
+import { getT } from "@/lib/i18n/server";
+
+import AuthForm from "../components/authForm";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("auth.signInTitle"),
+    description: t("auth.signInDescription"),
+    robots: { index: true, follow: true },
+  };
+}
+
 const SignIn = () => {
   return (
     <section className="flex w-full justify-center">
       <AuthForm type="sign-in" />
     </section>
-  )
-}
+  );
+};
 
-export default SignIn 
+export default SignIn;

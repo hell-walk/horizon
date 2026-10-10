@@ -78,7 +78,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       }
       if (outcome.ok) setMapperOpen(false);
     } catch {
-      setPreview({ ok: false, error: "Could not reach the server. Please try again." });
+      setPreview({ ok: false, error: t("common.notReachable") });
     } finally {
       setBusy(null);
     }
@@ -100,7 +100,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         router.refresh();
       }
     } catch {
-      setResult({ ok: false, error: "Could not reach the server. Please try again." });
+      setResult({ ok: false, error: t("common.notReachable") });
     } finally {
       setBusy(null);
     }
@@ -184,8 +184,14 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         <span className="flex-center size-10 rounded-md bg-card text-ink-muted">
           {fileName ? <Check className="size-5 text-success" /> : <Upload className="size-5" />}
         </span>
-        <span className="text-14 font-semibold text-ink">{fileName ?? "Drop your bank statement here"}</span>
-        <span className="field-hint">PDF, XLS, XLSX or CSV from net banking or email · up to 10 MB</span>
+        {fileName ? (
+          <span translate="no" className="text-14 font-semibold text-ink">
+            {fileName}
+          </span>
+        ) : (
+          <span className="text-14 font-semibold text-ink">{t("connect.dropHere")}</span>
+        )}
+        <span className="field-hint">{t("connect.fileTypes")}</span>
         <input
           ref={fileRef}
           id="statement-file"
@@ -201,25 +207,26 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
         <div className="field">
           <label className="field-label" htmlFor="statement-institution">
-            Bank name
+            {t("connect.bankName")}
           </label>
           <Input
             ref={institutionRef}
             id="statement-institution"
             name="institution"
-            placeholder={preview?.ok && preview.institution ? preview.institution : "Detected from the file if left blank"}
+            placeholder={preview?.ok && preview.institution ? preview.institution : t("connect.bankNamePlaceholder")}
             className="field-input"
           />
         </div>
         <div className="field">
           <label className="field-label" htmlFor="statement-mask">
-            Last 4 digits
+            {t("connect.last4")}
           </label>
           <Input
             id="statement-mask"
             name="mask"
             placeholder={preview?.ok && preview.mask ? preview.mask : "0000"}
             className="field-input font-mono"
+            translate="no"
             maxLength={4}
             inputMode="numeric"
           />
@@ -230,9 +237,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         <div className="field">
           <div className="flex items-center justify-between">
             <label className="field-label" htmlFor="statement-password">
-              File password
+              {t("connect.filePassword")}
             </label>
-            <span className="eyebrow">Used once, never stored</span>
+            <span className="eyebrow">{t("connect.passwordNeverSaved")}</span>
           </div>
           <div className="relative">
             <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
@@ -241,17 +248,15 @@ const ImportStatement = ({ variant = "card" }: Props) => {
               name="password"
               type="password"
               autoComplete="off"
-              placeholder="Password the bank gave you for this file"
+              placeholder={t("connect.passwordPlaceholder")}
               className="field-input pl-10 font-mono"
             />
           </div>
-          <p className="field-hint">
-            Banks usually use your customer id, PAN, or date of birth in the format written in the email that came with the statement.
-          </p>
+          <p className="field-hint">{t("connect.passwordHint")}</p>
         </div>
       ) : (
         <button type="button" onClick={() => setShowPassword(true)} className="btn-ghost btn-sm w-fit -ml-2">
-          <KeyRound className="size-3.5" /> File has a password
+          <KeyRound className="size-3.5" /> {t("connect.hasPassword")}
         </button>
       )}
 
@@ -267,29 +272,33 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         <div className="panel overflow-hidden">
           <header className="panel-head">
             <span className="eyebrow">
-              Parsed {"// "}{preview.total} {preview.total === 1 ? "transaction" : "transactions"} · {preview.currency}
+              {t("connect.foundEntries", { count: preview.total })} · <span translate="no">{preview.currency}</span>
             </span>
-            <span className="eyebrow">Showing first {preview.rows.length}</span>
+            <span className="eyebrow">{t("connect.showingFirst", { count: preview.rows.length })}</span>
           </header>
-          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table, scrolls sideways">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("connect.tableScrolls")}>
             <table className="w-full text-13">
               <thead>
                 <tr className="border-b border-line bg-surface-low">
-                  <th className="eyebrow px-3 py-2 text-left font-normal">Date</th>
-                  <th className="eyebrow px-3 py-2 text-left font-normal">Description</th>
-                  <th className="eyebrow px-3 py-2 text-left font-normal max-sm:hidden">Category</th>
-                  <th className="eyebrow px-3 py-2 text-right font-normal">Amount</th>
+                  <th className="eyebrow px-3 py-2 text-left font-normal">{t("connect.colDate")}</th>
+                  <th className="eyebrow px-3 py-2 text-left font-normal">{t("connect.colDetails")}</th>
+                  <th className="eyebrow px-3 py-2 text-left font-normal max-sm:hidden">{t("connect.colCategory")}</th>
+                  <th className="eyebrow px-3 py-2 text-right font-normal">{t("connect.colAmount")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {preview.rows.map((row, i) => (
                   <tr key={i}>
-                    <td className="px-3 py-2 font-mono text-12 text-ink-muted">{row.date}</td>
-                    <td className="max-w-[260px] truncate px-3 py-2 text-ink">{row.name}</td>
+                    <td translate="no" className="px-3 py-2 font-mono text-12 text-ink-muted">
+                      {row.date}
+                    </td>
+                    <td translate="no" className="max-w-[260px] truncate px-3 py-2 text-ink">
+                      {row.name}
+                    </td>
                     <td className="px-3 py-2 max-sm:hidden">
                       <span className="chip">{row.category}</span>
                     </td>
-                    <td className={cn("amount px-3 py-2 text-right font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
+                    <td translate="no" className={cn("amount px-3 py-2 text-right font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
                       {row.type === "debit" ? "-" : "+"}
                       {formatAmount(Math.abs(row.amount), preview.currency)}
                     </td>
@@ -302,13 +311,13 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2 text-12 text-ink-muted">
             <span>
               {preview.source === "saved"
-                ? "Read with the column layout you set for files like this."
+                ? t("connect.sourceSaved")
                 : preview.source === "manual"
-                  ? "Read with the columns you picked. Horizon remembers them when you import."
-                  : `Columns detected: ${preview.headers.join(", ")}`}
+                  ? t("connect.sourceManual")
+                  : t("connect.sourceAuto", { columns: preview.headers.join(", ") })}
             </span>
             <button type="button" onClick={() => openMapper(preview.sample, preview.columns)} className="btn-ghost btn-sm shrink-0">
-              <Columns3 className="size-3.5" /> Change columns
+              <Columns3 className="size-3.5" /> {t("connect.changeColumns")}
             </button>
           </div>
         </div>
@@ -322,30 +331,30 @@ const ImportStatement = ({ variant = "card" }: Props) => {
         >
           {busy === "preview" ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Reading file
+              <Loader2 className="size-4 animate-spin" /> {t("connect.readingFile")}
             </>
           ) : busy === "import" ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Importing
+              <Loader2 className="size-4 animate-spin" /> {t("connect.saving")}
             </>
           ) : mapperOpen ? (
-            "Read with these columns"
+            t("connect.readWithColumns")
           ) : preview?.ok ? (
             <>
-              <FileUp className="size-4" /> Import {preview.total} transactions
+              <FileUp className="size-4" /> {t("connect.saveEntries", { count: preview.total })}
             </>
           ) : (
-            "Preview statement"
+            t("connect.readFile")
           )}
         </button>
         {mapperOpen && preview?.ok && (
           <button type="button" onClick={closeMapper} className="btn-ghost">
-            Cancel
+            {t("common.cancel")}
           </button>
         )}
         {preview?.ok && !mapperOpen && (
           <button type="button" onClick={reset} className="btn-ghost">
-            Discard
+            {t("connect.startAgain")}
           </button>
         )}
       </div>
@@ -353,12 +362,15 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       {result && !result.ok && <p className="field-error">{result.error}</p>}
       {result && result.ok && (
         <p className="rounded-md border border-success/30 bg-success-soft px-3 py-2 text-13 text-success">
-          {result.institution} ••{result.mask}: {result.imported} new {result.imported === 1 ? "transaction" : "transactions"} imported
-          {result.skipped ? `, ${result.skipped} already present` : ""}.
+          <span translate="no">
+            {result.institution} ••{result.mask}
+          </span>
+          : {t("connect.savedNew", { count: result.imported })}
+          {result.skipped ? ` ${t("connect.alreadyThere", { count: result.skipped })}` : ""}
         </p>
       )}
 
-      <p className="field-hint">The file and its password are used on this server only to read the transactions; neither is stored.</p>
+      <p className="field-hint">{t("connect.privacyNote")}</p>
     </form>
   );
 };

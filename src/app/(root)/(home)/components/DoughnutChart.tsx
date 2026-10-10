@@ -3,6 +3,7 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
+import { useT } from "@/components/i18nProvider";
 import { ENTRANCE, useChartColors } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ ChartJS.register(ArcElement, Tooltip);
 // Solid doughnut: one wedge per account, all in the same currency.
 const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
   const colors = useChartColors();
+  const t = useT();
 
   const data = {
     labels: accounts.map((a) => a.name),
@@ -28,7 +30,7 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
   return (
     <Doughnut
       role="img"
-      aria-label={`Balances by account: ${accounts.map((a) => `${a.name} ${formatAmount(a.currentBalance, a.currency)}`).join(", ")}`}
+      aria-label={t("home.balancesChartLabel", { list: accounts.map((a) => `${a.name} ${formatAmount(a.currentBalance, a.currency)}`).join(", ") })}
       data={data}
       options={{
         cutout: "68%",
