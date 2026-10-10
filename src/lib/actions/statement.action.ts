@@ -10,6 +10,7 @@ import { MANUAL_PROVIDER } from "../providers/manual";
 import {
   buildStatement,
   categorize,
+  checkBalances,
   cleanMapping,
   mappingProblem,
   sampleStatement,
@@ -24,6 +25,7 @@ import {
 } from "../statements/parse";
 import { readStatementRowsIsolated } from "../statements/isolated";
 import { findOverlap, type Overlap } from "../statements/overlap";
+import { applyFixes, findDoubtful, readFixes, type Doubtful } from "../statements/doubtful";
 import { findImportedBank, savedStatementRows } from "../server/statementRows";
 import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
@@ -59,9 +61,32 @@ export type ImportResult =
       skipped: number;
       /** Entries left out because they looked like ones already saved from another file. */
       likelySkipped: number;
+      /** Rows the user chose to skip, or changed, in the "needs a look" list. */
+      doubtfulSkipped: number;
+      changed: number;
       total: number;
     }
   | ReadFailure;
+
+/**
+ * Finds the rows that need a look and applies the user's fixes to them. The
+ * balance check is redone on the fixed rows, so a fix that mends the balance
+ * shows as mended.
+ */
+async function withFixes(formData: FormData, parsed: ParsedStatement) {
+  const doubtful = findDoubtful(parsed.transactions);
+  const flagged = new Set(doubtful.map((d) => d.index));
+  const fixes = readFixes(formData.get("fixes"), flagged);
+  if (!fixes) return { ok: false as const, error: (await getT())("connect.doubtBadFixes") };
+  const applied = applyFixes(parsed.transactions, flagged, fixes, formData.get("skipDoubtful") === "1");
+  return {
+    ok: true as const,
+    doubtful,
+    skipped: applied.skipped,
+    changed: applied.changed,
+    parsed: { ...parsed, transactions: applied.transactions, check: checkBalances(applied.transactions) },
+  };
+}
 
 /** The bank name and account ending the entries go to: what the user typed, else what the file says. */
 const accountFrom = (formData: FormData, parsed: ParsedStatement) => ({
@@ -220,7 +245,10 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
   const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
-  const { parsed, sample, source } = read;
+  const { sample, source } = read;
+  const fixed = await withFixes(formData, read.parsed);
+  if (!fixed.ok) return fixed;
+  const { parsed } = fixed;
   if (source === "manual") await rememberLayout(authIdOf(user), sample.signature, parsed.columns);
 
   const { institution, mask } = accountFrom(formData, parsed);
@@ -306,6 +334,8 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
       imported,
       skipped,
       likelySkipped: keepLikely ? 0 : overlap.likely.length,
+      doubtfulSkipped: fixed.skipped,
+      changed: fixed.changed,
       total: parsed.transactions.length,
     };
   } catch (error) {
@@ -316,6 +346,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
 export type PreviewRow = { date: string; name: string; amount: number; type: string; category: string; balance?: number };
 export type LikelyRow = { date: string; name: string; amount: number; type: string; savedDate: string; savedName: string };
+export type DoubtfulRow = Doubtful & { date: string; name: string; amount: number; type: "debit" | "credit"; balance?: number };
 export type PreviewResult =
   | {
       ok: true;
@@ -334,11 +365,17 @@ export type PreviewResult =
       alreadySaved: number;
       /** Entries that look like ones saved from another file; `rows` shows the first few. */
       likely: { count: number; rows: LikelyRow[] };
+      /** Rows that need a look, as read from the file (before fixes); `rows` shows the first ones. */
+      doubtful: { count: number; rows: DoubtfulRow[] };
+      /** What the fixes sent with this preview did. */
+      doubtfulSkipped: number;
+      changed: number;
     }
   | ReadFailure;
 
 const PREVIEW_ROWS = 6;
 const LIKELY_ROWS = 20;
+const DOUBTFUL_ROWS = 30;
 
 /**
  * Parses a statement without saving anything, so the user can check that the
@@ -351,7 +388,10 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
 
   const read = await readStatement(formData, authIdOf(user));
   if (!read.ok) return read;
-  const { parsed, sample, source } = read;
+  const { sample, source } = read;
+  const fixed = await withFixes(formData, read.parsed);
+  if (!fixed.ok) return fixed;
+  const { parsed } = fixed;
 
   let overlap: Overlap = { exact: [], likely: [] };
   try {
@@ -364,6 +404,15 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
 
   return {
     ok: true,
+    doubtful: {
+      count: fixed.doubtful.length,
+      rows: fixed.doubtful.slice(0, DOUBTFUL_ROWS).map((d) => {
+        const entry = read.parsed.transactions[d.index];
+        return { ...d, date: entry.date, name: entry.name, amount: entry.amount, type: entry.type, balance: entry.balance };
+      }),
+    },
+    doubtfulSkipped: fixed.skipped,
+    changed: fixed.changed,
     alreadySaved: overlap.exact.length,
     likely: {
       count: overlap.likely.length,
