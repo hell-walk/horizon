@@ -28,10 +28,12 @@ import { readStatementRowsIsolated } from "../statements/isolated";
 import { findOverlap, type Overlap } from "../statements/overlap";
 import { applyFixes, findDoubtful, readFixes, type Doubtful } from "../statements/doubtful";
 import { findImportedBank, savedStatementRows } from "../server/statementRows";
+import { forgetLeftOver } from "../server/leftover";
 import { authIdOf, getLoggedInUser, ownerIdOf } from "../server/auth";
 import { createBankAccount } from "../server/banks";
 import { newSharableId } from "../server/crypto";
 import { allow, MINUTE } from "../server/rateLimit";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "../uploadLimit";
 import { SUPPORTED_CURRENCIES } from "../utils";
 import { logError } from "../server/log";
 
@@ -41,7 +43,7 @@ const {
   APPWRITE_STATEMENT_COLLECTION_ID: STATEMENT_COLLECTION_ID,
 } = process.env;
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // PDFs with embedded fonts run bigger than CSV exports
+const MAX_FILE_BYTES = MAX_UPLOAD_BYTES; // see uploadLimit.ts: one request on Vercel is at most 4.5 MB
 const INSERT_BATCH = 10;
 
 /** Why a file could not be read, and what the user can do about it. */
@@ -201,7 +203,7 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
   const t = await getT();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: t("connect.stNoFile") };
-  if (file.size > MAX_FILE_BYTES) return { ok: false, error: t("connect.stTooBig") };
+  if (file.size > MAX_FILE_BYTES) return { ok: false, error: t("connect.stTooBig", { max: MAX_UPLOAD_MB }) };
 
   let sample: StatementSample | undefined;
   try {
@@ -338,6 +340,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
     invalidate("banks:");
     invalidate(`statement:${bankId}`);
+    await forgetLeftOver(ownerIdOf(user));
     revalidatePath("/");
 
     return {

@@ -160,6 +160,12 @@ describe.skipIf(!up || !haveAccounts)(`signed-in attacker against ${BASE}`, () =
       expect(value).toMatchObject({ ok: true });
     });
 
+    it("a 4.5 MB file gets the friendly size message (it fits in a request, not in the limit)", async () => {
+      const file = new File([new Uint8Array(4.5 * 1024 * 1024)], "statement.csv");
+      const { value } = await callFormAction("previewStatement", { file }, { cookie: a });
+      expect(value).toMatchObject({ ok: false, error: expect.stringMatching(/larger than 4 MB/) });
+    });
+
     it("a body over the limit is refused without crashing the server", async () => {
       const big = new File([new Uint8Array(12 * 1024 * 1024)], "statement.csv");
       // Next.js either answers with an error or closes the connection mid-upload; both are refusals.

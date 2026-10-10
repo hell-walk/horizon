@@ -47,8 +47,8 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: { "/**": ["./.worker/**"] },
   experimental: {
     // Statement uploads go through a server action; the default 1 MB cap rejected
-    // most PDF statements. Matches MAX_FILE_BYTES in statement.action.ts (plus form overhead).
-    serverActions: { bodySizeLimit: "11mb" },
+    // most PDF statements. Matches MAX_UPLOAD_BYTES in lib/uploadLimit.ts (plus form overhead).
+    serverActions: { bodySizeLimit: "5mb" },
   },
   // Dev only: let the dev server be reached through a tunnel (Cloudflare,
   // ngrok, localtunnel) so hot reload and assets work from a public URL.

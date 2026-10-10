@@ -79,10 +79,10 @@ describe("previewStatement", () => {
     expect(await previewStatement(form(csv(good)))).toMatchObject({ ok: false, error: expect.stringMatching(/signed in/) });
   });
 
-  it("requires a file, and refuses one over 10 MB", async () => {
+  it("requires a file, and refuses one over 4 MB", async () => {
     expect(await previewStatement(form(null))).toMatchObject({ ok: false, error: "Choose a statement file first." });
-    const big = new File([new Uint8Array(10 * 1024 * 1024 + 1)], "big.csv");
-    expect(await previewStatement(form(big))).toMatchObject({ ok: false, error: "The file is larger than 10 MB." });
+    const big = new File([new Uint8Array(4 * 1024 * 1024 + 1)], "big.csv");
+    expect(await previewStatement(form(big))).toMatchObject({ ok: false, error: expect.stringMatching(/^The file is larger than 4 MB\./) });
   });
 
   it("reads a normal statement and checks its balances", async () => {

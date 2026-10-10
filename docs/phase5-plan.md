@@ -97,9 +97,13 @@ Put each key in `.env` yourself; never paste them in chat.
 
 1. **Supabase** (supabase.com): a new project. Settings -> API: the project
    URL, the anon (publishable) key and the service role (secret) key ->
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY`. Authentication -> URL configuration: Site URL
-   `http://localhost:3000` for now.
+   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. All three
+   stay on the server: no `NEXT_PUBLIC_` name, so the browser never sees them.
+   Authentication -> URL configuration: Site URL `http://localhost:3000` for now.
+   Authentication -> Sign In / Providers: **Allow new users to sign up: off**.
+   Our server creates accounts (after its own checks: rate limits, password
+   rules, the bot trap, country rules); with public sign-up on, anyone holding
+   the anon key could skip all of those by calling Supabase directly.
 2. **Upstash** (upstash.com): a Redis database in Mumbai or Frankfurt. REST API
    -> `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 3. **Razorpay** (razorpay.com): sign up; Test mode -> API keys ->

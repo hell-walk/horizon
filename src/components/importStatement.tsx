@@ -8,6 +8,7 @@ import { importStatement, previewStatement, type ImportResult, type PreviewResul
 import { STATEMENT_BANKS, type StatementBankId } from "@/lib/bankGuides";
 import type { Fixes, RowFix } from "@/lib/statements/doubtful";
 import type { DateOrder, StatementMapping, StatementSample } from "@/lib/statements/parse";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "@/lib/uploadLimit";
 import { cn, formatAmount, SUPPORTED_CURRENCIES } from "@/lib/utils";
 
 import BalanceCheckNote from "./balanceCheck";
@@ -149,13 +150,20 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   };
 
   const onFileChosen = (file?: File | null) => {
-    setFileName(file?.name ?? null);
-    // Bank PDFs are almost always protected; offer the password field right away.
-    if (file?.name.toLowerCase().endsWith(".pdf")) setShowPassword(true);
     reset();
     setMapping(null);
     setMapSample(null);
     setMapperOpen(false);
+    // Too big to upload: say so now, instead of after a long upload that would be refused.
+    if (file && file.size > MAX_UPLOAD_BYTES) {
+      if (fileRef.current) fileRef.current.value = "";
+      setFileName(null);
+      setPreview({ ok: false, error: t("connect.stTooBig", { max: MAX_UPLOAD_MB }) });
+      return;
+    }
+    setFileName(file?.name ?? null);
+    // Bank PDFs are almost always protected; offer the password field right away.
+    if (file?.name.toLowerCase().endsWith(".pdf")) setShowPassword(true);
   };
 
   const onDrop = (event: React.DragEvent<HTMLLabelElement>) => {
