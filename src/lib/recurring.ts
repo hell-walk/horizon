@@ -1,3 +1,4 @@
+import { PAY_LATER } from "./categories";
 import { OWN_TRANSFER, payeeKey } from "./corrections";
 import { payeeName } from "./payees";
 import { spendType } from "./spending";
@@ -84,7 +85,7 @@ function kindOf(t: Transaction, direction: "in" | "out"): RegularKind {
   if (t.userCategory === OWN_TRANSFER) return "own";
   if (direction === "in") return "income";
   const type = spendType(t);
-  if (type === "EMI & pay later" || /\bemi\b|loan/i.test(t.name)) return "emi";
+  if (type === "EMI & pay later" || PAY_LATER.test(t.name)) return "emi";
   if (type === "Rent") return "rent";
   if (type === "Subscriptions") return "subscription";
   if (type === "Bills & recharges") return "bill";
@@ -122,7 +123,10 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
   const found: Regular[] = [];
 
   for (const [key, { direction, rows }] of groups) {
-    if (rows.length < 2) continue;
+    // Seen once: only worth showing when it is a known subscription service
+    // (statements often cover a single month). Its cadence is a guess: monthly.
+    const knownSubscription = direction === "out" && rows.length === 1 && spendType(rows[0].tx) === "Subscriptions";
+    if (rows.length < 2 && !knownSubscription) continue;
     rows.sort((a, b) => a.day - b.day);
     const gaps = rows.slice(1).map((r, i) => r.day - rows[i].day);
     if (gaps.some((g) => g === 0)) continue; // two on one day: shopping, not a bill
@@ -130,7 +134,10 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     let cadence: Cadence | null;
     let confidence: Regular["confidence"];
     const amounts = rows.map((r) => r.amount);
-    if (rows.length === 2) {
+    if (rows.length === 1) {
+      cadence = "monthly";
+      confidence = "low";
+    } else if (rows.length === 2) {
       // Twice is enough only for a month apart and the same amount.
       const [lo, hi] = BANDS.monthly;
       if (gaps[0] < lo || gaps[0] > hi || !within(amounts[1], amounts[0], 0.02)) continue;

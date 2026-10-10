@@ -44,6 +44,7 @@ const ALIASES: [RegExp, string][] = [
   [/afterpay|clearpay/i, "Afterpay"],
   [/comcast|xfinity/i, "Comcast"],
   [/verizon/i, "Verizon"],
+  [/crunchyroll|ellation/i, "Crunchyroll"],
   [/snapmint/i, "Snapmint"],
   [/\bslice\b|sliceit/i, "Slice"],
   [/lazypay/i, "LazyPay"],
