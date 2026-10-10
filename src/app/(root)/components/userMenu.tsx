@@ -70,6 +70,9 @@ const UserMenu = ({ user }: { user: User }) => {
           <Link href="/connect-bank" onClick={() => setOpen(false)} className="btn-secondary justify-start">
             {t("nav.connect")}
           </Link>
+          <Link href="/my-data" onClick={() => setOpen(false)} className="btn-ghost justify-start">
+            {t("data.menuLink")}
+          </Link>
           <Link href="/privacy" onClick={() => setOpen(false)} className="btn-ghost justify-start">
             {t("nav.privacyPolicy")}
           </Link>

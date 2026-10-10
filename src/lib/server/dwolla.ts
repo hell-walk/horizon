@@ -119,3 +119,25 @@ export const addFundingSource = async ({
         logError("Adding a funding source failed", err);
     }
 };
+
+/** Removes a funding source (a linked bank) from its Dwolla customer. */
+export const removeFundingSource = async (fundingSourceUrl: string) => {
+    try {
+        await getDwollaClient().post(fundingSourceUrl, { removed: true });
+        return true;
+    } catch (err) {
+        logError("Removing a Dwolla funding source failed", err);
+        return false;
+    }
+};
+
+/** Dwolla never deletes customers; deactivating stops all further use. */
+export const deactivateCustomer = async (customerUrl: string) => {
+    try {
+        await getDwollaClient().post(customerUrl, { status: "deactivated" });
+        return true;
+    } catch (err) {
+        logError("Deactivating a Dwolla customer failed", err);
+        return false;
+    }
+};

@@ -53,6 +53,16 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
       (v) => expect(v).toMatchObject({ ok: false, field: "senderBank" }),
     ],
     ["completeSetuConsent", () => [{ consentId: "consent-of-b", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ status: "MISSING" })],
+    ["deleteBank", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank }], (v) => expect(v).toMatchObject({ ok: false })],
+    ["deleteMyAccount", () => [{ ...forged(victimProfile, victimBank), password: "not-the-password" }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "exportMyData",
+      () => [forged(victimProfile, victimBank)],
+      (v) => {
+        expect(v).toMatchObject({ ok: true });
+        expect((v as { json: string }).json).not.toContain(MARK); // A's export has nothing of B's
+      },
+    ],
     ["createSetuConsent", () => [{ mobile: "9876543210", ...forged(victimProfile, victimBank) }], (v) => expect(JSON.stringify(v)).not.toMatch(/consentId/)],
     ["exchangePublicToken", () => [{ publicToken: "public-sandbox-forged", ...forged(victimProfile, victimBank) }], (v) => expect(v).toBeNull()],
     ["createLinkToken", () => [forged(victimProfile, victimBank)], () => {}],

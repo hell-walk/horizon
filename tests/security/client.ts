@@ -35,18 +35,44 @@ async function send(name: string, body: BodyInit, contentType: string | null, op
   if (opts.origin !== null) headers.Origin = opts.origin ?? BASE;
   if (opts.cookie) headers.Cookie = opts.cookie;
   const res = await fetch(`${BASE}${opts.path ?? "/sign-in"}`, { method: "POST", headers, body, redirect: "manual" });
-  const raw = await res.text();
-  // The action's return value is the RSC row with id 1.
-  const row = raw.split("\n").find((l) => l.startsWith("1:"));
+  const bytes = Buffer.from(await res.arrayBuffer());
+  const rows = readRows(bytes);
+  // The action's return value is the RSC row with id 1; long strings come in their own text rows.
+  const row = rows.get("1");
   let value: unknown = undefined;
-  if (row) {
+  if (row !== undefined) {
     try {
-      value = JSON.parse(row.slice(2));
+      value = JSON.parse(row, (_k, v) => (typeof v === "string" && /^\$[0-9a-f]+$/.test(v) && rows.has(v.slice(1)) ? rows.get(v.slice(1)) : v));
     } catch {
-      value = row.slice(2);
+      value = row;
     }
   }
-  return { status: res.status, value, raw, setCookies: res.headers.getSetCookie() };
+  return { status: res.status, value, raw: bytes.toString("utf8"), setCookies: res.headers.getSetCookie() };
+}
+
+/**
+ * Splits an RSC response into rows. Most rows are `id:json\n`; a text row is
+ * `id:T<hex byte length>,<text>` with no newline after it.
+ */
+function readRows(bytes: Buffer) {
+  const rows = new Map<string, string>();
+  let at = 0;
+  while (at < bytes.length) {
+    const colon = bytes.indexOf(":", at);
+    if (colon < 0) break;
+    const id = bytes.toString("utf8", at, colon);
+    if (bytes[colon + 1] === 0x54 /* T */) {
+      const comma = bytes.indexOf(",", colon);
+      const length = parseInt(bytes.toString("utf8", colon + 2, comma), 16);
+      rows.set(id, bytes.toString("utf8", comma + 1, comma + 1 + length));
+      at = comma + 1 + length;
+    } else {
+      const end = bytes.indexOf("\n", colon);
+      rows.set(id, bytes.toString("utf8", colon + 1, end < 0 ? bytes.length : end));
+      at = end < 0 ? bytes.length : end + 1;
+    }
+  }
+  return rows;
 }
 
 /** Calls a server action with plain JSON arguments. */
