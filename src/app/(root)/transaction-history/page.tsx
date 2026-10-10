@@ -9,7 +9,7 @@ import TransactionsTable from "@/components/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
 import { groupByPayee } from "@/lib/payees";
-import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser } from "@/lib/actions/user.action";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";

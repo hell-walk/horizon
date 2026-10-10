@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";

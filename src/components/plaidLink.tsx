@@ -10,26 +10,26 @@ import { cn } from "@/lib/utils";
 
 // Opens Plaid Link. `primary` is the full-width button on the post-sign-up step;
 // `card` sits inside the provider card on the Connect Bank page.
-const PlaidLink = ({ user, variant = "card" }: PlaidLinkProps) => {
+const PlaidLink = ({ variant = "card" }: PlaidLinkProps) => {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [linking, setLinking] = useState(false);
 
   useEffect(() => {
     const getLinkToken = async () => {
-      const data = await createLinkToken(user);
-      setToken(data?.linkToken);
+      const data = await createLinkToken();
+      setToken(data?.linkToken ?? "");
     };
     getLinkToken();
-  }, [user]);
+  }, []);
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
     (public_token: string | null) => {
       if (!public_token) return;
       setLinking(true);
-      exchangePublicToken({ publicToken: public_token, user }).then(() => router.push("/"));
+      exchangePublicToken({ publicToken: public_token }).then(() => router.push("/"));
     },
-    [user, router]
+    [router]
   );
 
   const config: PlaidLinkOptions = { token, onSuccess };

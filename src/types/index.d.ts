@@ -291,10 +291,6 @@ declare interface getInstitutionProps {
   institutionId: string;
 }
 
-declare interface getTransactionsProps {
-  accessToken: string;
-}
-
 declare interface CreateFundingSourceOptions {
   customerId: string; // Dwolla Customer ID
   fundingSourceName: string; // Dwolla Funding Source Name
@@ -325,10 +321,6 @@ declare interface getUserInfoProps {
   userId: string;
 }
 
-declare interface exchangePublicTokenProps {
-  publicToken: string;
-  user: User;
-}
 
 declare interface createBankAccountProps {
   accessToken: string;
@@ -353,6 +345,3 @@ declare interface getBankProps {
   documentId: string;
 }
 
-declare interface getBankByAccountIdProps {
-  accountId: string;
-}

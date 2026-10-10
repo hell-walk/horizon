@@ -7,10 +7,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { createTransfer } from "@/lib/actions/dwolla.action";
-import { createTransaction } from "@/lib/actions/transaction.actions";
-import { getBank, getBankByAccountId } from "@/lib/actions/user.action";
-import { cn, decryptId, formatAmount, maskLabel } from "@/lib/utils";
+import { sendTransfer } from "@/lib/actions/transfer.action";
+import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { BankDropdown } from "./BankDropdown";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -71,48 +69,15 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
     setFormError(null);
 
     try {
-      const receiverAccountId = decryptId(data.sharableId);
-      const [receiverBank, senderBank] = await Promise.all([
-        getBankByAccountId({ accountId: receiverAccountId }),
-        getBank({ documentId: data.senderBank }),
-      ]);
-
-      if (!receiverBank?.fundingSourceUrl) {
-        form.setError("sharableId", {
-          message: "This account cannot receive transfers yet. Only Plaid-linked US accounts are supported.",
-        });
+      // The server checks the sender, the recipient and the amount; the form only collects them.
+      const result = await sendTransfer(data);
+      if (!result.ok) {
+        if (result.field) form.setError(result.field, { message: result.error });
+        else setFormError(result.error);
         return;
       }
-      if (!senderBank?.fundingSourceUrl) {
-        form.setError("senderBank", { message: "This account cannot send transfers. Choose a Plaid-linked US account." });
-        return;
-      }
-
-      const transfer = await createTransfer({
-        sourceFundingSourceUrl: senderBank.fundingSourceUrl,
-        destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
-        amount: data.amount,
-      });
-
-      if (!transfer) {
-        setFormError("The transfer was declined by the payment network. Check the amount and try again.");
-        return;
-      }
-
-      const newTransaction = await createTransaction({
-        name: data.name,
-        amount: data.amount,
-        senderId: senderBank.userId,
-        senderBankId: senderBank.$id,
-        receiverId: receiverBank.userId,
-        receiverBankId: receiverBank.$id,
-        email: data.email,
-      });
-
-      if (newTransaction) {
-        form.reset();
-        router.push("/");
-      }
+      form.reset();
+      router.push("/");
     } catch (error) {
       console.error("Submitting create transfer request failed: ", error);
       setFormError("Something went wrong while sending the transfer. Please try again.");

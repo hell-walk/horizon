@@ -1,7 +1,36 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs/config";
 
+const isDev = process.env.NODE_ENV !== "production";
+const appwriteOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "").origin;
+  } catch {
+    return "";
+  }
+})();
+
+// What the browser may load. Next.js inlines its bootstrap scripts, hence
+// 'unsafe-inline' for scripts; everything else is limited to this site plus
+// Plaid Link and Sentry. Bank redirects (Setu) are navigations, not loads.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com https://browser.sentry-cdn.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self' https://*.plaid.com https://*.sentry.io ${appwriteOrigin}${isDev ? " ws: wss:" : ""}`.trim(),
+  "frame-src https://cdn.plaid.com",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
   // Browsers keep using HTTPS for a year once they have seen the site over HTTPS.
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
