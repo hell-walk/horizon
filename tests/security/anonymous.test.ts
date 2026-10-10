@@ -41,7 +41,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("signed-in pages", () => {
-    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything"])(
+    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);

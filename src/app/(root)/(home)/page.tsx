@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
+import ComingUp from "./components/comingUp";
 import SpendingStrip from "./components/spendingStrip";
 import QuickActions from "./components/quickActions";
 import RecentTransaction from "./components/recentTransaction";
@@ -73,6 +74,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
               so the header, balances and allocation appear first. */}
           <Suspense fallback={<ChartPanelSkeleton />}>
             <CategorySection appwriteItemId={appwriteItemId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <ComingUp ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           <Suspense fallback={<RecentTransactionsSkeleton />}>
