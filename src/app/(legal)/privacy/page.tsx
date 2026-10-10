@@ -9,9 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("legal.privacyTitle"), description: t("legal.privacyDescription") };
 }
 
-const UPDATED = Date.UTC(2026, 9, 10); // 10 October 2026
+const UPDATED = Date.UTC(2026, 9, 11); // 11 October 2026
 
-// This text describes what the code really does (checked 10 October 2026).
+// This text describes what the code really does (checked 11 October 2026).
 // When the code changes what it collects, where data goes, or which cookies
 // it sets, change this page in the same commit. Have a lawyer review it, and
 // replace the contact address with a real, monitored mailbox, before launch.
@@ -49,7 +49,12 @@ export default async function PrivacyPage() {
         <ul>
           <li>
             <strong>Your account:</strong> name, email address, the country you live in, postal address and a
-            password. Your password is held by our database provider in hashed form; we cannot read it.
+            password. Your password is held by our sign-in provider, Supabase, in hashed form; we cannot read it.
+          </li>
+          <li>
+            <strong>Signing in with Google:</strong> if you choose it, Google tells us your name and email
+            address and that it has checked them. We never see your Google password, and we do not ask Google
+            for anything else (no contacts, no files).
           </li>
           <li>
             <strong>Date of birth and US Social Security number:</strong> asked only if you live in the United
@@ -74,12 +79,23 @@ export default async function PrivacyPage() {
             <strong>Transfers:</strong> the amount, date, note, and who sent and received it.
           </li>
           <li>
+            <strong>Your plan:</strong> when your free trial started, how many changes you made today during
+            the trial (this count is kept for a day), and, if you subscribe, which plan, its status and the
+            date it is paid up to. Card, UPI and bank details are entered on Razorpay&apos;s own page and go
+            to Razorpay only: we never see or keep them.
+          </li>
+          <li>
+            <strong>Feedback:</strong> what you send through the feedback form, the page you sent it from,
+            and your email address only if you tick &quot;you may email me&quot;.
+          </li>
+          <li>
             <strong>Bank access keys:</strong> the keys that let us fetch your bank data are stored encrypted,
             and are never shown to you, to other users, or in error reports.
           </li>
           <li>
-            <strong>Technical data:</strong> your IP address is held in our server&apos;s memory for a short time
-            to stop people guessing passwords. It is not written to our database.
+            <strong>Technical data:</strong> to stop people guessing passwords, your IP address is counted for
+            a short time (at most an hour) in our server&apos;s memory or our rate-limit store, where it is kept
+            only in scrambled (hashed) form. It is not written to our database.
           </li>
         </ul>
 
@@ -93,7 +109,20 @@ export default async function PrivacyPage() {
         <h2>Who else sees it</h2>
         <p>These companies process data for us. Each gets only what it needs for its part.</p>
         <ul>
-          <li><strong>Appwrite</strong> stores your account and bank records, in data centres in Frankfurt, Germany.</li>
+          <li><strong>Appwrite</strong> stores your profile and bank records, in data centres in Frankfurt, Germany.</li>
+          <li>
+            <strong>Supabase</strong> handles signing in: your email address, your hashed password, your link to
+            Google if you use it, and your plan&apos;s status.
+          </li>
+          <li><strong>Google</strong> confirms who you are, only if you choose &quot;Continue with Google&quot;.</li>
+          <li>
+            <strong>Razorpay</strong> takes subscription payments in India. It receives what you enter on its
+            payment page, and from us only which plan you chose and a reference to your account.
+          </li>
+          <li>
+            <strong>Upstash</strong> keeps short-lived counters that stop abuse (for example, wrong passwords
+            and the trial&apos;s daily changes). The keys are scrambled, and every counter expires within a day.
+          </li>
           <li><strong>Plaid</strong> connects to US banks when you choose to link one.</li>
           <li><strong>Setu</strong> connects to Indian banks through the Account Aggregator system, only after you give consent on Setu&apos;s own page.</li>
           <li><strong>Dwolla</strong> opens payment accounts and moves money, for users with a US address.</li>
@@ -120,7 +149,15 @@ export default async function PrivacyPage() {
         <h2>Cookies and storage in your browser</h2>
         <p>We use no tracking or advertising cookies, so we do not ask you to accept any. The ones we set are:</p>
         <ul>
-          <li><code>banking-session</code>: keeps you signed in. Removed when you log out; lasts at most 30 days.</li>
+          <li>
+            <code>horizon-session</code> (sometimes split into <code>horizon-session.0</code>, <code>.1</code>):
+            keeps you signed in. Scripts on the page cannot read it. Removed when you log out; lasts 30 days
+            after your last visit.
+          </li>
+          <li>
+            <code>horizon-session-code-verifier</code>: used once while you sign in with Google or reset your
+            password, so the link only works in the browser that asked for it.
+          </li>
           <li><code>horizon-lang</code>: remembers the language you picked. Lasts a year.</li>
           <li><code>horizon-account</code>: remembers which of your banks you last looked at. Lasts a year.</li>
           <li><code>setu-consent</code>: holds an Indian bank consent while you approve it on Setu. Lasts 30 minutes.</li>
@@ -131,15 +168,16 @@ export default async function PrivacyPage() {
         <ul>
           <li>Until you delete it. Removing a bank deletes its transactions and disconnects it straight away.</li>
           <li>
-            Deleting your account removes your profile, banks, transactions and sign-in straight away, and
-            closes your Dwolla payment account. Your database provider may keep encrypted backups for a short
-            time before they expire.
+            Deleting your account stops any subscription first (nothing more is charged), then removes your
+            profile, banks, transactions, feedback and sign-in straight away, and closes your Dwolla payment
+            account. Your database provider may keep encrypted backups for a short time before they expire.
           </li>
           <li>
             Transfers also belong to the other person, so we keep their record but replace your name and
             details with &quot;deleted user&quot;.
           </li>
           <li>Error reports are deleted by Sentry after its standard retention period (90 days at most).</li>
+          <li>Razorpay keeps its own payment records for as long as Indian tax and payment law requires.</li>
         </ul>
 
         <h2>Your rights</h2>

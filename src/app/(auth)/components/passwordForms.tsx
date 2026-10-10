@@ -8,6 +8,8 @@ import { useState, type FormEvent } from "react";
 import { useT } from "@/components/i18nProvider";
 import { requestPasswordReset, setNewPassword } from "@/lib/actions/user.action";
 
+import PasswordRules from "./passwordRules";
+
 const Header = ({ eyebrow, heading, intro }: { eyebrow: string; heading: string; intro: string }) => (
   <header className="flex flex-col gap-2">
     <p className="eyebrow">{eyebrow}</p>
@@ -152,6 +154,7 @@ export function ResetPasswordForm({ email }: { email: string }) {
               className="field-input"
             />
           </div>
+          <PasswordRules password={password} email={email} />
           <div className="field">
             <label className="field-label" htmlFor="reset-confirm">
               {t("auth.confirmPassword")}

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { invalidate } from "../cache";
 import { isKnownDesign } from "../cardDesigns";
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -20,6 +21,8 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
   const user = await getLoggedInUser();
   if (!user) return { ok: false as const, error: t("connect.errSignIn") };
   if (!(await allow(`card:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false as const, error: blocked };
 
   try {
     const { database } = await createAdminClient();
@@ -28,6 +31,7 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
 
     await database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, appwriteItemId, { cardDesign: design });
     invalidate("banks:");
+    await countChange();
     revalidatePath("/", "layout");
     return { ok: true as const };
   } catch (error) {

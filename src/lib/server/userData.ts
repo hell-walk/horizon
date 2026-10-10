@@ -25,6 +25,7 @@ const {
   APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
   APPWRITE_TRANSACTION_COLLECTION_ID: TRANSACTION_COLLECTION_ID,
   APPWRITE_STATEMENT_COLLECTION_ID: STATEMENT_COLLECTION_ID,
+  APPWRITE_FEEDBACK_COLLECTION_ID: FEEDBACK_COLLECTION_ID,
 } = process.env;
 
 type Doc = Models.Document & Record<string, unknown>;
@@ -90,6 +91,7 @@ export async function exportUserData(user: User) {
     listAll(TRANSACTION_COLLECTION_ID!, [Query.equal("receiverId", [owner])]),
   ]);
   const prefs = (await readPrefs(ownerIdOf(user)).catch(() => ({}))) as Record<string, unknown>;
+  const feedback = FEEDBACK_COLLECTION_ID ? await listAll(FEEDBACK_COLLECTION_ID, [Query.equal("ownerId", [owner])]).catch(() => []) : [];
 
   const accounts = [];
   for (const bank of banks) {
@@ -138,6 +140,7 @@ export async function exportUserData(user: User) {
     yourChanges: readCorrections((prefs as Record<string, unknown>).corrections),
     savingsGoals: readGoals((prefs as Record<string, unknown>).goals),
     country: typeof (prefs as Record<string, unknown>).country === "string" ? (prefs as Record<string, unknown>).country : undefined,
+    feedbackYouSent: feedback.map((f) => ({ kind: f.kind, message: f.message, page: f.page || null, mayReplyTo: f.replyTo ?? null, at: f.$createdAt })),
   };
 }
 
@@ -165,6 +168,7 @@ export async function deleteUserEverything(user: User) {
 
   const profile = await getUserInfo({ userId: authId });
   if (profile?.dwollaCustomerUrl) await deactivateCustomer(profile.dwollaCustomerUrl);
+  if (FEEDBACK_COLLECTION_ID) await deleteAll(FEEDBACK_COLLECTION_ID, [Query.equal("ownerId", [owner])]);
   if (profile?.$id) await database.deleteDocument(DATABASE_ID!, USER_COLLECTION_ID!, profile.$id);
 
   await createSupabaseAdmin().auth.admin.deleteUser(authId); // the login and every session

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ID } from "node-appwrite";
 
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { invalidate } from "../cache";
 import { MANUAL_PROVIDER } from "../providers/manual";
@@ -256,6 +257,8 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("connect.stSignIn") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
 
   const read = await readStatement(formData, ownerIdOf(user));
   if (!read.ok) return read;
@@ -339,6 +342,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     invalidate("banks:");
     invalidate(`statement:${bankId}`);
     await forgetLeftOver(ownerIdOf(user));
+    await countChange();
     revalidatePath("/");
 
     return {
@@ -403,6 +407,8 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false, error: t("connect.stSignIn") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
 
   const read = await readStatement(formData, ownerIdOf(user));
   if (!read.ok) return read;

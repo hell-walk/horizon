@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getT } from "../i18n/server";
+import { changeBlocked, countChange } from "../server/plan";
 
 import { ownerIdOf, requireUser, NotSignedInError } from "../server/auth";
 import { getBankBySharableId, getOwnBank } from "../server/banks";
@@ -65,6 +66,8 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
   if (!(await allow(`transfer:${ownerIdOf(user)}`, 10, 10 * MINUTE))) {
     return { ok: false, error: t("transfer.errTooMany") };
   }
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
 
   const amount = String(input?.amount ?? "").trim();
   if (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
@@ -114,6 +117,7 @@ export async function sendTransfer(input: TransferInput): Promise<TransferResult
       receiverBankId: receiverBank.$id,
       email,
     });
+    await countChange();
     revalidatePath("/");
 
     if (!record) {

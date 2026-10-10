@@ -140,7 +140,8 @@ let fresh = 0;
 const login = (id: string, email: string, providers = ["email"]) => ({
   id,
   email,
-  app_metadata: { provider: providers[0], providers },
+  // Subscribed, so the trial's 3 changes a day stay out of these tests (plan.test.ts covers them).
+  app_metadata: { provider: providers[0], providers, subscription: { id: "sub_test", period: "monthly", status: "active", until: Date.now() + 30 * 86400_000 } },
   user_metadata: { full_name: "Test User" },
   last_sign_in_at: new Date().toISOString(),
 });

@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
 import { getUserInfo } from "./banks";
 import { createSupabaseServerClient } from "./supabase";
@@ -20,6 +21,10 @@ export type SessionUser = {
   hasPassword: boolean;
   /** When this login last signed in, as milliseconds; 0 if unknown. */
   lastSignInAt: number;
+  /** When the login was made (the free trial counts from here). */
+  joinedAt: number;
+  /** What they pay for, if anything. Kept in app_metadata, which only the server can write. */
+  subscription: Subscription | null;
 };
 
 // Asks Supabase on every request (getUser, not the cookie alone), so a deleted
@@ -38,6 +43,8 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
       name: String(meta.full_name ?? meta.name ?? "").slice(0, 200),
       hasPassword: providers.includes("email"),
       lastSignInAt: Date.parse(data.user.last_sign_in_at ?? "") || 0,
+      joinedAt: Date.parse(data.user.created_at ?? "") || Date.now(),
+      subscription: readSubscription(data.user.app_metadata?.subscription),
     };
   } catch {
     return null;
