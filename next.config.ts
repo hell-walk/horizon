@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
   // The "N" badge Next.js shows in development (never in production). Errors
   // still reach the browser console and the full-screen error overlay.
   devIndicators: false,
+  // Each Vercel deployment gets its own id. A tab left open across a redeploy
+  // would otherwise call server actions the new deployment no longer knows (its
+  // buttons go dead); with the id, Next notices and reloads the page instead.
+  deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   // Loaded at runtime on the server only (PDF text and Office decryption).
   serverExternalPackages: ["pdfjs-dist", "officecrypto-tool", "xlsx", "exceljs"],
   // The statement-reading worker is loaded by path at runtime; ship it with the server.

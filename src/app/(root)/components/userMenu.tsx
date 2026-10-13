@@ -1,8 +1,7 @@
 "use client";
 
-import { LogOut, ShieldCheck } from "lucide-react";
+import { Loader2, LogOut, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
@@ -16,14 +15,24 @@ import ThemeSwitch from "@/components/themeSwitch";
 // slider and language switch (useful on phones, where the bar has no room for
 // them) and log out.
 const UserMenu = ({ user }: { user: User }) => {
-  const router = useRouter();
   const t = useT();
   const [open, setOpen] = useState(false);
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}` || user.name?.[0] || "?";
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // A full page load afterwards, not a client-side move: it drops everything the
+  // tab still holds about the signed-in person and runs on the current deployment.
   const handleLogOut = async () => {
-    const loggedOut = await logoutAccount();
-    if (loggedOut) router.push("/sign-in");
+    setLoggingOut(true);
+    try {
+      await logoutAccount();
+      window.location.assign("/sign-in");
+    } catch {
+      // Usually a tab left open across a redeploy, whose action ids the new
+      // deployment no longer knows: reload onto the new one and try again.
+      window.location.reload();
+    }
   };
 
   return (
@@ -81,8 +90,8 @@ const UserMenu = ({ user }: { user: User }) => {
           </Link>
         </div>
 
-        <button type="button" onClick={handleLogOut} className="btn-primary mt-auto w-full">
-          <LogOut className="size-4" /> {t("nav.logOut")}
+        <button type="button" onClick={handleLogOut} disabled={loggingOut} className="btn-primary mt-auto w-full">
+          {loggingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />} {t("nav.logOut")}
         </button>
       </SheetContent>
     </Sheet>
