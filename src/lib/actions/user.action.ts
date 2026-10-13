@@ -14,7 +14,7 @@ import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestPr
 
 import { passwordProblemKey } from "../passwordRules";
 import { getT } from "../i18n/server";
-import { siteUrl } from "../site";
+import { SiteConfigError, siteUrl } from "../site";
 import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
@@ -119,7 +119,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
         return { ok: true, checkEmail: true };
     } catch (error) {
         logError("sign-up failed", error);
-        return { ok: false, error: t("auth.errorSignUp") };
+        return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorSignUp") };
     }
 }
 
@@ -141,7 +141,8 @@ export const signInWithGoogle = async (): Promise<{ ok: true; url: string } | { 
         return { ok: true, url: data.url };
     } catch (error) {
         logError("Google sign-in could not start", error);
-        return { ok: false, error: t("auth.errorGoogle") };
+        // Says what is wrong when it is the site's own settings, so whoever runs it can fix it.
+        return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorGoogle") };
     }
 }
 
@@ -186,6 +187,7 @@ export const requestPasswordReset = async (input: { email: string }): Promise<{ 
         if (error && !isRateLimited(error)) logError("password reset email failed", error);
     } catch (error) {
         logError("password reset email failed", error);
+        if (error instanceof SiteConfigError) return { ok: false, error: t("auth.errorSiteSetup") };
     }
     return { ok: true };
 }

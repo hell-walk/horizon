@@ -23,11 +23,14 @@ export const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || "";
  * leftover localhost would send every new user to a page that does not exist,
  * so it refuses (and the error is reported) instead.
  */
+/** The site's own address is missing or wrong in the hosting settings (a set-up problem, not the user's). */
+export class SiteConfigError extends Error {}
+
 export function siteUrl(): string {
   const url = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
   const live = process.env.VERCEL_ENV === "production";
   if (live && (!url.startsWith("https://") || /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(url))) {
-    throw new Error("NEXT_PUBLIC_SITE_URL must be this site's https address in production");
+    throw new SiteConfigError("NEXT_PUBLIC_SITE_URL must be this site's https address in production");
   }
   return url;
 }

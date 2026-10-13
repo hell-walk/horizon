@@ -359,6 +359,19 @@ describe("Continue with Google", () => {
     expect(state.oauth.at(-1)).toMatchObject({ provider: "google", options: { redirectTo: "https://horizon.test/auth/callback", skipBrowserRedirect: true } });
   });
 
+  it("on a live deployment with the site address left as localhost, says what is wrong instead of a vague error", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
+    try {
+      expect(await userActions.signInWithGoogle()).toEqual({ ok: false, error: expect.stringMatching(/NEXT_PUBLIC_SITE_URL/) });
+      expect(await userActions.requestPasswordReset({ email: "test@example.com" })).toEqual({ ok: false, error: expect.stringMatching(/NEXT_PUBLIC_SITE_URL/) });
+      expect(state.oauth).toEqual([]);
+    } finally {
+      vi.unstubAllEnvs();
+      process.env.NEXT_PUBLIC_SITE_URL = "https://horizon.test";
+    }
+  });
+
   it("a Google login without a profile is not a signed-in user yet", async () => {
     state.sessionUser = login("auth-g", "g@example.com", ["google"]);
     expect(await loadLoggedInUser()).toBeNull();
