@@ -89,6 +89,8 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ["cancelMySubscription", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: false })],
     // Too short to be kept, so the security run leaves no feedback behind; the sender is never B.
     ["sendFeedback", () => [{ kind: "idea", message: "short", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    // A made-up link: never opens anything, whoever is signed in.
+    ["openEmailLink", () => [{ tokenHash: "f".repeat(40), type: "recovery", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // The same answer for any address; a made-up one, so no email is sent.
     ["requestPasswordReset", () => [{ email: "grid-nobody@example.invalid", ...forged(victimProfile, victimBank) }], (v) => expect(v).toEqual({ ok: true })],
     [

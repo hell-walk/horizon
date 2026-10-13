@@ -192,6 +192,36 @@ export const requestPasswordReset = async (input: { email: string }): Promise<{ 
     return { ok: true };
 }
 
+// What an emailed link may be for. "email" is Supabase's name for confirming a
+// sign-up (older templates say "signup"); "recovery" is a password reset.
+const LINK_TYPES: Record<string, "email" | "signup" | "recovery"> = { email: "email", signup: "signup", recovery: "recovery" };
+
+/**
+ * Opens an emailed link: confirms the sign-up or starts the password reset,
+ * and signs the person in. Called by a button on /auth/confirm, not when the
+ * page merely loads: mail scanners open every link in an email, and a link
+ * verified on opening would be used up before the person clicks it. The link
+ * carries a token hash, not a PKCE code, so it works on any device, not only
+ * the browser that asked for it.
+ */
+export const openEmailLink = async (input: { tokenHash: string; type: string }): Promise<{ ok: true; next: string } | { ok: false; error: string }> => {
+    const t = await getT();
+    if (!strings(input, ["tokenHash", "type"], 512)) return { ok: false, error: t("auth.errorResetExpired") };
+    const type = LINK_TYPES[input.type];
+    if (!type || !/^[A-Za-z0-9_-]{16,512}$/.test(input.tokenHash)) return { ok: false, error: t("auth.errorResetExpired") };
+    // Guessing a token hash is hopeless anyway; this keeps a flood of tries cheap.
+    if (!(await allow(`auth:link:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
+    try {
+        const supabase = await createSupabaseServerClient();
+        const { error } = await supabase.auth.verifyOtp({ type, token_hash: input.tokenHash });
+        if (error) return { ok: false, error: t("auth.errorResetExpired") };
+        return { ok: true, next: type === "recovery" ? "/reset-password" : "/" };
+    } catch (error) {
+        logError("opening an emailed link failed", error);
+        return { ok: false, error: t("auth.errorResetExpired") };
+    }
+}
+
 /** Sets a new password for the signed-in person (after following a reset link). */
 export const setNewPassword = async (input: { password: string }): Promise<AuthResult> => {
     const t = await getT();

@@ -61,6 +61,15 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       }
     });
 
+    it("opening an emailed link's page uses nothing up and signs nobody in (mail scanners open links)", async () => {
+      const page = await getPage("/auth/confirm?token_hash=" + "a".repeat(40) + "&type=recovery");
+      expect(page.status).toBe(200);
+      expect(page.headers.getSetCookie().filter((c) => /^horizon-session[^=]*=[^;]/.test(c))).toEqual([]);
+      expect(page.html).toContain("Continue");
+      // Without a usable link, straight back to sign-in.
+      expect((await getPage("/auth/confirm")).location ?? "").toMatch(/\/sign-in/);
+    });
+
     it("setting a new password needs the emailed link first", async () => {
       const page = await getPage("/reset-password");
       expect(page.location ?? "").toMatch(/\/forgot-password\?expired=1/);
@@ -125,6 +134,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "exportMyData",
           "importStatement",
           "logoutAccount",
+          "openEmailLink",
           "previewStatement",
           "requestPasswordReset",
           "sendFeedback",

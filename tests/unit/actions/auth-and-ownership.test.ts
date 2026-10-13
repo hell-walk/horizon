@@ -24,6 +24,8 @@ const state = vi.hoisted(() => {
     oauth: [] as Record<string, unknown>[],
     resets: [] as { email: string; options: Record<string, unknown> }[],
     passwordUpdates: [] as string[],
+    verified: [] as { type: string; token_hash: string }[],
+    linkValid: true,
     signUps: [] as { email: string; password: string; options: { emailRedirectTo: string; data: Record<string, unknown> } }[],
     notConfirmed: false,
   };
@@ -70,6 +72,12 @@ vi.mock("@supabase/ssr", () => ({
       resetPasswordForEmail: async (email: string, opts: Record<string, unknown>) => {
         state.resets.push({ email, options: opts });
         return { data: {}, error: null };
+      },
+      verifyOtp: async (args: { type: string; token_hash: string }) => {
+        state.verified.push(args);
+        if (!state.linkValid) return { data: {}, error: Object.assign(new Error("Token has expired or is invalid"), { status: 403 }) };
+        options.cookies.setAll([{ name: "horizon-session", value: "from-link", options: { path: "/", maxAge: 400 * 86400 } }], {});
+        return { data: { session: {} }, error: null };
       },
       updateUser: async ({ password }: { password: string }) => {
         state.passwordUpdates.push(password);
@@ -181,6 +189,8 @@ beforeEach(() => {
   state.passwordUpdates = [];
   state.signUps = [];
   state.notConfirmed = false;
+  state.verified = [];
+  state.linkValid = true;
 });
 
 describe("signIn", () => {
@@ -426,6 +436,26 @@ describe("forgot password", () => {
     expect(await userActions.requestPasswordReset({ email: { $ne: "" } })).toMatchObject({ ok: false });
     expect(await userActions.requestPasswordReset({ email: "not an email" })).toMatchObject({ ok: false });
     expect(state.resets).toEqual([]);
+  });
+
+  it("an emailed link is opened by a click, works on any device, and a spent one says so", async () => {
+    const hash = "pkce_" + "a".repeat(40);
+    expect(await userActions.openEmailLink({ tokenHash: hash, type: "recovery" })).toEqual({ ok: true, next: "/reset-password" });
+    expect(state.verified.at(-1)).toEqual({ type: "recovery", token_hash: hash }); // a token hash, not a browser-bound code
+    expect(state.cookies.get("horizon-session")?.options).toMatchObject({ httpOnly: true, sameSite: "lax" });
+    expect(await userActions.openEmailLink({ tokenHash: hash, type: "email" })).toEqual({ ok: true, next: "/" });
+    expect(await userActions.openEmailLink({ tokenHash: hash, type: "signup" })).toEqual({ ok: true, next: "/" });
+    state.linkValid = false;
+    expect(await userActions.openEmailLink({ tokenHash: hash, type: "recovery" })).toEqual({ ok: false, error: expect.stringMatching(/expired/) });
+  });
+
+  it("refuses link types and hashes that are not Supabase's, without asking Supabase", async () => {
+    for (const bad of [{ tokenHash: "x", type: "recovery" }, { tokenHash: "a".repeat(40), type: "magiclink" }, { tokenHash: "a".repeat(40), type: "<script>" }]) {
+      expect(await userActions.openEmailLink(bad)).toMatchObject({ ok: false });
+    }
+    // @ts-expect-error: wrong shape on purpose
+    expect(await userActions.openEmailLink({ tokenHash: { $ne: "" }, type: "recovery" })).toMatchObject({ ok: false });
+    expect(state.verified).toEqual([]);
   });
 
   it("the new password needs the link's session and follows the password rules", async () => {
