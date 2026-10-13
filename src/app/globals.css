@@ -635,6 +635,44 @@
   }
 }
 
+/* Loaders (components/loaders.tsx). Bars rise and fall one after another,
+   a wave; the page ring turns slowly while its segments fill. Only transform
+   moves, so the browser does it without repainting the page. */
+.bars-wave {
+  transform-origin: bottom;
+  animation: bars-wave 1100ms ease-in-out infinite;
+}
+
+@keyframes bars-wave {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+.loader-ring {
+  animation: loader-ring 9s linear infinite;
+}
+
+@keyframes loader-ring {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bars-wave,
+  .loader-ring {
+    animation: none;
+  }
+  .bars-wave {
+    transform: scaleY(0.8);
+  }
+}
+
 /* While scrolling, content passing under a still pointer must not react as
    if hovered (see app/(root)/components/scrollCalm.tsx). */
 html[data-scrolling] .page * {

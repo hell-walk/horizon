@@ -7,6 +7,7 @@ import { chartColorClass } from "@/constants";
 import type { SpendBucket } from "@/lib/spending";
 import { cn, formatAmount } from "@/lib/utils";
 import { dataLabel } from "@/lib/i18n/labels";
+import { BarsLoader } from "@/components/loaders";
 
 export type AccountSpending = { buckets: SpendBucket[]; total: number; currency: string; period: "month" | "all" };
 export type SpendingByAccount = Record<string, AccountSpending>;
@@ -51,11 +52,7 @@ const SpendingThin = ({ spending, accountId }: { spending: Promise<SpendingByAcc
 
 export const SpendingThinSkeleton = () => (
   <div className="px-1 pt-1" aria-busy="true">
-    <div className="flex justify-between">
-      <span className="h-4 w-36 animate-pulse rounded bg-surface-container" />
-      <span className="h-4 w-24 animate-pulse rounded bg-surface-container" />
-    </div>
-    <div className="mt-2 h-2 w-full animate-pulse rounded-full bg-surface-container" />
+    <BarsLoader className="h-8" />
   </div>
 );
 

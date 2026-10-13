@@ -87,5 +87,6 @@
   "monthSoFar": "अब तक",
   "monthFrom": "सिर्फ़ {date} से",
   "monthOlder_one": "{count} पुराना महीना देखें",
-  "monthOlder_other": "{count} पुराने महीने देखें"
+  "monthOlder_other": "{count} पुराने महीने देखें",
+  "subtextAny": "आपके जुड़े हुए खातों में आए और गए सारे पैसे।"
 }

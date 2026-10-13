@@ -4,6 +4,7 @@ import { cached, TTL } from "../cache";
 import { forget, get, put } from "./shared";
 import { monthlyFlow } from "../cashflow";
 import type { UsualLeftOver } from "../goals";
+import { mapWithLimit } from "../parallel";
 import { getAccount, getAccounts } from "./accounts";
 
 const MONTHS = 3;
@@ -34,8 +35,10 @@ async function work(ownerId: string, today: Date): Promise<UsualLeftOver[]> {
   const thisMonth = today.toISOString().slice(0, 7);
   const byCurrency = new Map<string, Map<string, number>>();
 
-  for (const a of accounts) {
-    const loaded = await getAccount({ appwriteItemId: a.appwriteItemId });
+  // Every bank's entries, a few banks at a time (one after another took ~200 ms per bank).
+  const loadedAll = await mapWithLimit(accounts, 6, (a) => getAccount({ appwriteItemId: a.appwriteItemId }));
+  for (const [i, a] of accounts.entries()) {
+    const loaded = loadedAll[i];
     const months = monthlyFlow((loaded?.transactions as Transaction[] | undefined) ?? []).filter((m) => m.entries > 0);
     if (months.length === 0) continue;
     const newest = months[0];

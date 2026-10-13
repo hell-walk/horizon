@@ -87,5 +87,6 @@
   "monthSoFar": "So far",
   "monthFrom": "From {date} only",
   "monthOlder_one": "Show {count} older month",
-  "monthOlder_other": "Show {count} older months"
+  "monthOlder_other": "Show {count} older months",
+  "subtextAny": "Everything that went in and out of your linked accounts."
 }

@@ -17,7 +17,7 @@ import {
   toAccount as toSetuAccount,
   toTransactions as toSetuTransactions,
 } from "../providers/setu";
-import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
+import { getRecentStatementTransactions, getStatementTransactions, MANUAL_PROVIDER, RECENT_ENTRIES, toManualAccount } from "../providers/manual";
 import { logError } from "./log";
 
 // Three ways a bank can be linked:
@@ -170,6 +170,26 @@ async function loadAccountNow(appwriteItemId: string) {
 const loadAccount = cache(loadAccountNow);
 
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => loadAccount(appwriteItemId);
+
+/**
+ * Only the newest entries of one of the signed-in user's imported accounts,
+ * and the total count, in one quick trip: what a page shows first while the
+ * whole account loads behind it. Null for banks connected through Plaid or
+ * Setu (their provider sends everything at once) and for someone else's bank.
+ */
+export async function getRecentEntries(appwriteItemId: string, limit = RECENT_ENTRIES): Promise<{ transactions: Transaction[]; total: number } | null> {
+  try {
+    const user = await loadLoggedInUser();
+    const bank = user ? await getOwnBank(ownerIdOf(user), appwriteItemId) : null;
+    if (!bank || providerOf(bank) !== MANUAL_PROVIDER) return null;
+    // Imported statements have no Horizon transfers (those need a US bank via Plaid).
+    const [recent, corrections] = await Promise.all([getRecentStatementTransactions(bank, limit), loadCorrections(ownerIdOf(user!))]);
+    return parseStringify({ transactions: applyCorrections(recent.transactions, corrections), total: recent.total });
+  } catch (error) {
+    logError("An error occurred while getting the newest entries", error);
+    return null;
+  }
+}
 
 /**
  * The same, without the per-request cache. For server actions that change

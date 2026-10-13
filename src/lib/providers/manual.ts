@@ -60,18 +60,42 @@ export const getStatementTransactions = (bank: Bank) =>
       cursor = result.documents[result.documents.length - 1].$id;
     }
 
-    return documents.map((doc) => ({
-      id: doc.$id,
-      name: doc.name as string,
-      paymentChannel: "other",
-      type: doc.type as string,
-      accountId: bank.accountId,
-      amount: doc.amount as number,
-      pending: false,
-      // Worked out again from the bank's wording, so better rules also fix entries imported earlier.
-      category: categorize(doc.name as string),
-      date: doc.date as string,
-      image: "",
-      currency: bank.currency ?? "INR",
-    })) as unknown as Transaction[];
+    return documents.map((doc) => toTransaction(doc, bank));
+  });
+
+/** One saved statement row in the app's Transaction shape. */
+function toTransaction(doc: Record<string, unknown> & { $id: string }, bank: Bank): Transaction {
+  return {
+    id: doc.$id,
+    name: doc.name as string,
+    paymentChannel: "other",
+    type: doc.type as string,
+    accountId: bank.accountId,
+    amount: doc.amount as number,
+    pending: false,
+    // Worked out again from the bank's wording, so better rules also fix entries imported earlier.
+    category: categorize(doc.name as string),
+    date: doc.date as string,
+    image: "",
+    currency: bank.currency ?? "INR",
+  } as unknown as Transaction;
+}
+
+/**
+ * The newest entries of one manual bank, and how many there are in all, in a
+ * single database trip. Measured: up to about 100 entries cost the same one
+ * trip (~200-250 ms) as 25; beyond that every 100 more add ~50 ms, and a
+ * 1,500-entry account takes about a second whole. So a page shows these first
+ * and fetches the rest behind them.
+ */
+export const RECENT_ENTRIES = 100;
+export const getRecentStatementTransactions = (bank: Bank, limit = RECENT_ENTRIES) =>
+  cached(`statement:${bank.$id}:recent:${limit}`, TTL.short, async () => {
+    const { database } = await createAdminClient();
+    const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
+      Query.equal("bankId", [bank.$id]),
+      Query.orderDesc("date"),
+      Query.limit(limit),
+    ]);
+    return { transactions: result.documents.map((doc) => toTransaction(doc, bank)), total: result.total };
   });

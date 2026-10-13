@@ -25,6 +25,7 @@ import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { getT } from "@/lib/i18n/server";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
+import { BarsLoader } from "@/components/loaders";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -118,7 +119,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             banks={accountsData}
             selected={appwriteItemId}
             spending={
-              <Suspense fallback={<div className="h-[118px] animate-pulse rounded-lg bg-surface-container" />}>
+              <Suspense fallback={<BarsLoader className="h-[118px]" />}>
                 <SpendingSection appwriteItemId={appwriteItemId} />
               </Suspense>
             }
