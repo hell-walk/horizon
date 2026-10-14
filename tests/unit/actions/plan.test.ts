@@ -65,6 +65,7 @@ vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
 const { saveGoal, deleteGoal } = await import("@/lib/actions/goal.action");
 const { startSubscription, checkSubscription, cancelMySubscription, confirmSubscriptionPayment } = await import("@/lib/actions/plan.action");
 const { POST: webhook } = await import("@/app/api/razorpay/webhook/route");
+const { currentPlan } = await import("@/lib/server/plan");
 
 const DAY = 86_400_000;
 let n = 0;
@@ -190,6 +191,45 @@ describe("checking and cancelling", () => {
     expect(await cancelMySubscription()).toEqual({ ok: true, until: end * 1000 });
     expect(state.razorpay.at(-1)).toMatchObject({ method: "POST", path: "/subscriptions/sub_9/cancel", body: { cancel_at_cycle_end: 1 } });
     expect(state.saved.at(-1)?.subscription).toMatchObject({ status: "cancelled", until: end * 1000 });
+  });
+});
+
+describe("without the webhook", () => {
+  const end = () => Math.floor(Date.now() / 1000) + 30 * 86400;
+
+  it("a paid subscription the webhook never reported is picked up from Razorpay on the next visit", async () => {
+    const me = login();
+    state.remote.set("sub_w1", { id: "sub_w1", plan_id: "plan_monthly", status: "active", current_end: end(), notes: { login: me } });
+    state.session!.subscription = { id: "sub_w1", period: "monthly", status: "created", until: 0 };
+    expect(await currentPlan()).toMatchObject({ kind: "subscribed", renews: true });
+    expect(state.saved.at(-1)).toMatchObject({ id: me, subscription: { id: "sub_w1", status: "active" } });
+  });
+
+  it("past the paid-up date, Razorpay is asked: a failed renewal ends the plan, a successful one extends it", async () => {
+    const me = login({ joinedAt: Date.now() - 60 * DAY });
+    state.remote.set("sub_w2", { id: "sub_w2", plan_id: "plan_monthly", status: "halted", current_end: Math.floor(Date.now() / 1000) - 86400, notes: { login: me } });
+    state.session!.subscription = { id: "sub_w2", period: "monthly", status: "active", until: Date.now() - 3600_000 };
+    expect(await currentPlan()).toMatchObject({ kind: "ended" });
+    const other = login({ joinedAt: Date.now() - 60 * DAY });
+    state.remote.set("sub_w5", { id: "sub_w5", plan_id: "plan_monthly", status: "active", current_end: end(), notes: { login: other } });
+    state.session!.subscription = { id: "sub_w5", period: "monthly", status: "active", until: Date.now() - 3600_000 };
+    expect(await currentPlan()).toMatchObject({ kind: "subscribed", renews: true });
+  });
+
+  it("asks Razorpay at most once an hour, and never for free access or a far-off renewal", async () => {
+    const me = login();
+    state.remote.set("sub_w3", { id: "sub_w3", plan_id: "plan_monthly", status: "active", current_end: end(), notes: { login: me } });
+    state.session!.subscription = { id: "sub_w3", period: "monthly", status: "active", until: Date.now() + 20 * DAY };
+    await currentPlan();
+    login({ subscription: { id: "comp_1", period: "monthly", status: "cancelled", until: Date.now() + DAY } });
+    await currentPlan();
+    expect(state.razorpay.filter((c) => c.method === "GET")).toEqual([]);
+    const again = login();
+    state.remote.set("sub_w4", { id: "sub_w4", plan_id: "plan_monthly", status: "active", current_end: end(), notes: { login: again } });
+    state.session!.subscription = { id: "sub_w4", period: "monthly", status: "created", until: 0 };
+    await currentPlan();
+    await currentPlan();
+    expect(state.razorpay.filter((c) => c.method === "GET" && c.path.includes("sub_w4"))).toHaveLength(1);
   });
 });
 

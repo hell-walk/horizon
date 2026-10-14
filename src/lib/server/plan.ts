@@ -1,9 +1,12 @@
 import "server-only";
 
-import { istDay, planFrom, type PlanState, type Subscription } from "../plans";
+import { istDay, mergeSubscription, planFrom, type PlanState, type Subscription } from "../plans";
 import type { Translate } from "../i18n/translate";
 import { loadSession, type SessionUser } from "./auth";
+import { logError } from "./log";
 import { record, used } from "./rateLimit";
+import { fetchSubscription, toSubscription } from "./razorpay";
+import { claim } from "./shared";
 import { createSupabaseAdmin } from "./supabase";
 
 // The trial's daily limit and the read-only state after it, enforced on the
@@ -14,11 +17,41 @@ import { createSupabaseAdmin } from "./supabase";
 const changesKey = (session: SessionUser) => `plan:changes:${session.id}:${istDay()}`;
 const COUNT_WINDOW = 26 * 60 * 60 * 1000; // past midnight IST from any time zone
 
+const DAY = 24 * 60 * 60 * 1000;
+const FINAL = new Set(["cancelled", "completed", "expired"]);
+
+/**
+ * Razorpay tells Horizon about renewals, failed payments and cancellations by
+ * webhook, but a webhook can be missing or late. So a subscription that is
+ * still unconfirmed, or within three days of its paid-up date, or past it, is
+ * checked with Razorpay directly, at most once an hour per person. The plan is
+ * right whichever way the news arrives.
+ */
+export async function refreshIfStale(session: SessionUser): Promise<Subscription | null> {
+  const sub = session.subscription;
+  if (!sub || sub.id.startsWith("comp_") || FINAL.has(sub.status)) return sub;
+  const unconfirmed = sub.until === 0;
+  const nearEnd = sub.until < Date.now() + 3 * DAY;
+  if (!unconfirmed && !nearEnd) return sub;
+  if (!(await claim("plan-refresh", session.id, 60 * 60 * 1000))) return sub;
+  try {
+    const latest = await toSubscription(await fetchSubscription(sub.id));
+    if (!latest) return sub;
+    const fresh = mergeSubscription(sub, latest);
+    if (fresh.status !== sub.status || fresh.until !== sub.until) await saveSubscription(session.id, fresh);
+    return fresh;
+  } catch (error) {
+    logError("plan: could not refresh the subscription from Razorpay", error);
+    return sub;
+  }
+}
+
 /** Where the signed-in person stands, or null when nobody is signed in. */
 export async function currentPlan(): Promise<PlanState | null> {
   const session = await loadSession();
   if (!session) return null;
-  return planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: await used(changesKey(session)) });
+  const subscription = await refreshIfStale(session);
+  return planFrom({ joinedAt: session.joinedAt, subscription, usedToday: await used(changesKey(session)) });
 }
 
 /**
@@ -38,7 +71,7 @@ export async function changeBlocked(t: Translate): Promise<string | null> {
 export async function countChange() {
   const session = await loadSession();
   if (!session) return;
-  const plan = planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: 0 });
+  const plan = planFrom({ joinedAt: session.joinedAt, subscription: await refreshIfStale(session), usedToday: 0 });
   if (plan.kind === "trial") await record(changesKey(session), COUNT_WINDOW);
 }
 
