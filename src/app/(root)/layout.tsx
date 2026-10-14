@@ -8,6 +8,7 @@ import Topbar from "./components/topbar";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
 import { currentPlan } from "@/lib/server/plan";
+import { loadExtraTerms } from "@/lib/server/terms";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { daysLeft } from "@/lib/plans";
@@ -29,8 +30,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Signed in without a profile (first time with Google): finish setting up first.
   if (!loggedIn) redirect((await loadSession()) ? "/welcome" : "/sign-in");
 
-  // Cached for 30s, so this costs nothing on top of the page's own call.
-  const [banks, plan] = await Promise.all([getBanks({ userId: ownerIdOf(loggedIn) }).then((b) => b ?? []), currentPlan()]);
+  // Cached for 30s, so this costs nothing on top of the page's own call. The
+  // team's added lender and subscription names (cached minutes) are loaded here
+  // so every page's sorting sees them.
+  const [banks, plan] = await Promise.all([getBanks({ userId: ownerIdOf(loggedIn) }).then((b) => b ?? []), currentPlan(), loadExtraTerms()]);
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">

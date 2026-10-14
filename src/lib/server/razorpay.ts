@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import type { Period, Subscription } from "../plans";
+import { currentPricing, periodOfPlan } from "./pricing";
 
 // Razorpay subscriptions, through its REST API (no SDK, no script on the page:
 // people pay on Razorpay's own hosted page). Keys stay on the server.
@@ -13,18 +14,13 @@ import type { Period, Subscription } from "../plans";
 
 const API = "https://api.razorpay.com/v1";
 
-const planIds = (): Record<Period, string | undefined> => ({
-  monthly: process.env.RAZORPAY_PLAN_MONTHLY,
-  yearly: process.env.RAZORPAY_PLAN_YEARLY,
-});
+// Which plan charges each period: set from the admin portal (server/pricing.ts),
+// else RAZORPAY_PLAN_MONTHLY and RAZORPAY_PLAN_YEARLY from .env.
+const planIdOf = async (period: Period) => (await currentPricing())[period].planId || undefined;
 
 // Do not show checkout as ready until payment webhooks can be verified too.
-export const isRazorpayConfigured = (period: Period) => Boolean(
-  process.env.RAZORPAY_KEY_ID &&
-    process.env.RAZORPAY_KEY_SECRET &&
-    process.env.RAZORPAY_WEBHOOK_SECRET &&
-    planIds()[period]
-);
+export const isRazorpayConfigured = async (period: Period) =>
+  Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_WEBHOOK_SECRET && (await planIdOf(period)));
 
 /** Test keys start with rzp_test_: the plans page then says no real money is charged. */
 export const isTestMode = () => (process.env.RAZORPAY_KEY_ID ?? "").startsWith("rzp_test_");
@@ -53,10 +49,9 @@ export type RazorpaySubscription = {
   notes?: Record<string, string>;
 };
 
-/** What Horizon stores from Razorpay's subscription. */
-export function toSubscription(sub: RazorpaySubscription): Subscription | null {
-  const ids = planIds();
-  const period: Period | null = sub.plan_id === ids.monthly ? "monthly" : sub.plan_id === ids.yearly ? "yearly" : null;
+/** What Horizon stores from Razorpay's subscription (null for a plan that is not one of ours, past or present). */
+export async function toSubscription(sub: RazorpaySubscription): Promise<Subscription | null> {
+  const period = await periodOfPlan(sub.plan_id);
   if (!period) return null;
   return { id: sub.id, period, status: sub.status, until: sub.current_end ? sub.current_end * 1000 : 0 };
 }
@@ -66,7 +61,8 @@ export function toSubscription(sub: RazorpaySubscription): Subscription | null {
  * The login's id travels in the notes, so the webhook knows whose it is.
  */
 export async function createSubscription(period: Period, loginId: string) {
-  const planId = planIds()[period]!;
+  const planId = await planIdOf(period);
+  if (!planId) throw new Error(`razorpay: no plan for ${period}`);
   // Razorpay needs a number of charges: about ten years either way.
   const sub = await call<RazorpaySubscription>("POST", "/subscriptions", {
     plan_id: planId,

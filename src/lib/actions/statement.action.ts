@@ -38,6 +38,7 @@ import { allow, MINUTE } from "../server/rateLimit";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "../uploadLimit";
 import { SUPPORTED_CURRENCIES } from "../utils";
 import { logError } from "../server/log";
+import { loadExtraTerms } from "../server/terms";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -297,6 +298,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
       if (!bankId) return { ok: false, error: t("connect.stBankFailed") };
     }
 
+    await loadExtraTerms(); // the team's added lender and subscription names, for categorize below
     const hashes = transactionHashes(bankId, parsed.transactions);
     const leaveOut = new Set([...overlap.exact, ...(keepLikely ? [] : overlap.likely.map((l) => l.index))]);
     const toSave = parsed.transactions.map((entry, i) => ({ entry, hash: hashes[i] })).filter((_, i) => !leaveOut.has(i));
@@ -409,6 +411,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   if (!user) return { ok: false, error: t("connect.stSignIn") };
   const blocked = await changeBlocked(t);
   if (blocked) return { ok: false, error: blocked };
+  await loadExtraTerms(); // the team's added lender and subscription names, for the preview's categories
 
   const read = await readStatement(formData, ownerIdOf(user));
   if (!read.ok) return read;

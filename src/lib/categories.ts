@@ -4,6 +4,8 @@
 // are re-categorised with these rules (providers/manual.ts), and a person's own
 // correction always wins over both (corrections.ts).
 
+import { extraPayLater } from "./extraTerms";
+
 /**
  * EMIs, loan repayments and "pay later". One list for everything that groups
  * payments: the saved category, the spending chart (spending.ts) and the
@@ -31,22 +33,28 @@ export const PAY_LATER = new RegExp(PAY_LATER_WORDS.join("|"), "i");
 // which is not the phone company Vi.
 const VI = /(?<!paid\s)\bvi\b/i;
 
-const CATEGORY_RULES: [RegExp, string][] = [
-  [/swiggy|zomato|dominos|mcdonald|starbucks|kfc|pizza|cafe|restaurant|food|bakery|dunkin|subway/i, "Food and Drink"],
-  [/salary|sal cr|payroll|interest|int\.?\s*cr|dividend|refund|cashback/i, "Income"],
-  [PAY_LATER, "EMI & pay later"],
-  [/amazon|flipkart|myntra|ajio|nykaa|bigbasket|blinkit|zepto|dmart|reliance|mart|store/i, "Shopping"],
-  [/uber|ola|rapido|irctc|indigo|air india|vistara|makemytrip|redbus|metro|fuel|petrol|hpcl|bpcl|ioc/i, "Travel"],
-  [/netflix|spotify|prime|hotstar|youtube|google|apple|jio|airtel|air\s*fib|bsnl|recharge|broadband|electricity|bescom|tneb|gas|water/i, "Bills"],
-  [VI, "Bills"],
-  [/atm|cash wdl|cash withdrawal|cwdr/i, "Cash"],
-  [/insurance|lic |premium|sip|mutual fund|zerodha|groww|upstox/i, "Finance"],
-  [/charge|fee|gst|penalty|sms chg|amb chg/i, "Bank Fees"],
-  [/upi|paytm|phonepe|gpay|google pay|bharatpe/i, "Payment"],
-  [/neft|imps|rtgs|ft\b|transfer|trf/i, "Transfer"],
+/**
+ * Is this an EMI, loan or pay-later payment? The built-in names above, plus
+ * any the team added from the admin portal (extraTerms.ts).
+ */
+export const isPayLater = (text: string) => PAY_LATER.test(text) || extraPayLater(text);
+
+const CATEGORY_RULES: [(text: string) => boolean, string][] = [
+  [(s) => /swiggy|zomato|dominos|mcdonald|starbucks|kfc|pizza|cafe|restaurant|food|bakery|dunkin|subway/i.test(s), "Food and Drink"],
+  [(s) => /salary|sal cr|payroll|interest|int\.?\s*cr|dividend|refund|cashback/i.test(s), "Income"],
+  [isPayLater, "EMI & pay later"],
+  [(s) => /amazon|flipkart|myntra|ajio|nykaa|bigbasket|blinkit|zepto|dmart|reliance|mart|store/i.test(s), "Shopping"],
+  [(s) => /uber|ola|rapido|irctc|indigo|air india|vistara|makemytrip|redbus|metro|fuel|petrol|hpcl|bpcl|ioc/i.test(s), "Travel"],
+  [(s) => /netflix|spotify|prime|hotstar|youtube|google|apple|jio|airtel|air\s*fib|bsnl|recharge|broadband|electricity|bescom|tneb|gas|water/i.test(s), "Bills"],
+  [(s) => VI.test(s), "Bills"],
+  [(s) => /atm|cash wdl|cash withdrawal|cwdr/i.test(s), "Cash"],
+  [(s) => /insurance|lic |premium|sip|mutual fund|zerodha|groww|upstox/i.test(s), "Finance"],
+  [(s) => /charge|fee|gst|penalty|sms chg|amb chg/i.test(s), "Bank Fees"],
+  [(s) => /upi|paytm|phonepe|gpay|google pay|bharatpe/i.test(s), "Payment"],
+  [(s) => /neft|imps|rtgs|ft\b|transfer|trf/i.test(s), "Transfer"],
 ];
 
 /** The category for a bank's description of an entry. */
 export function categorize(name: string) {
-  return CATEGORY_RULES.find(([pattern]) => pattern.test(name))?.[1] ?? "Transfer";
+  return CATEGORY_RULES.find(([matches]) => matches(name))?.[1] ?? "Transfer";
 }

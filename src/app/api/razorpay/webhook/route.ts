@@ -5,6 +5,7 @@ import { logError } from "@/lib/server/log";
 import { saveSubscription } from "@/lib/server/plan";
 import { fetchSubscription, toSubscription, webhookIsGenuine } from "@/lib/server/razorpay";
 import { createSupabaseAdmin } from "@/lib/server/supabase";
+import { recordWebhook, type WebhookOutcome } from "@/lib/server/webhookLog";
 
 // Razorpay tells Horizon when a subscription is paid, renewed, halted or
 // cancelled. Only signed messages count, and even then Horizon does not trust
@@ -38,35 +39,42 @@ async function boundedBody(request: NextRequest): Promise<string | null> {
 }
 
 export async function POST(request: NextRequest) {
+  // Each delivery is written down for the admin portal's Payments page, without
+  // ever holding up the answer Razorpay gets.
+  const answer = (status: number, entry: { event?: string; subscriptionId?: string; login?: string; outcome: WebhookOutcome; error?: unknown }) => {
+    void recordWebhook({ ...entry, status });
+    return NextResponse.json({ ok: status < 400 }, { status });
+  };
+
   const body = await boundedBody(request);
-  if (body === null) return NextResponse.json({ ok: false }, { status: 413 });
-  if (!webhookIsGenuine(body, request.headers.get("x-razorpay-signature"))) {
-    return NextResponse.json({ ok: false }, { status: 401 });
-  }
+  if (body === null) return answer(413, { outcome: "too-big" });
+  if (!webhookIsGenuine(body, request.headers.get("x-razorpay-signature"))) return answer(401, { outcome: "unsigned" });
 
   let id: string | undefined;
+  let name = "";
   try {
     const event = JSON.parse(body) as { event?: string; payload?: { subscription?: { entity?: { id?: string } } } };
-    console.log(`razorpay webhook: ${event.event ?? "?"} ${event.payload?.subscription?.entity?.id ?? ""}`);
-    if (!event.event?.startsWith("subscription.")) return NextResponse.json({ ok: true }); // not ours to act on
+    name = event.event ?? "";
+    console.log(`razorpay webhook: ${name || "?"} ${event.payload?.subscription?.entity?.id ?? ""}`);
+    if (!name.startsWith("subscription.")) return answer(200, { event: name, outcome: "ignored" }); // not ours to act on
     id = event.payload?.subscription?.entity?.id;
   } catch {
-    return NextResponse.json({ ok: false }, { status: 400 });
+    return answer(400, { outcome: "bad-json" });
   }
-  if (!id) return NextResponse.json({ ok: true });
+  if (!id) return answer(200, { event: name, outcome: "ignored" });
 
   try {
     const latest = await fetchSubscription(id);
     const login = latest.notes?.login ?? "";
-    const fresh = toSubscription(latest);
-    if (!UUID.test(login) || !fresh) return NextResponse.json({ ok: true }); // not one Horizon started
+    const fresh = await toSubscription(latest);
+    if (!UUID.test(login) || !fresh) return answer(200, { event: name, subscriptionId: id, outcome: "ignored", error: "not one Horizon started" });
     const { data } = await createSupabaseAdmin().auth.admin.getUserById(login);
-    if (!data.user) return NextResponse.json({ ok: true }); // the account was deleted
+    if (!data.user) return answer(200, { event: name, subscriptionId: id, login, outcome: "ignored", error: "the account was deleted" });
     await saveSubscription(login, mergeSubscription(readSubscription(data.user.app_metadata?.subscription), fresh));
-    return NextResponse.json({ ok: true });
+    return answer(200, { event: name, subscriptionId: id, login, outcome: "ok" });
   } catch (error) {
     // A non-2xx answer makes Razorpay try again later.
     logError("razorpay webhook failed", error);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return answer(500, { event: name, subscriptionId: id, outcome: "failed", error });
   }
 }

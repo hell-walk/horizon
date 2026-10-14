@@ -1,5 +1,6 @@
-import { PAY_LATER } from "./categories";
+import { isPayLater } from "./categories";
 import { OWN_TRANSFER } from "./corrections";
+import { extraSubscription } from "./extraTerms";
 import { isPersonPayment, PEOPLE_GROUP } from "./payees";
 
 // Plain-language spending buckets. Every debit lands in one bucket that a
@@ -10,14 +11,17 @@ import { isPersonPayment, PEOPLE_GROUP } from "./payees";
 
 export type SpendBucket = { key: string; name: string; amount: number; count: number; share: number };
 
-type Rule = [name: string, pattern: RegExp];
+// A bucket and what puts an entry in it: a pattern, or a function where the
+// team's added names (extraTerms.ts) count too.
+type Rule = [name: string, pattern: RegExp | ((text: string) => boolean)];
+const matches = (pattern: Rule[1], text: string) => (typeof pattern === "function" ? pattern(text) : pattern.test(text));
 
 // Purpose first: a recognisable merchant says more than the rail it used.
 // Each rule lists Indian names first, then those common in the US, UK, Europe,
 // the Gulf, Singapore and Australia. Order matters: "Uber Eats" is Food before
 // "Uber" is Travel; "Whole Foods" is Groceries before "food" is Food.
 const PURPOSE: Rule[] = [
-  ["EMI & pay later", PAY_LATER],
+  ["EMI & pay later", isPayLater],
   [
     "Investments",
     /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney|vanguard|fidelity|schwab|robinhood|e\*?trade|coinbase|trading\s*212|hargreaves|\bisa\b/i,
@@ -37,7 +41,9 @@ const PURPOSE: Rule[] = [
   ],
   [
     "Subscriptions",
-    /netflix|spotify|prime\s*video|hotstar|youtube|crunchyroll|ellation|sony\s*liv|\bzee5\b|jio\s*cinema|jiohotstar|\bvoot\b|mx\s*player|erosnow|altbalaji|hoichoi|sun\s*nxt|gaana|jiosaavn|wynk|apple\s*music|apple\.com|google\s*play|play\s*store|playstore|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i,
+    (text) =>
+      /netflix|spotify|prime\s*video|hotstar|youtube|crunchyroll|ellation|sony\s*liv|\bzee5\b|jio\s*cinema|jiohotstar|\bvoot\b|mx\s*player|erosnow|altbalaji|hoichoi|sun\s*nxt|gaana|jiosaavn|wynk|apple\s*music|apple\.com|google\s*play|play\s*store|playstore|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i.test(text) ||
+      extraSubscription(text),
   ],
   [
     "Bills & recharges",
@@ -84,8 +90,8 @@ const GENERIC_CATEGORIES = new Set(["", "transfer", "payment", "other", "bank fe
 export function spendType(t: Pick<Transaction, "name" | "category" | "paymentChannel" | "userCategory">): string {
   if (t.userCategory) return t.userCategory;
   const text = t.name ?? "";
-  for (const [name, pattern] of PURPOSE) if (pattern.test(text)) return name;
-  for (const [name, pattern] of METHOD) if (pattern.test(text)) return name;
+  for (const [name, pattern] of PURPOSE) if (matches(pattern, text)) return name;
+  for (const [name, pattern] of METHOD) if (matches(pattern, text)) return name;
 
   // A bare person's name with only a generic category: money sent to someone.
   const category = (t.category ?? "").toLowerCase();

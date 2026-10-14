@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
 import { passwordProblemKey } from "../passwordRules";
+import { istDay } from "../plans";
 import { getT } from "../i18n/server";
 import { SiteConfigError, siteUrl } from "../site";
 import type { Translate } from "../i18n/translate";
@@ -79,6 +80,8 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
         // Same answer for a wrong password, a missing account and a Google-only
         // account: the reply never tells whether an email is registered.
         await record(emailKey(email), 10 * MINUTE);
+        // One count per day of every failed sign-in, for the admin portal's Health page (nothing about who).
+        await record(`auth:fails:${istDay()}`, 8 * 24 * 60 * MINUTE);
         return { ok: false, error: t("auth.errorSignIn") };
     }
 }

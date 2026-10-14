@@ -31,7 +31,7 @@ export async function startSubscription(input: { period: Period }): Promise<Star
   if (!session) return { ok: false, error: t("plan.errSignIn") };
   const period = input?.period;
   if (period !== "monthly" && period !== "yearly") return { ok: false, error: t("plan.errStart") };
-  if (!isRazorpayConfigured(period)) return { ok: false, error: t("plan.errNotReady") };
+  if (!(await isRazorpayConfigured(period))) return { ok: false, error: t("plan.errNotReady") };
   if (!(await allow(`plan:start:${session.id}`, 5, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
   if (planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: 0 }).kind === "subscribed")
     return { ok: false, error: t("plan.errAlready") };
@@ -48,7 +48,7 @@ export async function startSubscription(input: { period: Period }): Promise<Star
         return { ok: true, url: again.short_url, subscriptionId: again.id, keyId: process.env.RAZORPAY_KEY_ID! };
     }
     const created = await createSubscription(period, session.id);
-    const stored = toSubscription(created);
+    const stored = await toSubscription(created);
     if (!stored || !created.short_url) throw new Error("razorpay: unexpected subscription");
     await saveSubscription(session.id, stored);
     return { ok: true, url: created.short_url, subscriptionId: created.id, keyId: process.env.RAZORPAY_KEY_ID! };
@@ -80,7 +80,7 @@ export async function confirmSubscriptionPayment(input: { paymentId: string; sig
     return { ok: false, error: t("plan.payNotConfirmed") };
   }
   try {
-    const latest = toSubscription(await fetchSubscription(current.id));
+    const latest = await toSubscription(await fetchSubscription(current.id));
     if (!latest) throw new Error("razorpay: unknown plan");
     const fresh = mergeSubscription(current, latest);
     await saveSubscription(session.id, fresh);
@@ -101,7 +101,7 @@ export async function checkSubscription(): Promise<{ ok: true; subscribed: boole
   if (!(await allow(`plan:check:${session.id}`, 20, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
 
   try {
-    const latest = toSubscription(await fetchSubscription(session.subscription.id));
+    const latest = await toSubscription(await fetchSubscription(session.subscription.id));
     if (!latest) throw new Error("razorpay: unknown plan");
     const fresh = mergeSubscription(session.subscription, latest);
     await saveSubscription(session.id, fresh);
@@ -123,7 +123,7 @@ export async function cancelMySubscription(): Promise<{ ok: true; until: number 
   if (!(await allow(`plan:cancel:${session.id}`, 5, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
 
   try {
-    const after = toSubscription(await cancelSubscription(current.id));
+    const after = await toSubscription(await cancelSubscription(current.id));
     // Razorpay keeps it "active" until the period ends; Horizon shows it as not renewing.
     const stored = after ? { ...after, status: "cancelled", until: Math.max(after.until, current.until) } : { ...current, status: "cancelled" };
     await saveSubscription(session.id, stored);

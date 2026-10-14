@@ -88,8 +88,10 @@ below and change it later.
 2. Create the plans: `node scripts/setup-razorpay-plans.mjs --apply` (prices
    come from `src/lib/plans.ts`), put the two ids in Vercel.
 3. **Webhooks -> Add new webhook**: URL `https://your-domain/api/razorpay/webhook`,
-   events `subscription.*`, a long random secret (also into
-   `RAZORPAY_WEBHOOK_SECRET`).
+   enable `subscription.*` events, and set a long random secret. Put the exact
+   same secret in `RAZORPAY_WEBHOOK_SECRET` in Vercel for Production and
+   Preview, then redeploy. Checkout stays disabled until this is configured,
+   so payment updates can be verified.
 4. Changing prices later: edit `src/lib/plans.ts`, run the plans script again
    (Razorpay plans cannot be edited), swap the ids. Existing subscribers keep
    their old price.

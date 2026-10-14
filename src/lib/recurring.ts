@@ -1,4 +1,4 @@
-import { PAY_LATER } from "./categories";
+import { isPayLater } from "./categories";
 import { OWN_TRANSFER, payeeKey } from "./corrections";
 import { payeeName } from "./payees";
 import { spendType } from "./spending";
@@ -85,7 +85,7 @@ function kindOf(t: Transaction, direction: "in" | "out"): RegularKind {
   if (t.userCategory === OWN_TRANSFER) return "own";
   if (direction === "in") return "income";
   const type = spendType(t);
-  if (type === "EMI & pay later" || PAY_LATER.test(t.name)) return "emi";
+  if (type === "EMI & pay later" || isPayLater(t.name)) return "emi";
   if (type === "Rent") return "rent";
   if (type === "Subscriptions") return "subscription";
   if (type === "Bills & recharges") return "bill";

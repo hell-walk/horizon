@@ -7,6 +7,7 @@ import { Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";
 import { cached, TTL } from "../cache";
 import { categorize } from "../categories";
+import { loadExtraTerms } from "../server/terms";
 
 export const MANUAL_PROVIDER = "manual" as const;
 
@@ -60,6 +61,8 @@ export const getStatementTransactions = (bank: Bank) =>
       cursor = result.documents[result.documents.length - 1].$id;
     }
 
+    // The team's added lender and subscription names, so the re-categorising below sees them.
+    await loadExtraTerms();
     return documents.map((doc) => toTransaction(doc, bank));
   });
 

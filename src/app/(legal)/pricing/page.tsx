@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
-import { PRICES, TRIAL_CHANGES_PER_DAY, TRIAL_DAYS } from "@/lib/plans";
+import { TRIAL_CHANGES_PER_DAY, TRIAL_DAYS } from "@/lib/plans";
+import { currentPricing } from "@/lib/server/pricing";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -17,11 +18,13 @@ export default async function PricingPage() {
   const t = await getT();
   const locale = await getLocale();
   const money = (amount: number) => new Intl.NumberFormat(LOCALE_TAGS[locale], { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
+  // What is charged today: set from the admin portal, else lib/plans.ts.
+  const pricing = await currentPricing();
 
   const plans = [
     { name: "Free trial", price: money(0), per: `for ${TRIAL_DAYS} days`, points: [`Everything in Horizon for ${TRIAL_DAYS} days`, `${TRIAL_CHANGES_PER_DAY} changes a day (imports, corrections, goals, bank links)`, "No card or UPI needed to start"] },
-    { name: "Monthly", price: money(PRICES.monthly.amount), per: "per month", points: ["Unlimited imports, corrections and goals", "Renews every month until you cancel", "Cancel any time from the Plans page"] },
-    { name: "Yearly", price: money(PRICES.yearly.amount), per: "per year", points: ["Everything in Monthly", "About two months free compared with paying monthly", "Renews every year until you cancel"] },
+    { name: "Monthly", price: money(pricing.monthly.amount), per: "per month", points: ["Unlimited imports, corrections and goals", "Renews every month until you cancel", "Cancel any time from the Plans page"] },
+    { name: "Yearly", price: money(pricing.yearly.amount), per: "per year", points: ["Everything in Monthly", "About two months free compared with paying monthly", "Renews every year until you cancel"] },
   ];
 
   return (
