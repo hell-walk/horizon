@@ -5,17 +5,17 @@ const isDev = process.env.NODE_ENV !== "production";
 
 // What the browser may load. Next.js inlines its bootstrap scripts, hence
 // 'unsafe-inline' for scripts; everything else is limited to this site plus
-// Plaid Link (and Sentry's error endpoint). The browser never talks to Appwrite
-// or Supabase: only the server does. Bank, Google and Razorpay pages are
-// navigations, not loads.
+// Plaid Link, Razorpay's checkout box (and Sentry's error endpoint). The
+// browser never talks to Appwrite or Supabase: only the server does. Bank and
+// Google pages are navigations, not loads.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com https://checkout.razorpay.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' https://*.plaid.com https://*.sentry.io${isDev ? " ws: wss:" : ""}`,
-  "frame-src https://cdn.plaid.com",
+  `connect-src 'self' https://*.plaid.com https://*.sentry.io https://api.razorpay.com https://lumberjack.razorpay.com https://checkout.razorpay.com${isDev ? " ws: wss:" : ""}`,
+  "frame-src https://cdn.plaid.com https://api.razorpay.com https://checkout.razorpay.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

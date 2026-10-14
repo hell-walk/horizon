@@ -124,6 +124,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "cancelMySubscription",
           "checkSubscription",
           "completeProfile",
+          "confirmSubscriptionPayment",
           "completeSetuConsent",
           "correctTransaction",
           "createLinkToken",

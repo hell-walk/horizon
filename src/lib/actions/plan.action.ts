@@ -8,7 +8,7 @@ import { loadSession } from "../server/auth";
 import { logError } from "../server/log";
 import { redeemCode } from "../server/codes";
 import { saveSubscription } from "../server/plan";
-import { cancelSubscription, createSubscription, fetchSubscription, isRazorpayConfigured, toSubscription } from "../server/razorpay";
+import { cancelSubscription, createSubscription, fetchSubscription, isRazorpayConfigured, paymentSignatureIsGenuine, toSubscription } from "../server/razorpay";
 import { allow, MINUTE } from "../server/rateLimit";
 import { claim, release } from "../server/shared";
 
@@ -18,8 +18,14 @@ import { claim, release } from "../server/shared";
 
 type Failure = { ok: false; error: string };
 
-/** Starts a subscription and returns Razorpay's payment page to send the browser to. */
-export async function startSubscription(input: { period: Period }): Promise<{ ok: true; url: string } | Failure> {
+type Started = { ok: true; url: string; subscriptionId: string; keyId: string };
+
+/**
+ * Starts a subscription. The browser opens Razorpay's checkout box with the
+ * subscription id and the (public) key id; `url` is Razorpay's hosted page,
+ * the fallback when the box cannot load.
+ */
+export async function startSubscription(input: { period: Period }): Promise<Started | Failure> {
   const t = await getT();
   const session = await loadSession();
   if (!session) return { ok: false, error: t("plan.errSignIn") };
@@ -27,7 +33,8 @@ export async function startSubscription(input: { period: Period }): Promise<{ ok
   if (period !== "monthly" && period !== "yearly") return { ok: false, error: t("plan.errStart") };
   if (!isRazorpayConfigured(period)) return { ok: false, error: t("plan.errNotReady") };
   if (!(await allow(`plan:start:${session.id}`, 5, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
-  if (planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: 0 }).kind === "subscribed") return { ok: false, error: t("plan.errAlready") };
+  if (planFrom({ joinedAt: session.joinedAt, subscription: session.subscription, usedToday: 0 }).kind === "subscribed")
+    return { ok: false, error: t("plan.errAlready") };
   // One at a time per login (two tabs, a double click): the second waits for
   // the first instead of opening a second subscription. Shared through Redis.
   if (!(await claim("plan-start", session.id, 30_000))) return { ok: false, error: t("plan.errInProgress") };
@@ -37,18 +44,51 @@ export async function startSubscription(input: { period: Period }): Promise<{ ok
     const earlier = session.subscription;
     if (earlier && earlier.period === period && earlier.status === "created") {
       const again = await fetchSubscription(earlier.id).catch(() => null);
-      if (again?.status === "created" && again.short_url) return { ok: true, url: again.short_url };
+      if (again?.status === "created" && again.short_url)
+        return { ok: true, url: again.short_url, subscriptionId: again.id, keyId: process.env.RAZORPAY_KEY_ID! };
     }
     const created = await createSubscription(period, session.id);
     const stored = toSubscription(created);
     if (!stored || !created.short_url) throw new Error("razorpay: unexpected subscription");
     await saveSubscription(session.id, stored);
-    return { ok: true, url: created.short_url };
+    return { ok: true, url: created.short_url, subscriptionId: created.id, keyId: process.env.RAZORPAY_KEY_ID! };
   } catch (error) {
     logError("plan: could not start a subscription", error);
     return { ok: false, error: t("plan.errStart") };
   } finally {
     await release("plan-start", session.id);
+  }
+}
+
+/**
+ * The checkout box's answer after a payment: Razorpay signs the payment id and
+ * the subscription id with our key secret. The subscription id comes from our
+ * own record, never from the browser. A good signature is followed by asking
+ * Razorpay for the subscription itself and saving it, so the plan is right at
+ * once, without waiting for the webhook.
+ */
+export async function confirmSubscriptionPayment(input: { paymentId: string; signature: string }): Promise<{ ok: true; subscribed: boolean } | Failure> {
+  const t = await getT();
+  const session = await loadSession();
+  if (!session) return { ok: false, error: t("plan.errSignIn") };
+  const current = session.subscription;
+  if (!current || current.id.startsWith("comp_")) return { ok: false, error: t("plan.errNothing") };
+  if (!(await allow(`plan:confirm:${session.id}`, 20, 10 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
+  const paymentId = typeof input?.paymentId === "string" ? input.paymentId : "";
+  const signature = typeof input?.signature === "string" ? input.signature : "";
+  if (!/^pay_[A-Za-z0-9]{8,32}$/.test(paymentId) || !paymentSignatureIsGenuine(paymentId, current.id, signature)) {
+    return { ok: false, error: t("plan.payNotConfirmed") };
+  }
+  try {
+    const latest = toSubscription(await fetchSubscription(current.id));
+    if (!latest) throw new Error("razorpay: unknown plan");
+    const fresh = mergeSubscription(current, latest);
+    await saveSubscription(session.id, fresh);
+    revalidatePath("/", "layout");
+    return { ok: true, subscribed: planFrom({ joinedAt: session.joinedAt, subscription: fresh, usedToday: 0 }).kind === "subscribed" };
+  } catch (error) {
+    logError("plan: could not confirm the payment", error);
+    return { ok: false, error: t("plan.errStart") };
   }
 }
 

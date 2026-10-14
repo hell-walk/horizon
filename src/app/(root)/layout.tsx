@@ -8,9 +8,21 @@ import Topbar from "./components/topbar";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
 import { currentPlan } from "@/lib/server/plan";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { LOCALE_TAGS } from "@/lib/i18n/config";
+import { daysLeft } from "@/lib/plans";
 
 // Every page in this group depends on the session cookie, so never prerender them.
 export const dynamic = "force-dynamic";
+
+// "Free trial: 5 days left", "Subscribed until 13 November 2026", "Free week ended": under the name, everywhere.
+async function planLine(plan: NonNullable<Awaited<ReturnType<typeof currentPlan>>>) {
+  const t = await getT();
+  if (plan.kind === "trial") return t("plan.lineTrial", { count: daysLeft(plan.endsAt) });
+  if (plan.kind === "ended") return t("plan.lineEnded");
+  const date = new Date(plan.until).toLocaleDateString(LOCALE_TAGS[await getLocale()], { day: "numeric", month: "long", year: "numeric" });
+  return t(plan.renews ? "plan.lineRenews" : "plan.lineUntil", { date });
+}
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const loggedIn = await getLoggedInUser();
@@ -22,7 +34,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
-      <Topbar user={loggedIn} bankCount={banks.length} />
+      <Topbar user={loggedIn} bankCount={banks.length} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
       {/* The page itself is the main landmark; the skip link lands here. */}
       <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">

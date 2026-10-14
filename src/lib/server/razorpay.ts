@@ -18,7 +18,13 @@ const planIds = (): Record<Period, string | undefined> => ({
   yearly: process.env.RAZORPAY_PLAN_YEARLY,
 });
 
-export const isRazorpayConfigured = (period: Period) => Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && planIds()[period]);
+// Do not show checkout as ready until payment webhooks can be verified too.
+export const isRazorpayConfigured = (period: Period) => Boolean(
+  process.env.RAZORPAY_KEY_ID &&
+    process.env.RAZORPAY_KEY_SECRET &&
+    process.env.RAZORPAY_WEBHOOK_SECRET &&
+    planIds()[period]
+);
 
 /** Test keys start with rzp_test_: the plans page then says no real money is charged. */
 export const isTestMode = () => (process.env.RAZORPAY_KEY_ID ?? "").startsWith("rzp_test_");
@@ -78,6 +84,15 @@ export const cancelSubscriptionNow = (id: string) => call<RazorpaySubscription>(
 
 /** Stops renewing; access lasts to the end of the period already paid. */
 export const cancelSubscription = (id: string) => call<RazorpaySubscription>("POST", `/subscriptions/${encodeURIComponent(id)}/cancel`, { cancel_at_cycle_end: 1 });
+
+/** Is this checkout result really from Razorpay? (HMAC-SHA256 of "payment_id|subscription_id" with the key secret.) */
+export function paymentSignatureIsGenuine(paymentId: string, subscriptionId: string, signature: string): boolean {
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!secret || !signature) return false;
+  const expected = Buffer.from(createHmac("sha256", secret).update(`${paymentId}|${subscriptionId}`).digest("hex"));
+  const given = Buffer.from(signature);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+}
 
 /** Is this webhook body really from Razorpay? (HMAC-SHA256 of the exact body with the webhook secret.) */
 export function webhookIsGenuine(body: string, signature: string | null): boolean {

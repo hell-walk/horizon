@@ -3,10 +3,10 @@
 import { Check, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { useT } from "@/components/i18nProvider";
-import { cancelMySubscription, checkSubscription, startSubscription } from "@/lib/actions/plan.action";
+import { cancelMySubscription, checkSubscription, confirmSubscriptionPayment, startSubscription } from "@/lib/actions/plan.action";
 import type { Period, PlanState } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
@@ -19,28 +19,93 @@ type Props = {
   testMode: boolean;
 };
 
-/** Where you stand, and the two plans. Paying happens on Razorpay's own page. */
+// Razorpay's checkout box, loaded only when someone presses Subscribe.
+const CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+type CheckoutAnswer = { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string };
+type RazorpayBox = { open: () => void };
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => RazorpayBox;
+  }
+}
+let scriptLoading: Promise<void> | null = null;
+const loadCheckout = () => {
+  if (window.Razorpay) return Promise.resolve();
+  scriptLoading ??= new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = CHECKOUT_SCRIPT;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      scriptLoading = null;
+      reject(new Error("checkout script did not load"));
+    };
+    document.head.appendChild(script);
+  });
+  return scriptLoading;
+};
+
+type Outcome = "success" | "pending" | "failed" | null;
+
+/** Where you stand, and the two plans. Paying happens in Razorpay's box, over this page. */
 const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Props) => {
   const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState<Period | "check" | "cancel" | null>(null);
   const [message, setMessage] = useState<{ text: string; bad: boolean } | null>(null);
+  const [outcome, setOutcome] = useState<Outcome>(null);
   const [, startTransition] = useTransition();
+  const closeButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (outcome) closeButton.current?.focus();
+  }, [outcome]);
 
   const subscribe = async (period: Period) => {
     setBusy(period);
     setMessage(null);
     try {
-      const result = await startSubscription({ period });
-      if (result.ok) {
-        window.location.assign(result.url);
-        return; // stays busy while the browser leaves
+      const started = await startSubscription({ period });
+      if (!started.ok) {
+        setMessage({ text: started.error, bad: true });
+        setBusy(null);
+        return;
       }
-      setMessage({ text: result.error, bad: true });
+      try {
+        await loadCheckout();
+      } catch {
+        // The box could not load (an ad blocker, a slow network): Razorpay's own page instead.
+        window.location.assign(started.url);
+        return;
+      }
+      const box = new window.Razorpay!({
+        key: started.keyId,
+        subscription_id: started.subscriptionId,
+        name: "Horizon",
+        description: t(period === "monthly" ? "plan.monthly" : "plan.yearly"),
+        theme: { color: "#1A1C1A" },
+        handler: async (answer: CheckoutAnswer) => {
+          try {
+            const result = await confirmSubscriptionPayment({ paymentId: answer.razorpay_payment_id, signature: answer.razorpay_signature });
+            setOutcome(result.ok && result.subscribed ? "success" : "pending");
+          } catch {
+            setOutcome("pending");
+          }
+          setBusy(null);
+          startTransition(() => router.refresh());
+        },
+        modal: {
+          ondismiss: () => {
+            setOutcome("failed");
+            setBusy(null);
+          },
+        },
+      });
+      box.open();
     } catch {
       setMessage({ text: t("common.notReachable"), bad: true });
+      setBusy(null);
     }
-    setBusy(null);
   };
 
   const check = async () => {
@@ -76,10 +141,24 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
 
   const status =
     plan.kind === "subscribed"
-      ? { title: `${t("plan.statusSubscribed")} · ${t(plan.period === "monthly" ? "plan.monthly" : "plan.yearly")}`, body: t(plan.renews ? "plan.renewsOn" : "plan.endsOn", { date: untilText }) }
+      ? {
+          title: `${t("plan.statusSubscribed")} · ${t(plan.period === "monthly" ? "plan.monthly" : "plan.yearly")}`,
+          body: t(plan.renews ? "plan.renewsOn" : "plan.endsOn", { date: untilText }),
+        }
       : plan.kind === "trial"
-        ? { title: t("plan.statusTrial"), body: `${t("plan.bannerTrial", { count: daysLeft })} · ${t("plan.bannerUsed", { used: plan.usedToday, limit: plan.limit })}` }
+        ? {
+            title: t("plan.statusTrial"),
+            body: `${t("plan.bannerTrial", { count: daysLeft })} · ${t("plan.bannerUsed", { used: plan.usedToday, limit: plan.limit })}`,
+          }
         : { title: t("plan.statusEnded"), body: t("plan.statusEndedBody") };
+
+  const popup =
+    outcome &&
+    {
+      success: { title: t("plan.paySuccessTitle"), body: t("plan.paySuccessBody"), tone: "text-success" },
+      pending: { title: t("plan.payPendingTitle"), body: t("plan.payPendingBody"), tone: "text-warn-ink" },
+      failed: { title: t("plan.payFailTitle"), body: t("plan.payFailBody"), tone: "text-danger" },
+    }[outcome];
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
@@ -128,10 +207,15 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
                     </li>
                   ))}
                 </ul>
-                <button type="button" onClick={() => subscribe(period)} disabled={busy !== null || !ready[period]} className="btn-primary w-full justify-center">
+                <button
+                  type="button"
+                  onClick={() => subscribe(period)}
+                  disabled={busy !== null || !ready[period]}
+                  className="btn-primary w-full justify-center"
+                >
                   {busy === period ? (
                     <>
-                      <Loader2 className="size-4 animate-spin" /> {t("plan.opening")}
+                      <Loader2 className="size-4 animate-spin" /> {t("plan.payOpening")}
                     </>
                   ) : (
                     t("plan.subscribeButton")
@@ -158,6 +242,22 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
         <p role={message.bad ? "alert" : "status"} className={message.bad ? "field-error" : "text-14 text-ink"}>
           {message.text}
         </p>
+      )}
+
+      {popup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setOutcome(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="pay-outcome-title" onClick={(e) => e.stopPropagation()} className="panel w-full max-w-md">
+            <div className="panel-body flex flex-col gap-3">
+              <h2 id="pay-outcome-title" className={cn("font-display text-20 font-semibold", popup.tone)}>
+                {popup.title}
+              </h2>
+              <p className="text-14 text-ink">{popup.body}</p>
+              <button ref={closeButton} type="button" onClick={() => setOutcome(null)} className="btn-primary mt-1 w-fit">
+                {t("plan.payClose")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

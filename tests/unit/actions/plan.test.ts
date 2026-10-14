@@ -63,7 +63,7 @@ vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
 });
 
 const { saveGoal, deleteGoal } = await import("@/lib/actions/goal.action");
-const { startSubscription, checkSubscription, cancelMySubscription } = await import("@/lib/actions/plan.action");
+const { startSubscription, checkSubscription, cancelMySubscription, confirmSubscriptionPayment } = await import("@/lib/actions/plan.action");
 const { POST: webhook } = await import("@/app/api/razorpay/webhook/route");
 
 const DAY = 86_400_000;
@@ -122,7 +122,7 @@ describe("startSubscription", () => {
 
   it("opens Razorpay's page for the signed-in login only, and remembers it as not paid yet", async () => {
     const me = login();
-    expect(await startSubscription({ period: "yearly" })).toEqual({ ok: true, url: "https://rzp.io/i/pay" });
+    expect(await startSubscription({ period: "yearly" })).toMatchObject({ ok: true, url: "https://rzp.io/i/pay" });
     expect(state.razorpay[0].body).toMatchObject({ plan_id: "plan_yearly", notes: { login: me } });
     expect(state.saved).toEqual([{ id: me, subscription: { id: "sub_1", period: "yearly", status: "created", until: 0 } }]);
   });
@@ -137,9 +137,38 @@ describe("startSubscription", () => {
     expect(await startSubscription({ period: "yearly" })).toMatchObject({ ok: true });
   });
 
+  it("hands the browser what the checkout box needs: our subscription id and the public key id", async () => {
+    login();
+    expect(await startSubscription({ period: "monthly" })).toEqual({ ok: true, url: "https://rzp.io/i/pay", subscriptionId: "sub_1", keyId: "rzp_test_unit" });
+  });
+
   it("refuses when already subscribed", async () => {
     login({ subscription: { id: "sub_x", period: "monthly", status: "active", until: Date.now() + DAY } });
     expect(await startSubscription({ period: "monthly" })).toEqual({ ok: false, error: "You are already subscribed." });
+  });
+});
+
+describe("confirming a checkout payment", () => {
+  const sign = (paymentId: string, subscriptionId: string) => createHmac("sha256", "unit-secret").update(`${paymentId}|${subscriptionId}`).digest("hex");
+
+  it("saves the plan at once when Razorpay's signature is right, using our subscription id, not the browser's", async () => {
+    const me = login();
+    const end = Math.floor(Date.now() / 1000) + 30 * 86400;
+    state.remote.set("sub_9", { id: "sub_9", plan_id: "plan_monthly", status: "active", current_end: end, notes: { login: me } });
+    state.session!.subscription = { id: "sub_9", period: "monthly", status: "created", until: 0 };
+    expect(await confirmSubscriptionPayment({ paymentId: "pay_ABCDEFGHIJ12", signature: sign("pay_ABCDEFGHIJ12", "sub_9") })).toEqual({ ok: true, subscribed: true });
+    expect(state.saved.at(-1)).toEqual({ id: me, subscription: { id: "sub_9", period: "monthly", status: "active", until: end * 1000 } });
+  });
+
+  it("refuses a wrong or forged signature and saves nothing", async () => {
+    login();
+    state.session!.subscription = { id: "sub_9", period: "monthly", status: "created", until: 0 };
+    expect(await confirmSubscriptionPayment({ paymentId: "pay_ABCDEFGHIJ12", signature: sign("pay_ABCDEFGHIJ12", "sub_other") })).toMatchObject({ ok: false });
+    expect(await confirmSubscriptionPayment({ paymentId: "pay_ABCDEFGHIJ12", signature: "0".repeat(64) })).toMatchObject({ ok: false });
+    // @ts-expect-error: wrong shape on purpose
+    expect(await confirmSubscriptionPayment({ paymentId: { $ne: "" }, signature: "x" })).toMatchObject({ ok: false });
+    expect(state.saved).toEqual([]);
+    expect(state.razorpay).toEqual([]);
   });
 });
 

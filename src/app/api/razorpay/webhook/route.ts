@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
   let id: string | undefined;
   try {
     const event = JSON.parse(body) as { event?: string; payload?: { subscription?: { entity?: { id?: string } } } };
+    console.log(`razorpay webhook: ${event.event ?? "?"} ${event.payload?.subscription?.entity?.id ?? ""}`);
     if (!event.event?.startsWith("subscription.")) return NextResponse.json({ ok: true }); // not ours to act on
     id = event.payload?.subscription?.entity?.id;
   } catch {

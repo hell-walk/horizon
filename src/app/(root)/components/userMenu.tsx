@@ -14,7 +14,7 @@ import ThemeSwitch from "@/components/themeSwitch";
 // Avatar button in the top bar. Opens a panel with the account, the theme
 // slider and language switch (useful on phones, where the bar has no room for
 // them) and log out.
-const UserMenu = ({ user }: { user: User }) => {
+const UserMenu = ({ user, planLine }: { user: User; planLine: string }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}` || user.name?.[0] || "?";
@@ -58,6 +58,11 @@ const UserMenu = ({ user }: { user: User }) => {
             <p translate="no" className="truncate text-12 text-ink-muted">
               {user.email}
             </p>
+            {planLine && (
+              <Link href="/plans" onClick={() => setOpen(false)} className="mt-0.5 text-12 text-ink-muted underline-offset-4 hover:underline">
+                {planLine}
+              </Link>
+            )}
             <span className="chip-lime mt-1 w-fit">
               <ShieldCheck className="size-3" /> {t("common.verified")}
             </span>

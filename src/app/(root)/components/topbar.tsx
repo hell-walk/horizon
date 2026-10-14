@@ -7,7 +7,7 @@ import UserMenu from "./userMenu";
 // The only chrome above a signed-in page: wordmark, the floating pill
 // navigation (tablet and up), the theme slider (every screen size) and the account menu. Phones
 // navigate with the bottom bar instead.
-const Topbar = async ({ user, bankCount }: { user: User; bankCount: number }) => {
+const Topbar = async ({ user, bankCount, planLine }: { user: User; bankCount: number; planLine: string }) => {
   const t = await getT();
 
   return (
@@ -29,7 +29,7 @@ const Topbar = async ({ user, bankCount }: { user: User; bankCount: number }) =>
 
       <div className="flex items-center justify-end gap-3">
         <ThemeSwitch />
-        <UserMenu user={user} />
+        <UserMenu user={user} planLine={planLine} />
       </div>
     </header>
   );
