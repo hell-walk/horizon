@@ -6,6 +6,7 @@ import { getT } from "../i18n/server";
 import { mergeSubscription, planFrom, type Period } from "../plans";
 import { loadSession } from "../server/auth";
 import { logError } from "../server/log";
+import { redeemCode } from "../server/codes";
 import { saveSubscription } from "../server/plan";
 import { cancelSubscription, createSubscription, fetchSubscription, isRazorpayConfigured, toSubscription } from "../server/razorpay";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -90,6 +91,37 @@ export async function cancelMySubscription(): Promise<{ ok: true; until: number 
     return { ok: true, until: stored.until };
   } catch (error) {
     logError("plan: could not cancel the subscription", error);
+    return { ok: false, error: t("plan.errStart") };
+  }
+}
+
+/** Redeems a promo or referral code for free days. One code per login, ever. */
+export async function applyCode(input: { code: string }): Promise<{ ok: true; freeDays: number; until: number } | Failure> {
+  const t = await getT();
+  const session = await loadSession();
+  if (!session) return { ok: false, error: t("plan.errSignIn") };
+  const raw = typeof input?.code === "string" ? input.code : "";
+  if (!raw.trim() || raw.length > 64) return { ok: false, error: t("plan.codeUnknown") };
+  // Guessing codes must be slow; honest people type one or two.
+  if (!(await allow(`plan:code:${session.id}`, 10, 60 * MINUTE))) return { ok: false, error: t("plan.errTooMany") };
+  try {
+    const result = await redeemCode(session, raw);
+    if (result.ok) {
+      revalidatePath("/", "layout");
+      return result;
+    }
+    const messages: Record<typeof result.reason, string> = {
+      unknown: "plan.codeUnknown",
+      expired: "plan.codeExpired",
+      "used-up": "plan.codeUsedUp",
+      own: "plan.codeOwn",
+      already: "plan.codeAlready",
+      subscribed: "plan.codeSubscribed",
+      "not-ready": "plan.errNotReady",
+    };
+    return { ok: false, error: t(messages[result.reason]) };
+  } catch (error) {
+    logError("plan: could not redeem a code", error);
     return { ok: false, error: t("plan.errStart") };
   }
 }

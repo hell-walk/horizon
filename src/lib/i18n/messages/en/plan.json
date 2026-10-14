@@ -42,5 +42,20 @@
   "errAlready": "You are already subscribed.",
   "seePricing": "Full pricing",
   "seeRefunds": "Refund and cancellation policy",
-  "errInProgress": "A payment page is already opening. Wait a moment."
+  "errInProgress": "A payment page is already opening. Wait a moment.",
+  "codeTitle": "Have a code?",
+  "codeHint": "A promo code, or a friend's referral code. One code per account.",
+  "codePlaceholder": "HZABC123",
+  "codeApply": "Apply",
+  "codeApplied": "Done: {days} free days added. Horizon is yours until {date}.",
+  "codeUnknown": "That code is not right. Check it and try again.",
+  "codeExpired": "That code has expired.",
+  "codeUsedUp": "That code has been used as many times as it allows.",
+  "codeOwn": "That is your own referral code: share it with someone else.",
+  "codeAlready": "This account has already used a code.",
+  "codeSubscribed": "You are subscribed already, so free days would not change anything.",
+  "referralTitle": "Your referral code",
+  "referralBody": "Share it. When someone enters it on their Plans page, you both get {days} days of Horizon free.",
+  "referralCopy": "Copy",
+  "referralCopied": "Copied"
 }

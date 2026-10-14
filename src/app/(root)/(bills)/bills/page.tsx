@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, FileUp } from "lucide-react";
 
 import ForecastPanel from "@/components/forecastPanel";
+import { BarsLoader } from "@/components/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
@@ -35,13 +37,42 @@ const perMonth = (items: RegularWithAccount[]) => {
  * Bills and regular payments: what comes back every week, month or year,
  * found in the user's own entries, with what is coming up next.
  */
+// The heading draws at once; the rest (which reads every account's entries to
+// find regular payments and forecasts) streams in behind the bars.
 const Bills = async () => {
   const t = await getT();
-  const locale = await getLocale();
   const user = await getLoggedInUser();
   if (!user) redirect("/sign-in");
 
-  const [all, accounts] = await Promise.all([regularPayments(ownerIdOf(user)), getAccounts({ userId: ownerIdOf(user) })]);
+  return (
+    <section className="page">
+      <HeaderBox eyebrow={t("bills.eyebrow")} title={t("bills.title")} subtext={t("bills.intro")} />
+      <Suspense
+        fallback={
+          <>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="panel p-4">
+                  <BarsLoader className="h-[76px]" />
+                </div>
+              ))}
+            </div>
+            <div className="panel">
+              <BarsLoader className="h-64" />
+            </div>
+          </>
+        }
+      >
+        <BillsContent ownerId={ownerIdOf(user)} />
+      </Suspense>
+    </section>
+  );
+};
+
+async function BillsContent({ ownerId }: { ownerId: string }) {
+  const t = await getT();
+  const locale = await getLocale();
+  const [all, accounts] = await Promise.all([regularPayments(ownerId), getAccounts({ userId: ownerId })]);
   const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId)))).filter(
     (f): f is AccountForecast => f !== null,
   );
@@ -61,9 +92,7 @@ const Bills = async () => {
   const day = dateFormat(locale, { day: "numeric", month: "short" });
 
   return (
-    <section className="page">
-      <HeaderBox eyebrow={t("bills.eyebrow")} title={t("bills.title")} subtext={t("bills.intro")} />
-
+    <>
       {all.length === 0 ? (
         <div className="panel panel-body flex max-w-2xl flex-col gap-3">
           <p className="text-14 text-ink">{t("bills.empty")}</p>
@@ -143,9 +172,9 @@ const Bills = async () => {
           )}
         </>
       )}
-    </section>
+    </>
   );
-};
+}
 
 const alertText = (t: Translate, r: RegularWithAccount, day: (d: string) => string) => {
   const money = (n: number) => formatAmount(n, r.account.currency);

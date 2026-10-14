@@ -8,6 +8,9 @@ export const TRIAL_DAYS = 7;
 /** Changes a day during the trial (imports, corrections, goals, bank links, transfers, card colours). */
 export const TRIAL_CHANGES_PER_DAY = 3;
 
+/** Free days a referral gives, to the new person and to the one who referred them. */
+export const REFERRAL_FREE_DAYS = 14;
+
 export type Period = "monthly" | "yearly";
 export const PRICES: Record<Period, { amount: number; currency: "INR" }> = {
   monthly: { amount: 99, currency: "INR" },

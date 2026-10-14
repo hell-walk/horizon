@@ -83,6 +83,8 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ],
     // A weak password, so A's real one never changes: the rules apply before anything else.
     ["setNewPassword", () => [{ password: "password123", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    // A made-up code gives nothing, whoever A names.
+    ["applyCode", () => [{ code: "NOTACODE1", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // A's plan only: A has free test access, so there is nothing to start or cancel, and B's is never touched.
     ["startSubscription", () => [{ period: "monthly", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     ["checkSubscription", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: false })],

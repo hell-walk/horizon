@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import LanguageSwitch from "@/components/languageSwitch";
+import { CountUp, RollingDigits } from "@/components/liveNumber";
 import Logo from "@/components/logo";
 import SiteFooter from "@/components/siteFooter";
 import { getT } from "@/lib/i18n/server";
@@ -59,7 +60,7 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
               <span className="chip border-lime bg-lime text-lime-foreground">{t("auth.cardExample")}</span>
             </div>
             <p className="amount text-20 tracking-[0.2em]" translate="no">
-              <span className="opacity-50">•••• •••• ••••</span> 4091
+              <span className="opacity-50">•••• •••• ••••</span> <RollingDigits value="4091" />
             </p>
             <div className="flex items-end justify-between">
               <span className="flex flex-col">
@@ -69,7 +70,7 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
               <span className="flex flex-col items-end">
                 <span className="eyebrow text-white/60">{t("auth.cardBalance")}</span>
                 <span className="amount text-14 font-semibold" translate="no">
-                  ₹1,24,560.50
+                  <CountUp value={124560.5} prefix="₹" />
                 </span>
               </span>
             </div>
