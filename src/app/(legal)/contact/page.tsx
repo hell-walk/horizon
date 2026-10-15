@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
+import { publicPage } from "@/lib/seo";
 import { BUSINESS_ADDRESS, BUSINESS_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t("legal.contactTitle"), description: t("legal.contactDescription") };
+  return publicPage(t("legal.contactTitle"), t("legal.contactDescription"), "/contact");
 }
 
 // How to reach the people behind Horizon (Razorpay checks this page). The

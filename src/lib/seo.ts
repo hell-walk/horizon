@@ -1,0 +1,24 @@
+import type { Metadata } from "next";
+
+// The pages search engines may index: the public entry pages and the price
+// list and policies (everything else is behind sign-in and says noindex in
+// app/layout.tsx). Each gets its own title and description, a canonical link
+// (the www address, from metadataBase) and the same title when shared.
+
+/** Metadata for a public page that search engines may list. `path` starts with "/". */
+export function publicPage(title: string, description: string, path: string): Metadata {
+  return {
+    title,
+    description,
+    robots: { index: true, follow: true },
+    alternates: { canonical: path },
+    openGraph: { title, description, url: path, type: "website", siteName: "Horizon" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
+
+/** Structured data search engines read (schema.org), as the JSON text for a script tag. */
+export function jsonLd(data: Record<string, unknown>) {
+  // "<" is escaped so the text can never close the script tag early.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}

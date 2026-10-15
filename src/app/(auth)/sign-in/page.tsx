@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 
 import { getT } from "@/lib/i18n/server";
+import { publicPage } from "@/lib/seo";
 
 import AuthForm from "../components/authForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return {
-    title: t("auth.signInTitle"),
-    description: t("auth.signInDescription"),
-    robots: { index: true, follow: true },
-  };
+  return publicPage(t("auth.signInTitle"), t("auth.signInDescription"), "/sign-in");
 }
 
 // ?failed=1: coming back from Google (or an old sign-in link) did not work.

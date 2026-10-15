@@ -3,12 +3,13 @@ import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { publicPage } from "@/lib/seo";
 import { TRIAL_DAYS } from "@/lib/plans";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t("legal.refundsTitle"), description: t("legal.refundsDescription") };
+  return publicPage(t("legal.refundsTitle"), t("legal.refundsDescription"), "/refunds");
 }
 
 const UPDATED = Date.UTC(2026, 9, 11); // 11 October 2026

@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { publicPage } from "@/lib/seo";
 import { TRIAL_CHANGES_PER_DAY, TRIAL_DAYS } from "@/lib/plans";
 import { CONTACT_EMAIL } from "@/lib/site";
 import Link from "next/link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t("legal.termsTitle"), description: t("legal.termsDescription") };
+  return publicPage(t("legal.termsTitle"), t("legal.termsDescription"), "/terms");
 }
 
 const UPDATED = Date.UTC(2026, 9, 11); // 11 October 2026

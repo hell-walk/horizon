@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 
 import { getT } from "@/lib/i18n/server";
+import { publicPage } from "@/lib/seo";
 
 import AuthForm from "../components/authForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return {
-    title: t("auth.signUpTitle"),
-    description: t("auth.signUpDescription"),
-    robots: { index: true, follow: true },
-  };
+  return publicPage(t("auth.signUpTitle"), t("auth.signUpDescription"), "/sign-up");
 }
 
 const SignUp = async () => {
