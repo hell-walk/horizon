@@ -78,13 +78,6 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             primaryCurrency={accounts.primaryCurrency}
           />
 
-          {/* Phones and tablets: the bank cards right under the balances, not at the end of the page. */}
-          {accountsData.length > 0 && (
-            <div className="xl:hidden">
-              <CardStack accounts={accountsData} selected={appwriteItemId} userName={`${loggedIn.firstName} ${loggedIn.lastName}`} mode="url" />
-            </div>
-          )}
-
           <Suspense fallback={null}>
             <CombinedTotal
               totals={accounts.totalsByCurrency}
@@ -93,6 +86,13 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           </Suspense>
 
           <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
+
+          {/* Phones and tablets: the bank cards right under the accounts chart, not at the end of the page. */}
+          {accountsData.length > 0 && (
+            <div className="xl:hidden">
+              <CardStack accounts={accountsData} selected={appwriteItemId} userName={`${loggedIn.firstName} ${loggedIn.lastName}`} mode="url" />
+            </div>
+          )}
 
           {/* Transactions need the provider's feed, the slowest call. Stream them in
               so the header, balances and allocation appear first. */}
