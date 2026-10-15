@@ -72,6 +72,10 @@ below and change it later.
   emails would never reach users. Free: **Brevo** (300 emails a day) or
   **Resend** (100 a day). Sender e.g. `no-reply@your-domain`; add the DNS
   records they give you in Cloudflare.
+- Logins moved over from Appwrite have **no password** (passwords cannot be
+  copied), so email sign-in says "invalid" for them until they use *Forgot
+  password* or you set one: `node scripts/set-login-password.mjs their@email`
+  (typed at a hidden prompt; Google sign-in keeps working either way).
 - **Authentication -> Rate Limits**: raise *sign-ups and sign-ins* (e.g. 300
   per 5 minutes) and *emails* to what your SMTP plan allows. Every request
   reaches Supabase from Horizon's server, so its per-address limit would apply
