@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Columns3, CopyCheck, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
+import { Check, Columns3, CopyCheck, Eye, EyeOff, FileUp, KeyRound, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -33,6 +33,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [busy, setBusy] = useState<"preview" | "import" | null>(null);
   const [dragging, setDragging] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [revealPassword, setRevealPassword] = useState(false);
   // Column mapping: the rows to label, and the user's choice (sent with every read once set).
   const [mapSample, setMapSample] = useState<StatementSample | null>(null);
   const [mapping, setMapping] = useState<Partial<StatementMapping> | null>(null);
@@ -323,15 +324,24 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             <span className="eyebrow">{t("connect.passwordNeverSaved")}</span>
           </div>
           <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
             <Input
               id="statement-password"
               name="password"
-              type="password"
+              type={revealPassword ? "text" : "password"}
               autoComplete="off"
+              translate="no"
               placeholder={t("connect.passwordPlaceholder")}
-              className="field-input pl-10 font-mono"
+              className="field-input font-mono"
+              style={{ paddingRight: "2.75rem" }}
             />
+            <button
+              type="button"
+              onClick={() => setRevealPassword((v) => !v)}
+              aria-label={revealPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              className="absolute right-1 top-1/2 flex-center size-9 -translate-y-1/2 rounded-sm text-ink-faint hover:text-ink"
+            >
+              {revealPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
           </div>
           <p className="field-hint">{t("connect.passwordHint")}</p>
         </div>
