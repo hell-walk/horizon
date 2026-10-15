@@ -35,15 +35,17 @@ const Plans = async () => {
   return (
     <section className="page">
       <HeaderBox eyebrow={t("plan.eyebrow")} title={t("plan.title")} subtext={t("plan.intro", { days: TRIAL_DAYS, limit: TRIAL_CHANGES_PER_DAY })} />
-      <PlansPanel
-        plan={plan}
-        daysLeft={plan.kind === "trial" ? daysLeft(plan.endsAt) : 0}
-        untilText={plan.kind === "subscribed" ? date(plan.until) : ""}
-        prices={{ monthly: money(pricing.monthly.amount), yearly: money(pricing.yearly.amount) }}
-        ready={{ monthly: await isRazorpayConfigured("monthly"), yearly: await isRazorpayConfigured("yearly") }}
-        testMode={isTestMode()}
-      />
-      <div className="max-w-3xl">
+      {/* Wide screens: the plans on the left, the codes beside them; otherwise one column. */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-start">
+        <PlansPanel
+          plan={plan}
+          daysLeft={plan.kind === "trial" ? daysLeft(plan.endsAt) : 0}
+          untilText={plan.kind === "subscribed" ? date(plan.until) : ""}
+          prices={{ monthly: money(pricing.monthly.amount), yearly: money(pricing.yearly.amount) }}
+          ready={{ monthly: await isRazorpayConfigured("monthly"), yearly: await isRazorpayConfigured("yearly") }}
+          testMode={isTestMode()}
+          offerText={plan.kind === "subscribed" ? "" : (session.offer?.text ?? "")}
+        />
         <CodesPanel referralCode={referralCode} referralDays={REFERRAL_FREE_DAYS} />
       </div>
     </section>

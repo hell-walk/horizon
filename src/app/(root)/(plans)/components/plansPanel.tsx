@@ -17,6 +17,8 @@ type Props = {
   prices: Record<Period, string>;
   ready: Record<Period, boolean>;
   testMode: boolean;
+  /** A discount from a redeemed promo code, e.g. "50% off for 3 months"; empty when none. */
+  offerText: string;
 };
 
 // Razorpay's checkout box, loaded only when someone presses Subscribe.
@@ -48,7 +50,7 @@ const loadCheckout = () => {
 type Outcome = "success" | "pending" | "failed" | null;
 
 /** Where you stand, and the two plans. Paying happens in Razorpay's box, over this page. */
-const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Props) => {
+const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode, offerText }: Props) => {
   const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState<Period | "check" | "cancel" | null>(null);
@@ -161,7 +163,7 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
     }[outcome];
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <section className={cn("panel", plan.kind === "ended" && "border-warn/50")} aria-labelledby="plan-status">
         <div className="panel-body flex flex-col gap-2">
           <h2 id="plan-status" className="font-display text-18 font-semibold text-ink">
@@ -184,6 +186,10 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode }: Prop
           )}
         </div>
       </section>
+
+      {offerText && plan.kind !== "subscribed" && (
+        <p className="chip chip-lime w-fit text-13 normal-case tracking-normal">{t("plan.offerApplied", { text: offerText })}</p>
+      )}
 
       {plan.kind !== "subscribed" && (
         <div className="grid gap-4 sm:grid-cols-2">

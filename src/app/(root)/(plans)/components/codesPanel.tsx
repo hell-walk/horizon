@@ -28,7 +28,11 @@ const CodesPanel = ({ referralCode, referralDays }: { referralCode: string | nul
     try {
       const result = await applyCode({ code });
       if (result.ok) {
-        setMessage({ text: t("plan.codeApplied", { days: result.freeDays, date: dateOf(result.until) }), bad: false });
+        const parts = [
+          result.freeDays > 0 ? t("plan.codeApplied", { days: result.freeDays, date: dateOf(result.until) }) : "",
+          result.discountText ? t("plan.codeDiscountApplied", { text: result.discountText }) : "",
+        ].filter(Boolean);
+        setMessage({ text: parts.join(" ") || t("plan.codeAppliedPlain"), bad: false });
         setCode("");
         startTransition(() => router.refresh());
       } else setMessage({ text: result.error, bad: true });
@@ -50,7 +54,7 @@ const CodesPanel = ({ referralCode, referralDays }: { referralCode: string | nul
   };
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
       <form onSubmit={apply} className="panel">
         <div className="panel-body flex flex-col gap-3">
           <h2 className="eyebrow text-ink">{t("plan.codeTitle")}</h2>
