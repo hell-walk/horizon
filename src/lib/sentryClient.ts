@@ -1,16 +1,20 @@
-// This file configures the initialization of Sentry on the client.
-// The config you add here will be used whenever a users loads a page in their browser.
+// Sentry in the browser. Not Next's instrumentation-client.ts on purpose:
+// that file runs before the page is interactive, and Sentry's SDK was the
+// heaviest script on every page. components/sentryLater.tsx imports this
+// once the page is idle, so errors are still reported, just not those of
+// the first second or two.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
 
-import { scrubEvent } from "./lib/scrub";
+import { scrubEvent } from "./scrub";
 
 Sentry.init({
   dsn: "https://75900f6fb140b7f0cd23c01019fa6f5a@o4512212505067520.ingest.de.sentry.io/4512212547207248",
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1,
+  // No performance traces from browsers: errors are what matters here, and
+  // tracing is a good part of the SDK's weight and work.
+  tracesSampleRate: 0,
 
   // No session replay: recording visits would need each visitor's consent under
   // GDPR, and a finance app has no business recording screens. Errors only.
@@ -26,6 +30,3 @@ Sentry.init({
   dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
   beforeSend: (event) => scrubEvent(event),
 });
-
-// Instruments client-side navigations so Sentry can trace route transitions.
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

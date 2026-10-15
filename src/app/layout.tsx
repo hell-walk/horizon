@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { JetBrains_Mono, Noto_Sans_Devanagari, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 
 import { I18nProvider } from "@/components/i18nProvider";
+import SentryLater from "@/components/sentryLater";
 import { ThemeProvider } from "@/components/themeProvider";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <I18nProvider locale={locale}>
           <ThemeProvider>{children}</ThemeProvider>
         </I18nProvider>
+        <SentryLater />
       </body>
     </html>
   );

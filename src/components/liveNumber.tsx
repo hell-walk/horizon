@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 
 // Numbers that never sit still: an amount counts up and then keeps drifting
-// like a live balance; digits keep rolling like a departures board. Only
-// transforms of text, a few frames a second, so they cost nothing. Static for
-// people who asked their system for less motion.
+// like a live balance; digits keep rolling like a departures board. Only text
+// changes, about 24 a second (not every frame: each one is a React render),
+// so they cost little. Static for people who asked their system for less motion.
+
+const FRAME_MS = 40;
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
@@ -27,7 +29,13 @@ export function CountUp({ value, prefix = "", duration = 1400 }: { value: number
     let legStart = start + duration;
     const LEG = 1200;
     const PAUSE = 900;
+    let last = 0;
     const tick = (now: number) => {
+      if (now - last < FRAME_MS) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
+      last = now;
       if (now < start + duration) {
         setShown(value * easeOut((now - start) / duration));
       } else {
@@ -67,7 +75,13 @@ export function RollingDigits({ value, duration = 1100 }: { value: string; durat
     let frame = 0;
     const start = performance.now();
     const stagger = duration / (value.length + 2);
+    let last = 0;
     const tick = (now: number) => {
+      if (now - last < FRAME_MS) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
+      last = now;
       const elapsed = now - start;
       const next = value
         .split("")

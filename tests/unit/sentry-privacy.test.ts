@@ -8,14 +8,14 @@ import { scrubEvent } from "@/lib/scrub";
 const root = join(__dirname, "../..");
 
 describe("Sentry privacy", () => {
-  it.each(["sentry.server.config.ts", "sentry.edge.config.ts", "src/instrumentation-client.ts"])("%s turns off collection and scrubs events", (file) => {
+  it.each(["sentry.server.config.ts", "sentry.edge.config.ts", "src/lib/sentryClient.ts"])("%s turns off collection and scrubs events", (file) => {
     const text = readFileSync(join(root, file), "utf8");
     expect(text).toMatch(/dataCollection:\s*\{\s*userInfo: false, cookies: false, httpHeaders: false, httpBodies: \[\], urlQueryParams: false\s*\}/);
     expect(text).toContain("beforeSend: (event) => scrubEvent(event)");
   });
 
   it("records no sessions at all (no replay integration, both sample rates 0)", () => {
-    const text = readFileSync(join(root, "src/instrumentation-client.ts"), "utf8");
+    const text = readFileSync(join(root, "src/lib/sentryClient.ts"), "utf8");
     expect(text).toContain("replaysSessionSampleRate: 0,");
     expect(text).toContain("replaysOnErrorSampleRate: 0,");
     expect(text).not.toContain("replayIntegration");

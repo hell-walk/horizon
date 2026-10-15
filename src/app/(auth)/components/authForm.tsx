@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -18,9 +19,13 @@ import { authFormSchema, cn } from "@/lib/utils";
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";
 import PasswordRules from "./passwordRules";
-import ImportStatement from "@/components/importStatement";
-import PlaidLink from "@/components/plaidLink";
-import SetuLink from "@/components/setuLink";
+
+// Shown only after a sign-up ("add your first bank"), so their code is fetched
+// then, not with the sign-in page: the statement importer alone carries a
+// spreadsheet reader.
+const ImportStatement = dynamic(() => import("@/components/importStatement"), { ssr: false });
+const PlaidLink = dynamic(() => import("@/components/plaidLink"), { ssr: false });
+const SetuLink = dynamic(() => import("@/components/setuLink"), { ssr: false });
 
 // Sign-up sections: anchor id and the message key of the title.
 const SECTIONS = [
