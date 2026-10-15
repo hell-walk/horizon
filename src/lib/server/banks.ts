@@ -22,6 +22,19 @@ const {
 /** Bank rows come back with their access token opened. */
 const withOpenToken = (bank: Bank): Bank => ({ ...bank, accessToken: openSecret(bank.accessToken) });
 
+/** The records store did not answer (down, paused, or a bad key): nothing is known about anyone. */
+export class DataUnavailableError extends Error {
+  constructor(cause: unknown) {
+    super("Horizon's records are not reachable", { cause });
+  }
+}
+
+/**
+ * The profile for a login id, or null when there is none. Throws
+ * DataUnavailableError when the store did not answer: a lookup that failed
+ * must never pass for "no profile yet", or an outage would send everyone to
+ * the setup page (and, when it ended, make them a second profile).
+ */
 export async function getUserInfo({ userId }: getUserInfoProps) {
   try {
     const { database } = await createAdminClient();
@@ -30,7 +43,7 @@ export async function getUserInfo({ userId }: getUserInfoProps) {
     return info ? parseStringify(info) : null;
   } catch (error) {
     logError("Error fetching user info", error);
-    return null;
+    throw new DataUnavailableError(error);
   }
 }
 

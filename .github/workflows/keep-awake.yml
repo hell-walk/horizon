@@ -1,8 +1,12 @@
-# Free Supabase projects pause after a week without use, and a paused project
-# means nobody can sign in. This touches it every three days, for free.
-# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
-#   SUPABASE_URL, SUPABASE_ANON_KEY   (never the service role key)
-name: Keep Supabase awake
+# Free Supabase projects pause after a week without use, and free Appwrite
+# projects pause after a stretch of inactivity too. A paused project means
+# nobody can sign in (Supabase) or see their accounts (Appwrite). This touches
+# both every three days, for free.
+# Needs these repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL, SUPABASE_ANON_KEY            (never the service role key)
+#   APPWRITE_ENDPOINT, APPWRITE_PROJECT, APPWRITE_KEY
+#   (APPWRITE_KEY: a separate API key with only the "databases.read" scope)
+name: Keep the databases awake
 
 on:
   schedule:
@@ -32,3 +36,19 @@ jobs:
             -d '{"email":"keep-awake@example.invalid","password":"not-a-real-account"}')
           echo "lookup $code"
           [ "$code" = "400" ] || [ "$code" = "422" ] || exit 1
+
+      - name: Touch the Appwrite database
+        if: always()
+        env:
+          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT: ${{ secrets.APPWRITE_PROJECT }}
+          APPWRITE_KEY: ${{ secrets.APPWRITE_KEY }}
+        run: |
+          if [ -z "$APPWRITE_ENDPOINT" ] || [ -z "$APPWRITE_PROJECT" ] || [ -z "$APPWRITE_KEY" ]; then
+            echo "Add APPWRITE_ENDPOINT (e.g. https://fra.cloud.appwrite.io/v1), APPWRITE_PROJECT and APPWRITE_KEY as repository secrets."; exit 1
+          fi
+          # Listing the databases is a real, counted request; a paused project answers 403 "project_paused".
+          code=$(curl -s -o /tmp/appwrite.json -w "%{http_code}" "$APPWRITE_ENDPOINT/databases" \
+            -H "X-Appwrite-Project: $APPWRITE_PROJECT" -H "X-Appwrite-Key: $APPWRITE_KEY")
+          echo "databases $code"
+          if [ "$code" != "200" ]; then grep -o '"type":"[a-z_]*"' /tmp/appwrite.json || true; exit 1; fi

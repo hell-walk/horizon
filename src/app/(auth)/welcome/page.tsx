@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession } from "@/lib/server/auth";
-import { getUserInfo } from "@/lib/server/banks";
+import { DataUnavailableError, getUserInfo } from "@/lib/server/banks";
 import { logError } from "@/lib/server/log";
 import { createProfile } from "@/lib/server/profile";
 import { claim, release } from "@/lib/server/shared";
 
 import AuthForm from "../components/authForm";
+import DataUnavailable from "@/components/dataUnavailable";
 
 export const dynamic = "force-dynamic";
 
@@ -24,21 +25,29 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Welcome() {
   const session = await loadSession();
   if (!session) redirect("/sign-in");
-  if (await getLoggedInUser()) redirect("/");
-
   const pending = session.pendingProfile;
-  if (pending && pending.country !== "US") {
-    // One profile per login, even with two tabs open.
-    if (await claim("welcome", session.id, 60_000)) {
-      try {
-        if (!(await getUserInfo({ userId: session.id }))) await createProfile(session.id, session.email, pending);
-      } catch (error) {
-        logError("welcome: could not create the profile", error);
-      } finally {
-        await release("welcome", session.id);
+  try {
+    if (await getLoggedInUser()) redirect("/");
+
+    if (pending && pending.country !== "US") {
+      // One profile per login, even with two tabs open.
+      if (await claim("welcome", session.id, 60_000)) {
+        try {
+          if (!(await getUserInfo({ userId: session.id }))) await createProfile(session.id, session.email, pending);
+        } catch (error) {
+          if (error instanceof DataUnavailableError) throw error;
+          logError("welcome: could not create the profile", error);
+        } finally {
+          await release("welcome", session.id);
+        }
       }
+      if (await getUserInfo({ userId: session.id })) redirect("/");
     }
-    if (await getUserInfo({ userId: session.id })) redirect("/");
+  } catch (error) {
+    // The records store is not answering: no setup form, or a second profile
+    // could be made once it is back.
+    if (error instanceof DataUnavailableError) return <DataUnavailable />;
+    throw error;
   }
 
   return (

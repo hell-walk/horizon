@@ -6,12 +6,13 @@ import PlanBanner from "./components/planBanner";
 import ScrollCalm from "./components/scrollCalm";
 import Topbar from "./components/topbar";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
-import { getBanks } from "@/lib/server/banks";
+import { DataUnavailableError, getBanks } from "@/lib/server/banks";
 import { currentPlan } from "@/lib/server/plan";
 import { loadExtraTerms } from "@/lib/server/terms";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { daysLeft } from "@/lib/plans";
+import DataUnavailable from "@/components/dataUnavailable";
 
 // Every page in this group depends on the session cookie, so never prerender them.
 export const dynamic = "force-dynamic";
@@ -26,7 +27,15 @@ async function planLine(plan: NonNullable<Awaited<ReturnType<typeof currentPlan>
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const loggedIn = await getLoggedInUser();
+  let loggedIn: User | null;
+  try {
+    loggedIn = await getLoggedInUser();
+  } catch (error) {
+    // The records store is not answering: say so, rather than treat everyone
+    // as new and send them to the setup page.
+    if (error instanceof DataUnavailableError) return <DataUnavailable />;
+    throw error;
+  }
   // Signed in without a profile (first time with Google): finish setting up first.
   if (!loggedIn) redirect((await loadSession()) ? "/welcome" : "/sign-in");
 

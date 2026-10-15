@@ -19,7 +19,7 @@ import { SiteConfigError, siteUrl } from "../site";
 import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
-import { createBankAccount, getUserInfo } from "../server/banks";
+import { createBankAccount, DataUnavailableError, getUserInfo } from "../server/banks";
 import { createProfile, pendingFrom, PROFILE_FIELDS, profileIsValid, type ProfileInput } from "../server/profile";
 import { newSharableId } from "../server/crypto";
 import { addFundingSource } from "../server/dwolla";
@@ -161,13 +161,13 @@ export const completeProfile = async (input: ProfileInput & { terms: boolean }):
     if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
     // One profile per login, even when the form is sent twice.
     if (!(await allow(`welcome:${session.id}`, 1, MINUTE))) return tooMany(t);
-    if (await getUserInfo({ userId: session.id })) return { ok: true };
-
     try {
+        if (await getUserInfo({ userId: session.id })) return { ok: true };
         const profileId = await createProfile(session.id, session.email, input);
         revalidatePath("/", "layout");
         return { ok: true, user: { $id: profileId, userId: session.id, email: session.email, firstName: input.firstName, lastName: input.lastName, name: `${input.firstName} ${input.lastName}` } as User };
     } catch (error) {
+        if (error instanceof DataUnavailableError) return { ok: false, error: t("common.dataUnavailableBody") };
         logError("finishing the profile failed", error);
         return { ok: false, error: t("auth.errorSignUp") };
     }

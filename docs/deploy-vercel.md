@@ -15,8 +15,8 @@ free beta. Before switching on live payments, move to Vercel Pro or another host
 - Vercel runs several copies of the server at once. Rate limits, the trial's
   daily count, the transfer guard and the "usually left over" figure are shared
   through Upstash; each person's bank data is only reused within one request.
-- `.github/workflows/keep-supabase-awake.yml` keeps the free Supabase project
-  from pausing (see step 6).
+- `.github/workflows/keep-awake.yml` keeps the free Supabase and Appwrite
+  projects from pausing (see step 6).
 
 ## 1. Create the project
 
@@ -102,11 +102,19 @@ below and change it later.
 - **Sentry**: Settings -> Security & Privacy -> turn on *Prevent Storing of IP
   Addresses* (the privacy policy says Sentry does not keep them).
 
-## 6. Keep Supabase awake
+## 6. Keep the databases awake
+
+Free Supabase and Appwrite projects pause when nothing touches them for a
+while. A paused Supabase means nobody can sign in; a paused Appwrite means
+nobody sees their accounts (Horizon shows "cannot reach its records" until
+you restore the project in the Appwrite console).
 
 GitHub -> the repository -> **Settings -> Secrets and variables -> Actions**:
-add `SUPABASE_URL` and `SUPABASE_ANON_KEY` (never the service role key). Then
-**Actions -> Keep Supabase awake -> Run workflow** once to check it. GitHub
+add `SUPABASE_URL` and `SUPABASE_ANON_KEY` (never the service role key), and
+`APPWRITE_ENDPOINT`, `APPWRITE_PROJECT` and `APPWRITE_KEY`. For the key, make a
+new one in the Appwrite console (Overview -> Integrations -> API keys) with
+only the `databases.read` scope; never reuse the server's key. Then
+**Actions -> Keep the databases awake -> Run workflow** once to check it. GitHub
 stops scheduled workflows after 60 days without a commit; it emails you first.
 
 ## 7. Check it
