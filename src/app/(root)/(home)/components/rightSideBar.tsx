@@ -6,6 +6,7 @@ import { getT } from "@/lib/i18n/server";
 
 import BankInfo from "./BankInfo";
 import CardStack from "@/components/cardStack";
+import { canTransfer } from "@/lib/transfers";
 import Copy from "@/components/Copy";
 
 // Right column on Home. Pinned while the main column scrolls: it holds the
@@ -16,10 +17,11 @@ const RightSideBar = async ({ user, banks, selected, spending }: RightSidebarPro
 
   return (
     <aside className="no-scrollbar flex w-full flex-col gap-4 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem-3.5rem)] xl:w-[340px] xl:shrink-0 xl:overflow-y-auto">
+      {/* Wide screens only: below xl the Home page shows the cards under the balances chart. */}
       {banks.length > 0 && (
-        <section className="flex flex-col gap-3">
+        <section className="hidden flex-col gap-3 xl:flex">
           <CardStack accounts={banks} selected={current?.appwriteItemId} userName={`${user.firstName} ${user.lastName}`} mode="url" />
-          {current && <Copy title={current.sharableId} />}
+          {current && canTransfer(current) && <Copy title={current.sharableId} />}
         </section>
       )}
 

@@ -25,6 +25,7 @@ import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { getT } from "@/lib/i18n/server";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
+import CardStack from "@/components/cardStack";
 import { BarsLoader } from "@/components/loaders";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -76,6 +77,13 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             totalsByCurrency={accounts.totalsByCurrency}
             primaryCurrency={accounts.primaryCurrency}
           />
+
+          {/* Phones and tablets: the bank cards right under the balances, not at the end of the page. */}
+          {accountsData.length > 0 && (
+            <div className="xl:hidden">
+              <CardStack accounts={accountsData} selected={appwriteItemId} userName={`${loggedIn.firstName} ${loggedIn.lastName}`} mode="url" />
+            </div>
+          )}
 
           <Suspense fallback={null}>
             <CombinedTotal
