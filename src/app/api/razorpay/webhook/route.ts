@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
   // the answer has gone out: `after` keeps the function alive for that write,
   // where a plain fire-and-forget was cut off the moment Razorpay got its reply.
   const answer = (status: number, entry: { event?: string; subscriptionId?: string; login?: string; outcome: WebhookOutcome; error?: unknown }) => {
-    const record = () => recordWebhook({ ...entry, status });
+    const writeRow = () => recordWebhook({ ...entry, status });
     try {
-      after(record);
+      after(writeRow);
     } catch {
-      void record(); // outside a Next request (the tests call POST directly)
+      void writeRow(); // outside a Next request (the tests call POST directly)
     }
     return NextResponse.json({ ok: status < 400 }, { status });
   };
