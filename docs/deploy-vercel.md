@@ -34,6 +34,8 @@ free beta. Before switching on live payments, move to Vercel Pro or another host
 | `NEXT_PUBLIC_APPWRITE_ENDPOINT`, `NEXT_PUBLIC_APPWRITE_PROJECT` | as in `.env` |
 | `APPWRITE_DATABASE_ID`, `APPWRITE_USER_COLLECTION_ID`, `APPWRITE_BANK_COLLECTION_ID`, `APPWRITE_TRANSACTION_COLLECTION_ID`, `APPWRITE_STATEMENT_COLLECTION_ID`, `APPWRITE_FEEDBACK_COLLECTION_ID` | as in `.env` |
 | `NEXT_APPWRITE_KEY` | as in `.env` |
+| `APPWRITE_CODES_COLLECTION_ID` | as in `.env` (promo and referral codes; without it, codes cannot be redeemed) |
+| `APPWRITE_WEBHOOK_LOG_COLLECTION_ID`, `APPWRITE_TERMS_COLLECTION_ID`, `APPWRITE_SETTINGS_COLLECTION_ID` | as in `.env`, once the admin portal's setup has made these tables; without the first, Razorpay's deliveries are not written down |
 | `DATA_ENCRYPTION_KEY` | **exactly** as in `.env`: a different key makes stored bank tokens unreadable |
 | `PLAID_*`, `DWOLLA_*`, `SETU_*` | as in `.env` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | as in `.env` |
