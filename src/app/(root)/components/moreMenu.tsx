@@ -60,12 +60,12 @@ const MoreMenu = ({ variant }: { variant: "bar" | "bottom" }) => {
           aria-label={t("nav.moreTitle")}
           aria-current={current ? "page" : undefined}
           className={cn(
-            "flex h-14 items-center justify-center gap-2 rounded-full transition-[background-color,color,padding] duration-300",
-            current ? "bg-lime px-5 text-lime-foreground" : "w-14 text-primary-foreground/70 hover:text-primary-foreground",
+            "flex h-12 items-center justify-center gap-2 rounded-full transition-[background-color,color,padding] duration-300",
+            current ? "bg-lime px-4 text-lime-foreground" : "w-12 text-primary-foreground/70 hover:text-primary-foreground",
           )}
         >
-          <MoreHorizontal className="size-[22px] shrink-0" strokeWidth={current ? 2.25 : 1.75} />
-          {current && <span className="font-display text-13 font-semibold uppercase tracking-wide">{t("nav.more")}</span>}
+          <MoreHorizontal className="size-5 shrink-0" strokeWidth={current ? 2.25 : 1.75} />
+          {current && <span className="font-display text-12 font-semibold uppercase tracking-wide">{t("nav.more")}</span>}
         </SheetTrigger>
         <SheetContent side="bottom" className="rounded-t-lg border-line bg-surface-low px-4 pb-8 pt-5">
           <SheetTitle className="eyebrow mb-3 text-ink">{t("nav.moreTitle")}</SheetTitle>
