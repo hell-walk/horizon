@@ -1,22 +1,22 @@
 import { DEFAULT_LOCALE, type Locale } from "./config";
-import { MESSAGES } from "./messages";
+import { MESSAGES, type Messages } from "./messages";
+import { translatorFor, type Translate } from "./translator";
 
-export type Vars = Record<string, string | number>;
+export type { Translate, Vars } from "./translator";
 
-/**
- * t("area.key", { name: "Asha" }) looks the text up in the chosen language,
- * falls back to English, and fills {placeholders}. For counts, write two keys,
- * "area.key_one" and "area.key_other", and pass { count }: t picks the right one.
- * A missing key shows the key itself, so it is easy to spot (and a test fails).
- */
-export type Translate = (key: string, vars?: Vars) => string;
+// The server side: every language is here (MESSAGES). The browser gets one
+// language as data and only the small helper in ./translator.ts as script.
 
 export function makeTranslator(locale: Locale): Translate {
-  const own = MESSAGES[locale];
-  const fallback = MESSAGES[DEFAULT_LOCALE];
-  return (key, vars) => {
-    const pluralKey = vars && typeof vars.count === "number" ? `${key}_${vars.count === 1 ? "one" : "other"}` : null;
-    const text = (pluralKey && (own[pluralKey] ?? fallback[pluralKey])) ?? own[key] ?? fallback[key] ?? key;
-    return vars ? text.replace(/\{(\w+)\}/g, (match, name) => (name in vars ? String(vars[name]) : match)) : text;
-  };
+  return translatorFor(messagesFor(locale));
+}
+
+/**
+ * One language's text with English filling any gaps: what the browser gets.
+ * The server holds every language (MESSAGES); the browser only needs the one
+ * on screen, so this is handed to it as data instead of shipping all of them
+ * as script.
+ */
+export function messagesFor(locale: Locale): Messages {
+  return locale === DEFAULT_LOCALE ? MESSAGES[DEFAULT_LOCALE] : { ...MESSAGES[DEFAULT_LOCALE], ...MESSAGES[locale] };
 }

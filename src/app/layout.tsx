@@ -7,6 +7,7 @@ import SentryLater from "@/components/sentryLater";
 import { ThemeProvider } from "@/components/themeProvider";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { messagesFor } from "@/lib/i18n/translate";
 
 import "./globals.css";
 
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <a href="#main" className="skip-link">
           {t("common.skipToContent")}
         </a>
-        <I18nProvider locale={locale}>
+        <I18nProvider locale={locale} messages={messagesFor(locale)}>
           <ThemeProvider>{children}</ThemeProvider>
         </I18nProvider>
         <SentryLater />
