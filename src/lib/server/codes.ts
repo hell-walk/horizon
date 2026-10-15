@@ -3,7 +3,7 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { ID, Query } from "node-appwrite";
 
-import { planFrom, readSubscription, REFERRAL_FREE_DAYS, type Subscription } from "../plans";
+import { type PendingOffer, planFrom, readSubscription, REFERRAL_FREE_DAYS, type Subscription } from "../plans";
 import type { SessionUser } from "./auth";
 import { createAdminClient } from "./appwrite";
 import { saveSubscription } from "./plan";
@@ -11,7 +11,9 @@ import { createSupabaseAdmin } from "./supabase";
 
 // Promo codes (made by the team, for anyone) and referral codes (one per
 // person). Redeeming one gives free days: a "comp" subscription that does not
-// renew, or more days on one already there. Paid subscribers are not touched:
+// renew, or more days on one already there. A promo code may instead (or as
+// well) carry a Razorpay offer: a discount applied when the person subscribes,
+// remembered on the login until then. Paid subscribers are not touched:
 // Razorpay bills on its own schedule, so free days would mean nothing to them.
 // A login can redeem one code, ever (kept on the login, which only the server
 // writes); a referral also gives the referrer the same free days.
@@ -29,7 +31,12 @@ export type Code = {
   uses: number;
   expiresAt: string;
   active: boolean;
+  /** A Razorpay offer id (Dashboard -> Offers), applied at checkout; empty when the code only gives days. */
+  offerId: string;
+  /** What the discount is, in the person's words: "50% off for the first 3 months". */
+  discountText: string;
 };
+
 
 const fromRow = (row: Record<string, unknown> & { $id: string }): Code => ({
   id: row.$id,
@@ -41,6 +48,8 @@ const fromRow = (row: Record<string, unknown> & { $id: string }): Code => ({
   uses: Number(row.uses) || 0,
   expiresAt: String(row.expiresAt ?? ""),
   active: row.active !== false,
+  offerId: String(row.offerId ?? ""),
+  discountText: String(row.discountText ?? ""),
 });
 
 /** Codes are typed by people: upper case, no spaces or dashes to get wrong. */
@@ -90,7 +99,8 @@ export async function myReferralCode(session: SessionUser): Promise<string | nul
 }
 
 export type RedeemOutcome =
-  { ok: true; freeDays: number; until: number } | { ok: false; reason: "unknown" | "expired" | "used-up" | "own" | "already" | "subscribed" | "not-ready" };
+  | { ok: true; freeDays: number; until: number; discountText: string }
+  | { ok: false; reason: "unknown" | "expired" | "used-up" | "own" | "already" | "subscribed" | "not-ready" };
 
 /** Free days for one login: a comp subscription, or more days on the one there. Returns the new paid-up date. */
 export async function grantFreeDays(login: { id: string; joinedAt: number; subscription: Subscription | null }, freeDays: number): Promise<number> {
@@ -127,9 +137,11 @@ export async function redeemCode(session: SessionUser, raw: string): Promise<Red
   // Count the use first: two tabs redeeming at once must not both get in under the cap.
   const { database } = await createAdminClient();
   await database.updateDocument(DATABASE_ID!, CODES!, found.id, { uses: found.uses + 1 });
-  const until = await grantFreeDays({ id: session.id, joinedAt: session.joinedAt, subscription: current }, found.freeDays);
-  // Remembered on the login, next to the subscription (saveSubscription keeps other app_metadata keys).
-  await admin.auth.admin.updateUserById(session.id, { app_metadata: { redeemed_code: code } });
+  const until = found.freeDays > 0 ? await grantFreeDays({ id: session.id, joinedAt: session.joinedAt, subscription: current }, found.freeDays) : (current?.until ?? 0);
+  // Remembered on the login, next to the subscription (saveSubscription keeps
+  // other app_metadata keys). A discount waits there until they subscribe.
+  const offer: PendingOffer | null = found.offerId ? { id: found.offerId, text: found.discountText, code } : null;
+  await admin.auth.admin.updateUserById(session.id, { app_metadata: { redeemed_code: code, ...(offer ? { offer } : {}) } });
 
   if (found.kind === "referral" && found.ownerId) {
     // The referrer gets the same, unless they pay already (Razorpay bills them on its own schedule).
@@ -142,5 +154,5 @@ export async function redeemCode(session: SessionUser, raw: string): Promise<Red
       }
     }
   }
-  return { ok: true, freeDays: found.freeDays, until };
+  return { ok: true, freeDays: found.freeDays, until, discountText: offer ? found.discountText : "" };
 }

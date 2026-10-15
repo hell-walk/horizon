@@ -74,3 +74,13 @@ export function mergeSubscription(known: Subscription | null, fresh: Subscriptio
   const status = known.status === "cancelled" && fresh.status === "active" ? "cancelled" : fresh.status;
   return { ...fresh, status, until: Math.max(known.until, fresh.until) };
 }
+
+/** The discount waiting on a login, from a redeemed code, until they subscribe. */
+export type PendingOffer = { id: string; text: string; code: string };
+
+export function readOffer(raw: unknown): PendingOffer | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  if (typeof o.id !== "string" || !o.id) return null;
+  return { id: o.id, text: typeof o.text === "string" ? o.text : "", code: typeof o.code === "string" ? o.code : "" };
+}

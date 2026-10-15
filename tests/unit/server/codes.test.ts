@@ -55,6 +55,7 @@ const session = (id: string, joinedDaysAgo = 1) => ({
   joinedAt: Date.now() - joinedDaysAgo * DAY,
   subscription: null,
   pendingProfile: null,
+  offer: null,
 });
 const login = (id: string, app_metadata: Record<string, unknown> = {}) =>
   state.logins.set(id, { id, created_at: new Date(Date.now() - DAY).toISOString(), app_metadata });
@@ -94,6 +95,22 @@ describe("promo codes", () => {
       expect(await redeemCode(session("u2"), code), code).toEqual({ ok: false, reason });
     }
     expect(state.logins.get("u2")!.app_metadata.redeemed_code).toBeUndefined();
+  });
+
+  it("keeps a discount code's offer on the login for checkout, with or without free days", async () => {
+    login("u4");
+    promo("HALF3", { freeDays: 0, offerId: "offer_abc", discountText: "50% off for the first 3 months" });
+    const result = await redeemCode(session("u4"), "half3");
+    expect(result).toMatchObject({ ok: true, freeDays: 0, discountText: "50% off for the first 3 months" });
+    const meta = state.logins.get("u4")!.app_metadata;
+    expect(meta.offer).toEqual({ id: "offer_abc", text: "50% off for the first 3 months", code: "HALF3" });
+    expect(meta.subscription).toBeUndefined(); // no free days, so no comp subscription
+    expect(state.rows.get("row-HALF3")!.uses).toBe(1);
+
+    login("u5");
+    promo("BOTH", { freeDays: 7, offerId: "offer_both", discountText: "20% off for a year" });
+    expect(await redeemCode(session("u5"), "BOTH")).toMatchObject({ ok: true, freeDays: 7, discountText: "20% off for a year" });
+    expect(state.logins.get("u5")!.app_metadata).toMatchObject({ offer: { id: "offer_both" }, subscription: { status: "cancelled" } });
   });
 
   it("does nothing for a paying subscriber (Razorpay bills on its own schedule)", async () => {

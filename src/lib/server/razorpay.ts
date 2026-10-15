@@ -60,15 +60,17 @@ export async function toSubscription(sub: RazorpaySubscription): Promise<Subscri
  * Starts a subscription for one login and returns Razorpay's payment page.
  * The login's id travels in the notes, so the webhook knows whose it is.
  */
-export async function createSubscription(period: Period, loginId: string) {
+export async function createSubscription(period: Period, loginId: string, offerId = "") {
   const planId = await planIdOf(period);
   if (!planId) throw new Error(`razorpay: no plan for ${period}`);
-  // Razorpay needs a number of charges: about ten years either way.
+  // Razorpay needs a number of charges: about ten years either way. An offer
+  // (a discount from a promo code, made in Razorpay's dashboard) goes with it.
   const sub = await call<RazorpaySubscription>("POST", "/subscriptions", {
     plan_id: planId,
     total_count: period === "monthly" ? 120 : 10,
     customer_notify: 1,
-    notes: { login: loginId },
+    notes: { login: loginId, ...(offerId ? { code_offer: offerId } : {}) },
+    ...(offerId ? { offer_id: offerId } : {}),
   });
   return sub;
 }

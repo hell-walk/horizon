@@ -29,7 +29,8 @@ const call = async (method, path, body) => {
 
 // One row per code. kind: "promo" (made by the team, for anyone) or "referral"
 // (one per person, made when they first see it). ownerId is the referrer's
-// login id for referral codes. freeDays is what redeeming gives.
+// login id for referral codes. freeDays is what redeeming gives; offerId is
+// a Razorpay discount applied at checkout instead of, or as well as, days.
 const FIELDS = [
   ["code", "string", { size: 32, required: true }],
   ["kind", "string", { size: 16, required: true }],
@@ -40,6 +41,10 @@ const FIELDS = [
   ["expiresAt", "string", { size: 32, required: false }],
   ["active", "boolean", { required: false }],
   ["note", "string", { size: 200, required: false }],
+  // A Razorpay offer (Dashboard -> Offers, for Subscriptions) applied when the
+  // person subscribes, and the words shown to them, e.g. "50% off for 3 months".
+  ["offerId", "string", { size: 64, required: false }],
+  ["discountText", "string", { size: 120, required: false }],
 ];
 
 const steps = [];

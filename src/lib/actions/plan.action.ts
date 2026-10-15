@@ -47,7 +47,14 @@ export async function startSubscription(input: { period: Period }): Promise<Star
       if (again?.status === "created" && again.short_url)
         return { ok: true, url: again.short_url, subscriptionId: again.id, keyId: process.env.RAZORPAY_KEY_ID! };
     }
-    const created = await createSubscription(period, session.id);
+    // A discount from a promo code goes with it. Should Razorpay refuse the
+    // offer (expired, or not for this plan), the subscription is started at
+    // the full price: the checkout box shows the amount before anyone pays.
+    const created = await createSubscription(period, session.id, session.offer?.id ?? "").catch(async (error) => {
+      if (!session.offer?.id) throw error;
+      logError("plan: Razorpay refused the code's offer; starting without it", error);
+      return createSubscription(period, session.id);
+    });
     const stored = await toSubscription(created);
     if (!stored || !created.short_url) throw new Error("razorpay: unexpected subscription");
     await saveSubscription(session.id, stored);
@@ -136,7 +143,7 @@ export async function cancelMySubscription(): Promise<{ ok: true; until: number 
 }
 
 /** Redeems a promo or referral code for free days. One code per login, ever. */
-export async function applyCode(input: { code: string }): Promise<{ ok: true; freeDays: number; until: number } | Failure> {
+export async function applyCode(input: { code: string }): Promise<{ ok: true; freeDays: number; until: number; discountText: string } | Failure> {
   const t = await getT();
   const session = await loadSession();
   if (!session) return { ok: false, error: t("plan.errSignIn") };

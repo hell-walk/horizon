@@ -4,6 +4,9 @@
 //   node scripts/make-code.mjs LAUNCH30 30                       # dry run
 //   node scripts/make-code.mjs LAUNCH30 30 --apply               # 30 free days, unlimited uses
 //   node scripts/make-code.mjs FRIENDS 14 --uses 50 --until 2026-12-31 --note "friends" --apply
+//   node scripts/make-code.mjs HALF3 0 --offer offer_XXXX --text "50% off for the first 3 months" --apply
+//                                                              # a discount: the offer is made in Razorpay
+//                                                              # (Dashboard -> Offers, for Subscriptions)
 //   node scripts/make-code.mjs LAUNCH30 --off --apply            # switch a code off
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -21,8 +24,11 @@ const off = args.includes("--off");
 const [rawCode, daysText] = args.filter((a, i) => !a.startsWith("--") && (i === 0 || !args[i - 1].startsWith("--") || ["--apply", "--off"].includes(args[i - 1])));
 const code = String(rawCode ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const days = Number(daysText);
-if (code.length < 4 || code.length > 32 || (!off && !(Number.isInteger(days) && days > 0 && days <= 3660))) {
-  console.error("Usage: node scripts/make-code.mjs <CODE> <free days> [--uses N] [--until YYYY-MM-DD] [--note text] [--apply]   or   <CODE> --off --apply");
+const offerId = flag("--offer") ?? "";
+const discountText = (flag("--text") ?? "").slice(0, 120);
+const daysOk = Number.isInteger(days) && days >= (offerId ? 0 : 1) && days <= 3660;
+if (code.length < 4 || code.length > 32 || (!off && !daysOk) || (offerId && !discountText)) {
+  console.error("Usage: node scripts/make-code.mjs <CODE> <free days> [--uses N] [--until YYYY-MM-DD] [--note text] [--offer offer_id --text \"what the discount is\"] [--apply]   or   <CODE> --off --apply");
   process.exit(1);
 }
 
@@ -49,6 +55,6 @@ if (existing) throw new Error(`${code} exists already (${existing.active === fal
 const maxUses = Number(flag("--uses") ?? 0);
 const until = flag("--until") ?? "";
 if (until && Number.isNaN(Date.parse(until))) throw new Error("--until must be a date like 2026-12-31");
-const row = { code, kind: "promo", ownerId: "", freeDays: days, maxUses, uses: 0, expiresAt: until ? new Date(until).toISOString() : "", active: true, note: (flag("--note") ?? "").slice(0, 200) };
-console.log(`${apply ? "Creating" : "Dry run: would create"} ${code}: ${days} free days, ${maxUses ? `${maxUses} uses` : "unlimited uses"}${until ? `, until ${until}` : ""}.`);
+const row = { code, kind: "promo", ownerId: "", freeDays: days, maxUses, uses: 0, expiresAt: until ? new Date(until).toISOString() : "", active: true, note: (flag("--note") ?? "").slice(0, 200), offerId, discountText };
+console.log(`${apply ? "Creating" : "Dry run: would create"} ${code}: ${days} free days${offerId ? `, discount "${discountText}" (${offerId})` : ""}, ${maxUses ? `${maxUses} uses` : "unlimited uses"}${until ? `, until ${until}` : ""}.`);
 if (apply) await db.createDocument(DB, COL, ID.unique(), row);

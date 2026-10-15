@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { readSubscription, type Subscription } from "../plans";
+import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
 import { getUserInfo } from "./banks";
 import { readPending, type ProfileInput } from "./profile";
@@ -28,6 +28,8 @@ export type SessionUser = {
   subscription: Subscription | null;
   /** Details typed at sign-up, waiting for the profile to be created (after the email is confirmed). */
   pendingProfile: ProfileInput | null;
+  /** A discount from a redeemed promo code, waiting to be used at checkout. */
+  offer: PendingOffer | null;
 };
 
 // Asks Supabase on every request (getUser, not the cookie alone), so a deleted
@@ -48,6 +50,7 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
       lastSignInAt: Date.parse(data.user.last_sign_in_at ?? "") || 0,
       joinedAt: Date.parse(data.user.created_at ?? "") || Date.now(),
       subscription: readSubscription(data.user.app_metadata?.subscription),
+      offer: readOffer(data.user.app_metadata?.offer),
       pendingProfile: data.user.user_metadata?.terms_accepted_at ? readPending(meta.pending_profile) : null,
     };
   } catch {
