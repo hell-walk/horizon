@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 
 import { mergeSubscription, readSubscription } from "@/lib/plans";
 import { logError } from "@/lib/server/log";
@@ -39,10 +39,16 @@ async function boundedBody(request: NextRequest): Promise<string | null> {
 }
 
 export async function POST(request: NextRequest) {
-  // Each delivery is written down for the admin portal's Payments page, without
-  // ever holding up the answer Razorpay gets.
+  // Each delivery is written down for the admin portal's Payments page, after
+  // the answer has gone out: `after` keeps the function alive for that write,
+  // where a plain fire-and-forget was cut off the moment Razorpay got its reply.
   const answer = (status: number, entry: { event?: string; subscriptionId?: string; login?: string; outcome: WebhookOutcome; error?: unknown }) => {
-    void recordWebhook({ ...entry, status });
+    const record = () => recordWebhook({ ...entry, status });
+    try {
+      after(record);
+    } catch {
+      void record(); // outside a Next request (the tests call POST directly)
+    }
     return NextResponse.json({ ok: status < 400 }, { status });
   };
 
