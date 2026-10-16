@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import PaymentTransferForm from "../components/PaymentTransferForm";
+import ComingSoon from "@/components/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
@@ -40,7 +41,9 @@ const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
           </Link>
         </div>
       ) : (
-        <PaymentTransferForm accounts={accountsData} initialId={await activeAccountId(accountsData, id)} />
+        <ComingSoon>
+          <PaymentTransferForm accounts={accountsData} initialId={await activeAccountId(accountsData, id)} />
+        </ComingSoon>
       )}
     </section>
   );

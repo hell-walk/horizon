@@ -3,6 +3,7 @@ import { FileSpreadsheet, Landmark, ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import AccountsTable from "@/components/accountsTable";
+import ComingSoon from "@/components/comingSoon";
 import ImportStatement from "@/components/importStatement";
 import PlaidLink from "@/components/plaidLink";
 import SetuLink from "@/components/setuLink";
@@ -28,45 +29,45 @@ const ConnectBank = async () => {
 
   return (
     <section className="page">
-      <HeaderBox
-        eyebrow={t("connect.eyebrow")}
-        title={t("connect.title")}
-        subtext={t("connect.subtext")}
-      />
+      <HeaderBox eyebrow={t("connect.eyebrow")} title={t("connect.title")} subtext={t("connect.subtext")} />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <ProviderCard
-          label={t("connect.plaidEyebrow")}
-          icon={Landmark}
-          title="Plaid"
-          region={t("connect.plaidRegion")}
-          linked={count("plaid")}
-          linkedLabel={linkedLabel(count("plaid"))}
-          description={t("connect.plaidDescription")}
-          facts={[
-            [t("connect.plaidFactUpdates"), t("connect.plaidFactUpdatesValue")],
-            [t("connect.plaidFactSend"), t("connect.plaidFactSendValue")],
-          ]}
-        >
-          <PlaidLink user={loggedIn} />
-        </ProviderCard>
+        <ComingSoon>
+          <ProviderCard
+            label={t("connect.plaidEyebrow")}
+            icon={Landmark}
+            title="Plaid"
+            region={t("connect.plaidRegion")}
+            linked={count("plaid")}
+            linkedLabel={linkedLabel(count("plaid"))}
+            description={t("connect.plaidDescription")}
+            facts={[
+              [t("connect.plaidFactUpdates"), t("connect.plaidFactUpdatesValue")],
+              [t("connect.plaidFactSend"), t("connect.plaidFactSendValue")],
+            ]}
+          >
+            <PlaidLink user={loggedIn} />
+          </ProviderCard>
+        </ComingSoon>
 
-        <ProviderCard
-          label={t("connect.setuEyebrow")}
-          icon={ShieldCheck}
-          title={t("connect.setuTitle")}
-          region={t("connect.setuRegion")}
-          linked={count("setu")}
-          linkedLabel={linkedLabel(count("setu"))}
-          description={t("connect.setuDescription")}
-          facts={[
-            [t("connect.setuFactAccess"), t("connect.setuFactAccessValue")],
-            [t("connect.setuFactApproval"), t("connect.setuFactApprovalValue")],
-          ]}
-          accent
-        >
-          <SetuLink user={loggedIn} />
-        </ProviderCard>
+        <ComingSoon>
+          <ProviderCard
+            label={t("connect.setuEyebrow")}
+            icon={ShieldCheck}
+            title={t("connect.setuTitle")}
+            region={t("connect.setuRegion")}
+            linked={count("setu")}
+            linkedLabel={linkedLabel(count("setu"))}
+            description={t("connect.setuDescription")}
+            facts={[
+              [t("connect.setuFactAccess"), t("connect.setuFactAccessValue")],
+              [t("connect.setuFactApproval"), t("connect.setuFactApprovalValue")],
+            ]}
+            accent
+          >
+            <SetuLink user={loggedIn} />
+          </ProviderCard>
+        </ComingSoon>
 
         <ProviderCard
           label={t("connect.fileEyebrow")}

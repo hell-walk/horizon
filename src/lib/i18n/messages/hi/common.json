@@ -31,6 +31,8 @@
   "dataUnavailableTitle": "Horizon अपने रिकॉर्ड तक नहीं पहुँच पा रहा",
   "dataUnavailableBody": "आपके खातों वाला डेटाबेस अभी जवाब नहीं दे रहा। कुछ भी खोया नहीं है। कृपया एक मिनट बाद फिर कोशिश करें।",
   "dataUnavailableRetry": "फिर कोशिश करें",
+  "comingSoon": "जल्द आ रहा है",
+  "comingSoonBody": "Horizon का यह हिस्सा बन चुका है, पर अभी खुला नहीं है।",
   "reloadPage": "पेज दोबारा लोड करें",
   "providerPlaid": "Plaid",
   "providerSetu": "Setu AA",
