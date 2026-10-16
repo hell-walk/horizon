@@ -173,8 +173,6 @@ const GoalsBoard = ({ goals, leftOver, currencies, thisMonth, spending }: Props)
         )}
       </div>
       <aside className="order-first flex min-w-0 flex-col gap-6 xl:order-none xl:sticky xl:top-0">
-        {/* The bank cards and the chosen bank's spending (from the page): what the goals compete with. */}
-        {spending}
         {/* What the user usually has left: the ceiling for what goals can ask. */}
         <section className="panel panel-body text-14 text-ink">
           {leftOver.length === 0 ? (
@@ -189,6 +187,9 @@ const GoalsBoard = ({ goals, leftOver, currencies, thisMonth, spending }: Props)
             ))
           )}
         </section>
+
+        {/* The bank cards and the chosen bank's spending (from the page): what the goals compete with. */}
+        {spending}
 
         {goals.length > 0 && (
           <section className="panel" aria-labelledby={`${ids}-whatif`}>

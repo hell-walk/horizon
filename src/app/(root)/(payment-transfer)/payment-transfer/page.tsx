@@ -41,7 +41,7 @@ const PaymentTransfer = async ({ searchParams }: SearchParamProps) => {
           </Link>
         </div>
       ) : (
-        <ComingSoon>
+        <ComingSoon badgeTop="220px">
           <PaymentTransferForm accounts={accountsData} initialId={await activeAccountId(accountsData, id)} />
         </ComingSoon>
       )}

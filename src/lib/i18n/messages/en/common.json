@@ -32,7 +32,6 @@
   "dataUnavailableBody": "The database that holds your accounts is not answering right now. Nothing is lost. Please try again in a minute.",
   "dataUnavailableRetry": "Try again",
   "comingSoon": "Coming soon",
-  "comingSoonBody": "This part of Horizon is built but not open yet.",
   "reloadPage": "Reload page",
   "providerPlaid": "Plaid",
   "providerSetu": "Setu AA",
