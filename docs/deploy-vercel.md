@@ -143,6 +143,32 @@ the webhook, every required setting, Supabase's email confirmation, and that
 the Razorpay plans match the prices in the code. All should pass before
 inviting users.
 
+## 8. Get found on Google and Bing
+
+The site already tells search engines what to read: `/robots.txt` lets them
+into the landing page, sign-in, sign-up, pricing and the policies;
+`/sitemap.xml` lists those pages (and the landing screenshots); each page has
+its title, description, canonical link and share picture.
+
+1. **Google Search Console** (search.google.com/search-console), signed in
+   with the Google account that should own the site. Add a property:
+   - *Domain* (recommended): type `lazyistudio.in`. Google shows a TXT record
+     (`google-site-verification=...`). In Cloudflare -> DNS -> Records -> Add
+     record: type TXT, name `@`, content the whole value. Back in Search
+     Console press Verify (it can take a few minutes).
+   - or *URL prefix* `https://www.lazyistudio.in/` with the *HTML tag*
+     method: put only the code from the tag in Vercel as
+     `GOOGLE_SITE_VERIFICATION`, redeploy, press Verify.
+2. In Search Console -> **Sitemaps**, submit `sitemap.xml`. Then **URL
+   inspection** -> `https://www.lazyistudio.in/` -> **Request indexing**; the
+   same for `/pricing`.
+3. **Bing Webmaster Tools** (bing.com/webmasters): *Import from Google Search
+   Console* does it all in one click (Bing also feeds DuckDuckGo and Yahoo).
+   Or the HTML-tag way with `BING_SITE_VERIFICATION`.
+
+The first pages usually appear in Google within a few days to two weeks.
+Search Console's *Pages* report shows what is indexed and why anything is not.
+
 ## Free-plan limits to know
 
 - **Supabase free**: 50,000 monthly active users; pauses after 7 days idle

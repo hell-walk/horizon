@@ -11,7 +11,24 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/$", "/sign-in", "/sign-up", "/pricing", "/privacy", "/terms", "/refunds", "/contact"],
+        allow: [
+          "/$",
+          "/sign-in",
+          "/sign-up",
+          "/pricing",
+          "/privacy",
+          "/terms",
+          "/refunds",
+          "/contact",
+          // What those pages are drawn with: Google renders a page with its
+          // styles, scripts and pictures, and ranks it lower when it cannot.
+          "/_next/static/",
+          "/_next/image",
+          "/landing/",
+          "/opengraph-image",
+          "/icon.svg",
+          "/favicon.ico",
+        ],
         disallow: ["/"],
       },
     ],

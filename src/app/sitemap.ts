@@ -2,11 +2,14 @@ import type { MetadataRoute } from "next";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-// Only pages that exist without a session belong in the sitemap.
+// Only pages that exist without a session belong in the sitemap. The sitemap
+// is built once per deployment, so "lastModified" is the deployment's date.
+// The landing page lists its screenshots, so they can appear in image search.
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
+  const shots = ["home", "history", "bills", "goals", "connect"].map((name) => `${siteUrl}/landing/${name}-light.png`);
   return [
-    { url: `${siteUrl}/`, lastModified, changeFrequency: "weekly", priority: 1 },
+    { url: `${siteUrl}/`, lastModified, changeFrequency: "weekly", priority: 1, images: shots },
     { url: `${siteUrl}/sign-in`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${siteUrl}/sign-up`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${siteUrl}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.3 },

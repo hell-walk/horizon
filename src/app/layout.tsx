@@ -40,6 +40,13 @@ export const metadata: Metadata = {
   },
   // Private app: individual pages are noindex, the public entry pages opt back in.
   robots: { index: false, follow: false },
+  // Search engines' ownership checks, when the "HTML tag" method is used (the
+  // codes are public by nature: they sit in every page's head). Google Search
+  // Console and Bing Webmaster Tools each show theirs on their setup page.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
+  },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
