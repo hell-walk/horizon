@@ -169,6 +169,8 @@ export async function deleteUserEverything(user: User) {
   const profile = await getUserInfo({ userId: authId });
   if (profile?.dwollaCustomerUrl) await deactivateCustomer(profile.dwollaCustomerUrl);
   if (FEEDBACK_COLLECTION_ID) await deleteAll(FEEDBACK_COLLECTION_ID, [Query.equal("ownerId", [owner])]);
+  // Their referral code (kept by login id); codes they redeemed belong to others.
+  if (process.env.APPWRITE_CODES_COLLECTION_ID) await deleteAll(process.env.APPWRITE_CODES_COLLECTION_ID, [Query.equal("ownerId", [authId])]);
 
   // The login goes before the profile: if removing it fails, the profile is
   // still there, the person is still signed in, and trying again finishes the
