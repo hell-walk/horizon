@@ -33,11 +33,15 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  let signedIn = false;
   try {
-    await supabase.auth.getClaims();
+    signedIn = Boolean((await supabase.auth.getClaims()).data?.claims);
   } catch {
     // Supabase unreachable: the page treats the visitor as signed out.
   }
+  // A cookie left over from an old sign-in is not a session: such a visitor
+  // still gets the landing page at the root, not a bounce to sign in.
+  if (!signedIn && request.nextUrl.pathname === "/") return NextResponse.rewrite(new URL("/landing", request.url));
   return renewed;
 }
 
