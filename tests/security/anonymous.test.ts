@@ -41,7 +41,15 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("signed-in pages", () => {
-    it.each(["/", "/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals", "/welcome", "/plans", "/feedback"])(
+    it("the root shows the landing page to a visitor, not anyone's Home", async () => {
+      const page = await getPage("/");
+      expect(page.status).toBe(200);
+      expect(page.html).toContain("/sign-up");
+      expect(page.html).toContain("SoftwareApplication"); // the landing page's structured data; Home has none
+      expect(page.html).not.toContain('data-sentry-component="Home"');
+    });
+
+    it.each(["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/goals", "/welcome", "/plans", "/feedback"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);
@@ -163,22 +171,24 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       expect(res.status).toBeGreaterThanOrEqual(400);
     });
 
+    // Each action is posted to the page that uses it: Next only serves an
+    // action from a route whose code reaches it (anything else is a 409).
     it.each([
-      ["sendTransfer", [{ senderBank: "x", sharableId: "y", amount: "1", name: "test", email: "a@b.co", idempotencyKey: crypto.randomUUID() }]],
-      ["setCardDesign", [{ appwriteItemId: "x", design: "auto" }]],
-      ["createLinkToken", []],
-      ["exchangePublicToken", [{ publicToken: "public-sandbox-x" }]],
-      ["createSetuConsent", [{ mobile: "9876543210" }]],
-      ["completeSetuConsent", [{ consentId: "x" }]],
-      ["deleteBank", [{ appwriteItemId: "x" }]],
-      ["exportMyData", []],
-      ["deleteMyAccount", [{ password: "x" }]],
-      ["correctTransaction", [{ accountId: "x", transactionId: "x", category: "Rent" }]],
-      ["undoCorrection", [{ accountId: "x", transactionId: "x" }]],
-      ["saveGoal", [{ name: "Trip", target: 100 }]],
-      ["deleteGoal", [{ id: "g-x" }]],
-    ])("%s refuses without a session", async (name, args) => {
-      const { status, value } = await callAction(name, args);
+      ["sendTransfer", [{ senderBank: "x", sharableId: "y", amount: "1", name: "test", email: "a@b.co", idempotencyKey: crypto.randomUUID() }], "/payment-transfer"],
+      ["setCardDesign", [{ appwriteItemId: "x", design: "auto" }], "/my-banks"],
+      ["createLinkToken", [], "/connect-bank"],
+      ["exchangePublicToken", [{ publicToken: "public-sandbox-x" }], "/connect-bank"],
+      ["createSetuConsent", [{ mobile: "9876543210" }], "/connect-bank"],
+      ["completeSetuConsent", [{ consentId: "x" }], "/connect-bank"],
+      ["deleteBank", [{ appwriteItemId: "x" }], "/my-banks"],
+      ["exportMyData", [], "/my-data"],
+      ["deleteMyAccount", [{ password: "x" }], "/my-data"],
+      ["correctTransaction", [{ accountId: "x", transactionId: "x", category: "Rent" }], "/transaction-history"],
+      ["undoCorrection", [{ accountId: "x", transactionId: "x" }], "/transaction-history"],
+      ["saveGoal", [{ name: "Trip", target: 100 }], "/goals"],
+      ["deleteGoal", [{ id: "g-x" }], "/goals"],
+    ] as [string, unknown[], string][])("%s refuses without a session", async (name, args, path) => {
+      const { status, value } = await callAction(name, args, { path });
       expect(status).toBe(200);
       const text = JSON.stringify(value);
       expect(text).toMatch(/signed in|null|MISSING|"ok":false/);

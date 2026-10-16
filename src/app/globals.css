@@ -780,3 +780,56 @@ html[data-scrolling] .page * {
 *:lang(hi) {
   letter-spacing: normal !important;
 }
+
+/* The landing page's motion: driven by the scroll position itself, no script.
+   Screens in the hero drift up at three speeds as the page scrolls (a little
+   depth), and sections rise in as they enter. Only where the browser supports
+   scroll-driven animation, and never for people who asked for less motion. */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes landing-drift {
+  from {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  to {
+    transform: translateY(var(--drift, -40px)) rotate(var(--tilt, 0deg));
+  }
+}
+.landing-drift-slow,
+.landing-drift-normal,
+.landing-drift-fast {
+  transform: rotate(var(--tilt, 0deg));
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .landing-rise {
+      animation: landing-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    .landing-drift-slow,
+    .landing-drift-normal,
+    .landing-drift-fast {
+      animation: landing-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120vh;
+    }
+    .landing-drift-slow {
+      --drift: -28px;
+    }
+    .landing-drift-normal {
+      --drift: -64px;
+    }
+    .landing-drift-fast {
+      --drift: -104px;
+    }
+  }
+}

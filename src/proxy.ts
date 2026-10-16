@@ -11,8 +11,12 @@ import { isSessionCookie, safeCookie, SESSION_COOKIE_OPTIONS } from "./lib/sessi
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+  const hasSession = request.cookies.getAll().some((c) => isSessionCookie(c.name));
+  // The site's root: Home for people who are signed in, the landing page for
+  // everyone else (shown at "/" itself, so the address stays the same).
+  if (!hasSession && request.nextUrl.pathname === "/") return NextResponse.rewrite(new URL("/landing", request.url));
   // Visitors who are not signed in cost nothing: no call to Supabase.
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !request.cookies.getAll().some((c) => isSessionCookie(c.name))) return response;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !hasSession) return response;
 
   let renewed = response;
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
