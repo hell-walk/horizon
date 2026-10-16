@@ -76,14 +76,14 @@ export default async function PricingPage() {
           {plans.map((plan) => (
             <section key={plan.name} className="panel">
               <div className="panel-body flex h-full flex-col gap-3">
-                <h2 className="eyebrow !mt-0">{plan.name}</h2>
-                <p className="!mt-0 flex items-baseline gap-1">
+                <h2 className="eyebrow mt-0!">{plan.name}</h2>
+                <p className="mt-0! flex items-baseline gap-1">
                   <span className="font-display text-32 font-semibold text-ink">{plan.price}</span>
                   <span className="text-13 text-ink-muted">{plan.per}</span>
                 </p>
-                <ul className="!mt-0 flex !list-none flex-col gap-2 !pl-0 text-14 text-ink">
+                <ul className="mt-0! flex list-none! flex-col gap-2 pl-0! text-14 text-ink">
                   {plan.points.map((point) => (
-                    <li key={point} className="!mt-0 flex items-start gap-2">
+                    <li key={point} className="mt-0! flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden /> {point}
                     </li>
                   ))}

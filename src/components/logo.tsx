@@ -20,7 +20,7 @@ const Logo = async ({ compact = false, className, href = "/" }: { compact?: bool
           <span translate="no" className="whitespace-nowrap font-display text-18 font-bold uppercase tracking-tight text-ink">
             Horizon
           </span>
-          <span className="eyebrow mt-1 whitespace-nowrap text-[11px]">{t("common.logoTagline")}</span>
+          <span className="eyebrow mt-1 whitespace-nowrap">{t("common.logoTagline")}</span>
         </span>
       )}
     </Link>

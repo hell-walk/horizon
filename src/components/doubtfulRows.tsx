@@ -107,7 +107,7 @@ const Row = ({
     <li className={cn("flex flex-col gap-2 rounded-md border border-line bg-card p-3", skipped && "opacity-70")}>
       <p translate="no" className="flex flex-wrap items-baseline gap-x-2">
         <span className="font-mono text-12 text-ink-muted">{row.date}</span>
-        <span className="min-w-0 break-words font-semibold">{row.name || "—"}</span>
+        <span className="min-w-0 wrap-break-word font-semibold">{row.name || "—"}</span>
         <span className={cn("amount ml-auto font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
           {row.type === "debit" ? "-" : "+"}
           {money(row.amount)}

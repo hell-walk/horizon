@@ -23,6 +23,12 @@ export async function serverIsUp() {
   }
 }
 
+/** Actions that exist only while their feature is switched on (Plaid links). */
+export const OPTIONAL_ACTIONS = ["createLinkToken", "exchangePublicToken"];
+
+/** Is this action in the current build? */
+export const hasAction = (name: string) => name in actionIds();
+
 export type ActionResult = { status: number; value: unknown; raw: string; setCookies: string[] };
 
 type CallOptions = { cookie?: string; origin?: string | null; headers?: Record<string, string>; path?: string };

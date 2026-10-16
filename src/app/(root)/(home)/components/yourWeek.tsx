@@ -20,7 +20,7 @@ const YourWeek = async ({ recap, currency }: { recap: WeekRecap; currency?: stri
   return (
     <section className="panel" aria-labelledby="your-week">
       <header className="panel-head">
-        <h2 id="your-week" className="eyebrow flex items-center gap-2 text-ink">
+        <h2 id="your-week" className="eyebrow flex items-center gap-2">
           <CalendarRange className="size-3.5" aria-hidden /> {t("insights.weekTitle")}
         </h2>
         <span className="eyebrow">{t("insights.weekDates", { from: day(recap.from), to: day(recap.to) })}</span>

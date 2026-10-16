@@ -18,10 +18,10 @@
   "guidePassword_other": "Banks usually use your customer ID, account number, date of birth, or a mix of your name and date of birth.",
   "guideCheckEmail": "The email or SMS that came with your statement says exactly which password it uses. That is always the surest answer. The password is only used once to open the file; Horizon does not keep it.",
   "metaTitle": "Connect a bank",
-  "metaDescription": "Connect a bank through Plaid or Setu, or upload a statement from your bank.",
+  "metaDescription": "Upload a statement from your bank. Horizon reads it, checks it with you and sorts every entry.",
   "eyebrow": "Add your bank",
   "title": "Connect a bank",
-  "subtext": "There are three ways: a US bank through Plaid, an Indian bank through RBI's secure bank link (Account Aggregator), or a statement file from your net banking.",
+  "subtext": "Upload a statement file from your net banking or email. Linking your bank directly is coming soon.",
   "linked_one": "{count} connected",
   "linked_other": "{count} connected",
   "notLinked": "Not connected",
@@ -213,5 +213,14 @@
   "datesUnsure": "The file does not show whether dates are day first or month first, so this is our best guess.",
   "datesSwitchToMdy": "Read month first instead",
   "datesSwitchToDmy": "Read day first instead",
-  "last4Missing": "We could not find the account number in this file. Type its last 4 digits, so later statements land in the same account."
+  "last4Missing": "We could not find the account number in this file. Type its last 4 digits, so later statements land in the same account.",
+  "directEyebrow": "Sign in to your bank",
+  "directTitle": "Direct bank link",
+  "directRegion": "Indian and US banks",
+  "directDescription": "Link your bank once and new entries arrive by themselves, without uploading statements.",
+  "directFactUpdates": "Updates",
+  "directFactUpdatesValue": "Automatic",
+  "directFactAccess": "Access",
+  "directFactAccessValue": "View only",
+  "directButton": "Link a bank"
 }

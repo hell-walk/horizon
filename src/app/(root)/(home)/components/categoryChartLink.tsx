@@ -41,7 +41,7 @@ const CategoryChartLink = ({ items, currency, total, href }: { items: RadialBarI
       type="button"
       onClick={open}
       aria-label={t("home.openBreakdown")}
-      className="group relative mx-auto block size-[180px] cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-card md:size-[200px]"
+      className="group relative mx-auto block size-[180px] cursor-pointer rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-card md:size-[200px]"
     >
       <span className={`absolute inset-0 block ${unfolding ? "chart-unfold" : "transition-transform duration-300 group-hover:scale-[1.04]"}`}>
         <RadialBarChart items={items} currency={currency} unfold={unfolding} />

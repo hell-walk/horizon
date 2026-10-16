@@ -60,7 +60,7 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
           </>
         ) : (
           // A soft sheen across the split, like the showcase cards.
-          <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20" />
+          <span className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/10 via-transparent to-black/20" />
         )}
 
         <div className="relative flex items-start justify-between gap-3">
@@ -82,10 +82,10 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
         <div className="relative flex items-center gap-2.5">
           <Chip />
           <Nfc className="size-4 text-white/70" strokeWidth={1.75} />
-          {design.kind === "bank" && <span className="chip ml-auto border-white/30 bg-white/10 text-white">{providerName}</span>}
+          {design.kind === "bank" && <span className="chip ml-auto">{providerName}</span>}
         </div>
 
-        <p translate="no" className="amount relative text-18 tracking-[0.2em]">
+        <p translate="no" className="amount relative text-18">
           <span className="opacity-60">•••• •••• ••••</span> {maskKnown(account.mask) ? account.mask : <span className="opacity-60">••••</span>}
         </p>
 

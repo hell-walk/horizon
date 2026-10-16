@@ -469,11 +469,11 @@ const ImportStatement = ({ variant = "card" }: Props) => {
                         <tr key={i} translate="no">
                           <td className="px-2 py-1.5 align-top">
                             <span className="block font-mono text-ink-muted">{row.date}</span>
-                            <span className="break-words">{row.name}</span>
+                            <span className="wrap-break-word">{row.name}</span>
                           </td>
                           <td className="px-2 py-1.5 align-top">
                             <span className="block font-mono text-ink-muted">{row.savedDate}</span>
-                            <span className="break-words">{row.savedName}</span>
+                            <span className="wrap-break-word">{row.savedName}</span>
                           </td>
                           <td className={cn("amount px-2 py-1.5 text-right align-top font-semibold", row.type === "debit" ? "text-danger" : "text-success")}>
                             {row.type === "debit" ? "-" : "+"}

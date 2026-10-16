@@ -62,7 +62,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
       <header className="panel-head">
         <div className="flex items-center gap-2">
           <span className="eyebrow">{t("history.whereItGoes")}</span>
-          <span className="eyebrow text-ink">{t("history.byPayee")}</span>
+          <span className="eyebrow">{t("history.byPayee")}</span>
         </div>
         {groups.length > 0 && (
           <button
@@ -115,7 +115,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
               }}
             />
           ) : (
-            <div className="size-full rounded-full border-[14px] border-surface-container" />
+            <div className="size-full rounded-full border-14 border-surface-container" />
           )}
           <div className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
             <span translate={active ? "no" : undefined} className="eyebrow">

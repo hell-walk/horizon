@@ -13,7 +13,7 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
 
   return (
     // Always dark, whatever the app theme: the `dark` class re-scopes the tokens.
-    <main className="dark flex min-h-screen w-full flex-col bg-surface text-ink [color-scheme:dark]">
+    <main className="dark flex min-h-screen w-full flex-col bg-surface text-ink scheme-dark">
       {/* Wraps onto two rows on narrow phones (320px) instead of overflowing. */}
       <header className="flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line bg-surface-low px-4 py-2 sm:px-6">
         <Logo href="/sign-in" />
@@ -32,7 +32,7 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
         </div>
       </header>
 
-      <div id="main" tabIndex={-1} className="grid flex-1 outline-none lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div id="main" tabIndex={-1} className="grid flex-1 outline-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <BrandPanel className="hidden lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-56px)]" />
 
         {/* Form */}

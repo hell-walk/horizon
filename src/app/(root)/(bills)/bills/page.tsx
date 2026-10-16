@@ -123,7 +123,7 @@ async function BillsContent({ ownerId }: { ownerId: string }) {
           {withoutForecast.length > 0 && (
             <details className="panel">
               <summary className="panel-head cursor-pointer">
-                <span className="eyebrow text-ink">{t("bills.fcWithout", { count: withoutForecast.length })}</span>
+                <span className="eyebrow">{t("bills.fcWithout", { count: withoutForecast.length })}</span>
               </summary>
               <div className="grid gap-3 p-3 lg:grid-cols-2">
                 {withoutForecast.map((f) => (
@@ -136,7 +136,7 @@ async function BillsContent({ ownerId }: { ownerId: string }) {
           {alerts.length > 0 && (
             <section className="panel" aria-labelledby="bills-alerts">
               <header className="panel-head">
-                <h2 id="bills-alerts" className="eyebrow flex items-center gap-2 text-ink">
+                <h2 id="bills-alerts" className="eyebrow flex items-center gap-2">
                   <AlertTriangle className="size-3.5 text-warn-ink" aria-hidden /> {t("bills.alertsTitle")}
                 </h2>
               </header>
@@ -161,7 +161,7 @@ async function BillsContent({ ownerId }: { ownerId: string }) {
           {stopped.length > 0 && (
             <details className="panel">
               <summary className="panel-head cursor-pointer">
-                <span className="eyebrow text-ink">{t("bills.stoppedTitle", { count: stopped.length })}</span>
+                <span className="eyebrow">{t("bills.stoppedTitle", { count: stopped.length })}</span>
               </summary>
               <ul className="divide-y divide-line">
                 {stopped.map((r) => (
@@ -201,7 +201,7 @@ const List = ({
 }) => (
   <section className="panel" aria-labelledby={id}>
     <header className="panel-head">
-      <h2 id={id} className="eyebrow text-ink">
+      <h2 id={id} className="eyebrow">
         {title}
       </h2>
     </header>

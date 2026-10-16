@@ -1,10 +1,22 @@
 import { type ClassValue, clsx } from "clsx";
 import qs from "query-string";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
 import z from "zod";
 
 import type { Translate } from "./i18n/translate";
 import { isCountry, needsStateAndPostal, needsUsIdentity } from "./countries";
+
+// Horizon's own text sizes (text-10 ... text-40) and shadows (card, lift), from
+// globals.css. Without this, tailwind-merge reads "text-14" as a colour and
+// drops it next to "text-ink", and cannot tell shadow-lift replaces shadow-xs.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "font-size": [{ text: ["10", "11", "12", "13", "14", "16", "18", "20", "24", "28", "32", "40"] }],
+      shadow: [{ shadow: ["card", "lift"] }],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

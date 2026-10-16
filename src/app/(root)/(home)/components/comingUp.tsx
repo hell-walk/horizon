@@ -26,7 +26,7 @@ const ComingUp = async ({ ownerId }: { ownerId: string }) => {
   return (
     <section className="panel" aria-labelledby="coming-up">
       <header className="panel-head">
-        <h2 id="coming-up" className="eyebrow flex items-center gap-2 text-ink">
+        <h2 id="coming-up" className="eyebrow flex items-center gap-2">
           <CalendarClock className="size-3.5" aria-hidden /> {t("bills.homeTitle", { days: DAYS })}
         </h2>
         <Link href="/bills" className="btn-ghost btn-sm">

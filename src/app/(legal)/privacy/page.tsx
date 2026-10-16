@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return publicPage(t("legal.privacyTitle"), t("legal.privacyDescription"), "/privacy");
 }
 
-const UPDATED = Date.UTC(2026, 9, 11); // 11 October 2026
+const UPDATED = Date.UTC(2026, 9, 16); // 16 October 2026
 
 // This text describes what the code really does (checked 11 October 2026).
 // When the code changes what it collects, where data goes, or which cookies
@@ -127,8 +127,6 @@ export default async function PrivacyPage() {
             <strong>Upstash</strong> keeps short-lived counters that stop abuse (for example, wrong passwords
             and the trial&apos;s daily changes). The keys are scrambled, and every counter expires within a day.
           </li>
-          <li><strong>Plaid</strong> connects to US banks when you choose to link one.</li>
-          <li><strong>Setu</strong> connects to Indian banks through the Account Aggregator system, only after you give consent on Setu&apos;s own page.</li>
           <li><strong>Dwolla</strong> opens payment accounts and moves money, for users with a US address.</li>
           <li>
             <strong>Sentry</strong> receives error reports, stored in Germany. Before a report leaves our
@@ -164,7 +162,6 @@ export default async function PrivacyPage() {
           </li>
           <li><code>horizon-lang</code>: remembers the language you picked. Lasts a year.</li>
           <li><code>horizon-account</code>: remembers which of your banks you last looked at. Lasts a year.</li>
-          <li><code>setu-consent</code>: holds an Indian bank consent while you approve it on Setu. Lasts 30 minutes.</li>
           <li>Your browser&apos;s own storage remembers light or dark mode. It never leaves your device.</li>
         </ul>
 
@@ -190,7 +187,7 @@ export default async function PrivacyPage() {
           <li><strong>See it:</strong> download everything we keep, as a file, on <Link href="/my-data">Privacy and your data</Link>.</li>
           <li><strong>Correct it:</strong> write to us and we will fix it.</li>
           <li><strong>Delete it:</strong> remove a bank, or your whole account, on the same page.</li>
-          <li><strong>Take back consent:</strong> for an Indian bank, through Setu or your Account Aggregator app; or by removing the bank here.</li>
+          <li><strong>Take back consent:</strong> remove the bank on the same page, and Horizon stops using its entries straight away.</li>
           <li><strong>Complain:</strong> to us first, and if you are not happy, to your data protection authority.</li>
         </ul>
         <p>We answer requests within 30 days, and we never charge for them.</p>

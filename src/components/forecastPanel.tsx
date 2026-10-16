@@ -26,7 +26,7 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
 
   const header = (
     <header className="panel-head">
-      <h2 className="eyebrow flex items-center gap-2 text-ink">
+      <h2 className="eyebrow flex items-center gap-2">
         <TrendingUp className="size-3.5" aria-hidden /> {t("bills.fcTitle")}
       </h2>
       <span translate="no" className="eyebrow">

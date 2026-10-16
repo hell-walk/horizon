@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { FileSpreadsheet, Landmark, ShieldCheck } from "lucide-react";
+import { FileSpreadsheet, Landmark } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import AccountsTable from "@/components/accountsTable";
 import ComingSoon from "@/components/comingSoon";
 import ImportStatement from "@/components/importStatement";
-import PlaidLink from "@/components/plaidLink";
-import SetuLink from "@/components/setuLink";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
@@ -31,41 +29,25 @@ const ConnectBank = async () => {
     <section className="page">
       <HeaderBox eyebrow={t("connect.eyebrow")} title={t("connect.title")} subtext={t("connect.subtext")} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Direct links (Plaid for US banks, Setu for Indian ones) are built but not open yet. */}
         <ComingSoon>
           <ProviderCard
-            label={t("connect.plaidEyebrow")}
+            label={t("connect.directEyebrow")}
             icon={Landmark}
-            title="Plaid"
-            region={t("connect.plaidRegion")}
-            linked={count("plaid")}
-            linkedLabel={linkedLabel(count("plaid"))}
-            description={t("connect.plaidDescription")}
+            title={t("connect.directTitle")}
+            region={t("connect.directRegion")}
+            linked={0}
+            linkedLabel={t("connect.notLinked")}
+            description={t("connect.directDescription")}
             facts={[
-              [t("connect.plaidFactUpdates"), t("connect.plaidFactUpdatesValue")],
-              [t("connect.plaidFactSend"), t("connect.plaidFactSendValue")],
+              [t("connect.directFactUpdates"), t("connect.directFactUpdatesValue")],
+              [t("connect.directFactAccess"), t("connect.directFactAccessValue")],
             ]}
           >
-            <PlaidLink user={loggedIn} />
-          </ProviderCard>
-        </ComingSoon>
-
-        <ComingSoon>
-          <ProviderCard
-            label={t("connect.setuEyebrow")}
-            icon={ShieldCheck}
-            title={t("connect.setuTitle")}
-            region={t("connect.setuRegion")}
-            linked={count("setu")}
-            linkedLabel={linkedLabel(count("setu"))}
-            description={t("connect.setuDescription")}
-            facts={[
-              [t("connect.setuFactAccess"), t("connect.setuFactAccessValue")],
-              [t("connect.setuFactApproval"), t("connect.setuFactApprovalValue")],
-            ]}
-            accent
-          >
-            <SetuLink user={loggedIn} />
+            <button type="button" disabled className="btn-secondary w-full">
+              {t("connect.directButton")}
+            </button>
           </ProviderCard>
         </ComingSoon>
 
@@ -92,7 +74,7 @@ const ConnectBank = async () => {
         <header className="panel-head">
           <div className="flex items-center gap-2">
             <span className="eyebrow">{t("connect.statementSection")}</span>
-            <span className="eyebrow text-ink">{t("connect.statementSectionHint")}</span>
+            <span className="eyebrow">{t("connect.statementSectionHint")}</span>
           </div>
           <span className="chip">
             <span className="dot bg-lime" />

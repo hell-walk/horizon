@@ -67,11 +67,11 @@ const MonthlyFlow = async ({ transactions, currency }: { transactions: Transacti
 
   return (
     <section className="panel" aria-labelledby="months-title">
-      <header className="panel-head block space-y-1">
-        <h2 id="months-title" className="eyebrow text-ink">
+      <header className="panel-head">
+        <h2 id="months-title" className="eyebrow">
           {t("history.monthTitle")}
         </h2>
-        <p className="text-13 text-ink-muted">{t("history.monthHint")}</p>
+        <p className="mt-1 text-13 text-ink-muted">{t("history.monthHint")}</p>
       </header>
       <ul className="divide-y divide-line">{recent.map(row)}</ul>
       {older.length > 0 && (

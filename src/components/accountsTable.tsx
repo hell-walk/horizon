@@ -19,7 +19,7 @@ const AccountsTable = async ({ accounts, title }: { accounts: Account[]; title?:
     <section className="panel">
       <header className="panel-head">
         <span className="eyebrow">{title ?? t("banks.connectedAccounts")}</span>
-        <span className="eyebrow text-ink">{accounts.length}</span>
+        <span className="eyebrow">{accounts.length}</span>
       </header>
       {accounts.length === 0 ? (
         <p className="panel-body text-14 text-ink-muted">{t("banks.noAccounts")}</p>

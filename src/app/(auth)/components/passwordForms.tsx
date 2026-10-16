@@ -21,7 +21,7 @@ const Header = ({ eyebrow, heading, intro }: { eyebrow: string; heading: string;
 const Submit = ({ busy, label }: { busy: boolean; label: string }) => {
   const t = useT();
   return (
-    <button type="submit" disabled={busy} className="btn-primary h-12 w-full justify-between px-5">
+    <button type="submit" disabled={busy} className="btn-primary h-12 w-full">
       <span className="flex items-center gap-2">
         <span className="size-2 bg-lime" />
         {busy ? t("auth.working") : label}
@@ -129,7 +129,7 @@ export function ResetPasswordForm({ email }: { email: string }) {
           <p className="rounded-md border border-line bg-surface-low px-4 py-3 text-14 text-ink" role="status">
             {t("auth.resetDone")}
           </p>
-          <button type="button" onClick={() => router.push("/")} className="btn-primary h-12 w-full justify-between px-5">
+          <button type="button" onClick={() => router.push("/")} className="btn-primary h-12 w-full">
             {t("auth.goToHorizon")} <ArrowRight className="size-4" />
           </button>
         </div>

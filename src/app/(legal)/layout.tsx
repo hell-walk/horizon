@@ -11,7 +11,7 @@ export default async function LegalLayout({ children }: { children: ReactNode })
   const t = await getT();
 
   return (
-    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col outline-none">
+    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col outline-hidden">
       <header className="flex h-14 items-center justify-between gap-2 border-b border-line bg-surface-low px-4 sm:px-6">
         <Logo className="max-sm:hidden" />
         <Logo compact className="hidden max-sm:flex" />
@@ -20,7 +20,7 @@ export default async function LegalLayout({ children }: { children: ReactNode })
           <Link href="/pricing" className="font-mono text-[12px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:text-ink hover:underline max-[420px]:hidden">
             {t("common.footerPricing")}
           </Link>
-          <LanguageSwitch className="max-[420px]:[&>[aria-pressed=true]]:hidden" />
+          <LanguageSwitch className="max-[420px]:*:aria-pressed:hidden" />
           <ThemeSwitch />
           <Link href="/sign-in" className="btn-primary btn-sm whitespace-nowrap">
             {t("legal.signIn")}

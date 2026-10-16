@@ -172,7 +172,7 @@ const GoalsBoard = ({ goals, leftOver, currencies, thisMonth, spending }: Props)
           </button>
         )}
       </div>
-      <aside className="order-first flex min-w-0 flex-col gap-6 xl:order-none xl:sticky xl:top-0">
+      <aside className="order-first flex min-w-0 flex-col gap-6 xl:order-0 xl:sticky xl:top-0">
         {/* What the user usually has left: the ceiling for what goals can ask. */}
         <section className="panel panel-body text-14 text-ink">
           {leftOver.length === 0 ? (
@@ -194,7 +194,7 @@ const GoalsBoard = ({ goals, leftOver, currencies, thisMonth, spending }: Props)
         {goals.length > 0 && (
           <section className="panel" aria-labelledby={`${ids}-whatif`}>
             <header className="panel-head">
-              <h2 id={`${ids}-whatif`} className="eyebrow text-ink">
+              <h2 id={`${ids}-whatif`} className="eyebrow">
                 {t("goals.whatIfTitle")}
               </h2>
             </header>

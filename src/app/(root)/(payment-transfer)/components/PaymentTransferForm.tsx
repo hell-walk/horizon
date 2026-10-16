@@ -190,7 +190,7 @@ const PaymentTransferForm = ({ accounts, initialId }: PaymentTransferFormProps) 
                   <FormLabel className="field-label">{t("transfer.amountLabel")}</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-3 rounded-md border border-line bg-surface-low px-4 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
-                      <span translate="no" className="eyebrow text-ink">
+                      <span translate="no" className="eyebrow">
                         {currency}
                       </span>
                       <Input

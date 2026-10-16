@@ -24,8 +24,6 @@ import PasswordRules from "./passwordRules";
 // then, not with the sign-in page: the statement importer alone carries a
 // spreadsheet reader.
 const ImportStatement = dynamic(() => import("@/components/importStatement"), { ssr: false });
-const PlaidLink = dynamic(() => import("@/components/plaidLink"), { ssr: false });
-const SetuLink = dynamic(() => import("@/components/setuLink"), { ssr: false });
 
 // Sign-up sections: anchor id and the message key of the title.
 const SECTIONS = [
@@ -266,8 +264,6 @@ const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: str
         </div>
       ) : user ? (
         <div className="flex flex-col gap-3">
-          <PlaidLink user={user} variant="primary" />
-          <SetuLink user={user} variant="primary" />
           <ImportStatement variant="primary" />
           <Link href="/" className="btn-ghost">
             {t("auth.skipForNow")} <ArrowRight className="size-4" />
@@ -277,7 +273,7 @@ const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: str
         <>
           {!isWelcome && (
             <>
-              <button type="button" onClick={continueWithGoogle} disabled={googleBusy || isLoading} className="btn-ghost h-12 w-full justify-center gap-3">
+              <button type="button" onClick={continueWithGoogle} disabled={googleBusy || isLoading} className="btn-ghost h-12 w-full justify-center">
                 {googleBusy ? <Loader2 className="size-4 animate-spin" /> : <GoogleMark />}
                 {t("auth.continueWithGoogle")}
               </button>
@@ -497,7 +493,7 @@ const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: str
                 </p>
               )}
 
-              <button type="submit" disabled={isLoading} className="btn-primary h-12 w-full justify-between px-5">
+              <button type="submit" disabled={isLoading} className="btn-primary h-12 w-full">
                 <span className="flex items-center gap-2">
                   <span className="size-2 bg-lime" />
                   {isLoading ? t("auth.working") : submitLabel}

@@ -62,7 +62,7 @@ const FeedbackForm = ({ from }: { from: string }) => {
               <label
                 key={k}
                 className={cn(
-                  "cursor-pointer rounded-md border px-3 py-1.5 text-13 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary",
+                  "cursor-pointer rounded-md border px-3 py-1.5 text-13 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-primary",
                   kind === k ? "border-ink bg-ink text-surface" : "border-line bg-surface-low text-ink hover:bg-surface-container"
                 )}
               >

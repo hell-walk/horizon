@@ -11,11 +11,11 @@ import { messagesFor } from "@/lib/i18n/translate";
 
 import "./globals.css";
 
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--ff-sans", display: "swap" });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--ff-display", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--ff-mono", display: "swap" });
 // Self-hosted like the others; only downloaded by browsers when a page shows Devanagari text.
-const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600", "700"], variable: "--font-devanagari", display: "swap", preload: false });
+const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600", "700"], variable: "--ff-devanagari", display: "swap", preload: false });
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -55,8 +55,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     // next-themes sets the class on <html> before paint; the warning it would
     // otherwise trigger is expected.
-    <html lang={LOCALE_TAGS[locale]} suppressHydrationWarning>
-      <body className={`${sans.variable} ${display.variable} ${mono.variable} ${devanagari.variable}`}>
+    <html lang={LOCALE_TAGS[locale]} className={`${sans.variable} ${display.variable} ${mono.variable} ${devanagari.variable}`} suppressHydrationWarning>
+      <body>
         <a href="#main" className="skip-link">
           {t("common.skipToContent")}
         </a>

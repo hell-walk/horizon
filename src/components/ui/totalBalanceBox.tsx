@@ -35,7 +35,7 @@ const TotalBalanceBox = async ({ accounts = [], totalsByCurrency, totalCurrentBa
               </span>
             </div>
 
-            <p translate="no" className="amount min-w-0 break-words text-32 font-semibold text-ink sm:text-40">
+            <p translate="no" className="amount min-w-0 wrap-break-word text-32 font-semibold text-ink sm:text-40">
               <AnimatedCounter amount={total} currency={currency} />
             </p>
           </article>

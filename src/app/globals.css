@@ -1,6 +1,344 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+/* Enter/leave animations for the dialogs, sheets and menus (was the tailwindcss-animate plugin). */
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* "inline": each token is looked up where it is used, not once at the root.
+   The sign-in page's dark panel re-scopes --surface and friends, and the
+   fonts' --ff-* variables live on <body>; both need that. */
+@theme inline {
+  /* Tailwind 3's fixed line heights (4 uses ratios, which shrink small text nested in larger). */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --color-surface: rgb(var(--surface));
+  --color-surface-lowest: rgb(var(--surface-lowest));
+  --color-surface-low: rgb(var(--surface-low));
+  --color-surface-container: rgb(var(--surface-container));
+  --color-surface-high: rgb(var(--surface-high));
+  --color-surface-highest: rgb(var(--surface-highest));
+
+  --color-ink: rgb(var(--on-surface));
+  --color-ink-muted: rgb(var(--on-surface-variant));
+  --color-ink-faint: rgb(var(--ink-faint));
+
+  --color-line: rgb(var(--outline-variant));
+  --color-line-strong: rgb(var(--outline));
+
+  --color-lime: rgb(var(--lime));
+  --color-lime-dim: rgb(var(--lime-dim));
+  --color-lime-ink: rgb(var(--lime-ink));
+  --color-lime-foreground: rgb(var(--on-lime));
+
+  --color-warn: rgb(var(--warn));
+  --color-warn-soft: rgb(var(--warn-soft));
+  --color-warn-ink: rgb(var(--warn-ink));
+
+  --color-danger: rgb(var(--danger));
+  --color-danger-soft: rgb(var(--danger-soft));
+
+  --color-success: rgb(var(--success));
+  --color-success-soft: rgb(var(--success-soft));
+
+  --color-chart-1: rgb(var(--chart-1));
+  --color-chart-2: rgb(var(--chart-2));
+  --color-chart-3: rgb(var(--chart-3));
+  --color-chart-4: rgb(var(--chart-4));
+  --color-chart-5: rgb(var(--chart-5));
+  --color-chart-6: rgb(var(--chart-6));
+  --color-chart-other: rgb(var(--chart-other));
+
+  --color-background: rgb(var(--surface));
+  --color-foreground: rgb(var(--on-surface));
+
+  --color-card: rgb(var(--surface-lowest));
+  --color-card-foreground: rgb(var(--on-surface));
+
+  --color-popover: rgb(var(--surface-lowest));
+  --color-popover-foreground: rgb(var(--on-surface));
+
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--on-primary));
+
+  --color-secondary: rgb(var(--surface-container));
+  --color-secondary-foreground: rgb(var(--on-surface));
+
+  --color-muted: rgb(var(--surface-container));
+  --color-muted-foreground: rgb(var(--on-surface-variant));
+
+  --color-accent: rgb(var(--surface-high));
+  --color-accent-foreground: rgb(var(--on-surface));
+
+  --color-destructive: rgb(var(--danger));
+  --color-destructive-foreground: rgb(var(--surface-lowest));
+
+  --color-border: rgb(var(--outline-variant));
+  --color-input: rgb(var(--outline-variant));
+  --color-ring: rgb(var(--primary));
+
+  /* Hindi: the Latin fonts have no Devanagari, so each stack falls back to Noto Sans Devanagari. */
+  --font-sans: var(--ff-sans), var(--ff-devanagari), system-ui, sans-serif;
+  --font-display:
+    var(--ff-display), var(--ff-devanagari), var(--ff-sans), sans-serif;
+  --font-mono: var(--ff-mono), var(--ff-devanagari), ui-monospace, monospace;
+
+  --shadow-card: 0 1px 0 0 rgb(var(--on-surface) / 0.04);
+  --shadow-lift: 0 8px 24px -12px rgb(var(--on-surface) / 0.25);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@utility text-10 {
+  /* Type scale */
+  @apply text-[10px] leading-[14px];
+}
+
+@utility text-11 {
+  @apply text-[11px] leading-[16px];
+}
+
+@utility text-12 {
+  @apply text-[12px] leading-[16px];
+}
+
+@utility text-13 {
+  @apply text-[13px] leading-[18px];
+}
+
+@utility text-14 {
+  @apply text-[14px] leading-[20px];
+}
+
+@utility text-16 {
+  @apply text-[16px] leading-[24px];
+}
+
+@utility text-18 {
+  @apply text-[18px] leading-[24px];
+}
+
+@utility text-20 {
+  @apply text-[20px] leading-[26px];
+}
+
+@utility text-24 {
+  @apply text-[24px] leading-[30px];
+}
+
+@utility text-28 {
+  @apply text-[28px] leading-[34px];
+}
+
+@utility text-32 {
+  @apply text-[32px] leading-[38px];
+}
+
+@utility text-40 {
+  @apply text-[40px] leading-[44px];
+}
+
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
+@utility eyebrow {
+  /* Small mono label used above sections and inside panel headers */
+  @apply font-mono text-[12px] uppercase leading-4 tracking-widest text-ink-faint;
+}
+
+@utility h-display {
+  /* Display headings */
+  @apply font-display text-24 font-semibold uppercase tracking-tight text-ink sm:text-28;
+}
+
+@utility h-section {
+  @apply font-display text-18 font-semibold tracking-tight text-ink;
+}
+
+@utility amount {
+  /* Money and other figures */
+  @apply font-mono tabular-nums tracking-tight;
+}
+
+@utility panel {
+  /* Panels */
+  @apply rounded-lg border border-line bg-card;
+}
+
+@utility panel-head {
+  @apply flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-low px-4 py-2.5;
+}
+
+@utility panel-body {
+  @apply p-4 sm:p-5;
+}
+
+@utility btn {
+  /* Buttons */
+  @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 font-display text-13 font-semibold uppercase tracking-wide transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply btn bg-primary text-primary-foreground hover:bg-primary/85;
+}
+
+@utility btn-accent {
+  @apply btn bg-lime text-lime-foreground hover:bg-lime-dim;
+}
+
+@utility btn-secondary {
+  @apply btn border border-line bg-card text-ink hover:bg-surface-container;
+}
+
+@utility btn-ghost {
+  @apply btn text-ink-muted hover:bg-surface-container hover:text-ink;
+}
+
+@utility btn-sm {
+  @apply h-8 px-3 text-12;
+}
+
+@utility chip {
+  /* Chips */
+  @apply inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-surface-low px-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted;
+}
+
+@utility chip-lime {
+  @apply chip border-lime bg-lime text-lime-foreground;
+}
+
+@utility chip-dark {
+  @apply chip border-primary bg-primary text-primary-foreground;
+}
+
+@utility chip-success {
+  @apply chip border-success/30 bg-success-soft text-success;
+}
+
+@utility chip-warn {
+  @apply chip border-warn/30 bg-warn-soft text-warn;
+}
+
+@utility chip-danger {
+  @apply chip border-danger/30 bg-danger-soft text-danger;
+}
+
+@utility dot {
+  /* Status dot */
+  @apply inline-block size-2 shrink-0 rounded-full;
+}
+
+@utility field {
+  /* Forms */
+  @apply flex w-full flex-col gap-1.5;
+}
+
+@utility field-label {
+  @apply eyebrow;
+}
+
+@utility field-input {
+  @apply flex h-11 w-full rounded-md border border-line bg-surface-low px-3 text-14 text-ink placeholder:text-ink-faint focus-visible:border-primary focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility field-error {
+  @apply text-12 text-danger;
+}
+
+@utility field-hint {
+  @apply text-12 text-ink-faint;
+}
+
+@utility page {
+  /* App shell */
+  @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto px-4 pb-28 pt-5 sm:px-6 md:pb-7 lg:px-8 lg:py-7;
+}
+
+@utility page-header {
+  @apply flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
+}
+
+/* Transaction rows */
+@utility row-debit {
+  @apply bg-danger-soft/40;
+}
+
+@utility row-credit {
+  @apply bg-success-soft/40;
+}
+
+@utility prose-legal {
+  /* Legal prose */
+  @apply text-14 text-ink-muted [&_h1]:h-display [&_h1]:mb-2 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-16 [&_h2]:font-semibold [&_h2]:text-ink [&_li]:mt-1 [&_p]:mt-3 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-6;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbars                                                           */
+/* ------------------------------------------------------------------ */
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /* Design tokens. RGB triplets so Tailwind can apply opacity modifiers. */
@@ -89,6 +427,12 @@
     --chart-other: 82 82 79;
   }
 
+  /* Tailwind 4 gives buttons the default cursor; Horizon keeps the pointer. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
   * {
     @apply border-border;
   }
@@ -110,251 +454,88 @@
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Scrollbars                                                           */
-/* ------------------------------------------------------------------ */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgb(var(--outline-variant));
-  border-radius: 999px;
-}
-
-/* ------------------------------------------------------------------ */
-/* Theme slider: one SVG path whose dash offset and vertical flip move  */
-/* the knob between the two ends. Ported from the Lazy I's portfolio    */
-/* toggle; colours come from the tokens so it works in both modes.      */
-/* ------------------------------------------------------------------ */
-.vtoggle-wrap {
-  display: inline-flex;
-  padding: 0.3em;
-  border-radius: 2em;
-  background: rgb(var(--primary));
-  font-size: 14px;
-}
-
-.vtoggle-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.vtoggle {
-  --a: 0.5s ease-out;
-  cursor: pointer;
-  position: relative;
-  display: inline-flex;
-  height: 1.5em;
-  border-radius: 2em;
-  aspect-ratio: 212.4992 / 84.4688;
-  background-color: rgb(var(--primary));
-}
-
-.vtoggle svg {
-  height: 100%;
-  overflow: visible;
-}
-
-.vtoggle path {
-  color: rgb(var(--lime));
-  stroke-width: 16;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 136 224;
-  transition: all var(--a), 0s transform;
-  transform-origin: center;
-}
-
-.vtoggle-input:checked ~ .vtoggle path {
-  stroke-dashoffset: 180;
-  transform: scaleY(-1);
-}
-
-.vtoggle-input:focus-visible ~ .vtoggle {
-  outline: 2px solid rgb(var(--lime));
-  outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vtoggle path {
-    transition: none;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Utilities shared by the pages                                        */
-/* ------------------------------------------------------------------ */
 @layer utilities {
-  /* Type scale */
-  .text-10 {
-    @apply text-[10px] leading-[14px];
-  }
-  .text-11 {
-    @apply text-[11px] leading-[16px];
-  }
-  .text-12 {
-    @apply text-[12px] leading-[16px];
-  }
-  .text-13 {
-    @apply text-[13px] leading-[18px];
-  }
-  .text-14 {
-    @apply text-[14px] leading-[20px];
-  }
-  .text-16 {
-    @apply text-[16px] leading-[24px];
-  }
-  .text-18 {
-    @apply text-[18px] leading-[24px];
-  }
-  .text-20 {
-    @apply text-[20px] leading-[26px];
-  }
-  .text-24 {
-    @apply text-[24px] leading-[30px];
-  }
-  .text-28 {
-    @apply text-[28px] leading-[34px];
-  }
-  .text-32 {
-    @apply text-[32px] leading-[38px];
-  }
-  .text-40 {
-    @apply text-[40px] leading-[44px];
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
   }
 
-  .flex-center {
-    @apply flex items-center justify-center;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  /* Small mono label used above sections and inside panel headers */
-  .eyebrow {
-    @apply font-mono text-[12px] uppercase leading-4 tracking-[0.1em] text-ink-faint;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--outline-variant));
+    border-radius: 999px;
   }
 
-  /* Display headings */
-  .h-display {
-    @apply font-display text-24 font-semibold uppercase tracking-tight text-ink sm:text-28;
-  }
-  .h-section {
-    @apply font-display text-18 font-semibold tracking-tight text-ink;
-  }
-
-  /* Money and other figures */
-  .amount {
-    @apply font-mono tabular-nums tracking-tight;
-  }
-
-  /* Panels */
-  .panel {
-    @apply rounded-lg border border-line bg-card;
-  }
-  .panel-head {
-    @apply flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-low px-4 py-2.5;
-  }
-  .panel-body {
-    @apply p-4 sm:p-5;
+  /* ------------------------------------------------------------------ */
+  /* Theme slider: one SVG path whose dash offset and vertical flip move  */
+  /* the knob between the two ends. Ported from the Lazy I's portfolio    */
+  /* toggle; colours come from the tokens so it works in both modes.      */
+  /* ------------------------------------------------------------------ */
+  .vtoggle-wrap {
+    display: inline-flex;
+    padding: 0.3em;
+    border-radius: 2em;
+    background: rgb(var(--primary));
+    font-size: 14px;
   }
 
-  /* Buttons */
-  .btn {
-    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 font-display text-13 font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50;
-  }
-  .btn-primary {
-    @apply btn bg-primary text-primary-foreground hover:bg-primary/85;
-  }
-  .btn-accent {
-    @apply btn bg-lime text-lime-foreground hover:bg-lime-dim;
-  }
-  .btn-secondary {
-    @apply btn border border-line bg-card text-ink hover:bg-surface-container;
-  }
-  .btn-ghost {
-    @apply btn text-ink-muted hover:bg-surface-container hover:text-ink;
-  }
-  .btn-sm {
-    @apply h-8 px-3 text-12;
+  .vtoggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
   }
 
-  /* Chips */
-  .chip {
-    @apply inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-surface-low px-2 font-mono text-[12px] uppercase tracking-wider text-ink-muted;
-  }
-  .chip-lime {
-    @apply chip border-lime bg-lime text-lime-foreground;
-  }
-  .chip-dark {
-    @apply chip border-primary bg-primary text-primary-foreground;
-  }
-  .chip-success {
-    @apply chip border-success/30 bg-success-soft text-success;
-  }
-  .chip-warn {
-    @apply chip border-warn/30 bg-warn-soft text-warn;
-  }
-  .chip-danger {
-    @apply chip border-danger/30 bg-danger-soft text-danger;
+  .vtoggle {
+    --a: 0.5s ease-out;
+    cursor: pointer;
+    position: relative;
+    display: inline-flex;
+    height: 1.5em;
+    border-radius: 2em;
+    aspect-ratio: 212.4992 / 84.4688;
+    background-color: rgb(var(--primary));
   }
 
-  /* Status dot */
-  .dot {
-    @apply inline-block size-2 shrink-0 rounded-full;
+  .vtoggle svg {
+    height: 100%;
+    overflow: visible;
   }
 
-  /* Forms */
-  .field {
-    @apply flex w-full flex-col gap-1.5;
-  }
-  .field-label {
-    @apply eyebrow text-ink-muted;
-  }
-  .field-input {
-    @apply flex h-11 w-full rounded-md border border-line bg-surface-low px-3 text-14 text-ink placeholder:text-ink-faint focus-visible:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .field-error {
-    @apply text-12 text-danger;
-  }
-  .field-hint {
-    @apply text-12 text-ink-faint;
+  .vtoggle path {
+    color: rgb(var(--lime));
+    stroke-width: 16;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 136 224;
+    transition:
+      all var(--a),
+      0s transform;
+    transform-origin: center;
   }
 
-  /* App shell */
-  .page {
-    @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto px-4 pb-28 pt-5 sm:px-6 md:pb-7 lg:px-8 lg:py-7;
-  }
-  .page-header {
-    @apply flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
+  .vtoggle-input:checked ~ .vtoggle path {
+    stroke-dashoffset: 180;
+    transform: scaleY(-1);
   }
 
-  /* Transaction rows */
-  .row-debit {
-    @apply bg-danger-soft/40;
-  }
-  .row-credit {
-    @apply bg-success-soft/40;
+  .vtoggle-input:focus-visible ~ .vtoggle {
+    outline: 2px solid rgb(var(--lime));
+    outline-offset: 3px;
   }
 
-  /* Legal prose */
-  .prose-legal {
-    @apply text-14 text-ink-muted [&_h1]:h-display [&_h1]:mb-2 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-16 [&_h2]:font-semibold [&_h2]:text-ink [&_li]:mt-1 [&_p]:mt-3 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-6;
+  @media (prefers-reduced-motion: reduce) {
+    .vtoggle path {
+      transition: none;
+    }
   }
+
+  /* ------------------------------------------------------------------ */
+  /* Utilities shared by the pages                                        */
+  /* ------------------------------------------------------------------ */
 }
 
 /* ------------------------------------------------------------------ */

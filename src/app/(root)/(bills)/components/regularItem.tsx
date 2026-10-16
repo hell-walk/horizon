@@ -35,7 +35,7 @@ const RegularItem = ({ r, t, locale, showDate = false }: { r: RegularWithAccount
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span translate="no" className="min-w-0 break-words text-14 font-semibold text-ink">
+          <span translate="no" className="min-w-0 wrap-break-word text-14 font-semibold text-ink">
             {r.name}
           </span>
           <span className="chip">{t(`bills.kind_${r.kind}`)}</span>

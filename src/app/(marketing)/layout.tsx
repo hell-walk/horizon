@@ -36,7 +36,7 @@ export default async function MarketingLayout({ children }: Readonly<{ children:
           </Link>
         </div>
       </header>
-      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+      <main id="main" tabIndex={-1} className="flex-1 outline-hidden">
         {children}
       </main>
       <SiteFooter />

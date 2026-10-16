@@ -57,7 +57,7 @@ const CodesPanel = ({ referralCode, referralDays }: { referralCode: string | nul
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
       <form onSubmit={apply} className="panel">
         <div className="panel-body flex flex-col gap-3">
-          <h2 className="eyebrow text-ink">{t("plan.codeTitle")}</h2>
+          <h2 className="eyebrow">{t("plan.codeTitle")}</h2>
           <p className="text-13 text-ink-muted">{t("plan.codeHint")}</p>
           <div className="flex items-center gap-2">
             <input
@@ -85,10 +85,10 @@ const CodesPanel = ({ referralCode, referralDays }: { referralCode: string | nul
       {referralCode && (
         <section className="panel">
           <div className="panel-body flex flex-col gap-3">
-            <h2 className="eyebrow text-ink">{t("plan.referralTitle")}</h2>
+            <h2 className="eyebrow">{t("plan.referralTitle")}</h2>
             <p className="text-13 text-ink-muted">{t("plan.referralBody", { days: referralDays })}</p>
             <div className="flex items-center gap-2">
-              <span translate="no" className="field-input flex flex-1 items-center font-mono text-16 font-semibold tracking-wider text-ink">
+              <span translate="no" className="field-input flex flex-1 items-center font-mono font-semibold tracking-wider text-ink">
                 {referralCode}
               </span>
               <button type="button" onClick={copy} className="btn-secondary btn-sm" aria-live="polite">

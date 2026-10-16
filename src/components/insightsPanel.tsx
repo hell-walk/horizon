@@ -65,7 +65,7 @@ const InsightsPanel = async ({ result, currency, compact = false, href }: { resu
 
 const Header = ({ t, title }: { t: Translate; title: string }) => (
   <header className="panel-head">
-    <h2 className="eyebrow flex items-center gap-2 text-ink">
+    <h2 className="eyebrow flex items-center gap-2">
       <Lightbulb className="size-3.5" aria-hidden /> {title}
     </h2>
     <span className="eyebrow">{t("insights.vsUsual")}</span>

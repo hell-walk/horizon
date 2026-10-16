@@ -136,7 +136,7 @@ const TransactionsTable = async ({ transactions, accountId }: TransactionTablePr
               <TableHead className="eyebrow h-9 px-3 max-lg:hidden">{t("history.colStatus")}</TableHead>
               <TableHead className="eyebrow h-9 px-3 text-right">{t("history.colAmount")}</TableHead>
               {accountId && (
-                <TableHead className="h-9 w-12 px-2">
+                <TableHead className="h-9 w-12 px-2 text-muted-foreground">
                   <span className="sr-only">{t("history.colChange")}</span>
                 </TableHead>
               )}

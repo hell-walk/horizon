@@ -3,7 +3,7 @@
 // B, and nothing may change what B sees.
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { accounts, actionIds, BASE, callAction, callFormAction, getPage, haveAccounts, localEnv, serverIsUp, signIn } from "./client";
+import { accounts, actionIds, BASE, callAction, callFormAction, getPage, hasAction, haveAccounts, localEnv, serverIsUp, signIn } from "./client";
 
 const up = await serverIsUp();
 
@@ -71,8 +71,10 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
       },
     ],
     ["createSetuConsent", () => [{ mobile: "9876543210", ...forged(victimProfile, victimBank) }], (v) => expect(JSON.stringify(v)).not.toMatch(/consentId/)],
-    ["exchangePublicToken", () => [{ publicToken: "public-sandbox-forged", ...forged(victimProfile, victimBank) }], (v) => expect(v).toBeNull()],
-    ["createLinkToken", () => [forged(victimProfile, victimBank)], () => {}],
+    ...(hasAction("exchangePublicToken")
+      ? ([["exchangePublicToken", () => [{ publicToken: "public-sandbox-forged", ...forged(victimProfile, victimBank) }], (v: unknown) => expect(v).toBeNull()]] as typeof grid)
+      : []),
+    ...(hasAction("createLinkToken") ? ([["createLinkToken", () => [forged(victimProfile, victimBank)], () => {}]] as typeof grid) : []),
     ["signIn", () => [{ email: accounts.b.email, password: "not-bs-password", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     ["signUp", () => [{ email: accounts.b.email, password: "x", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // A already has a profile: finishing one again creates nothing, whatever ids it names.

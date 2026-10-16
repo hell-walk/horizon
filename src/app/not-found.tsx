@@ -13,7 +13,7 @@ export default async function NotFound() {
   const t = await getT();
 
   return (
-    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col items-center justify-center gap-6 px-6 text-center outline-none">
+    <main id="main" tabIndex={-1} className="flex min-h-screen w-full flex-col items-center justify-center gap-6 px-6 text-center outline-hidden">
       <Logo compact />
       <p className="eyebrow">{t("common.notFoundEyebrow")}</p>
       <h1 className="h-display">{t("common.notFoundTitle")}</h1>

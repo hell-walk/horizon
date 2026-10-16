@@ -47,7 +47,7 @@ const EmailLinkButton = ({ tokenHash, type, kind }: { tokenHash: string; type: s
           </Link>
         </div>
       ) : (
-        <button type="button" onClick={open} disabled={busy} className="btn-primary h-12 w-full justify-between px-5">
+        <button type="button" onClick={open} disabled={busy} className="btn-primary h-12 w-full">
           <span className="flex items-center gap-2">
             <span className="size-2 bg-lime" />
             {busy ? t("auth.working") : t(kind === "recovery" ? "auth.linkButtonReset" : "auth.linkButtonConfirm")}

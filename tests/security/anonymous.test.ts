@@ -1,7 +1,7 @@
 // What someone without an account can reach.
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { actionIds, allowSkip, BASE, callAction, callFormAction, getPage, serverIsUp } from "./client";
+import { actionIds, allowSkip, BASE, callAction, callFormAction, getPage, hasAction, OPTIONAL_ACTIONS, serverIsUp } from "./client";
 
 const up = await serverIsUp();
 
@@ -126,7 +126,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
 
   describe("the server action surface", () => {
     it("exposes exactly the intended actions", () => {
-      expect(Object.keys(actionIds()).sort()).toEqual(
+      expect(Object.keys(actionIds()).filter((name) => !OPTIONAL_ACTIONS.includes(name)).sort()).toEqual(
         [
           "applyCode",
           "cancelMySubscription",
@@ -135,12 +135,10 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "confirmSubscriptionPayment",
           "completeSetuConsent",
           "correctTransaction",
-          "createLinkToken",
           "createSetuConsent",
           "deleteBank",
           "deleteGoal",
           "deleteMyAccount",
-          "exchangePublicToken",
           "exportMyData",
           "importStatement",
           "logoutAccount",
@@ -176,8 +174,8 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     it.each([
       ["sendTransfer", [{ senderBank: "x", sharableId: "y", amount: "1", name: "test", email: "a@b.co", idempotencyKey: crypto.randomUUID() }], "/payment-transfer"],
       ["setCardDesign", [{ appwriteItemId: "x", design: "auto" }], "/my-banks"],
-      ["createLinkToken", [], "/connect-bank"],
-      ["exchangePublicToken", [{ publicToken: "public-sandbox-x" }], "/connect-bank"],
+      ...(hasAction("createLinkToken") ? ([["createLinkToken", [], "/connect-bank"]] as [string, unknown[], string][]) : []),
+      ...(hasAction("exchangePublicToken") ? ([["exchangePublicToken", [{ publicToken: "public-sandbox-x" }], "/connect-bank"]] as [string, unknown[], string][]) : []),
       ["createSetuConsent", [{ mobile: "9876543210" }], "/connect-bank"],
       ["completeSetuConsent", [{ consentId: "x" }], "/connect-bank"],
       ["deleteBank", [{ appwriteItemId: "x" }], "/my-banks"],

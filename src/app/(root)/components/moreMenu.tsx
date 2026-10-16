@@ -68,7 +68,7 @@ const MoreMenu = ({ variant }: { variant: "bar" | "bottom" }) => {
           {current && <span className="font-display text-12 font-semibold uppercase tracking-wide">{t("nav.more")}</span>}
         </SheetTrigger>
         <SheetContent side="bottom" className="rounded-t-lg border-line bg-surface-low px-4 pb-8 pt-5">
-          <SheetTitle className="eyebrow mb-3 text-ink">{t("nav.moreTitle")}</SheetTitle>
+          <SheetTitle className="eyebrow mb-3">{t("nav.moreTitle")}</SheetTitle>
           {list}
         </SheetContent>
       </Sheet>

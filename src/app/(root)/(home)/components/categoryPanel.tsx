@@ -42,7 +42,7 @@ const CategoryPanel = async ({
           <CategoryChartLink items={categories} currency={currency} total={total} href={href} />
         ) : (
           <div className="relative mx-auto size-[180px] md:size-[200px]">
-            <div className="size-full rounded-full border-[14px] border-surface-container" />
+            <div className="size-full rounded-full border-14 border-surface-container" />
             <div className="pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center">
               <span className="eyebrow">{t("home.spent")}</span>
               <span translate="no" className="amount text-16 font-semibold text-ink">

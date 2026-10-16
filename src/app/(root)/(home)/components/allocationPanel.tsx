@@ -19,7 +19,7 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
       <header className="panel-head">
         <div className="flex items-center gap-2">
           <span className="eyebrow">{t("home.allocationTitle")}</span>
-          <span className="eyebrow text-ink">{t("home.accountCount", { count: accounts.length })}</span>
+          <span className="eyebrow">{t("home.accountCount", { count: accounts.length })}</span>
         </div>
         <span className="eyebrow">{t("home.shareIn", { currency: primaryCurrency })}</span>
       </header>
@@ -29,12 +29,12 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
           {charted.length > 0 ? (
             <DoughnutChart accounts={charted} />
           ) : (
-            <div className="size-full rounded-full border-[14px] border-surface-container" />
+            <div className="size-full rounded-full border-14 border-surface-container" />
           )}
           <div className="pointer-events-none absolute inset-0 flex-center flex-col">
             <span className="eyebrow">{t("home.total")}</span>
             <span className="font-display text-24 font-semibold text-ink">{accounts.length}</span>
-            <span className="eyebrow text-ink-muted">{t("home.accountWord", { count: accounts.length })}</span>
+            <span className="eyebrow">{t("home.accountWord", { count: accounts.length })}</span>
           </div>
         </div>
 

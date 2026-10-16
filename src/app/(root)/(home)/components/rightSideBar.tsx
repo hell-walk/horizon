@@ -57,7 +57,7 @@ const RightSideBar = async ({ user, banks, selected, spending }: RightSidebarPro
       <section className="panel">
         <header className="panel-head">
           <span className="eyebrow">{t("home.linkedAccounts")}</span>
-          <span className="eyebrow text-ink">{banks.length}</span>
+          <span className="eyebrow">{banks.length}</span>
         </header>
         <div className="panel-body flex flex-col gap-2">
           {banks.map((bank) => (

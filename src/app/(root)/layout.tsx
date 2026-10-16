@@ -49,7 +49,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <Topbar user={loggedIn} bankCount={banks.length} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
       {/* The page itself is the main landmark; the skip link lands here. */}
-      <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
+      <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-hidden">
         {children}
       </main>
       <BottomNav />

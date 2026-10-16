@@ -21,7 +21,7 @@ export default async function BrandPanel({ className }: { className?: string }) 
 
       <div className="flex flex-col gap-6">
         <p className="eyebrow text-lime">{t("auth.brandEyebrow")}</p>
-        <h2 className="font-display text-40 font-semibold leading-[1.05] tracking-tight">
+        <h2 className="font-display text-40 font-semibold tracking-tight">
           {t("auth.brandTitleLine1")}
           <br />
           {t("auth.brandTitleLine2")}
@@ -34,7 +34,7 @@ export default async function BrandPanel({ className }: { className?: string }) 
           <span className="font-display text-14 font-bold uppercase tracking-tight">Horizon</span>
           <span className="chip border-lime bg-lime text-lime-foreground">{t("auth.cardExample")}</span>
         </div>
-        <p className="amount text-20 tracking-[0.2em]" translate="no">
+        <p className="amount text-20" translate="no">
           <span className="opacity-50">•••• •••• ••••</span> <RollingDigits value="4091" />
         </p>
         <div className="flex items-end justify-between">
