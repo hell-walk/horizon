@@ -23,6 +23,21 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   pa: "ਪੰਜਾਬੀ",
 };
 
+/** Each language's name in English, shown under its own name in the picker. */
+export const LOCALE_ENGLISH_NAMES: Record<Locale, string> = {
+  en: "English",
+  hi: "Hindi",
+  bn: "Bengali",
+  mr: "Marathi",
+  te: "Telugu",
+  ta: "Tamil",
+  gu: "Gujarati",
+  kn: "Kannada",
+  ml: "Malayalam",
+  or: "Odia",
+  pa: "Punjabi",
+};
+
 /**
  * BCP 47 tags for <html lang> and number/date formatting. "-u-nu-latn" keeps
  * digits Latin (0-9) in every language, as amounts are written everywhere else.
