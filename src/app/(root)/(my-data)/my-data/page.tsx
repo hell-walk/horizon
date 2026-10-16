@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import LandingHero from "@/components/landingHero";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
@@ -30,10 +31,13 @@ const MyData = async () => {
   return (
     <section className="page">
       <HeaderBox eyebrow={t("data.eyebrow")} title={t("data.title")} subtext={t("data.intro")} />
-      <div className="flex max-w-3xl flex-col gap-6">
-        <DownloadData />
-        <RemoveBanks banks={banks} />
-        <DeleteAccount hasPassword={(await loadSession())?.hasPassword ?? true} />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,560px)] xl:items-start">
+        <div className="flex min-w-0 max-w-3xl flex-col gap-6">
+          <DownloadData />
+          <RemoveBanks banks={banks} />
+          <DeleteAccount hasPassword={(await loadSession())?.hasPassword ?? true} />
+        </div>
+        <LandingHero className="hidden xl:sticky xl:top-0 xl:block" />
       </div>
     </section>
   );

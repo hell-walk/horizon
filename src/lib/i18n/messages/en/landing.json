@@ -43,5 +43,6 @@
   "shotBills": "Horizon's bills page: subscriptions and recurring bills found in the statements, with what is due next",
   "shotGoals": "Horizon's savings goals, each with a target and progress",
   "shotConnect": "Horizon's connect-a-bank page: upload a statement, then check it before saving",
+  "shotHero": "The top of Horizon's landing page: the name over three screens of the app",
   "shotPhone": "Horizon's home page on a phone"
 }

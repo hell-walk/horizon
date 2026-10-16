@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import BrandPanel from "@/components/brandPanel";
+import LandingHero from "@/components/landingHero";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 
@@ -18,10 +18,10 @@ const Feedback = async ({ searchParams }: { searchParams: Promise<{ from?: strin
   return (
     <section className="page">
       <HeaderBox eyebrow={t("feedback.eyebrow")} title={t("feedback.title")} subtext={t("feedback.intro")} />
-      {/* The form alone left most of a wide screen empty; the brand panel keeps it company. */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] xl:items-stretch">
+      {/* The form alone left most of a wide screen empty: the landing page's top keeps it company. */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,560px)] xl:items-start">
         <FeedbackForm from={typeof from === "string" ? from : ""} />
-        <BrandPanel className="hidden rounded-lg xl:flex" />
+        <LandingHero className="hidden xl:sticky xl:top-0 xl:block" />
       </div>
     </section>
   );
