@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const [banks, plan] = await Promise.all([getBanks({ userId: ownerIdOf(loggedIn) }).then((b) => b ?? []), currentPlan(), loadExtraTerms()]);
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-dvh w-full flex-col overflow-hidden overscroll-none">
       <Topbar user={loggedIn} bankCount={banks.length} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
       {/* The page itself is the main landmark; the skip link lands here. */}
