@@ -28,7 +28,8 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
           <Link href="/pricing" className="font-mono text-[12px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:text-ink hover:underline">
             {t("common.footerPricing")}
           </Link>
-          <LanguageSwitch />
+          <LanguageSwitch compact className="sm:hidden" />
+          <LanguageSwitch className="max-sm:hidden" />
         </div>
       </header>
 

@@ -134,7 +134,7 @@ const ProviderCard = ({
         {facts.map(([label, value]) => (
           <div key={label} className="flex flex-col">
             <dt className="eyebrow">{label}</dt>
-            <dd className="font-mono text-12 text-ink">{value}</dd>
+            <dd className="font-mono text-12 text-ink wrap-anywhere">{value}</dd>
           </div>
         ))}
       </dl>

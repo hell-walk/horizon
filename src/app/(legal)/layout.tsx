@@ -20,7 +20,8 @@ export default async function LegalLayout({ children }: { children: ReactNode })
           <Link href="/pricing" className="font-mono text-[12px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:text-ink hover:underline max-[420px]:hidden">
             {t("common.footerPricing")}
           </Link>
-          <LanguageSwitch className="max-[420px]:*:aria-pressed:hidden" />
+          <LanguageSwitch compact className="sm:hidden" />
+          <LanguageSwitch className="max-sm:hidden" />
           <ThemeSwitch />
           <Link href="/sign-in" className="btn-primary btn-sm whitespace-nowrap">
             {t("legal.signIn")}

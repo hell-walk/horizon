@@ -26,7 +26,8 @@ export default async function MarketingLayout({ children }: Readonly<{ children:
           </Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
-          <LanguageSwitch />
+          <LanguageSwitch compact className="sm:hidden" />
+          <LanguageSwitch className="max-sm:hidden" />
           <ThemeSwitch compact className="max-sm:hidden" />
           <Link href="/sign-in" className="btn-ghost btn-sm max-sm:hidden">
             {t("landing.signIn")}

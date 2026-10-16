@@ -1,3 +1,4 @@
+import LanguageSwitch from "@/components/languageSwitch";
 import Logo from "@/components/logo";
 import { getT } from "@/lib/i18n/server";
 import Navbar from "./navbar";
@@ -29,7 +30,8 @@ const Topbar = async ({ user, bankCount, planLine }: { user: User; bankCount: nu
         <Navbar />
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <LanguageSwitch compact />
         <ThemeSwitch />
         <UserMenu user={user} planLine={planLine} />
       </div>

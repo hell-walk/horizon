@@ -82,11 +82,11 @@
   --color-input: rgb(var(--outline-variant));
   --color-ring: rgb(var(--primary));
 
-  /* Hindi: the Latin fonts have no Devanagari, so each stack falls back to Noto Sans Devanagari. */
-  --font-sans: var(--ff-sans), var(--ff-devanagari), system-ui, sans-serif;
-  --font-display:
-    var(--ff-display), var(--ff-devanagari), var(--ff-sans), sans-serif;
-  --font-mono: var(--ff-mono), var(--ff-devanagari), ui-monospace, monospace;
+  /* Indian languages: the Latin fonts have none of these scripts, so each stack
+     falls back to the Noto Sans for the script on screen (only that one loads). */
+  --font-sans: var(--ff-sans), var(--ff-devanagari), var(--ff-bengali), var(--ff-tamil), var(--ff-telugu), var(--ff-gujarati), var(--ff-kannada), var(--ff-malayalam), var(--ff-gurmukhi), var(--ff-oriya), system-ui, sans-serif;
+  --font-display: var(--ff-display), var(--ff-devanagari), var(--ff-bengali), var(--ff-tamil), var(--ff-telugu), var(--ff-gujarati), var(--ff-kannada), var(--ff-malayalam), var(--ff-gurmukhi), var(--ff-oriya), var(--ff-sans), sans-serif;
+  --font-mono: var(--ff-mono), var(--ff-devanagari), var(--ff-bengali), var(--ff-tamil), var(--ff-telugu), var(--ff-gujarati), var(--ff-kannada), var(--ff-malayalam), var(--ff-gurmukhi), var(--ff-oriya), ui-monospace, monospace;
 
   --shadow-card: 0 1px 0 0 rgb(var(--on-surface) / 0.04);
   --shadow-lift: 0 8px 24px -12px rgb(var(--on-surface) / 0.25);
