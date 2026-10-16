@@ -31,6 +31,7 @@ export default function Shot({ name, alt, priority = false, sizes = "(min-width:
       height={height}
       sizes={sizes}
       priority={priority && theme === "light"}
+      fetchPriority={priority && theme === "light" ? "high" : undefined}
       loading={priority && theme === "light" ? "eager" : "lazy"}
       className={cn("h-auto w-full", theme === "light" ? "dark:hidden" : "hidden dark:block")}
     />

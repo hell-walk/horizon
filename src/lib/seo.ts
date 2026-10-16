@@ -5,6 +5,10 @@ import type { Metadata } from "next";
 // app/layout.tsx). Each gets its own title and description, a canonical link
 // (the www address, from metadataBase) and the same title when shared.
 
+// The picture shown when a link is shared (app/opengraph-image.tsx draws it).
+// A page that sets its own openGraph loses the inherited one, so it is named here.
+const PREVIEW = { url: "/opengraph-image", width: 1200, height: 630, alt: "Horizon: every bank account, one place" };
+
 /** Metadata for a public page that search engines may list. `path` starts with "/". */
 export function publicPage(title: string, description: string, path: string): Metadata {
   return {
@@ -12,8 +16,8 @@ export function publicPage(title: string, description: string, path: string): Me
     description,
     robots: { index: true, follow: true },
     alternates: { canonical: path },
-    openGraph: { title, description, url: path, type: "website", siteName: "Horizon" },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { title, description, url: path, type: "website", siteName: "Horizon", locale: "en_IN", images: [PREVIEW] },
+    twitter: { card: "summary_large_image", title, description, images: [PREVIEW.url] },
   };
 }
 
