@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Pencil, Plus, Trash2, XCircle } from "lucide-react";
-import { useId, useState, useTransition } from "react";
+import { useId, useState, useTransition, type ReactNode } from "react";
 
 import { useLocale, useT } from "@/components/i18nProvider";
 import { deleteGoal } from "@/lib/actions/goal.action";
@@ -11,7 +11,7 @@ import { cn, formatAmount } from "@/lib/utils";
 
 import GoalForm from "./goalForm";
 
-type Props = { goals: Goal[]; leftOver: UsualLeftOver[]; currencies: string[]; thisMonth: string };
+type Props = { goals: Goal[]; leftOver: UsualLeftOver[]; currencies: string[]; thisMonth: string; spending?: ReactNode };
 
 const toNumber = (text: string) => Math.max(0, Number(text.replace(/,/g, "")) || 0);
 
@@ -20,7 +20,7 @@ const toNumber = (text: string) => Math.max(0, Number(text.replace(/,/g, "")) ||
  * bit more each month, or a cost goes up. Everything is worked out here from
  * the user's own numbers, as they type.
  */
-const GoalsBoard = ({ goals, leftOver, currencies, thisMonth }: Props) => {
+const GoalsBoard = ({ goals, leftOver, currencies, thisMonth, spending }: Props) => {
   const t = useT();
   const locale = useLocale();
   const ids = useId();
@@ -173,6 +173,8 @@ const GoalsBoard = ({ goals, leftOver, currencies, thisMonth }: Props) => {
         )}
       </div>
       <aside className="flex min-w-0 flex-col gap-6 xl:sticky xl:top-0">
+        {/* The bank cards and the chosen bank's spending (from the page): what the goals compete with. */}
+        {spending}
         {/* What the user usually has left: the ceiling for what goals can ask. */}
         <section className="panel panel-body text-14 text-ink">
           {leftOver.length === 0 ? (

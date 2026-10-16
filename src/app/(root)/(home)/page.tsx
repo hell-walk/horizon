@@ -13,7 +13,6 @@ import { findInsights } from "@/lib/insights";
 import { weeklyRecap } from "@/lib/recap";
 import { findRegular } from "@/lib/recurring";
 import { accountForecast } from "@/lib/server/forecast";
-import SpendingStrip from "./components/spendingStrip";
 import QuickActions from "./components/quickActions";
 import RecentTransaction from "./components/recentTransaction";
 import RightSideBar from "./components/rightSideBar";
@@ -27,6 +26,7 @@ import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import CardStack from "@/components/cardStack";
 import { BarsLoader } from "@/components/loaders";
+import SpendingStrip from "@/components/spendingStrip";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
