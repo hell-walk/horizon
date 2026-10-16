@@ -13,11 +13,13 @@ const Topbar = async ({ user, bankCount, planLine }: { user: User; bankCount: nu
   return (
     <header className="grid h-16 shrink-0 grid-cols-[1fr_auto] items-center gap-3 border-b border-line bg-surface-low px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
-        <Logo className="max-md:hidden max-xl:hidden" />
-        <Logo compact className="md:max-xl:flex hidden" />
+        {/* The middle column holds the whole menu, so beside it there is only
+            room for the full logo and the account count from 2xl up. */}
+        <Logo className="max-md:hidden max-2xl:hidden" />
+        <Logo compact className="md:max-2xl:flex hidden" />
         <Logo className="md:hidden max-[400px]:hidden" />
         <Logo compact className="hidden max-[400px]:flex" />
-        <span className="chip max-xl:hidden">
+        <span className="chip max-2xl:hidden">
           <span className="dot bg-lime" />
           {t("nav.accountCount", { count: bankCount })}
         </span>
