@@ -1,64 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Horizon
+
+Every Indian bank account, balance and transaction on one screen. Upload a
+statement from any bank (PDF, Excel or CSV, password-protected or not) and
+Horizon reads it, checks it with you, and sorts every entry: UPI, cards, EMIs
+and pay-later, rent, groceries, subscriptions. On top of that: bills and
+subscriptions found in your statements, a cash-flow forecast, savings goals,
+and month-by-month history. In eleven Indian languages, light and dark.
+
+Live at **https://www.lazyistudio.in**. 7 days free, then ₹99 a month or ₹999 a year.
+
+## Stack
+
+| Layer | What | Why |
+|---|---|---|
+| App | Next.js 16 (App Router, server components, server actions), React 19, TypeScript | One codebase for pages and server logic; data stays on the server |
+| Styling | Tailwind CSS 4, own design system ("Kinetic Architectural", from Stitch) | Tokens in `src/app/globals.css`, light and dark |
+| Sign-in | Supabase Auth (email + password, Google) | Confirmed emails, sessions in an httpOnly cookie |
+| Data | Appwrite (database) | Profiles, banks, statement rows, codes, feedback |
+| Shared state | Upstash Redis | Rate limits and short-lived locks across server copies |
+| Payments | Razorpay Subscriptions | Indian cards and UPI, recurring plans, signed webhooks |
+| Errors | Sentry | Error reports, scrubbed of personal data |
+| Hosting | Vercel, domain on Cloudflare DNS | |
+
+Built (switched off for now): Plaid (US banks), Setu Account Aggregator (Indian
+banks), Dwolla (US transfers).
+
+## Running it
+
+```bash
+npm install
+cp env.example .env   # then fill it in; every setting is explained there
+npm run dev           # http://localhost:3000
+```
+
+| Command | Does |
+|---|---|
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:security` | Black-box security suite against a running build (see `tests/security/README.md`) |
+| `npm run build && npx next start -p 3100` | Production build, as the security suite expects |
+| `node scripts/check-deployment.mjs https://www.lazyistudio.in` | Checks a deployment: headers, locked pages, settings, Razorpay plans |
+| `node scripts/check-translation.mjs ta` | Checks one language's texts against English |
+
+Deploying: `docs/deploy-vercel.md` walks through every setting and outside service.
 
 ## Project structure
 
 Each page lives in its own bracket folder (a route group: the brackets keep it
-out of the URL) together with the components and UI pieces only it uses.
-Anything used in two or more places stays in `src/components`.
+out of the URL) with the components only it uses. Anything used in two or more
+places is in `src/components`.
 
 ```
 src/
   app/
-    (root)/                    signed-in app: layout (navbar, top bar, sign-in check) and loading state
-      components/  ui/         the app frame: navbar, top bar, bottom bar, account menu
-      (home)/                  /                      overview, charts, right sidebar
-      (my-banks)/              /my-banks              card deck, card designs
-      (transaction-history)/   /transaction-history   payees, UPI breakdown
-      (payment-transfer)/      /payment-transfer      transfer form
-      (connect-bank)/          /connect-bank, /setu/callback
-    (auth)/                    /sign-in, /sign-up     auth form and its inputs
-    (legal)/                   /privacy, /terms
-  components/                  shared components (cards, tables, statement import, Plaid/Setu links)
-  components/ui/               shared UI primitives (form, input, label, toggles)
-  constants/                   shared constants
+    (marketing)/landing        / for visitors (the proxy shows it at the root)
+    (auth)/                    sign-in, sign-up, welcome, password reset, email links
+    (legal)/                   privacy, terms, refunds, pricing, contact
+    (root)/                    the signed-in app: Home, My Banks, Account history, Bills,
+                               Savings goals, Plans, Connect a bank, Feedback, Privacy and your data
+    api/razorpay/webhook       Razorpay's signed notifications
+  components/                  shared components (cards, tables, statement import, loaders)
   lib/
     actions/                   server actions: the only functions the browser can call
-    server/                    server-only data access, auth, encryption, rate limits
-    providers/                 Plaid, Setu and statement-import adapters
-    statements/                statement file parsing
+    server/                    server-only: data access, auth, plans, codes, encryption, rate limits
+    statements/                statement parsing (PDF, Excel, CSV) and checks
+    providers/                 statement, Plaid and Setu adapters
+    i18n/                      languages: messages/<code>/*.json, one folder per language
+  proxy.ts                     renews sessions; shows the landing page to visitors at /
+scripts/                       setup, admin and check scripts (each explains itself at the top)
+tests/unit, tests/security     Vitest suites
 ```
 
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The admin portal (people, codes, payments, feedback, lists, usage) is a
+separate private app: github.com/hell-walk/Admin-Portal.

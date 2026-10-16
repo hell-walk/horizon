@@ -103,7 +103,7 @@ describe("promo codes", () => {
     const result = await redeemCode(session("u4"), "half3");
     expect(result).toMatchObject({ ok: true, freeDays: 0, discountText: "50% off for the first 3 months" });
     const meta = state.logins.get("u4")!.app_metadata;
-    expect(meta.offer).toEqual({ id: "offer_abc", text: "50% off for the first 3 months", code: "HALF3" });
+    expect(meta.offer).toEqual({ id: "offer_abc", text: "50% off for the first 3 months", code: "HALF3", percent: 0 });
     expect(meta.subscription).toBeUndefined(); // no free days, so no comp subscription
     expect(state.rows.get("row-HALF3")!.uses).toBe(1);
 
@@ -111,6 +111,13 @@ describe("promo codes", () => {
     promo("BOTH", { freeDays: 7, offerId: "offer_both", discountText: "20% off for a year" });
     expect(await redeemCode(session("u5"), "BOTH")).toMatchObject({ ok: true, freeDays: 7, discountText: "20% off for a year" });
     expect(state.logins.get("u5")!.app_metadata).toMatchObject({ offer: { id: "offer_both" }, subscription: { status: "cancelled" } });
+  });
+
+  it("takes the admin portal's offer codes: a percentage, no text, no free days", async () => {
+    login("u6");
+    promo("PORTAL20", { kind: "offer", freeDays: 0, percent: 20, offerId: "offer_portal" });
+    expect(await redeemCode(session("u6"), "PORTAL20")).toMatchObject({ ok: true, freeDays: 0, discountText: "", percent: 20 });
+    expect(state.logins.get("u6")!.app_metadata.offer).toEqual({ id: "offer_portal", text: "", code: "PORTAL20", percent: 20 });
   });
 
   it("does nothing for a paying subscriber (Razorpay bills on its own schedule)", async () => {

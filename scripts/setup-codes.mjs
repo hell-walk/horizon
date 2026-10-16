@@ -45,6 +45,8 @@ const FIELDS = [
   // person subscribes, and the words shown to them, e.g. "50% off for 3 months".
   ["offerId", "string", { size: 64, required: false }],
   ["discountText", "string", { size: 120, required: false }],
+  // The admin portal's "offer" codes: the percentage off (the portal adds this field too).
+  ["percent", "integer", { required: false, min: 0, max: 100 }],
 ];
 
 const steps = [];

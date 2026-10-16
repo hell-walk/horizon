@@ -44,7 +44,11 @@ const Plans = async () => {
           prices={{ monthly: money(pricing.monthly.amount), yearly: money(pricing.yearly.amount) }}
           ready={{ monthly: await isRazorpayConfigured("monthly"), yearly: await isRazorpayConfigured("yearly") }}
           testMode={isTestMode()}
-          offerText={plan.kind === "subscribed" ? "" : (session.offer?.text ?? "")}
+          offerText={
+            plan.kind === "subscribed" || !session.offer
+              ? ""
+              : session.offer.text || (session.offer.percent ? t("plan.percentOff", { percent: session.offer.percent }) : "")
+          }
         />
         <CodesPanel referralCode={referralCode} referralDays={REFERRAL_FREE_DAYS} />
       </div>

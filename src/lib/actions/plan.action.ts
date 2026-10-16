@@ -143,7 +143,7 @@ export async function cancelMySubscription(): Promise<{ ok: true; until: number 
 }
 
 /** Redeems a promo or referral code for free days. One code per login, ever. */
-export async function applyCode(input: { code: string }): Promise<{ ok: true; freeDays: number; until: number; discountText: string } | Failure> {
+export async function applyCode(input: { code: string }): Promise<{ ok: true; freeDays: number; until: number; discountText: string; percent: number } | Failure> {
   const t = await getT();
   const session = await loadSession();
   if (!session) return { ok: false, error: t("plan.errSignIn") };

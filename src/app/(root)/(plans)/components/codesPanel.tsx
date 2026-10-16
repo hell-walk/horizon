@@ -30,7 +30,9 @@ const CodesPanel = ({ referralCode, referralDays }: { referralCode: string | nul
       if (result.ok) {
         const parts = [
           result.freeDays > 0 ? t("plan.codeApplied", { days: result.freeDays, date: dateOf(result.until) }) : "",
-          result.discountText ? t("plan.codeDiscountApplied", { text: result.discountText }) : "",
+          result.discountText || result.percent
+            ? t("plan.codeDiscountApplied", { text: result.discountText || t("plan.percentOff", { percent: result.percent }) })
+            : "",
         ].filter(Boolean);
         setMessage({ text: parts.join(" ") || t("plan.codeAppliedPlain"), bad: false });
         setCode("");

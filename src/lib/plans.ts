@@ -76,11 +76,12 @@ export function mergeSubscription(known: Subscription | null, fresh: Subscriptio
 }
 
 /** The discount waiting on a login, from a redeemed code, until they subscribe. */
-export type PendingOffer = { id: string; text: string; code: string };
+export type PendingOffer = { id: string; text: string; code: string; percent: number };
 
 export function readOffer(raw: unknown): PendingOffer | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   if (typeof o.id !== "string" || !o.id) return null;
-  return { id: o.id, text: typeof o.text === "string" ? o.text : "", code: typeof o.code === "string" ? o.code : "" };
+  const percent = typeof o.percent === "number" && o.percent > 0 && o.percent <= 100 ? o.percent : 0;
+  return { id: o.id, text: typeof o.text === "string" ? o.text : "", code: typeof o.code === "string" ? o.code : "", percent };
 }

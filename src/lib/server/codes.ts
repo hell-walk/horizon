@@ -24,7 +24,8 @@ const DAY = 86_400_000;
 export type Code = {
   id: string;
   code: string;
-  kind: "promo" | "referral";
+  /** promo: free days; referral: free days both sides; offer: a Razorpay discount (made in the admin portal). */
+  kind: "promo" | "referral" | "offer";
   ownerId: string;
   freeDays: number;
   maxUses: number;
@@ -35,13 +36,15 @@ export type Code = {
   offerId: string;
   /** What the discount is, in the person's words: "50% off for the first 3 months". */
   discountText: string;
+  /** For an offer: the percentage off, shown in the person's language when there is no written text. */
+  percent: number;
 };
 
 
 const fromRow = (row: Record<string, unknown> & { $id: string }): Code => ({
   id: row.$id,
   code: String(row.code),
-  kind: row.kind === "referral" ? "referral" : "promo",
+  kind: row.kind === "referral" ? "referral" : row.kind === "offer" ? "offer" : "promo",
   ownerId: String(row.ownerId ?? ""),
   freeDays: Number(row.freeDays) || 0,
   maxUses: Number(row.maxUses) || 0,
@@ -50,6 +53,7 @@ const fromRow = (row: Record<string, unknown> & { $id: string }): Code => ({
   active: row.active !== false,
   offerId: String(row.offerId ?? ""),
   discountText: String(row.discountText ?? ""),
+  percent: Number(row.percent) || 0,
 });
 
 /** Codes are typed by people: upper case, no spaces or dashes to get wrong. */
@@ -99,7 +103,7 @@ export async function myReferralCode(session: SessionUser): Promise<string | nul
 }
 
 export type RedeemOutcome =
-  | { ok: true; freeDays: number; until: number; discountText: string }
+  | { ok: true; freeDays: number; until: number; discountText: string; percent: number }
   | { ok: false; reason: "unknown" | "expired" | "used-up" | "own" | "already" | "subscribed" | "not-ready" };
 
 /** Free days for one login: a comp subscription, or more days on the one there. Returns the new paid-up date. */
@@ -140,7 +144,7 @@ export async function redeemCode(session: SessionUser, raw: string): Promise<Red
   const until = found.freeDays > 0 ? await grantFreeDays({ id: session.id, joinedAt: session.joinedAt, subscription: current }, found.freeDays) : (current?.until ?? 0);
   // Remembered on the login, next to the subscription (saveSubscription keeps
   // other app_metadata keys). A discount waits there until they subscribe.
-  const offer: PendingOffer | null = found.offerId ? { id: found.offerId, text: found.discountText, code } : null;
+  const offer: PendingOffer | null = found.offerId ? { id: found.offerId, text: found.discountText, code, percent: found.percent } : null;
   await admin.auth.admin.updateUserById(session.id, { app_metadata: { redeemed_code: code, ...(offer ? { offer } : {}) } });
 
   if (found.kind === "referral" && found.ownerId) {
@@ -154,5 +158,5 @@ export async function redeemCode(session: SessionUser, raw: string): Promise<Red
       }
     }
   }
-  return { ok: true, freeDays: found.freeDays, until, discountText: offer ? found.discountText : "" };
+  return { ok: true, freeDays: found.freeDays, until, discountText: offer ? found.discountText : "", percent: offer ? found.percent : 0 };
 }
