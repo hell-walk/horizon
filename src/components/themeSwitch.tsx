@@ -5,8 +5,8 @@ import { useRef, useState, useSyncExternalStore } from "react";
 
 import { useT } from "@/components/i18nProvider";
 
-import SkyToggle from "@/components/ui/sky-toggle";
-import { ThemeToggle as PillToggle } from "@/components/ui/theme-toggle";
+import SkyToggle from "@/components/ui/skyToggle";
+import { ThemeToggle as PillToggle } from "@/components/ui/themeToggle";
 import Toggle, { type ToggleOption } from "@/components/ui/toggle";
 import { THEME_SWITCH_VARIANT } from "@/constants";
 

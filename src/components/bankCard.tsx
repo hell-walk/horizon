@@ -10,7 +10,7 @@ import { formatAmount, maskKnown } from "@/lib/utils";
 
 import { canTransfer } from "@/lib/transfers";
 
-import Copy from "./Copy";
+import Copy from "./copy";
 import { useT } from "./i18nProvider";
 
 // Gold contact chip, drawn so it scales crisply at any size. Each chip has its

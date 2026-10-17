@@ -47,8 +47,11 @@ Deploying: `docs/deploy-vercel.md` walks through every setting and outside servi
 ## Project structure
 
 Each page lives in its own bracket folder (a route group: the brackets keep it
-out of the URL) with the components only it uses. Anything used in two or more
-places is in `src/components`.
+out of the URL) with the components only it uses, in that folder's
+`components/` (and `ui/`). Anything used in two or more places is in
+`src/components`. File names are camelCase (`bankCard.tsx`). Next.js's own
+files (`page`, `layout`, `loading`, `route`...) are the only files beside a page.
+`tests/unit/structure.test.ts` checks all of this, so it stays that way.
 
 ```
 src/

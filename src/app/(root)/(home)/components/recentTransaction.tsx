@@ -4,8 +4,8 @@ import Link from "next/link";
 import TransactionTable from "@/components/transactionTable";
 import { getT } from "@/lib/i18n/server";
 
-import { BankTabItem } from "@/components/BankTabItem";
-import { Pagination } from "@/components/Pagination";
+import { BankTabItem } from "@/components/bankTabItem";
+import { Pagination } from "@/components/pagination";
 
 const ROWS_PER_PAGE = 10;
 

@@ -5,7 +5,7 @@ import { getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
-import { DoughnutChart } from "./DoughnutChartLazy";
+import { DoughnutChart } from "./doughnutChartLazy";
 
 // Solid doughnut of balances in the primary currency, with every account listed beside it.
 const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Account[]; primaryCurrency: string }) => {

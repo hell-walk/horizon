@@ -12,7 +12,7 @@ import { sendTransfer } from "@/lib/actions/transfer.action";
 import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
-import { BankDropdown } from "./BankDropdown";
+import { BankDropdown } from "./bankDropdown";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";

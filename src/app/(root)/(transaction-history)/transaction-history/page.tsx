@@ -3,11 +3,11 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { BankTabItem } from "@/components/BankTabItem";
+import { BankTabItem } from "@/components/bankTabItem";
 import { Search, X } from "lucide-react";
 
 import InsightsPanel from "@/components/insightsPanel";
-import { Pagination } from "@/components/Pagination";
+import { Pagination } from "@/components/pagination";
 import MonthlyFlow from "../components/monthlyFlow";
 import PayeePanel from "../components/payeePanel";
 import TransactionsTable from "@/components/transactionTable";

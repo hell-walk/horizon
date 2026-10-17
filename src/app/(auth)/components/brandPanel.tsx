@@ -1,4 +1,4 @@
-import { CountUp, RollingDigits } from "@/components/liveNumber";
+import { CountUp, RollingDigits } from "./liveNumber";
 import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 

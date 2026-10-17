@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import BrandPanel from "@/components/brandPanel";
+import BrandPanel from "./components/brandPanel";
 import LanguageSwitch from "@/components/languageSwitch";
 import Logo from "@/components/logo";
 import SiteFooter from "@/components/siteFooter";

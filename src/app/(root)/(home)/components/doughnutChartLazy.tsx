@@ -8,7 +8,7 @@ import { BarsLoader } from "@/components/loaders";
 // bundle and skip server rendering since it draws on a canvas anyway.
 const placeholder = () => <BarsLoader className="size-full" />;
 
-export const DoughnutChart = dynamic(() => import("./DoughnutChart"), { ssr: false, loading: placeholder });
+export const DoughnutChart = dynamic(() => import("./doughnutChart"), { ssr: false, loading: placeholder });
 
 
 export default DoughnutChart;

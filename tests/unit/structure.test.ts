@@ -78,6 +78,26 @@ describe("one folder per page", () => {
     }
     expect(offenders).toEqual([]);
   });
+
+  // Next.js's own files (a page, its layout, loading screen, an API route, the
+  // site's icons and metadata) sit where the address needs them; everything
+  // else in app/ is a component, in its page's components/ or ui/ folder.
+  const NEXT_FILES = /^(page|layout|loading|error|global-error|not-found|route|template|default|manifest|robots|sitemap|opengraph-image|icon|apple-icon)\.tsx?$/;
+
+  it("components sit in a components/ or ui/ folder, not loose beside a page", () => {
+    const loose = files(app)
+      .map(rel)
+      .filter((p) => !NEXT_FILES.test(p.split("/").pop()!))
+      .filter((p) => !/\/(components|ui)\/[^/]+$/.test(p));
+    expect(loose).toEqual([]);
+  });
+
+  it("component file names are camelCase", () => {
+    const folders = files(src)
+      .map(rel)
+      .filter((p) => p.startsWith("components/") || /\/(components|ui)\/[^/]+$/.test(p));
+    expect(folders.filter((p) => !/^[a-z][A-Za-z0-9]*\.tsx?$/.test(p.split("/").pop()!))).toEqual([]);
+  });
 });
 
 // The rate limiter answers with a Promise. "if (!allow(...))" on a Promise is

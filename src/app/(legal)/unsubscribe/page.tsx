@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { getT } from "@/lib/i18n/server";
 
-import UnsubscribeButton from "./unsubscribeButton";
+import UnsubscribeButton from "../components/unsubscribeButton";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();

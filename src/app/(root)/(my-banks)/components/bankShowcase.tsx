@@ -12,7 +12,7 @@ import { formatAmount, maskKnown, maskLabel } from "@/lib/utils";
 import AddDigits from "./addDigits";
 import CardDesignPicker from "./cardDesignPicker";
 import CardStack from "@/components/cardStack";
-import Copy from "@/components/Copy";
+import Copy from "@/components/copy";
 import { canTransfer } from "@/lib/transfers";
 import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import PaymentTransferForm from "../components/PaymentTransferForm";
+import PaymentTransferForm from "../components/paymentTransferForm";
 import ComingSoon from "@/components/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
