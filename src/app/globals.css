@@ -52,6 +52,8 @@
   --color-chart-4: rgb(var(--chart-4));
   --color-chart-5: rgb(var(--chart-5));
   --color-chart-6: rgb(var(--chart-6));
+  --color-chart-7: rgb(var(--chart-7));
+  --color-chart-8: rgb(var(--chart-8));
   --color-chart-other: rgb(var(--chart-other));
 
   --color-background: rgb(var(--surface));
@@ -383,6 +385,8 @@
     --chart-4: 0 184 169;
     --chart-5: 255 77 141;
     --chart-6: 255 176 32;
+    --chart-7: 37 132 235;
+    --chart-8: 150 102 64;
     --chart-other: 199 198 203;
 
     --radius: 0.25rem;
@@ -424,6 +428,8 @@
     --chart-4: 45 212 191;
     --chart-5: 255 110 160;
     --chart-6: 255 190 70;
+    --chart-7: 96 165 250;
+    --chart-8: 205 160 120;
     --chart-other: 82 82 79;
   }
 

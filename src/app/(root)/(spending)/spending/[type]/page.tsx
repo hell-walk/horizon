@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Gem, Lock, TrendingDown, TrendingUp } from "lucide-react";
 
 import { BarsLoader } from "@/components/loaders";
-import RadialBarChart from "@/components/radialBarChartLazy";
 import HeaderBox from "@/components/ui/headerBox";
 import { chartColorClass, spendTypeLabel } from "@/constants";
 import type { Locale } from "@/lib/i18n/config";
@@ -18,6 +17,8 @@ import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/spendingDetail";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
+
+import PayeePie from "../../components/payeePie";
 
 type Props = { params: Promise<{ type: string }>; searchParams: Promise<{ [key: string]: string | string[] | undefined }> };
 
@@ -222,16 +223,8 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
         {t("spending.payeesTitle")}
       </h2>
     </header>
-    <div className="panel-body grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
-      <div className="relative mx-auto size-[180px]">
-        <RadialBarChart items={detail.payees} currency={currency} />
-        <div className="pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center">
-          <span className="eyebrow">{t("spending.tileTotal")}</span>
-          <span translate="no" className="amount text-16 font-semibold text-ink">
-            {money(detail.total)}
-          </span>
-        </div>
-      </div>
+    <div className="panel-body flex flex-col gap-5">
+      <PayeePie payees={detail.payees} currency={currency} total={detail.total} />
       <ul className="flex flex-col divide-y divide-line">
         {detail.payees.map((p, i) => (
           <li key={p.name} className="flex items-center justify-between gap-3 py-2">
@@ -251,6 +244,32 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
         ))}
       </ul>
     </div>
+    {/* The pie folds the small ones into "Other"; here is everyone, one line each. */}
+    {detail.allPayees.length > detail.payees.length && (
+      <details className="border-t border-line">
+        <summary className="panel-head cursor-pointer">
+          <span className="eyebrow">{t("spending.allPayeesTitle", { count: detail.allPayees.length })}</span>
+        </summary>
+        <ul className="flex flex-col divide-y divide-line px-5 pb-3">
+          {detail.allPayees.map((p) => (
+            <li key={p.name} className="flex items-center justify-between gap-3 py-2">
+              <span className="flex min-w-0 flex-col">
+                <span translate="no" className="truncate text-14 font-semibold text-ink">
+                  {spendTypeLabel(t, p.name)}
+                </span>
+                <span className="text-12 text-ink-muted">{t("spending.payeeCount", { count: p.count })}</span>
+              </span>
+              <span className="flex shrink-0 items-baseline gap-2">
+                <span translate="no" className="amount text-14 font-semibold text-ink">
+                  {money(p.amount)}
+                </span>
+                <span className="eyebrow">{Math.round(p.share * 100)}%</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
   </section>
 );
 

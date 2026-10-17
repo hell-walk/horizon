@@ -5,7 +5,8 @@ import { useTheme } from "next-themes";
 
 // Chart.js paints on a canvas, so it needs real colour values. These are read
 // from the CSS variables in globals.css and re-read whenever the theme flips.
-const TOKEN_NAMES = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6"] as const;
+// Eight, so a chart (up to seven kinds and "Other") never shows one colour twice.
+const TOKEN_NAMES = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8"] as const;
 
 export type ChartColors = {
   segments: string[];
@@ -17,7 +18,7 @@ export type ChartColors = {
 };
 
 const FALLBACK: ChartColors = {
-  segments: ["#7C5CFF", "#A6D600", "#F24400", "#00B8A9", "#FF4D8D", "#FFB020"],
+  segments: ["#7C5CFF", "#A6D600", "#F24400", "#00B8A9", "#FF4D8D", "#FFB020", "#2584EB", "#966640"],
   other: "#C7C6CB",
   track: "#EEEEEA",
   text: "#1A1C1A",

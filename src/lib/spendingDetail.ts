@@ -1,6 +1,6 @@
 import { OWN_TRANSFER } from "./corrections";
 import { lenderOf } from "./loans";
-import { isPersonPayment, payeeName, PEOPLE_GROUP } from "./payees";
+import { isPersonPayment, payeeWords, PEOPLE_GROUP } from "./payees";
 import { spendType } from "./spending";
 import { spendSlug } from "./spendSlug";
 
@@ -24,8 +24,10 @@ export type SpendingDetail = {
   allSpent: number;
   from: string;
   to: string;
-  /** Who the money went to: the largest six, the rest (and unreadable payees) as one slice named "Other". */
+  /** Who the money went to, for the pie: the largest seven, the rest (and unreadable payees) as one slice named "Other". */
   payees: DetailSlice[];
+  /** Everyone the money went to, largest first, none folded away. */
+  allPayees: DetailSlice[];
   /** Month by month, oldest first, the last six months the statements cover. */
   months: { month: string; amount: number; count: number }[];
   /** The latest month next to the average of the months before it (when there are two or more). */
@@ -40,7 +42,8 @@ export type SpendingDetail = {
 
 const WINDOW_DAYS = 365;
 const DAY = 86_400_000;
-const PAYEES_SHOWN = 6;
+// Seven and "Other": eight slices, one colour each.
+const PAYEES_SHOWN = 7;
 const MONTHS_SHOWN = 6;
 const ENTRIES_SHOWN = 200;
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -74,8 +77,9 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
 
   const byPayee = new Map<string, DetailSlice>();
   for (const r of rows) {
-    // Loans by lender ("HDFC Bank", not the generic "Loan EMI").
-    const who = r.tx.shownName || (name === "EMI & pay later" ? lenderOf(r.name)?.name : undefined) || payeeName(r.name);
+    // Each payee by its own name ("Zepto", "Rahul Kumar"), not a group label ("Groceries"):
+    // inside one kind of spending, the point is who. Loans by lender ("HDFC Bank", "KreditBee").
+    const who = r.tx.shownName || (name === "EMI & pay later" ? lenderOf(r.name)?.name : undefined) || payeeWords(r.name);
     const slice = byPayee.get(who) ?? { name: who, amount: 0, count: 0, share: 0 };
     slice.amount += r.amount;
     slice.count++;
@@ -86,6 +90,9 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
   const rest = [...sorted.slice(PAYEES_SHOWN), ...(byPayee.has("Other") ? [byPayee.get("Other")!] : [])];
   if (rest.length) head.push({ name: "Other", amount: rest.reduce((s, p) => s + p.amount, 0), count: rest.reduce((s, p) => s + p.count, 0), share: 0 });
   const payees = head.map((p) => ({ ...p, amount: round2(p.amount), share: total ? p.amount / total : 0 }));
+  const allPayees = [...byPayee.values()]
+    .sort((a, b) => b.amount - a.amount)
+    .map((p) => ({ ...p, amount: round2(p.amount), share: total ? p.amount / total : 0 }));
 
   // The last six calendar months the statements cover (any entry at all), empty ones for this kind included.
   // A month before the first statement is unknown, not zero, so it is left out.
@@ -138,6 +145,7 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
     from,
     to,
     payees,
+    allPayees,
     months,
     compare,
     weekdays: weekdays.map(round2),

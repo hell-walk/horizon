@@ -28,7 +28,7 @@ export const moreLinks = [
 ];
 
 // Chart segment classes, in the order accounts and categories are drawn.
-export const CHART_COLOR_CLASSES = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-chart-6"];
+export const CHART_COLOR_CLASSES = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-chart-6", "bg-chart-7", "bg-chart-8"];
 
 /** Colour class for a chart segment: "Other" is always neutral, the rest cycle the palette. */
 export const chartColorClass = (name: string, index: number) =>

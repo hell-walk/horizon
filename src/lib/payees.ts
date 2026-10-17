@@ -15,7 +15,7 @@ export type PayeeSpend = {
 // Tokens that describe the rail or the direction, never the payee.
 const NOISE = new Set([
   "upi", "neft", "imps", "rtgs", "ach", "nach", "ecs", "pos", "atm", "dr", "cr", "txn", "ref", "id", "no", "chq", "cheque",
-  "payment", "paid", "purchase", "transfer", "trf", "to", "from", "by", "via", "the", "and", "ltd", "limited", "pvt", "private",
+  "payment", "paid", "purchase", "transfer", "trf", "tfr", "dep", "to", "from", "by", "via", "the", "and", "ltd", "limited", "pvt", "private",
   "india", "ind", "in", "order", "bill", "online", "card", "debit", "credit", "autopay", "mandate", "emi", "settlement", "wdl", "withdrawal", "cash",
   // Rails and words from other countries' statements.
   "zelle", "venmo", "paypal", "sepa", "wire", "bacs", "fps", "interac", "contactless", "visa", "mastercard", "dd", "so", "lastschrift",

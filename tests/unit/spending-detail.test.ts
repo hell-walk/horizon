@@ -50,6 +50,32 @@ describe("one kind of spending, closely", () => {
     expect(upi.upi).toEqual({ people: { amount: 2000, count: 1 }, shops: { amount: 300, count: 1 } });
   });
 
+  it("breaks UPI down by who was paid: seven and Other in the pie, everyone in the list", () => {
+    const names = ["Aman Verma", "Rahul Kumar", "Priya S", "Gupta Tent House", "Sunita Devi", "Ankit Jain", "Ravi Stores", "Meena K", "Book Hub"];
+    const rows = names.map((n, i) => debit(`u${i}`, "2026-09-10", `WDL TFR UPI/DR/65921488465${i}/${n}/YESB/x${i}@ybl/Paid vi 0097 AT 16727`, 900 - i * 50));
+    const upi = spendingDetail(rows, "upi-payments")!;
+    // Each by its own name, not the phone company Vi ("Paid vi..." is the bank cutting "Paid via" short).
+    expect(upi.payees.map((p) => p.name)).toEqual([...names.slice(0, 7), "Other"]);
+    expect(upi.payees.at(-1)!.amount).toBe(550 + 500);
+    expect(upi.allPayees.map((p) => p.name)).toEqual(names);
+    expect(upi.allPayees.reduce((s, p) => s + p.share, 0)).toBeCloseTo(1);
+  });
+
+  it("breaks EMIs down by lender", () => {
+    const rows = [
+      debit("l1", "2026-08-05", "ACH D- BAJAJ FINANCE LTD-P400PHT1234", 2100),
+      debit("l2", "2026-09-05", "ACH D- BAJAJ FINANCE LTD-P400PHT1234", 2100),
+      debit("l3", "2026-09-07", "UPI/DR/7/KreditBee/YESB/kreditbee@ybl/EMI", 900),
+      debit("l4", "2026-09-09", "UPI/DR/8/Simpl/YESB/simpl@ybl/pay later", 430),
+    ];
+    const emi = spendingDetail(rows, "emi-pay-later")!;
+    expect(emi.payees.map((p) => [p.name, p.amount])).toEqual([
+      ["Bajaj Finance", 4200],
+      ["KreditBee", 900],
+      ["Simpl", 430],
+    ]);
+  });
+
   it("knows no bucket by an unknown name", () => {
     expect(spendingDetail(tx, "no-such-thing")).toBeNull();
     expect(spendingDetail([], "food")).toBeNull();
