@@ -68,7 +68,8 @@ const ALIASES: [RegExp, string][] = [
   [/indigo|air\s*india|vistara|akasa/i, "Airlines"],
   [/airtel/i, "Airtel"],
   [/\bjio\b/i, "Jio"],
-  [/\bvi\b|vodafone/i, "Vi"],
+  // Not "Paid vi": banks cut "Paid via" short, which is not the phone company (categories.ts does the same).
+  [/(?<!paid\s)\bvi\b|vodafone/i, "Vi"],
   [/bigbasket|blinkit|zepto|instamart|dmart|reliance\s*fresh|grofers/i, "Groceries"],
   [/starbucks|cafe|coffee/i, "Cafe"],
   [/mcdonald|kfc|domino|pizza|burger/i, "Fast food"],

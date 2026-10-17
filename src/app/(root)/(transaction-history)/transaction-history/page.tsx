@@ -16,8 +16,8 @@ import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 import { dataLabel } from "@/lib/i18n/labels";
 import { findInsights } from "@/lib/insights";
-import { groupByPayee, type PayeeSpend } from "@/lib/payees";
-import { spendType } from "@/lib/spending";
+import type { PayeeSpend } from "@/lib/payees";
+import { groupBySpendTypeWithEntries, spendType } from "@/lib/spending";
 import { getAccount, getAccounts, getRecentEntries } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
@@ -230,7 +230,7 @@ async function Analysis({ appwriteItemId, currency, arrive }: { appwriteItemId: 
       <MonthlyFlow transactions={all} currency={currency} />
       <InsightsPanel result={findInsights(all)} currency={currency} />
       <div id="payees" className="scroll-mt-6">
-        <PayeePanel groups={forBrowser(groupByPayee(all, 8))} currency={currency} arrive={arrive} />
+        <PayeePanel groups={forBrowser(groupBySpendTypeWithEntries(all, 8))} currency={currency} arrive={arrive} accountId={appwriteItemId} />
       </div>
     </>
   );

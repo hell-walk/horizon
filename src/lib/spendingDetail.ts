@@ -2,17 +2,13 @@ import { OWN_TRANSFER } from "./corrections";
 import { lenderOf } from "./loans";
 import { isPersonPayment, payeeName, PEOPLE_GROUP } from "./payees";
 import { spendType } from "./spending";
+import { spendSlug } from "./spendSlug";
 
 // One kind of spending, looked at closely: the page a slice of the Home chart
 // opens for subscribers. Everything here is worked out from one account's
 // entries, the same buckets as the chart (spending.ts), so the numbers match.
 
-/** A spending bucket's name as it sits in a URL: "UPI payments" is "upi-payments". */
-export const spendSlug = (name: string) =>
-  name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export { spendSlug };
 
 export type DetailEntry = { id: string; date: string; name: string; amount: number };
 export type DetailSlice = { name: string; amount: number; count: number; share: number };

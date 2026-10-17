@@ -1,6 +1,7 @@
 "use client";
 
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
+import type { RefObject } from "react";
 import { Doughnut } from "react-chartjs-2";
 
 import { useT } from "@/components/i18nProvider";
@@ -14,7 +15,19 @@ export type RadialBarItem = { name: string; amount: number; share: number };
 
 // Concentric arcs: one ring per item, filled to that item's share of the total.
 // Chart.js stacks datasets as rings, so each dataset is [value, remainder].
-const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarItem[]; currency?: string; unfold?: boolean }) => {
+// `chartRef`: the Chart.js chart, so a click handler around it can ask which
+// ring is under the pointer at once (Chart.js handles its own clicks a frame later).
+const RadialBarChart = ({
+  items,
+  currency,
+  unfold = false,
+  chartRef,
+}: {
+  items: RadialBarItem[];
+  currency?: string;
+  unfold?: boolean;
+  chartRef?: RefObject<ChartJS<"doughnut"> | null>;
+}) => {
   const colors = useChartColors();
   const t = useT();
 
@@ -34,6 +47,7 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
 
   return (
     <Doughnut
+      ref={chartRef}
       role="img"
       aria-label={t("home.spendingChartLabel", {
         list: items.map((item) => `${spendTypeLabel(t, item.name)} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; "),
@@ -44,6 +58,10 @@ const RadialBarChart = ({ items, currency, unfold = false }: { items: RadialBarI
         rotation: -90,
         maintainAspectRatio: false,
         animation: unfold && !prefersReducedMotion() ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
+        onHover: (event, elements) => {
+          const target = event.native?.target as HTMLElement | null;
+          if (target && chartRef) target.style.cursor = elements.some((e) => e.index === 0) ? "pointer" : "";
+        },
         plugins: {
           legend: { display: false },
           tooltip: {

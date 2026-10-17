@@ -123,3 +123,13 @@ describe("groupByPayee", () => {
     expect(people[0]).toMatchObject({ name: PEOPLE_GROUP, count: 2 });
   });
 });
+
+describe('"Paid vi" (a cut-short "Paid via")', () => {
+  it("is not the phone company Vi", async () => {
+    const { payeeName } = await import("@/lib/payees");
+    const zepto = "WDL TFR UPI/DR/659214884656/Zepto/YESB/zeptoonlin /Paid vi 0097694162092 AT 16727 UTRETHIA , LUCKNOW";
+    expect(payeeName(zepto)).not.toBe("Vi");
+    expect(payeeName(zepto)).toBe("Groceries");
+    expect(payeeName("VI PREPAID RECHARGE")).toBe("Vi");
+  });
+});

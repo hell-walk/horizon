@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import type { Chart as ChartJS } from "chart.js";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 import { useT } from "@/components/i18nProvider";
+import { spendSlug } from "@/lib/spendSlug";
 import { formatAmount } from "@/lib/utils";
 
 import RadialBarChart from "@/components/radialBarChartLazy";
@@ -12,22 +14,45 @@ import type { RadialBarItem } from "@/components/radialBarChart";
 const UNFOLD_MS = 560;
 
 /**
- * The Home category chart as a doorway: clicking it sweeps every arc closed
- * into a full ring while the chart spins outward and fades, then opens the
- * full breakdown on Transaction History, where the payee chart spins in.
+ * The Home category chart as a doorway. A coloured ring opens that kind of
+ * spending's own page (the full analysis for subscribers). Anywhere else
+ * sweeps every arc closed into a full ring while the chart spins outward and
+ * fades, then opens the full breakdown on Account history.
  */
-const CategoryChartLink = ({ items, currency, total, href }: { items: RadialBarItem[]; currency?: string; total: number; href: string }) => {
+const CategoryChartLink = ({
+  items,
+  currency,
+  total,
+  href,
+  accountId,
+}: {
+  items: RadialBarItem[];
+  currency?: string;
+  total: number;
+  href: string;
+  accountId?: string;
+}) => {
   const router = useRouter();
   const t = useT();
   const [unfolding, setUnfolding] = useState(false);
+  // The chart itself, to ask which ring the click landed on.
+  const chart = useRef<ChartJS<"doughnut"> | null>(null);
 
   // Warm the destination so the hand-off is instant when the animation ends.
   useEffect(() => {
     router.prefetch(href);
   }, [router, href]);
 
-  const open = () => {
+  const open = (event: MouseEvent<HTMLButtonElement>) => {
     if (unfolding) return;
+    // A coloured arc (element 0 of its ring), not the grey track behind it.
+    const hit = chart.current?.getElementsAtEventForMode(event.nativeEvent, "nearest", { intersect: true }, false).find((e) => e.index === 0);
+    const ring = hit ? items[hit.datasetIndex] : null;
+    // "Other" is several kinds folded together: it has no page of its own.
+    if (ring && accountId && ring.name !== "Other") {
+      router.push(`/spending/${spendSlug(ring.name)}?id=${accountId}`);
+      return;
+    }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       router.push(href);
       return;
@@ -44,9 +69,11 @@ const CategoryChartLink = ({ items, currency, total, href }: { items: RadialBarI
       className="group relative mx-auto block size-[180px] cursor-pointer rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-card md:size-[200px]"
     >
       <span className={`absolute inset-0 block ${unfolding ? "chart-unfold" : "transition-transform duration-300 group-hover:scale-[1.04]"}`}>
-        <RadialBarChart items={items} currency={currency} unfold={unfolding} />
+        <RadialBarChart items={items} currency={currency} unfold={unfolding} chartRef={chart} />
       </span>
-      <span className={`pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center transition-opacity duration-200 ${unfolding ? "opacity-0" : ""}`}>
+      <span
+        className={`pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center transition-opacity duration-200 ${unfolding ? "opacity-0" : ""}`}
+      >
         <span className="eyebrow">{t("home.spent")}</span>
         <span translate="no" className="amount text-16 font-semibold text-ink">
           {formatAmount(total, currency)}

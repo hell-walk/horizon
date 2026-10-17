@@ -45,7 +45,7 @@ const CategoryPanel = async ({
 
       <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center">
         {categories.length > 0 ? (
-          <CategoryChartLink items={categories} currency={currency} total={total} href={href} />
+          <CategoryChartLink items={categories} currency={currency} total={total} href={href} accountId={appwriteItemId} />
         ) : (
           <div className="relative mx-auto size-[180px] md:size-[200px]">
             <div className="size-full rounded-full border-14 border-surface-container" />

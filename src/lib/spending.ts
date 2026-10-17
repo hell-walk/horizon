@@ -2,7 +2,7 @@ import { isPayLater } from "./categories";
 import { isBankCharge } from "./charges";
 import { OWN_TRANSFER } from "./corrections";
 import { extraSubscription } from "./extraTerms";
-import { isPersonPayment, PEOPLE_GROUP } from "./payees";
+import { isPersonPayment, PEOPLE_GROUP, type PayeeSpend } from "./payees";
 
 // Plain-language spending buckets. Every debit lands in one bucket that a
 // non-finance person recognises: what it was for when the merchant is known
@@ -147,6 +147,25 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
       share: rest.reduce((s, b) => s + b.share, 0),
     },
   ];
+}
+
+/**
+ * The same buckets as groupBySpendType (so the Home chart and Account history
+ * agree), each with its own debits: Account history lists or opens them.
+ */
+export function groupBySpendTypeWithEntries(transactions: Transaction[] = [], limit = 8): PayeeSpend[] {
+  const buckets = groupBySpendType(transactions, limit);
+  const shown = new Set(buckets.filter((b) => b.name !== "Other").map((b) => b.name));
+  const entries = new Map<string, Transaction[]>(buckets.map((b) => [b.name, []]));
+  for (const t of transactions) {
+    const isDebit = t.type === "debit" || Number(t.amount) < 0;
+    if (!isDebit || !Math.abs(Number(t.amount) || 0)) continue;
+    const name = spendType(t);
+    if (name === OWN_TRANSFER) continue;
+    const bucket = shown.has(name) ? name : "Other";
+    entries.get(bucket)?.push(t);
+  }
+  return buckets.map((b) => ({ ...b, transactions: entries.get(b.name) ?? [] }));
 }
 
 export type UpiSplit = {

@@ -55,3 +55,14 @@ describe("one kind of spending, closely", () => {
     expect(spendingDetail([], "food")).toBeNull();
   });
 });
+
+describe("Account history's chart groups", () => {
+  it("are the Home chart's kinds of spending, each with its own payments", async () => {
+    const { groupBySpendTypeWithEntries, groupBySpendType } = await import("@/lib/spending");
+    const groups = groupBySpendTypeWithEntries(tx, 8);
+    expect(groups.map((g) => [g.name, g.amount])).toEqual(groupBySpendType(tx, 8).map((b) => [b.name, b.amount]));
+    const food = groups.find((g) => g.name === "Food")!;
+    expect(food.transactions.map((t) => t.id).sort()).toEqual(["a", "b", "c", "d"]);
+    expect(groups.flatMap((g) => g.transactions).some((t) => t.id === "own")).toBe(false); // between own accounts: not spending
+  });
+});

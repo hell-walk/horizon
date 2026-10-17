@@ -1,7 +1,8 @@
 "use client";
 
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
-import { List, X } from "lucide-react";
+import { ArrowUpRight, List, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 
@@ -9,6 +10,7 @@ import { useT } from "@/components/i18nProvider";
 import { chartColorClass } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
 import { PEOPLE_GROUP, payeeName, type PayeeSpend } from "@/lib/payees";
+import { spendSlug } from "@/lib/spendSlug";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
 
 import UpiBreakdown from "./upiBreakdown";
@@ -23,12 +25,21 @@ const ALL = "__all__";
 const bucketLabel = dataLabel;
 
 /**
- * Where the money went: one slice per payee, repeats grouped. Click a slice
- * or a row to list that payee's payments underneath, or "View all" to list
- * every payment with its payee.
+ * Where the money went: one slice per kind of spending (Food, UPI payments,
+ * Bills & recharges, EMI & pay later...), the same as Home's chart. A slice or
+ * a row opens that kind's own page (the full analysis for subscribers); the
+ * folded "Other" lists its payments underneath, and "View all" lists every
+ * payment. Without `accountId` the slices only list (one slice per payee).
  */
-const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]; currency?: string; arrive?: boolean }) => {
+const PayeePanel = ({ groups, currency, arrive = false, accountId }: { groups: PayeeSpend[]; currency?: string; arrive?: boolean; accountId?: string }) => {
   const t = useT();
+  const router = useRouter();
+  // "Other" is the tail of several kinds folded together: no page of its own.
+  const opens = (g: PayeeSpend) => Boolean(accountId) && g.name !== "Other";
+  const choose = (g: PayeeSpend) => {
+    if (opens(g)) router.push(`/spending/${spendSlug(g.name)}?id=${accountId}`);
+    else setSelected((current) => (current === g.key ? null : g.key));
+  };
   const colors = useChartColors();
   const [selected, setSelected] = useState<string | null>(null);
   const total = groups.reduce((s, g) => s + g.amount, 0);
@@ -62,7 +73,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
       <header className="panel-head">
         <div className="flex items-center gap-2">
           <span className="eyebrow">{t("history.whereItGoes")}</span>
-          <span className="eyebrow">{t("history.byPayee")}</span>
+          <span className="eyebrow">{t(accountId ? "history.byType" : "history.byPayee")}</span>
         </div>
         {groups.length > 0 && (
           <button
@@ -89,9 +100,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
                 animation: ENTRANCE,
                 onClick: (_, elements) => {
                   const index = elements[0]?.index;
-                  if (index === undefined) return;
-                  const key = groups[index].key;
-                  setSelected((current) => (current === key ? null : key));
+                  if (index !== undefined) choose(groups[index]);
                 },
                 onHover: (event, elements) => {
                   const target = event.native?.target as HTMLElement | null;
@@ -125,7 +134,9 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
               {formatAmount(active ? active.amount : total, currency)}
             </span>
             {active && <span className="eyebrow">{t("history.shareOfSpending", { percent: Math.round(active.share * 100) })}</span>}
-            {!active && groups.length > 0 && <span className="eyebrow">{showAll ? t("history.payments", { count }) : t("history.tapSlice")}</span>}
+            {!active && groups.length > 0 && (
+              <span className="eyebrow">{showAll ? t("history.payments", { count }) : t(accountId ? "history.tapForAnalysis" : "history.tapSlice")}</span>
+            )}
           </div>
         </div>
 
@@ -136,8 +147,11 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
               <li key={g.key}>
                 <button
                   type="button"
-                  onClick={() => setSelected(isActive ? null : g.key)}
-                  className={cn("flex w-full items-center justify-between gap-3 py-2.5 text-left transition-colors hover:bg-surface-low", isActive && "bg-surface-low")}
+                  onClick={() => choose(g)}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-3 py-2.5 text-left transition-colors hover:bg-surface-low",
+                    isActive && "bg-surface-low",
+                  )}
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(g.name, i))} />
@@ -153,6 +167,7 @@ const PayeePanel = ({ groups, currency, arrive = false }: { groups: PayeeSpend[]
                       {formatAmount(g.amount, currency)}
                     </span>
                     <span className="eyebrow w-9 text-right">{Math.round(g.share * 100)}%</span>
+                    {opens(g) && <ArrowUpRight className="size-3.5 shrink-0 self-center text-ink-muted" aria-hidden />}
                   </span>
                 </button>
               </li>
