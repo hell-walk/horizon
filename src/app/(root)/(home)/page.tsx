@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
+import ChargesTeaser from "./components/chargesTeaser";
 import ComingUp from "./components/comingUp";
 import YourWeek from "./components/yourWeek";
 import ForecastPanel from "@/components/forecastPanel";
@@ -114,6 +115,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
           <Suspense fallback={null}>
             <ComingUp ownerId={ownerIdOf(loggedIn)} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <ChargesTeaser ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           <Suspense fallback={<RecentTransactionsSkeleton />}>

@@ -4,8 +4,9 @@ Every Indian bank account, balance and transaction on one screen. Upload a
 statement from any bank (PDF, Excel or CSV, password-protected or not) and
 Horizon reads it, checks it with you, and sorts every entry: UPI, cards, EMIs
 and pay-later, rent, groceries, subscriptions. On top of that: bills and
-subscriptions found in your statements, a cash-flow forecast, savings goals,
-and month-by-month history. In eleven Indian languages, light and dark.
+subscriptions found in your statements, every charge your banks took (with a
+ready request to ask for it back), a cash-flow forecast, savings goals, and
+month-by-month history. In eleven Indian languages, light and dark.
 
 Live at **https://www.lazyistudio.in**. 7 days free, then ₹99 a month or ₹999 a year.
 

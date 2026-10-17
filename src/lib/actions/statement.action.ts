@@ -317,7 +317,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
               name: entry.name.slice(0, 255),
               amount: entry.amount,
               type: entry.type,
-              category: categorize(entry.name),
+              category: categorize(entry.name, entry.type),
               balance: entry.balance ?? null,
               reference: entry.reference?.slice(0, 255) ?? null,
               hash,
@@ -465,7 +465,7 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
       name: entry.name,
       amount: entry.amount,
       type: entry.type,
-      category: categorize(entry.name),
+      category: categorize(entry.name, entry.type),
       balance: entry.balance,
     })),
   };

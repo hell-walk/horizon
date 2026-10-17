@@ -77,7 +77,7 @@ function toTransaction(doc: Record<string, unknown> & { $id: string }, bank: Ban
     amount: doc.amount as number,
     pending: false,
     // Worked out again from the bank's wording, so better rules also fix entries imported earlier.
-    category: categorize(doc.name as string),
+    category: categorize(doc.name as string, doc.type as string),
     date: doc.date as string,
     image: "",
     currency: bank.currency ?? "INR",

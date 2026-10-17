@@ -1,4 +1,4 @@
-import { ArrowLeftRight, CalendarClock, Gem, Home, Landmark, MessageSquare, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
+import { ArrowLeftRight, BadgeIndianRupee, CalendarClock, Gem, Home, Landmark, MessageSquare, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
 
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -11,6 +11,7 @@ export const sidebarLinks = [
   { icon: Landmark, route: "/my-banks", label: "My Banks", labelKey: "nav.myBanks", shortKey: "nav.myBanksShort" },
   { icon: ReceiptText, route: "/transaction-history", label: "Transaction History", labelKey: "nav.history", shortKey: "nav.historyShort" },
   { icon: CalendarClock, route: "/bills", label: "Bills", labelKey: "nav.bills", shortKey: "nav.billsShort" },
+  { icon: BadgeIndianRupee, route: "/charges", label: "Bank charges", labelKey: "nav.charges", shortKey: "nav.chargesShort", phone: false },
   { icon: PlugZap, route: "/connect-bank", label: "Connect Bank", labelKey: "nav.connect", shortKey: "nav.connectShort", phone: false },
 ];
 

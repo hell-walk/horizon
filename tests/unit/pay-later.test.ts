@@ -73,3 +73,43 @@ describe("subscriptions", () => {
     expect(found[0]).toMatchObject({ kind: "subscription", cadence: "monthly", confidence: "low", count: 1, next: "2026-10-05" });
   });
 });
+
+describe("lenders from the EMI list", () => {
+  it("vehicle, gold and consumer lenders are EMIs", () => {
+    for (const n of [
+      "ACH D- MAHINDRA AND MAHINDRA FINANCIAL SERVICES",
+      "NACH/MMFSL/0012345678",
+      "ACH D- HERO FINCORP LTD",
+      "NACH DR TVS CREDIT SERVICES LTD",
+      "ACH D- CHOLAMANDALAM INVESTMENT AND FINANCE",
+      "KOTAK MAHINDRA PRIME LTD NACH",
+      "SUNDARAM FINANCE LTD",
+      "IIFL FINANCE LTD NACH",
+      "ACH D- TATA CAPITAL LTD",
+      "ACH D- ADITYA BIRLA FINANCE",
+      "UPI/DR/1/Moneyview/YESB/moneyview.repay@ybl/", // a UPI handle naming the lender counts
+      "LOAN INSTALMENT 0041",
+      "HDFC BANK EMI 09/24",
+      "ICICI BANK PERSONAL LOAN",
+    ]) {
+      expect(categorize(n), n).toBe("EMI & pay later");
+    }
+  });
+
+  it("a bank's name alone, a car bought outright or an insurer is not an EMI", () => {
+    for (const n of ["NEFT/HDFC BANK/RAHUL", "MAHINDRA FIRST CHOICE WHEELS", "CHOLA MS GENERAL INSURANCE", "ICICI BANK CREDIT CARD PAYMENT"]) {
+      expect(categorize(n), n).not.toBe("EMI & pay later");
+    }
+  });
+
+  it('"saloon" is not a loan, and money sent to a Navi UPI address is not a Navi loan', () => {
+    expect(categorize("POS LOOKS SALOON BANDRA")).not.toBe("EMI & pay later");
+    expect(categorize("UPI/DR/1/RAHUL KUMAR/YESB/rahul@navi/")).not.toBe("EMI & pay later");
+    expect(categorize("NAVI FINSERV LTD NACH")).toBe("EMI & pay later");
+  });
+
+  it("money in from a lender is the loan arriving, not an EMI paid", () => {
+    expect(categorize("NEFT CR BAJAJ FINANCE LTD LOAN DISB", "credit")).not.toBe("EMI & pay later");
+    expect(categorize("NEFT CR BAJAJ FINANCE LTD LOAN DISB", "debit")).toBe("EMI & pay later");
+  });
+});
