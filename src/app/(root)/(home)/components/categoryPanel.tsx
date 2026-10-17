@@ -1,7 +1,11 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+
 import { chartColorClass, spendTypeLabel } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 import { PEOPLE_GROUP } from "@/lib/payees";
 import { groupBySpendType, splitUpi } from "@/lib/spending";
+import { spendSlug } from "@/lib/spendingDetail";
 import { cn, formatAmount } from "@/lib/utils";
 
 import CategoryChartLink from "./categoryChartLink";
@@ -12,11 +16,13 @@ const CategoryPanel = async ({
   currency,
   accountName,
   href,
+  appwriteItemId,
 }: {
   transactions?: Transaction[];
   currency?: string;
   accountName?: string;
   href: string; // the full breakdown the chart opens
+  appwriteItemId?: string; // each category opens its own deep-dive for this account
 }) => {
   const t = await getT();
   // Same buckets, order and colours as the strip under the bank card.
@@ -58,7 +64,19 @@ const CategoryPanel = async ({
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-3">
                   <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(category.name, i))} />
-                  <span className="truncate text-14 font-semibold text-ink">{spendTypeLabel(t, category.name)}</span>
+                  {/* "Other" is the folded tail of several kinds, so it has no page of its own. */}
+                  {appwriteItemId && category.name !== "Other" ? (
+                    <Link
+                      href={`/spending/${spendSlug(category.name)}?id=${appwriteItemId}`}
+                      aria-label={t("spending.openDetail", { name: spendTypeLabel(t, category.name) })}
+                      className="flex min-w-0 items-center gap-1 text-14 font-semibold text-ink underline-offset-4 hover:underline"
+                    >
+                      <span className="truncate">{spendTypeLabel(t, category.name)}</span>
+                      <ChevronRight className="size-3.5 shrink-0 text-ink-muted" aria-hidden />
+                    </Link>
+                  ) : (
+                    <span className="truncate text-14 font-semibold text-ink">{spendTypeLabel(t, category.name)}</span>
+                  )}
                 </span>
                 <span className="flex shrink-0 items-baseline gap-2">
                   <span translate="no" className="amount text-14 font-semibold text-ink">

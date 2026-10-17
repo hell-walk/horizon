@@ -1,4 +1,5 @@
 import { isPayLater } from "./categories";
+import { isBankCharge } from "./charges";
 import { OWN_TRANSFER } from "./corrections";
 import { extraSubscription } from "./extraTerms";
 import { isPersonPayment, PEOPLE_GROUP } from "./payees";
@@ -21,6 +22,8 @@ const matches = (pattern: Rule[1], text: string) => (typeof pattern === "functio
 // the Gulf, Singapore and Australia. Order matters: "Uber Eats" is Food before
 // "Uber" is Travel; "Whole Foods" is Groceries before "food" is Food.
 const PURPOSE: Rule[] = [
+  // What the bank itself took, before the lender it names ("ECS RTN CHGS KREDITBEE" is a fee, not an EMI).
+  ["Bank Fees", isBankCharge],
   ["EMI & pay later", isPayLater],
   [
     "Investments",

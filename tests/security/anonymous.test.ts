@@ -49,7 +49,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       expect(page.html).not.toContain('data-sentry-component="Home"');
     });
 
-    it.each(["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/charges", "/loans", "/goals", "/welcome", "/plans", "/feedback"])(
+    it.each(["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/charges", "/loans", "/spending/upi-payments", "/goals", "/welcome", "/plans", "/feedback"])(
       "%s sends you to sign in",
       async (path) => {
         const page = await getPage(path);

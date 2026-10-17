@@ -10,6 +10,5 @@ const placeholder = () => <BarsLoader className="size-full" />;
 
 export const DoughnutChart = dynamic(() => import("./DoughnutChart"), { ssr: false, loading: placeholder });
 
-export const RadialBarChart = dynamic(() => import("./RadialBarChart"), { ssr: false, loading: placeholder });
 
 export default DoughnutChart;

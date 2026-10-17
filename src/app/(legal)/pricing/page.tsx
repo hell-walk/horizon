@@ -40,6 +40,7 @@ export default async function PricingPage() {
       points: [
         "Unlimited imports, corrections and goals",
         "EMI and loan analysis: every lender by name, and which loan to close first",
+        "Each kind of spending in detail: UPI, food, shopping and more",
         "Renews every month until you cancel",
         "Cancel any time from the Plans page",
       ],

@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/i18nProvider";
 import { formatAmount } from "@/lib/utils";
 
-import { RadialBarChart } from "./DoughnutChartLazy";
-import type { RadialBarItem } from "./RadialBarChart";
+import RadialBarChart from "@/components/radialBarChartLazy";
+import type { RadialBarItem } from "@/components/radialBarChart";
 
 const UNFOLD_MS = 560;
 

@@ -207,7 +207,7 @@ const PlansPanel = ({ plan, daysLeft, untilText, prices, ready, testMode, offerT
                   <span className="text-14 text-ink-muted">{t(period === "monthly" ? "plan.perMonth" : "plan.perYear")}</span>
                 </p>
                 <ul className="flex flex-1 flex-col gap-2 text-14 text-ink">
-                  {["plan.included1", "plan.includedLoans", "plan.included2", "plan.included3"].map((key) => (
+                  {["plan.included1", "plan.includedLoans", "plan.includedSpending", "plan.included2", "plan.included3"].map((key) => (
                     <li key={key} className="flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden /> {t(key)}
                     </li>

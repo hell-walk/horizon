@@ -152,6 +152,7 @@ async function CategorySection({ appwriteItemId }: { appwriteItemId?: string }) 
       currency={account?.data?.currency}
       accountName={account?.data?.name}
       href={breakdownHref(appwriteItemId)}
+      appwriteItemId={appwriteItemId}
     />
   );
 }
