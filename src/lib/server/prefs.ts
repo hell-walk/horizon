@@ -15,6 +15,8 @@ export type Prefs = {
   country?: string;
   /** Reminder settings: email on or off, the devices for push, what was sent (lib/notify.ts). */
   notify?: unknown;
+  /** Missing weeks found while importing: "ask" first (the default) or "add" without asking. */
+  importGaps?: "ask" | "add";
 };
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;

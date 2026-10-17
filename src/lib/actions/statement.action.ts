@@ -26,7 +26,8 @@ import {
   type StatementSample,
 } from "../statements/parse";
 import { readStatementRowsIsolated } from "../statements/isolated";
-import { findOverlap, type Overlap } from "../statements/overlap";
+import { importGap, reachesLatest, type Gap } from "../statements/gaps";
+import { findOverlap, type Overlap, type OverlapRow } from "../statements/overlap";
 import { applyFixes, findDoubtful, readFixes, type Doubtful } from "../statements/doubtful";
 import { findImportedBank, savedStatementRows } from "../server/statementRows";
 import { forgetLeftOver } from "../server/leftover";
@@ -72,8 +73,10 @@ export type ImportResult =
       doubtfulSkipped: number;
       changed: number;
       total: number;
+      /** Saved although weeks are missing before or after it: figures across the hole may be off. */
+      gap: Gap | null;
     }
-  | ReadFailure;
+  | (ReadFailure & { gap?: Gap });
 
 /**
  * Finds the rows that need a look and applies the user's fixes to them. The
@@ -113,12 +116,29 @@ const accountFrom = (formData: FormData, parsed: ParsedStatement) => ({
   mask: String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000",
 });
 
-/** How this statement overlaps what is already saved for the same account (nothing, for a new account). */
-async function overlapWithSaved(bankId: string | undefined, parsed: ParsedStatement): Promise<{ hashes: string[]; overlap: Overlap }> {
-  if (!bankId) return { hashes: [], overlap: { exact: [], likely: [] } };
+/**
+ * How this statement meets what is already saved for the same account: the
+ * entries it shares (overlap), and any weeks missing between them (gap).
+ * Nothing of either for a new account.
+ */
+async function overlapWithSaved(
+  bankId: string | undefined,
+  parsed: ParsedStatement,
+): Promise<{ hashes: string[]; overlap: Overlap; gap: Gap | null; saved: OverlapRow[] }> {
+  if (!bankId) return { hashes: [], overlap: { exact: [], likely: [] }, gap: null, saved: [] };
   const hashes = transactionHashes(bankId, parsed.transactions);
   const incoming = parsed.transactions.map((entry, i) => ({ ...entry, hash: hashes[i] }));
-  return { hashes, overlap: findOverlap(incoming, await savedStatementRows(bankId)) };
+  const saved = await savedStatementRows(bankId);
+  return { hashes, overlap: findOverlap(incoming, saved), gap: importGap(saved, parsed.transactions), saved };
+}
+
+/** Whether to ask before saving a statement that leaves weeks missing ("add" means the person said not to ask). */
+async function asksAboutGaps(ownerId: string): Promise<boolean> {
+  try {
+    return (await readPrefs(ownerId)).importGaps !== "add";
+  } catch {
+    return true;
+  }
 }
 
 const MAX_PASSWORD_LENGTH = 64;
@@ -278,7 +298,12 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
     // Reuse the bank if this institution + account was imported before.
     let bankId = await findImportedBank(ownerIdOf(user), institution, mask);
-    const { overlap } = await overlapWithSaved(bankId, parsed);
+    const { overlap, gap, saved } = await overlapWithSaved(bankId, parsed);
+    // Weeks missing: saved only once the person has said so (on the form, or for good).
+    if (gap) {
+      if (formData.get("gapNever") === "1") await updatePrefs(ownerIdOf(user), { importGaps: "add" });
+      else if (formData.get("gapOk") !== "1" && (await asksAboutGaps(ownerIdOf(user)))) return { ok: false, error: t("connect.gapConfirmFirst"), gap };
+    }
     if (!bankId) {
       const accountId = `manual-${ID.unique()}`;
       const bank = await createBankAccount({
@@ -333,8 +358,9 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
       );
     }
 
-    // The statement's last running balance is the best balance we have.
-    if (parsed.closingBalance !== undefined) {
+    // The statement's last running balance is the best balance we have, unless it is
+    // an older statement filling in the past: then the saved one is newer.
+    if (parsed.closingBalance !== undefined && reachesLatest(saved, parsed.transactions)) {
       await database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bankId, {
         currentBalance: parsed.closingBalance,
         currency: currencyFrom(formData, parsed),
@@ -355,6 +381,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
       imported,
       skipped,
       likelySkipped: keepLikely ? 0 : overlap.likely.length,
+      gap,
       doubtfulSkipped: fixed.skipped,
       changed: fixed.changed,
       total: parsed.transactions.length,
@@ -394,6 +421,10 @@ export type PreviewResult =
       /** What the fixes sent with this preview did. */
       doubtfulSkipped: number;
       changed: number;
+      /** Weeks missing between this statement and the saved entries, if any. */
+      gap: Gap | null;
+      /** Ask before saving with a gap (false: the person said to add without asking). */
+      askGaps: boolean;
     }
   | ReadFailure;
 
@@ -421,9 +452,10 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
   const { parsed } = fixed;
 
   let overlap: Overlap = { exact: [], likely: [] };
+  let gap: Gap | null = null;
   try {
     const { institution, mask } = accountFrom(formData, parsed);
-    overlap = (await overlapWithSaved(await findImportedBank(ownerIdOf(user), institution, mask), parsed)).overlap;
+    ({ overlap, gap } = await overlapWithSaved(await findImportedBank(ownerIdOf(user), institution, mask), parsed));
   } catch (error) {
     // The preview still helps without it; the import checks again.
     logError("statement: overlap check failed", error);
@@ -440,6 +472,8 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
     },
     doubtfulSkipped: fixed.skipped,
     changed: fixed.changed,
+    gap,
+    askGaps: gap ? await asksAboutGaps(ownerIdOf(user)) : true,
     alreadySaved: overlap.exact.length,
     likely: {
       count: overlap.likely.length,
@@ -469,4 +503,18 @@ export const previewStatement = async (formData: FormData): Promise<PreviewResul
       balance: entry.balance,
     })),
   };
+};
+
+/** Turns the missing-weeks question back on (after "don't ask me again"). */
+export const askAboutGapsAgain = async (): Promise<{ ok: boolean }> => {
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false };
+  if (!(await allow(`statement:gaps:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return { ok: false };
+  try {
+    await updatePrefs(ownerIdOf(user), { importGaps: "ask" });
+    return { ok: true };
+  } catch (error) {
+    logError("statement: could not turn the gap question back on", error);
+    return { ok: false };
+  }
 };

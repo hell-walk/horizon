@@ -222,5 +222,16 @@
   "directFactUpdatesValue": "Automatic",
   "directFactAccess": "Access",
   "directFactAccessValue": "View only",
-  "directButton": "Link a bank"
+  "directButton": "Link a bank",
+  "gapTitle": "Some weeks seem to be missing",
+  "gapDates_one": "There are no entries for this account between {from} and {to} ({count} day).",
+  "gapDates_other": "There are no entries for this account between {from} and {to} ({count} days).",
+  "gapBalance": "The balances do not join up between {from} and {to}: this file does not start where the saved entries end, so some entries seem to be missing.",
+  "gapRisk": "If you save it anyway, balances, charts, bills and forecasts across those weeks may be off until you add the statement that covers them.",
+  "gapSaveAnyway": "Save anyway",
+  "gapNever": "Save anyway, and do not ask me about missing weeks again",
+  "gapAskAgain": "Ask me about missing weeks again",
+  "gapAskAgainDone": "Done. You will be asked next time.",
+  "gapSavedNote": "Saved. Some weeks are missing for this account, so figures across them may be off until you add that statement.",
+  "gapConfirmFirst": "Some weeks are missing between this statement and the saved entries. Tick \"Save anyway\" to save it, or add the missing statement first."
 }

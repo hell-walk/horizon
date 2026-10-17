@@ -10,6 +10,7 @@ const state = vi.hoisted(() => ({
   existingBanks: [] as { $id: string }[],
   savedRows: [] as Record<string, unknown>[],
   listQueries: [] as string[][],
+  updates: [] as Record<string, unknown>[],
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -31,7 +32,8 @@ vi.mock("@/lib/server/appwrite", () => ({
         if (queries.some((q) => q.includes('"bankId"'))) {
           const after = queries.map((q) => JSON.parse(q)).find((q) => q.method === "cursorAfter")?.values?.[0];
           const start = after ? state.savedRows.findIndex((r) => r.$id === after) + 1 : 0;
-          const page = state.savedRows.slice(start, start + 100);
+          const limit = queries.map((q) => JSON.parse(q)).find((q) => q.method === "limit")?.values?.[0] ?? 25;
+          const page = state.savedRows.slice(start, start + limit);
           return { documents: page, total: state.savedRows.length };
         }
         return { documents: state.existingBanks, total: state.existingBanks.length };
@@ -40,7 +42,10 @@ vi.mock("@/lib/server/appwrite", () => ({
         state.documents.push(data);
         return data;
       }),
-      updateDocument: vi.fn(async () => ({})),
+      updateDocument: vi.fn(async (_db: string, _col: string, _id: string, data: Record<string, unknown>) => {
+        state.updates.push(data);
+        return {};
+      }),
     },
   }),
 }));
@@ -63,6 +68,7 @@ beforeEach(() => {
   state.existingBanks = [];
   state.savedRows = [];
   state.listQueries = [];
+  state.updates = [];
 });
 
 const form = (file: File | null, extra: Record<string, string> = {}) => {
@@ -217,7 +223,7 @@ describe("entries already saved from another file", () => {
 
   it("reads every saved entry, past the first page", async () => {
     state.existingBanks = [{ $id: "bank-1" }];
-    state.savedRows = Array.from({ length: 250 }, (_, i) => ({ $id: `r${i}`, date: "2024-03-01", name: "OLD", amount: 1, type: "debit", hash: `h${i}` }));
+    state.savedRows = Array.from({ length: 1250 }, (_, i) => ({ $id: `r${i}`, date: "2024-03-01", name: "OLD", amount: 1, type: "debit", hash: `h${i}` }));
     state.savedRows.push({ $id: "last", date: "2024-04-01", name: "SWIGGY via PDF", amount: 640, type: "debit", balance: 1000, hash: "x" });
     const result = await previewStatement(form(csv(good), { institution: "Test Bank", mask: "1234" }));
     expect(result).toMatchObject({ ok: true, likely: { count: 1 } });
@@ -262,5 +268,49 @@ describe("rows that need a look", () => {
     const result = await importStatement(form(csv(flipped), { fixes: JSON.stringify({ 0: { amount: 999999 } }) }));
     expect(result).toMatchObject({ ok: false });
     expect(state.documents).toHaveLength(0);
+  });
+});
+
+describe("missing weeks between statements", () => {
+  // Saved: April 2024, ending on 30 Apr with a balance of 50,000.
+  const april = [
+    { $id: "a1", date: "2024-04-01", name: "SALARY", amount: 60000, type: "credit", balance: 60000, hash: "a1" },
+    { $id: "a2", date: "2024-04-30", name: "RENT", amount: 10000, type: "debit", balance: 50000, hash: "a2" },
+  ];
+  const july = "Date,Narration,Debit,Credit,Balance\n01/07/2024,TEA,20.00,,40000.00\n31/07/2024,BOOKS,500.00,,39500.00\n";
+  // Ends at 0, where April opens (a 60,000 salary on a balance of 60,000): the months join up.
+  const march = "Date,Narration,Debit,Credit,Balance\n01/03/2024,TEA,20.00,,500.00\n31/03/2024,BOOKS,500.00,,0.00\n";
+  const bank = { institution: "Test Bank", mask: "1234" };
+
+  it("the preview says which weeks are missing, and that it will ask", async () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = april;
+    const result = await previewStatement(form(csv(july), bank));
+    expect(result).toMatchObject({ ok: true, gap: { from: "2024-04-30", to: "2024-07-01", reason: "dates" }, askGaps: true });
+  });
+
+  it('saving waits for "save anyway", then saves', async () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = april;
+    const refused = await importStatement(form(csv(july), bank));
+    expect(refused).toMatchObject({ ok: false, gap: { to: "2024-07-01" } });
+    expect(state.documents).toHaveLength(0);
+    const saved = await importStatement(form(csv(july), { ...bank, gapOk: "1" }));
+    expect(saved).toMatchObject({ ok: true, imported: 2, gap: { to: "2024-07-01" } });
+  });
+
+  it('"don\'t ask me again" saves now and stops asking', async () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = april;
+    expect(await importStatement(form(csv(july), { ...bank, gapNever: "1" }))).toMatchObject({ ok: true });
+    expect(state.prefs).toMatchObject({ importGaps: "add" });
+    expect(await previewStatement(form(csv(july), bank))).toMatchObject({ ok: true, askGaps: false });
+  });
+
+  it("an older statement fills in the past without overwriting the newer balance", async () => {
+    state.existingBanks = [{ $id: "bank-1" }];
+    state.savedRows = april;
+    expect(await importStatement(form(csv(march), bank))).toMatchObject({ ok: true, imported: 2 });
+    expect(state.updates.some((u) => "currentBalance" in u)).toBe(false);
   });
 });

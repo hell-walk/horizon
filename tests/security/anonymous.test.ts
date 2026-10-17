@@ -129,6 +129,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       expect(Object.keys(actionIds()).filter((name) => !OPTIONAL_ACTIONS.includes(name)).sort()).toEqual(
         [
           "applyCode",
+          "askAboutGapsAgain",
           "cancelMySubscription",
           "checkSubscription",
           "completeProfile",

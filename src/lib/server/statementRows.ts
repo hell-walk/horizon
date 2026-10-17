@@ -32,7 +32,8 @@ export async function savedStatementRows(bankId: string): Promise<OverlapRow[]> 
   for (let page = 0; page < 500; page++) {
     const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
       Query.equal("bankId", [bankId]),
-      Query.limit(100),
+      Query.limit(1000),
+      Query.select(["date", "amount", "type", "name", "balance", "hash"]),
       ...(cursor ? [Query.cursorAfter(cursor)] : []),
     ]);
     for (const doc of result.documents) {
@@ -45,7 +46,7 @@ export async function savedStatementRows(bankId: string): Promise<OverlapRow[]> 
         hash: String(doc.hash ?? ""),
       });
     }
-    if (result.documents.length < 100) break;
+    if (result.documents.length < 1000) break;
     cursor = result.documents[result.documents.length - 1].$id;
   }
   return out;

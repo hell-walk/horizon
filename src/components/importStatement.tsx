@@ -15,6 +15,7 @@ import BalanceCheckNote from "./balanceCheck";
 import { useT } from "./i18nProvider";
 import ColumnMapper, { mappingHint } from "./columnMapper";
 import DoubtfulRows from "./doubtfulRows";
+import GapNotice from "./gapNotice";
 import { Input } from "./ui/input";
 
 type Props = { variant?: "primary" | "card" };
@@ -40,6 +41,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [mapperOpen, setMapperOpen] = useState(false);
   // "These are new, save them too", for entries that look like ones already saved from another file.
   const [keepLikely, setKeepLikely] = useState(false);
+  // Weeks missing between this file and the saved entries: "save anyway", and "don't ask me again".
+  const [gapOk, setGapOk] = useState(false);
+  const [gapNever, setGapNever] = useState(false);
   // Fixes for rows that need a look, keyed by their place in the file. "dirty" until the
   // file has been read again with them, so the counts and the balance check are current.
   const [fixes, setFixes] = useState<Fixes>({});
@@ -73,6 +77,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
     setPreview(null);
     setResult(null);
     setKeepLikely(false);
+    setGapOk(false);
+    setGapNever(false);
     setFixes({});
     setSkipAll(false);
     setDirty(false);
@@ -111,6 +117,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       setPreview(outcome);
       if (!keepChoices) {
         setKeepLikely(false);
+        setGapOk(false);
+        setGapNever(false);
         setFixes({});
         setSkipAll(false);
       }
@@ -182,6 +190,8 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   // What the save button will really save: not the entries already there, nor the
   // look-alikes unless the user says they are new.
   const toSave = preview?.ok ? preview.total - preview.alreadySaved - (keepLikely ? 0 : preview.likely.count) : null;
+  // Weeks are missing and the person wants to be asked: Save waits for "save anyway".
+  const gapUnanswered = Boolean(preview?.ok && preview.gap && preview.askGaps && !gapOk && !gapNever);
 
   return (
     <form
@@ -505,6 +515,19 @@ const ImportStatement = ({ variant = "card" }: Props) => {
               </label>
             </div>
           )}
+          {preview.gap && (
+            <GapNotice
+              gap={preview.gap}
+              ask={preview.askGaps}
+              saveAnyway={gapOk}
+              onSaveAnyway={setGapOk}
+              never={gapNever}
+              onNever={(on) => {
+                setGapNever(on);
+                if (on) setGapOk(true);
+              }}
+            />
+          )}
           <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2 text-12 text-ink-muted">
             <span>
               {preview.source === "saved"
@@ -525,7 +548,13 @@ const ImportStatement = ({ variant = "card" }: Props) => {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="submit"
-          disabled={busy !== null || !fileName || (mapperOpen && mapping !== null && mappingHint(mapping) !== null) || (!mapperOpen && !dirty && toSave === 0)}
+          disabled={
+            busy !== null ||
+            !fileName ||
+            (mapperOpen && mapping !== null && mappingHint(mapping) !== null) ||
+            (!mapperOpen && !dirty && toSave === 0) ||
+            (!mapperOpen && !dirty && gapUnanswered)
+          }
           className={preview?.ok && !mapperOpen ? "btn-primary" : "btn-secondary"}
         >
           {busy === "preview" ? (
@@ -574,6 +603,9 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           {result.changed ? ` ${t("connect.doubtChangedDone", { count: result.changed })}` : ""}
           {result.doubtfulSkipped ? ` ${t("connect.doubtSkippedDone", { count: result.doubtfulSkipped })}` : ""}
         </p>
+      )}
+      {result && result.ok && result.gap && (
+        <p className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-13 text-ink">{t("connect.gapSavedNote")}</p>
       )}
 
       <p className="field-hint">{t("connect.privacyNote")}</p>
