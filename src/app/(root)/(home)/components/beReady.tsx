@@ -5,7 +5,9 @@ import type { HeadsUp } from "@/lib/headsUp";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { dateFormat } from "@/lib/regularText";
+import ReminderLanguage from "@/components/reminderLanguage";
 import { headsUpFor } from "@/lib/server/headsUp";
+import { loadNotify } from "@/lib/server/notify";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 const SHOWN = 5;
@@ -16,8 +18,9 @@ const SHOWN = 5;
  * penalty. Nothing at all when there is nothing to be ready for.
  */
 const BeReady = async ({ ownerId }: { ownerId: string }) => {
-  const { items, staleSince } = await headsUpFor(ownerId);
+  const [{ items, staleSince }, reminders] = await Promise.all([headsUpFor(ownerId), loadNotify(ownerId).catch(() => null)]);
   if (items.length === 0) return null;
+  const remindersOn = Boolean(reminders && (reminders.email || reminders.push.length > 0));
 
   const t = await getT();
   const locale = await getLocale();
@@ -45,6 +48,7 @@ const BeReady = async ({ ownerId }: { ownerId: string }) => {
           </Link>
         </p>
       )}
+      {remindersOn && <ReminderLanguage current={reminders!.locale} className="border-t border-line px-4 py-3" />}
       {staleSince && (
         <p className="flex items-start gap-2 border-t border-line px-4 py-3 text-12 text-ink-muted">
           <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden /> {t("ready.stale", { date: day(staleSince) })}

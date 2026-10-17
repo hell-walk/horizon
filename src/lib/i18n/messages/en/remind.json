@@ -38,5 +38,6 @@
   "errDevice": "This device could not be set up for reminders. Try again.",
   "errFailed": "Something went wrong. Try again.",
   "errNothingOn": "Turn on reminders on this device or by email first.",
-  "errLink": "This link is not valid. Turn email reminders off under Privacy and your data instead."
+  "errLink": "This link is not valid. Turn email reminders off under Privacy and your data instead.",
+  "languageTitle": "Reminders in"
 }

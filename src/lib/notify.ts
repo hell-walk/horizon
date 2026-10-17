@@ -11,8 +11,10 @@ export type PushSubscription = { endpoint: string; keys: { p256dh: string; auth:
 export type NotifySettings = {
   email: boolean;
   push: PushSubscription[];
-  /** The language reminders are written in: the one Horizon was in when they were turned on. */
+  /** The language reminders are written in: chosen (regional or English), else the one Horizon was in when they were turned on. */
   locale: Locale;
+  /** The person picked the reminders' language themselves: turning a channel on later does not change it. */
+  localeChosen: boolean;
   /** What has been sent already ("emi:<account>:<date>"), so nothing is sent twice. Newest last. */
   sent: string[];
 };
@@ -64,6 +66,7 @@ export function readNotify(value: unknown): NotifySettings {
     email: v.email === true,
     push,
     locale: LOCALES.includes(v.locale as Locale) ? (v.locale as Locale) : "en",
+    localeChosen: v.localeChosen === true,
     sent: Array.isArray(v.sent) ? v.sent.filter((s): s is string => typeof s === "string" && s.length <= 120).slice(-MAX_SENT) : [],
   };
 }

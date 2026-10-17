@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import BottomNav from "./components/bottomNav";
+import HomeLanguageSync from "./components/homeLanguageSync";
 import PlanBanner from "./components/planBanner";
 import ScrollCalm from "./components/scrollCalm";
 import Topbar from "./components/topbar";
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </main>
       <BottomNav />
       <ScrollCalm />
+      <HomeLanguageSync saved={(await loadSession())?.homeLocale ?? null} />
     </div>
   );
 }

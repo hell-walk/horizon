@@ -3,7 +3,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 
-import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, type Locale } from "./config";
+import { DEFAULT_LOCALE, HOME_LOCALE_COOKIE, isLocale, LOCALE_COOKIE, type Locale } from "./config";
 import { makeTranslator } from "./translate";
 
 /**
@@ -25,6 +25,16 @@ export const getLocale = cache(async (): Promise<Locale> => {
     if (isLocale(tag)) return tag;
   }
   return DEFAULT_LOCALE;
+});
+
+/** The person's own regional language on this device, if they have chosen one. */
+export const getHomeLocale = cache(async (): Promise<Locale | null> => {
+  try {
+    const value = (await cookies()).get(HOME_LOCALE_COOKIE)?.value;
+    return isLocale(value) ? value : null;
+  } catch {
+    return null;
+  }
 });
 
 /** Translator for server components and server actions. */

@@ -18,6 +18,7 @@ import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";
+import LanguageField from "./languageField";
 import PasswordRules from "./passwordRules";
 
 // Shown only after a sign-up ("add your first bank"), so their code is fetched
@@ -64,10 +65,23 @@ const GoogleMark = () => (
  * the profile; `email` is the Google account's). `notice`: a message to show
  * first, e.g. when coming back from Google did not work.
  */
-const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: string; notice?: string; defaults?: Partial<Record<string, string>> }) => {
+const AuthForm = ({
+  type,
+  email,
+  notice,
+  defaults,
+  countries: serverCountries,
+}: {
+  type: string;
+  email?: string;
+  notice?: string;
+  defaults?: Partial<Record<string, string>>;
+  /** The country list made on the server: the browser's own country names differ a little, and the form would be rebuilt. */
+  countries?: { code: string; name: string }[];
+}) => {
   const t = useT();
   const locale = useLocale();
-  const countries = useMemo(() => countryList(LOCALE_TAGS[locale]), [locale]);
+  const countries = useMemo(() => serverCountries ?? countryList(LOCALE_TAGS[locale]), [serverCountries, locale]);
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   // After sign-up: the address the confirmation link went to.
@@ -306,6 +320,7 @@ const AuthForm = ({ type, email, notice, defaults }: { type: string; email?: str
                   <div id="section-01" className="scroll-mt-6">
                     <Section title={t("auth.sectionAbout")} hint={t("auth.sectionAboutHint")}>
                       <div className="grid gap-4 sm:grid-cols-2">
+                        <LanguageField />
                         <FormField
                           control={form.control}
                           name="country"

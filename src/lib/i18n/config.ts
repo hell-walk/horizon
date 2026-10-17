@@ -7,6 +7,8 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_COOKIE = "horizon-lang";
+/** The person's own regional language (chosen at sign-up or in the picker): the picker offers it beside English and Hindi. */
+export const HOME_LOCALE_COOKIE = "horizon-home-lang";
 
 /** Each language's name written in itself, for the language switch. */
 export const LOCALE_NAMES: Record<Locale, string> = {
@@ -57,3 +59,16 @@ export const LOCALE_TAGS: Record<Locale, string> = {
 };
 
 export const isLocale = (value: unknown): value is Locale => typeof value === "string" && (LOCALES as readonly string[]).includes(value);
+
+/** English and Hindi: always offered, whatever the home language. */
+export const EVERYONE_LOCALES: readonly Locale[] = ["en", "hi"];
+
+/**
+ * The languages the picker shows before "More languages": the home language,
+ * Hindi and English, and the current one if it is none of those. Everything
+ * when no home language is known yet.
+ */
+export function pickerLocales(home: Locale | null, current: Locale): Locale[] {
+  if (!home) return [...LOCALES];
+  return [...new Set<Locale>([home, "hi", "en", current])];
+}

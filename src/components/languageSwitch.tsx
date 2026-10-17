@@ -1,15 +1,15 @@
 "use client";
 
-import { Check, ChevronDown, Languages } from "lucide-react";
+import { Check, ChevronDown, Languages, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 
-import { rememberLocale } from "@/lib/i18n/client";
-import { LOCALE_ENGLISH_NAMES, LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/config";
+import { rememberHomeLocale, rememberLocale } from "@/lib/i18n/client";
+import { EVERYONE_LOCALES, LOCALE_ENGLISH_NAMES, LOCALE_NAMES, LOCALES, pickerLocales, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
-import { useLocale, useT } from "./i18nProvider";
+import { useHomeLocale, useLocale, useT } from "./i18nProvider";
 import { ProgressDoughnut } from "./loaders";
 
 /**
@@ -19,10 +19,20 @@ import { ProgressDoughnut } from "./loaders";
  * Choosing one remembers it for a year and re-renders the page in place,
  * with the page-loading ring over it until the new language has arrived.
  * `compact`: the button shows the icon and the language's code (top bars, phones).
+ *
+ * Once the person's own regional language is known (chosen at sign-up, or the
+ * last regional language picked here), the list is just that, Hindi and
+ * English, with "More languages" for the rest.
  */
 const LanguageSwitch = ({ className, compact = false }: { className?: string; compact?: boolean }) => {
   const locale = useLocale();
+  const home = useHomeLocale();
   const t = useT();
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? [...LOCALES] : pickerLocales(home, locale);
+  const hasMore = shown.length < LOCALES.length;
+  // The options, then "More languages" when the list is short.
+  const last = shown.length - (hasMore ? 0 : 1);
   const router = useRouter();
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -50,7 +60,8 @@ const LanguageSwitch = ({ className, compact = false }: { className?: string; co
   }, [open, active]);
 
   const openList = () => {
-    setActive(Math.max(0, LOCALES.indexOf(locale)));
+    setShowAll(false);
+    setActive(Math.max(0, pickerLocales(home, locale).indexOf(locale)));
     const rect = button.current?.getBoundingClientRect();
     setPhoneTop(rect && window.innerWidth < 640 ? Math.round(rect.bottom + 8) : null);
     setOpen(true);
@@ -61,11 +72,17 @@ const LanguageSwitch = ({ className, compact = false }: { className?: string; co
     button.current?.focus();
     if (next === locale) return;
     rememberLocale(next);
+    // A regional language becomes their own: the picker leads with it from now on (and the login keeps it).
+    if (!EVERYONE_LOCALES.includes(next)) rememberHomeLocale(next);
     startTransition(() => router.refresh());
   };
 
+  const showMore = () => {
+    setShowAll(true);
+    setActive(shown.length); // the first language that was hidden
+  };
+
   const onListKey = (e: KeyboardEvent) => {
-    const last = LOCALES.length - 1;
     if (e.key === "ArrowDown") setActive((i) => (i >= last ? 0 : i + 1));
     else if (e.key === "ArrowUp") setActive((i) => (i <= 0 ? last : i - 1));
     else if (e.key === "Home") setActive(0);
@@ -120,9 +137,12 @@ const LanguageSwitch = ({ className, compact = false }: { className?: string; co
           aria-label={t("common.language")}
           onKeyDown={onListKey}
           style={phoneTop !== null ? { position: "fixed", top: phoneTop, left: 16, right: 16, width: "auto", marginTop: 0 } : undefined}
-          className="absolute right-0 top-full z-50 mt-2 grid max-h-[min(70vh,560px)] w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-0.5 overflow-y-auto rounded-md border border-line bg-surface-low p-1.5 shadow-lift sm:w-[26rem] sm:grid-cols-2"
+          className={cn(
+            "absolute right-0 top-full z-50 mt-2 grid max-h-[min(70vh,560px)] w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-0.5 overflow-y-auto rounded-md border border-line bg-surface-low p-1.5 shadow-lift",
+            showAll || !home ? "sm:w-[26rem] sm:grid-cols-2" : "sm:w-[18rem]",
+          )}
         >
-          {LOCALES.map((code, i) => {
+          {shown.map((code, i) => {
             const current = code === locale;
             return (
               <li key={code} role="presentation">
@@ -153,6 +173,27 @@ const LanguageSwitch = ({ className, compact = false }: { className?: string; co
               </li>
             );
           })}
+          {hasMore && (
+            <li role="presentation" className={cn(showAll || !home ? "sm:col-span-2" : "")}>
+              <button
+                ref={(el) => {
+                  items.current[shown.length] = el;
+                }}
+                type="button"
+                role="option"
+                aria-selected={false}
+                tabIndex={active === shown.length ? 0 : -1}
+                onClick={showMore}
+                onMouseEnter={() => setActive(shown.length)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-sm border-t border-line px-3 py-2.5 text-left text-14 font-semibold text-ink transition-colors focus-visible:outline-hidden",
+                  active === shown.length ? "bg-surface-container" : "hover:bg-surface-container",
+                )}
+              >
+                <Plus className="size-4 shrink-0 text-ink-muted" aria-hidden /> {t("common.moreLanguages")}
+              </button>
+            </li>
+          )}
         </ul>
       )}
 

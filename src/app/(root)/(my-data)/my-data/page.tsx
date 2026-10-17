@@ -29,6 +29,7 @@ const MyData = async () => {
     name: b.institutionName ?? "Bank",
     mask: b.accountMask ?? "",
   }));
+  const reminders = await loadNotify(ownerIdOf(user)).catch(() => null);
 
   return (
     <section className="page">
@@ -39,7 +40,8 @@ const MyData = async () => {
           <Reminders
             vapidKey={pushConfigured() ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY! : ""}
             emailReady={emailConfigured()}
-            emailOn={(await loadNotify(ownerIdOf(user)).catch(() => null))?.email ?? false}
+            emailOn={reminders?.email ?? false}
+            reminderLocale={reminders?.locale ?? "en"}
             address={user.email}
           />
           <DownloadData />

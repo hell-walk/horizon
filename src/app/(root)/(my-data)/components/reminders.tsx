@@ -4,6 +4,8 @@ import { BellRing, Loader2, Mail, Send, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
+import ReminderLanguage from "@/components/reminderLanguage";
+import type { Locale } from "@/lib/i18n/config";
 import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders } from "@/lib/actions/notify.action";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +16,8 @@ type Props = {
   emailReady: boolean;
   emailOn: boolean;
   address: string;
+  /** The language reminders are written in now. */
+  reminderLocale: Locale;
 };
 
 type DeviceState = "checking" | "unsupported" | "needsHomeScreen" | "blocked" | "off" | "on";
@@ -29,7 +33,7 @@ const keyBytes = (base64url: string) => {
  * email. Both off until switched on. A device is a browser: each phone or
  * computer is turned on separately.
  */
-const Reminders = ({ vapidKey, emailReady, emailOn, address }: Props) => {
+const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: Props) => {
   const t = useT();
   const [device, setDevice] = useState<DeviceState>("checking");
   const [email, setEmail] = useState(emailOn);
@@ -172,6 +176,8 @@ const Reminders = ({ vapidKey, emailReady, emailOn, address }: Props) => {
           onToggle={toggleEmail}
           label={t("remind.emailTitle")}
         />
+
+        <ReminderLanguage current={reminderLocale} />
 
         <p className="text-12 text-ink-muted">{t("remind.privacyNote")}</p>
 

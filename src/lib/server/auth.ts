@@ -3,6 +3,7 @@ import "server-only";
 import { after } from "next/server";
 import { cache } from "react";
 
+import { isLocale, type Locale } from "../i18n/config";
 import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
 import { getBanks, getUserInfo } from "./banks";
@@ -34,6 +35,8 @@ export type SessionUser = {
   offer: PendingOffer | null;
   /** The Horizon profile's id, remembered on the login after the first visit (see loadLoggedInUser). */
   profileId: string | null;
+  /** Their own regional language, chosen at sign-up or in the picker; kept on the login so it follows them. */
+  homeLocale: Locale | null;
 };
 
 // Asks Supabase on every request (getUser, not the cookie alone), so a deleted
@@ -55,6 +58,7 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
       joinedAt: Date.parse(data.user.created_at ?? "") || Date.now(),
       subscription: readSubscription(data.user.app_metadata?.subscription),
       offer: readOffer(data.user.app_metadata?.offer),
+      homeLocale: isLocale(meta.home_language) ? meta.home_language : null,
       profileId: typeof data.user.app_metadata?.profile_id === "string" ? data.user.app_metadata.profile_id : null,
       pendingProfile: data.user.user_metadata?.terms_accepted_at ? readPending(meta.pending_profile) : null,
     };

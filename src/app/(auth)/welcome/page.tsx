@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { getT } from "@/lib/i18n/server";
+import { countryList } from "@/lib/countries";
+import { LOCALE_TAGS } from "@/lib/i18n/config";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession } from "@/lib/server/auth";
 import { DataUnavailableError, getUserInfo } from "@/lib/server/banks";
 import { logError } from "@/lib/server/log";
@@ -52,7 +54,7 @@ export default async function Welcome() {
 
   return (
     <section className="flex w-full justify-center">
-      <AuthForm type="welcome" email={session.email} defaults={pending ?? undefined} />
+      <AuthForm type="welcome" email={session.email} defaults={pending ?? undefined} countries={countryList(LOCALE_TAGS[await getLocale()])} />
     </section>
   );
 }

@@ -54,3 +54,13 @@ describe("translations", () => {
     expect(t("no.such.key")).toBe("no.such.key");
   });
 });
+
+describe("the language picker's short list", () => {
+  it("is the home language, Hindi and English, plus the current one; everything without a home language", async () => {
+    const { pickerLocales, LOCALES: all } = await import("@/lib/i18n/config");
+    expect(pickerLocales("ta", "ta")).toEqual(["ta", "hi", "en"]);
+    expect(pickerLocales("ta", "bn")).toEqual(["ta", "hi", "en", "bn"]);
+    expect(pickerLocales("hi", "en")).toEqual(["hi", "en"]);
+    expect(pickerLocales(null, "en")).toEqual([...all]);
+  });
+});
