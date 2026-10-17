@@ -6,9 +6,11 @@ import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
 import { getBanks } from "@/lib/server/banks";
+import { emailConfigured, loadNotify, pushConfigured } from "@/lib/server/notify";
 
 import DeleteAccount from "../components/deleteAccount";
 import DownloadData from "../components/downloadData";
+import Reminders from "../components/reminders";
 import RemoveBanks from "../components/removeBanks";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,6 +36,12 @@ const MyData = async () => {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,560px)] xl:items-start">
         <div className="flex min-w-0 max-w-3xl flex-col gap-6">
           <HeaderBox eyebrow={t("data.eyebrow")} title={t("data.title")} subtext={t("data.intro")} />
+          <Reminders
+            vapidKey={pushConfigured() ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY! : ""}
+            emailReady={emailConfigured()}
+            emailOn={(await loadNotify(ownerIdOf(user)).catch(() => null))?.email ?? false}
+            address={user.email}
+          />
           <DownloadData />
           <RemoveBanks banks={banks} />
           <DeleteAccount hasPassword={(await loadSession())?.hasPassword ?? true} />

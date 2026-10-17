@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 // Secrets at rest (bank access tokens) are sealed with AES-256-GCM under
 // DATA_ENCRYPTION_KEY, a 32-byte key in base64. Sealed values carry a prefix so
@@ -51,3 +51,23 @@ export function openSealed(value: string): string {
 
 /** An id that can be shared to receive transfers: random, so it says nothing about the account. */
 export const newSharableId = () => randomBytes(18).toString("base64url");
+
+/**
+ * A signature for a link that acts without a sign-in (an unsubscribe link in
+ * an email): HMAC-SHA256 under DATA_ENCRYPTION_KEY, kept apart per purpose so
+ * one kind of link can never stand in for another. Null without the key.
+ */
+export function signFor(purpose: string, value: string): string | null {
+  const k = key();
+  if (!k) return null;
+  return createHmac("sha256", k).update(`${purpose}:${value}`).digest("base64url");
+}
+
+/** Whether a signature from signFor matches, compared in constant time. */
+export function signatureMatches(purpose: string, value: string, signature: string): boolean {
+  const expected = signFor(purpose, value);
+  if (!expected || typeof signature !== "string") return false;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && timingSafeEqual(a, b);
+}

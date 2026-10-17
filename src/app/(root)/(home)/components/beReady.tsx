@@ -29,6 +29,9 @@ const BeReady = async ({ ownerId }: { ownerId: string }) => {
         <h2 id="be-ready" className="eyebrow flex items-center gap-2">
           <BellRing className="size-3.5" aria-hidden /> {t("ready.title")}
         </h2>
+        <Link href="/my-data#reminders" className="btn-ghost btn-sm">
+          {t("ready.remindMe")}
+        </Link>
       </header>
       <ul className="divide-y divide-line">
         {items.slice(0, SHOWN).map((item, i) => (

@@ -16,5 +16,6 @@
   "chargeBody_card": "Due about a year after the last one. If you hardly use the card, ask for a cheaper one or close it before then.",
   "minBalanceTitle": "Minimum balance penalty of {amount} on {date}",
   "minBalanceBody": "Keep the average balance above your account's minimum this month, or ask to switch to a zero-balance basic savings account.",
-  "seeCharges": "See all charges"
+  "seeCharges": "See all charges",
+  "remindMe": "Remind me"
 }

@@ -47,5 +47,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Pages and actions only: not built files, images or the Sentry tunnel.
-  matcher: ["/((?!_next/static|_next/image|monitoring|favicon.ico|icon.svg|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|monitoring|favicon.ico|icon.svg|robots.txt|sitemap.xml|sw.js|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?)$).*)"],
 };

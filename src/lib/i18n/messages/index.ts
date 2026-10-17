@@ -21,6 +21,7 @@ import enLoans from "./en/loans.json";
 import enNav from "./en/nav.json";
 import enPlan from "./en/plan.json";
 import enReady from "./en/ready.json";
+import enRemind from "./en/remind.json";
 import enSpending from "./en/spending.json";
 import enTransfer from "./en/transfer.json";
 import hiAuth from "./hi/auth.json";
@@ -41,6 +42,7 @@ import hiLoans from "./hi/loans.json";
 import hiNav from "./hi/nav.json";
 import hiPlan from "./hi/plan.json";
 import hiReady from "./hi/ready.json";
+import hiRemind from "./hi/remind.json";
 import hiSpending from "./hi/spending.json";
 import hiTransfer from "./hi/transfer.json";
 import bnAuth from "./bn/auth.json";
@@ -61,6 +63,7 @@ import bnLoans from "./bn/loans.json";
 import bnNav from "./bn/nav.json";
 import bnPlan from "./bn/plan.json";
 import bnReady from "./bn/ready.json";
+import bnRemind from "./bn/remind.json";
 import bnSpending from "./bn/spending.json";
 import bnTransfer from "./bn/transfer.json";
 import mrAuth from "./mr/auth.json";
@@ -81,6 +84,7 @@ import mrLoans from "./mr/loans.json";
 import mrNav from "./mr/nav.json";
 import mrPlan from "./mr/plan.json";
 import mrReady from "./mr/ready.json";
+import mrRemind from "./mr/remind.json";
 import mrSpending from "./mr/spending.json";
 import mrTransfer from "./mr/transfer.json";
 import teAuth from "./te/auth.json";
@@ -101,6 +105,7 @@ import teLoans from "./te/loans.json";
 import teNav from "./te/nav.json";
 import tePlan from "./te/plan.json";
 import teReady from "./te/ready.json";
+import teRemind from "./te/remind.json";
 import teSpending from "./te/spending.json";
 import teTransfer from "./te/transfer.json";
 import taAuth from "./ta/auth.json";
@@ -121,6 +126,7 @@ import taLoans from "./ta/loans.json";
 import taNav from "./ta/nav.json";
 import taPlan from "./ta/plan.json";
 import taReady from "./ta/ready.json";
+import taRemind from "./ta/remind.json";
 import taSpending from "./ta/spending.json";
 import taTransfer from "./ta/transfer.json";
 import guAuth from "./gu/auth.json";
@@ -141,6 +147,7 @@ import guLoans from "./gu/loans.json";
 import guNav from "./gu/nav.json";
 import guPlan from "./gu/plan.json";
 import guReady from "./gu/ready.json";
+import guRemind from "./gu/remind.json";
 import guSpending from "./gu/spending.json";
 import guTransfer from "./gu/transfer.json";
 import knAuth from "./kn/auth.json";
@@ -161,6 +168,7 @@ import knLoans from "./kn/loans.json";
 import knNav from "./kn/nav.json";
 import knPlan from "./kn/plan.json";
 import knReady from "./kn/ready.json";
+import knRemind from "./kn/remind.json";
 import knSpending from "./kn/spending.json";
 import knTransfer from "./kn/transfer.json";
 import mlAuth from "./ml/auth.json";
@@ -181,6 +189,7 @@ import mlLoans from "./ml/loans.json";
 import mlNav from "./ml/nav.json";
 import mlPlan from "./ml/plan.json";
 import mlReady from "./ml/ready.json";
+import mlRemind from "./ml/remind.json";
 import mlSpending from "./ml/spending.json";
 import mlTransfer from "./ml/transfer.json";
 import orAuth from "./or/auth.json";
@@ -201,6 +210,7 @@ import orLoans from "./or/loans.json";
 import orNav from "./or/nav.json";
 import orPlan from "./or/plan.json";
 import orReady from "./or/ready.json";
+import orRemind from "./or/remind.json";
 import orSpending from "./or/spending.json";
 import orTransfer from "./or/transfer.json";
 import paAuth from "./pa/auth.json";
@@ -221,6 +231,7 @@ import paLoans from "./pa/loans.json";
 import paNav from "./pa/nav.json";
 import paPlan from "./pa/plan.json";
 import paReady from "./pa/ready.json";
+import paRemind from "./pa/remind.json";
 import paSpending from "./pa/spending.json";
 import paTransfer from "./pa/transfer.json";
 
@@ -230,15 +241,15 @@ const flatten = (areas: Record<string, Record<string, string>>): Messages =>
   Object.fromEntries(Object.entries(areas).flatMap(([area, entries]) => Object.entries(entries).map(([key, text]) => [`${area}.${key}`, text])));
 
 export const MESSAGES: Record<Locale, Messages> = {
-  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, loans: enLoans, nav: enNav, plan: enPlan, ready: enReady, spending: enSpending, transfer: enTransfer }),
-  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, loans: hiLoans, nav: hiNav, plan: hiPlan, ready: hiReady, spending: hiSpending, transfer: hiTransfer }),
-  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, loans: bnLoans, nav: bnNav, plan: bnPlan, ready: bnReady, spending: bnSpending, transfer: bnTransfer }),
-  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, loans: mrLoans, nav: mrNav, plan: mrPlan, ready: mrReady, spending: mrSpending, transfer: mrTransfer }),
-  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, loans: teLoans, nav: teNav, plan: tePlan, ready: teReady, spending: teSpending, transfer: teTransfer }),
-  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, loans: taLoans, nav: taNav, plan: taPlan, ready: taReady, spending: taSpending, transfer: taTransfer }),
-  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, loans: guLoans, nav: guNav, plan: guPlan, ready: guReady, spending: guSpending, transfer: guTransfer }),
-  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, loans: knLoans, nav: knNav, plan: knPlan, ready: knReady, spending: knSpending, transfer: knTransfer }),
-  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, loans: mlLoans, nav: mlNav, plan: mlPlan, ready: mlReady, spending: mlSpending, transfer: mlTransfer }),
-  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, loans: orLoans, nav: orNav, plan: orPlan, ready: orReady, spending: orSpending, transfer: orTransfer }),
-  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, loans: paLoans, nav: paNav, plan: paPlan, ready: paReady, spending: paSpending, transfer: paTransfer }),
+  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, loans: enLoans, nav: enNav, plan: enPlan, ready: enReady, remind: enRemind, spending: enSpending, transfer: enTransfer }),
+  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, loans: hiLoans, nav: hiNav, plan: hiPlan, ready: hiReady, remind: hiRemind, spending: hiSpending, transfer: hiTransfer }),
+  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, loans: bnLoans, nav: bnNav, plan: bnPlan, ready: bnReady, remind: bnRemind, spending: bnSpending, transfer: bnTransfer }),
+  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, loans: mrLoans, nav: mrNav, plan: mrPlan, ready: mrReady, remind: mrRemind, spending: mrSpending, transfer: mrTransfer }),
+  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, loans: teLoans, nav: teNav, plan: tePlan, ready: teReady, remind: teRemind, spending: teSpending, transfer: teTransfer }),
+  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, loans: taLoans, nav: taNav, plan: taPlan, ready: taReady, remind: taRemind, spending: taSpending, transfer: taTransfer }),
+  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, loans: guLoans, nav: guNav, plan: guPlan, ready: guReady, remind: guRemind, spending: guSpending, transfer: guTransfer }),
+  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, loans: knLoans, nav: knNav, plan: knPlan, ready: knReady, remind: knRemind, spending: knSpending, transfer: knTransfer }),
+  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, loans: mlLoans, nav: mlNav, plan: mlPlan, ready: mlReady, remind: mlRemind, spending: mlSpending, transfer: mlTransfer }),
+  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, loans: orLoans, nav: orNav, plan: orPlan, ready: orReady, remind: orRemind, spending: orSpending, transfer: orTransfer }),
+  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, loans: paLoans, nav: paNav, plan: paPlan, ready: paReady, remind: paRemind, spending: paSpending, transfer: paTransfer }),
 };

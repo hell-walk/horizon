@@ -49,6 +49,8 @@ export const metadata: Metadata = {
   },
   description: "All your Indian bank accounts in one place: spending sorted, hidden bank charges found, every EMI by lender, bills and goals.",
   applicationName: "Horizon",
+  // Added to an iPhone's home screen, Horizon opens full screen like an app.
+  appleWebApp: { capable: true, title: "Horizon", statusBarStyle: "black" },
   openGraph: {
     type: "website",
     siteName: "Horizon",
