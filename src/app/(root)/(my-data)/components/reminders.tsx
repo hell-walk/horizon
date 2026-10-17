@@ -20,7 +20,7 @@ type Props = {
   reminderLocale: Locale;
 };
 
-type DeviceState = "checking" | "unsupported" | "needsHomeScreen" | "blocked" | "off" | "on";
+type DeviceState = "checking" | "notReady" | "unsupported" | "needsHomeScreen" | "blocked" | "off" | "on";
 
 // The push key is base64url text; the browser wants its bytes.
 const keyBytes = (base64url: string) => {
@@ -43,10 +43,12 @@ const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: P
   // What this browser can do, and whether it already has reminders on.
   useEffect(() => {
     const check = async () => {
-      if (!vapidKey || !("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      // The site has no push keys yet: say so, rather than blame the browser.
+      if (!vapidKey) return setDevice("notReady");
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
         // An iPhone offers push only to a site opened from the home screen.
         const iPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        setDevice(vapidKey && iPhone ? "needsHomeScreen" : "unsupported");
+        setDevice(iPhone ? "needsHomeScreen" : "unsupported");
         return;
       }
       if (Notification.permission === "denied") return setDevice("blocked");
@@ -138,6 +140,7 @@ const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: P
 
   const deviceNote: Record<DeviceState, string> = {
     checking: "",
+    notReady: t("remind.errOff"),
     unsupported: t("remind.deviceUnsupported"),
     needsHomeScreen: t("remind.deviceHomeScreen"),
     blocked: t("remind.deviceBlocked"),
@@ -233,9 +236,10 @@ const Option = ({
       )}
     >
       {working ? (
-        <Loader2 className="mx-auto size-3.5 animate-spin text-ink" aria-hidden />
+        <Loader2 className={cn("mx-auto size-3.5 animate-spin", on ? "text-lime-foreground" : "text-ink")} aria-hidden />
       ) : (
-        <span className={cn("inline-block size-4 rounded-full bg-ink transition-transform", on ? "translate-x-6" : "translate-x-1")} />
+        // On: the dark "on lime" colour, so the knob shows against the lime in both themes.
+        <span className={cn("inline-block size-4 rounded-full transition-transform", on ? "translate-x-6 bg-lime-foreground" : "translate-x-1 bg-ink")} />
       )}
     </button>
   </div>
