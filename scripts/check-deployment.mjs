@@ -78,7 +78,7 @@ ok("Server header does not give a version", !/\d/.test(h("server")), h("server")
   const text = await res.text();
   ok("/ shows the landing page to visitors", res.status === 200 && text.includes("/sign-up") && text.includes("SoftwareApplication"), `${res.status}`);
 }
-for (const path of ["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/bills", "/charges", "/goals", "/my-data", "/plans", "/feedback"]) {
+for (const path of ["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/bills", "/charges", "/loans", "/goals", "/my-data", "/plans", "/feedback"]) {
   const res = await get(path);
   ok(`${path} needs sign-in`, [302, 303, 307, 308].includes(res.status) && (res.headers.get("location") ?? "").includes("/sign-in"), `${res.status}`);
 }

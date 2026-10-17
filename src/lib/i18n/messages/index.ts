@@ -17,6 +17,7 @@ import enHome from "./en/home.json";
 import enInsights from "./en/insights.json";
 import enLanding from "./en/landing.json";
 import enLegal from "./en/legal.json";
+import enLoans from "./en/loans.json";
 import enNav from "./en/nav.json";
 import enPlan from "./en/plan.json";
 import enTransfer from "./en/transfer.json";
@@ -34,6 +35,7 @@ import hiHome from "./hi/home.json";
 import hiInsights from "./hi/insights.json";
 import hiLanding from "./hi/landing.json";
 import hiLegal from "./hi/legal.json";
+import hiLoans from "./hi/loans.json";
 import hiNav from "./hi/nav.json";
 import hiPlan from "./hi/plan.json";
 import hiTransfer from "./hi/transfer.json";
@@ -51,6 +53,7 @@ import bnHome from "./bn/home.json";
 import bnInsights from "./bn/insights.json";
 import bnLanding from "./bn/landing.json";
 import bnLegal from "./bn/legal.json";
+import bnLoans from "./bn/loans.json";
 import bnNav from "./bn/nav.json";
 import bnPlan from "./bn/plan.json";
 import bnTransfer from "./bn/transfer.json";
@@ -68,6 +71,7 @@ import mrHome from "./mr/home.json";
 import mrInsights from "./mr/insights.json";
 import mrLanding from "./mr/landing.json";
 import mrLegal from "./mr/legal.json";
+import mrLoans from "./mr/loans.json";
 import mrNav from "./mr/nav.json";
 import mrPlan from "./mr/plan.json";
 import mrTransfer from "./mr/transfer.json";
@@ -85,6 +89,7 @@ import teHome from "./te/home.json";
 import teInsights from "./te/insights.json";
 import teLanding from "./te/landing.json";
 import teLegal from "./te/legal.json";
+import teLoans from "./te/loans.json";
 import teNav from "./te/nav.json";
 import tePlan from "./te/plan.json";
 import teTransfer from "./te/transfer.json";
@@ -102,6 +107,7 @@ import taHome from "./ta/home.json";
 import taInsights from "./ta/insights.json";
 import taLanding from "./ta/landing.json";
 import taLegal from "./ta/legal.json";
+import taLoans from "./ta/loans.json";
 import taNav from "./ta/nav.json";
 import taPlan from "./ta/plan.json";
 import taTransfer from "./ta/transfer.json";
@@ -119,6 +125,7 @@ import guHome from "./gu/home.json";
 import guInsights from "./gu/insights.json";
 import guLanding from "./gu/landing.json";
 import guLegal from "./gu/legal.json";
+import guLoans from "./gu/loans.json";
 import guNav from "./gu/nav.json";
 import guPlan from "./gu/plan.json";
 import guTransfer from "./gu/transfer.json";
@@ -136,6 +143,7 @@ import knHome from "./kn/home.json";
 import knInsights from "./kn/insights.json";
 import knLanding from "./kn/landing.json";
 import knLegal from "./kn/legal.json";
+import knLoans from "./kn/loans.json";
 import knNav from "./kn/nav.json";
 import knPlan from "./kn/plan.json";
 import knTransfer from "./kn/transfer.json";
@@ -153,6 +161,7 @@ import mlHome from "./ml/home.json";
 import mlInsights from "./ml/insights.json";
 import mlLanding from "./ml/landing.json";
 import mlLegal from "./ml/legal.json";
+import mlLoans from "./ml/loans.json";
 import mlNav from "./ml/nav.json";
 import mlPlan from "./ml/plan.json";
 import mlTransfer from "./ml/transfer.json";
@@ -170,6 +179,7 @@ import orHome from "./or/home.json";
 import orInsights from "./or/insights.json";
 import orLanding from "./or/landing.json";
 import orLegal from "./or/legal.json";
+import orLoans from "./or/loans.json";
 import orNav from "./or/nav.json";
 import orPlan from "./or/plan.json";
 import orTransfer from "./or/transfer.json";
@@ -187,6 +197,7 @@ import paHome from "./pa/home.json";
 import paInsights from "./pa/insights.json";
 import paLanding from "./pa/landing.json";
 import paLegal from "./pa/legal.json";
+import paLoans from "./pa/loans.json";
 import paNav from "./pa/nav.json";
 import paPlan from "./pa/plan.json";
 import paTransfer from "./pa/transfer.json";
@@ -197,15 +208,15 @@ const flatten = (areas: Record<string, Record<string, string>>): Messages =>
   Object.fromEntries(Object.entries(areas).flatMap(([area, entries]) => Object.entries(entries).map(([key, text]) => [`${area}.${key}`, text])));
 
 export const MESSAGES: Record<Locale, Messages> = {
-  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, nav: enNav, plan: enPlan, transfer: enTransfer }),
-  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, nav: hiNav, plan: hiPlan, transfer: hiTransfer }),
-  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, nav: bnNav, plan: bnPlan, transfer: bnTransfer }),
-  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, nav: mrNav, plan: mrPlan, transfer: mrTransfer }),
-  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, nav: teNav, plan: tePlan, transfer: teTransfer }),
-  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, nav: taNav, plan: taPlan, transfer: taTransfer }),
-  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, nav: guNav, plan: guPlan, transfer: guTransfer }),
-  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, nav: knNav, plan: knPlan, transfer: knTransfer }),
-  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, nav: mlNav, plan: mlPlan, transfer: mlTransfer }),
-  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, nav: orNav, plan: orPlan, transfer: orTransfer }),
-  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, nav: paNav, plan: paPlan, transfer: paTransfer }),
+  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, loans: enLoans, nav: enNav, plan: enPlan, transfer: enTransfer }),
+  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, loans: hiLoans, nav: hiNav, plan: hiPlan, transfer: hiTransfer }),
+  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, loans: bnLoans, nav: bnNav, plan: bnPlan, transfer: bnTransfer }),
+  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, loans: mrLoans, nav: mrNav, plan: mrPlan, transfer: mrTransfer }),
+  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, loans: teLoans, nav: teNav, plan: tePlan, transfer: teTransfer }),
+  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, loans: taLoans, nav: taNav, plan: taPlan, transfer: taTransfer }),
+  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, loans: guLoans, nav: guNav, plan: guPlan, transfer: guTransfer }),
+  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, loans: knLoans, nav: knNav, plan: knPlan, transfer: knTransfer }),
+  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, loans: mlLoans, nav: mlNav, plan: mlPlan, transfer: mlTransfer }),
+  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, loans: orLoans, nav: orNav, plan: orPlan, transfer: orTransfer }),
+  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, loans: paLoans, nav: paNav, plan: paPlan, transfer: paTransfer }),
 };

@@ -122,7 +122,10 @@ export function payeeWords(raw: string): string {
         .map((t) => t.replace(/^[.\s]+|[.\s]+$/g, ""))
         .filter((t) => t.length > 0 && !isNoise(t))
     )
-    .filter((tokens) => tokens.length > 0);
+    // A segment left with single letters only is a rail marker, not a payee: the
+    // "D" of "ACH D- HDFC BANK LOAN" (D for debit). Without this every such line
+    // was payee "D", and two different EMIs looked like one regular payment.
+    .filter((tokens) => tokens.length > 0 && tokens.some((t) => t.length > 1));
 
   if (segments.length === 0) return "Other";
 

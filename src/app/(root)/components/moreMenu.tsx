@@ -14,7 +14,9 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 const isActive = (pathname: string, route: string) => pathname === route || (route !== "/" && pathname.startsWith(`${route}/`));
 
 /** What sits behind "More": on phones also the main links that do not fit the bottom bar. */
-const linksFor = (variant: "bar" | "bottom") => (variant === "bottom" ? [...sidebarLinks.filter((l) => l.phone === false), ...moreLinks] : moreLinks);
+// In the top bar, also the wide-only links, shown here below xl where the bar hides them.
+const linksFor = (variant: "bar" | "bottom") =>
+  variant === "bottom" ? [...sidebarLinks.filter((l) => l.phone === false), ...moreLinks] : [...sidebarLinks.filter((l) => l.wide), ...moreLinks];
 
 /**
  * "More" (three dots). In the desktop pill it opens a small menu under the
@@ -34,7 +36,7 @@ const MoreMenu = ({ variant }: { variant: "bar" | "bottom" }) => {
         const Icon = item.icon;
         const active = isActive(pathname, item.route);
         return (
-          <li key={item.route}>
+          <li key={item.route} className={cn(variant === "bar" && "wide" in item && item.wide === true && "xl:hidden")}>
             <Link
               href={item.route}
               onClick={() => setOpen(false)}

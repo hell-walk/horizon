@@ -28,7 +28,7 @@ export default async function PricingPage() {
       price: money(0),
       per: `for ${TRIAL_DAYS} days`,
       points: [
-        `Everything in Horizon for ${TRIAL_DAYS} days`,
+        `All of Horizon for ${TRIAL_DAYS} days, apart from the subscriber analysis`,
         `${TRIAL_CHANGES_PER_DAY} changes a day (imports, corrections, goals, bank links)`,
         "No card or UPI needed to start",
       ],
@@ -37,7 +37,12 @@ export default async function PricingPage() {
       name: "Monthly",
       price: money(pricing.monthly.amount),
       per: "per month",
-      points: ["Unlimited imports, corrections and goals", "Renews every month until you cancel", "Cancel any time from the Plans page"],
+      points: [
+        "Unlimited imports, corrections and goals",
+        "EMI and loan analysis: every lender by name, and which loan to close first",
+        "Renews every month until you cancel",
+        "Cancel any time from the Plans page",
+      ],
     },
     {
       name: "Yearly",

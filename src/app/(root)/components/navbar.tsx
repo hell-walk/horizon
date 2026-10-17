@@ -24,12 +24,13 @@ const Navbar = ({ className }: { className?: string }) => {
   const isActive = (route: string) => pathname === route || (route !== "/" && pathname.startsWith(`${route}/`));
 
   // Measure the active link so the underline can slide to it. Re-measured on
-  // resize because the labels change length at the md breakpoint.
+  // resize because wide-only links appear at the xl breakpoint.
   useEffect(() => {
     const measure = () => {
       const list = listRef.current;
       const active = list?.querySelector<HTMLElement>("a[aria-current='page']");
-      if (!list || !active) {
+      // A wide-only link sits in "More" on narrower screens: no underline then.
+      if (!list || !active || active.offsetParent === null) {
         setLine(null);
         return;
       }
@@ -58,10 +59,11 @@ const Navbar = ({ className }: { className?: string }) => {
               className={cn(
                 "relative whitespace-nowrap px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-colors",
                 active ? "text-ink" : "text-ink-faint hover:text-ink",
+                item.wide && "hidden xl:block",
               )}
             >
-              <span className="lg:hidden">{t(item.shortKey)}</span>
-              <span className="hidden lg:inline">{t(item.labelKey)}</span>
+              {/* Short labels at every width: seven links and More must fit beside the logo and account menu. */}
+              {t(item.shortKey)}
             </Link>
           );
         })}

@@ -1,17 +1,19 @@
-import { ArrowLeftRight, BadgeIndianRupee, CalendarClock, Gem, Home, Landmark, MessageSquare, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
+import { ArrowLeftRight, BadgeIndianRupee, CalendarClock, HandCoins, Gem, Home, Landmark, MessageSquare, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
 
 import type { Translate } from "@/lib/i18n/translate";
 
 // Main navigation. Icons are lucide components so they inherit the text colour
 // and work in both light and dark mode. `label` is the English name; the
 // screens show t(labelKey), or t(shortKey) where space is tight. `phone: false`
-// moves a link from the phone's bottom bar (room for four and "More") into More.
+// moves a link from the phone's bottom bar (room for four and "More") into More;
+// `wide: true` keeps it in the top bar only on wide screens (xl), in More below.
 export const sidebarLinks = [
   { icon: Home, route: "/", label: "Home", labelKey: "nav.home", shortKey: "nav.home" },
   { icon: Landmark, route: "/my-banks", label: "My Banks", labelKey: "nav.myBanks", shortKey: "nav.myBanksShort" },
   { icon: ReceiptText, route: "/transaction-history", label: "Transaction History", labelKey: "nav.history", shortKey: "nav.historyShort" },
   { icon: CalendarClock, route: "/bills", label: "Bills", labelKey: "nav.bills", shortKey: "nav.billsShort" },
-  { icon: BadgeIndianRupee, route: "/charges", label: "Bank charges", labelKey: "nav.charges", shortKey: "nav.chargesShort", phone: false },
+  { icon: HandCoins, route: "/loans", label: "EMIs and loans", labelKey: "nav.loans", shortKey: "nav.loansShort", phone: false, wide: true },
+  { icon: BadgeIndianRupee, route: "/charges", label: "Bank charges", labelKey: "nav.charges", shortKey: "nav.chargesShort", phone: false, wide: true },
   { icon: PlugZap, route: "/connect-bank", label: "Connect Bank", labelKey: "nav.connect", shortKey: "nav.connectShort", phone: false },
 ];
 
