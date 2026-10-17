@@ -60,7 +60,8 @@ export default async function PricingPage() {
     name: "Horizon",
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
-    description: "See every bank account, balance and transaction in one place. Import bank statements, sort spending, track bills and savings goals.",
+    description:
+      "See every bank account, balance and transaction in one place. Import bank statements, sort spending, find hidden bank charges, see every EMI by lender, track bills and savings goals.",
     offers: [
       { "@type": "Offer", name: "Monthly", price: String(pricing.monthly.amount), priceCurrency: "INR", category: "subscription" },
       { "@type": "Offer", name: "Yearly", price: String(pricing.yearly.amount), priceCurrency: "INR", category: "subscription" },

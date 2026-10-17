@@ -71,6 +71,16 @@ export async function getBank({ documentId }: getBankProps): Promise<Bank | null
   }
 }
 
+/**
+ * For pages: the same answer as getOwnBank, from the user's bank list, which
+ * the page has loaded (or is loading) anyway. One database trip fewer before
+ * any account can draw. Actions that change something use getOwnBank (fresh).
+ */
+export async function findOwnBank(userId: string, documentId: string): Promise<Bank | null> {
+  if (!documentId) return null;
+  return (await getBanks({ userId })).find((bank) => bank.$id === documentId) ?? null;
+}
+
 /** The bank only if it belongs to this user; null otherwise, so callers cannot tell "not yours" from "missing". */
 export async function getOwnBank(userId: string, documentId: string): Promise<Bank | null> {
   if (!documentId) return null;

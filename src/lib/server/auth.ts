@@ -1,12 +1,14 @@
 import "server-only";
 
+import { after } from "next/server";
 import { cache } from "react";
 
 import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
-import { getUserInfo } from "./banks";
+import { getBanks, getUserInfo } from "./banks";
+import { logError } from "./log";
 import { readPending, type ProfileInput } from "./profile";
-import { createSupabaseServerClient } from "./supabase";
+import { createSupabaseAdmin, createSupabaseServerClient } from "./supabase";
 
 // Fields that never leave the server. The signed-in user is handed to client
 // components (top bar, Plaid Link), so anything left on it ends up in the page.
@@ -30,6 +32,8 @@ export type SessionUser = {
   pendingProfile: ProfileInput | null;
   /** A discount from a redeemed promo code, waiting to be used at checkout. */
   offer: PendingOffer | null;
+  /** The Horizon profile's id, remembered on the login after the first visit (see loadLoggedInUser). */
+  profileId: string | null;
 };
 
 // Asks Supabase on every request (getUser, not the cookie alone), so a deleted
@@ -51,6 +55,7 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
       joinedAt: Date.parse(data.user.created_at ?? "") || Date.now(),
       subscription: readSubscription(data.user.app_metadata?.subscription),
       offer: readOffer(data.user.app_metadata?.offer),
+      profileId: typeof data.user.app_metadata?.profile_id === "string" ? data.user.app_metadata.profile_id : null,
       pendingProfile: data.user.user_metadata?.terms_accepted_at ? readPending(meta.pending_profile) : null,
     };
   } catch {
@@ -66,12 +71,32 @@ export const loadLoggedInUser = cache(async (): Promise<User | null> => {
   // $id becomes the profile document id; userId stays the Supabase id. Signed
   // in without a profile (first time with Google) counts as not signed in
   // here: the layout sends them to /welcome to finish setting up.
+  // Speed: the bank list is found by the profile id, which used to be known only
+  // once the profile arrived (one more trip to the database before any page could
+  // draw). The login remembers it, so the bank list starts loading now, beside the
+  // profile; the page's own getBanks call picks up this same request. Only a warm-up:
+  // what the page shows still comes from the profile read here.
+  if (session.profileId) void getBanks({ userId: session.profileId });
   const profile = await getUserInfo({ userId: session.id });
   if (!profile) return null;
+  if (session.profileId !== profile.$id) rememberProfileId(session.id, profile.$id);
   const user = parseStringify({ ...profile, email: profile.email ?? session.email, name: `${profile.firstName} ${profile.lastName}`, userId: session.id }) as Record<string, unknown>;
   for (const field of PRIVATE_FIELDS) delete user[field];
   return user as unknown as User;
 });
+
+/** Writes the profile id onto the login (app_metadata: only the server can write it), after the response. */
+function rememberProfileId(loginId: string, profileId: string) {
+  const save = async () => {
+    const { error } = await createSupabaseAdmin().auth.admin.updateUserById(loginId, { app_metadata: { profile_id: profileId } });
+    if (error) logError("auth: could not remember the profile id", error);
+  };
+  try {
+    after(save);
+  } catch {
+    // Outside a request (a script): nothing to speed up.
+  }
+}
 
 /** The signed-in user (private fields removed), or null. */
 export const getLoggedInUser = loadLoggedInUser;

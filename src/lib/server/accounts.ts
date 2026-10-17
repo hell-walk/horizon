@@ -6,7 +6,7 @@ import { parseStringify } from "../utils";
 import { applyCorrections } from "../corrections";
 import { loadLoggedInUser, ownerIdOf } from "./auth";
 import { loadCorrections } from "./corrections";
-import { getBanks, getOwnBank, saveSetuSessionId } from "./banks";
+import { findOwnBank, getBanks, saveSetuSessionId } from "./banks";
 import { getTransactionsByBankId } from "./transactions";
 import { getPlaidInstitution, getPlaidTransactions, toPlaidAccount } from "../providers/plaid";
 import {
@@ -130,7 +130,7 @@ async function loadAccountNow(appwriteItemId: string) {
   try {
     // Only the signed-in user's own accounts: the id comes from the URL or a cookie.
     const user = await loadLoggedInUser();
-    const bank = user ? await getOwnBank(ownerIdOf(user), appwriteItemId) : null;
+    const bank = user ? await findOwnBank(ownerIdOf(user), appwriteItemId) : null;
     if (!bank) return null;
 
     // Transfers made inside Horizon live in Appwrite regardless of provider.
@@ -180,7 +180,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => loadAcc
 export async function getRecentEntries(appwriteItemId: string, limit = RECENT_ENTRIES): Promise<{ transactions: Transaction[]; total: number } | null> {
   try {
     const user = await loadLoggedInUser();
-    const bank = user ? await getOwnBank(ownerIdOf(user), appwriteItemId) : null;
+    const bank = user ? await findOwnBank(ownerIdOf(user), appwriteItemId) : null;
     if (!bank || providerOf(bank) !== MANUAL_PROVIDER) return null;
     // Imported statements have no Horizon transfers (those need a US bank via Plaid).
     const [recent, corrections] = await Promise.all([getRecentStatementTransactions(bank, limit), loadCorrections(ownerIdOf(user!))]);

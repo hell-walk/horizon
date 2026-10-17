@@ -56,6 +56,7 @@ const session = (id: string, joinedDaysAgo = 1) => ({
   subscription: null,
   pendingProfile: null,
   offer: null,
+  profileId: null,
 });
 const login = (id: string, app_metadata: Record<string, unknown> = {}) =>
   state.logins.set(id, { id, created_at: new Date(Date.now() - DAY).toISOString(), app_metadata });

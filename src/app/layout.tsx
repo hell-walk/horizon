@@ -47,18 +47,18 @@ export const metadata: Metadata = {
     default: "Horizon",
     template: "%s | Horizon",
   },
-  description: "All your bank accounts, balances and transactions in one place.",
+  description: "All your Indian bank accounts in one place: spending sorted, hidden bank charges found, every EMI by lender, bills and goals.",
   applicationName: "Horizon",
   openGraph: {
     type: "website",
     siteName: "Horizon",
     title: "Horizon",
-    description: "All your bank accounts, balances and transactions in one place.",
+    description: "All your Indian bank accounts in one place: spending sorted, hidden bank charges found, every EMI by lender, bills and goals.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Horizon",
-    description: "All your bank accounts, balances and transactions in one place.",
+    description: "All your Indian bank accounts in one place: spending sorted, hidden bank charges found, every EMI by lender, bills and goals.",
   },
   // Private app: individual pages are noindex, the public entry pages opt back in.
   robots: { index: false, follow: false },

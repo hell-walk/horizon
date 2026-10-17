@@ -42,6 +42,17 @@ export default async function Landing() {
         operatingSystem: "Web",
         url: siteUrl,
         description: t("landing.metaDescription"),
+        // What search engines can list as the app's features (English, like the rest of the markup).
+        featureList: [
+          "Every Indian bank account in one place, from statement uploads (PDF, Excel, CSV)",
+          "Spending sorted automatically: UPI, cards, EMIs, pay later",
+          "Hidden bank charges found, with a request to ask the bank for a reversal",
+          "Every EMI and loan by lender: banks, NBFCs, loan apps, pay later",
+          "Each kind of spending in detail, with charts",
+          "Bills and subscriptions found, with what is due next",
+          "Savings goals and a cash-flow forecast",
+          "Eleven Indian languages",
+        ],
         offers: [
           { "@type": "Offer", name: "Monthly", price: String(pricing.monthly.amount), priceCurrency: "INR", category: "subscription" },
           { "@type": "Offer", name: "Yearly", price: String(pricing.yearly.amount), priceCurrency: "INR", category: "subscription" },
@@ -54,6 +65,9 @@ export default async function Landing() {
     ["01", t("landing.cap1Title"), t("landing.cap1Body")],
     ["02", t("landing.cap2Title"), t("landing.cap2Body")],
     ["03", t("landing.cap3Title"), t("landing.cap3Body")],
+    ["04", t("landing.cap4Title"), t("landing.cap4Body")],
+    ["05", t("landing.cap5Title"), t("landing.cap5Body")],
+    ["06", t("landing.cap6Title"), t("landing.cap6Body")],
   ] as const;
 
   const features = [
@@ -106,7 +120,7 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* What it does, in three. */}
+      {/* What it does, in six. */}
       <section className="border-t border-line bg-surface-low px-4 py-14 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <p className="eyebrow mb-6">{t("landing.overviewEyebrow")}</p>
