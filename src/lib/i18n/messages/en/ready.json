@@ -1,0 +1,20 @@
+{
+  "title": "Be prepared",
+  "more_one": "{count} more coming up",
+  "more_other": "{count} more coming up",
+  "stale": "Worked out from statements up to {date}. Upload a newer one so reminders land on the right days.",
+  "today": "Today",
+  "inDays_one": "In {count} day, {date}",
+  "inDays_other": "In {count} days, {date}",
+  "shortfallTitle": "{account} may not cover this week's EMIs",
+  "shortfallBody": "On {date} it had {balance}; the EMIs due in the next 7 days need {needed}. Add money before they are taken: a failed EMI costs a bank charge and usually a penalty from the lender.",
+  "emiTitle": "{lender} EMI: {amount}",
+  "emiBody": "Keep the amount in the account the day before.",
+  "charge_sms": "SMS alert charges, about {amount}",
+  "chargeBody_sms": "Banks take this every quarter. Some drop it if you switch to app or email alerts.",
+  "charge_card": "Debit card yearly fee, about {amount}",
+  "chargeBody_card": "Due about a year after the last one. If you hardly use the card, ask for a cheaper one or close it before then.",
+  "minBalanceTitle": "Minimum balance penalty of {amount} on {date}",
+  "minBalanceBody": "Keep the average balance above your account's minimum this month, or ask to switch to a zero-balance basic savings account.",
+  "seeCharges": "See all charges"
+}

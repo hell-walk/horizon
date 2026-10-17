@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import AllocationPanel from "./components/allocationPanel";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
+import BeReady from "./components/beReady";
 import ChargesTeaser from "./components/chargesTeaser";
 import ComingUp from "./components/comingUp";
 import YourWeek from "./components/yourWeek";
@@ -94,6 +95,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
               <CardStack accounts={accountsData} selected={appwriteItemId} userName={`${loggedIn.firstName} ${loggedIn.lastName}`} mode="url" />
             </div>
           )}
+
+          {/* Money about to leave: EMIs this week, charges coming back. Nothing when there is nothing. */}
+          <Suspense fallback={null}>
+            <BeReady ownerId={ownerIdOf(loggedIn)} />
+          </Suspense>
 
           {/* Transactions need the provider's feed, the slowest call. Stream them in
               so the header, balances and allocation appear first. */}
