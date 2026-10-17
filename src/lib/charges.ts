@@ -53,10 +53,11 @@ const KINDS: [ChargeKind, RegExp][] = [
 // starts with its own charge word ("Chrg: IMPS P2A ...") is still a charge.
 const PAYMENT_TO_SOMEONE = /@[a-z]|\bupi\b|\/dr\/|\/cr\/|\bpos\b|\becom\b/i;
 const BANK_LINE_START = /^\s*(chrg|chg|charges?)\b/i;
-// What people pay others "fees" for, and taxes paid through the bank
+// What people pay others "fees" for (demat and broking fees are investment
+// costs: the broker charges them, not the bank), and taxes paid through the bank
 // ("GST PMT CPIN ...", "CBDT TDS"), which are not a charge on top of a fee.
 const NOT_BANK =
-  /school|college|tuition|exam|admission|course|academy|coaching|society|club|hospital|clinic|doctor|lawyer|court|registration|convenience|booking|licen[cs]e|passport|\bvisa\b|challan|\bcpin\b|gstn|\bgst\s*(pmt|payment)|tax\s*pay|income\s*tax|\btds\b|cbdt/i;
+  /school|college|tuition|exam|admission|course|academy|coaching|society|club|hospital|clinic|doctor|lawyer|court|registration|convenience|booking|licen[cs]e|passport|\bvisa\b|challan|\bcpin\b|gstn|\bgst\s*(pmt|payment)|tax\s*pay|income\s*tax|\btds\b|cbdt|demat|depository|\bcdsl\b|\bnsdl\b|broking|stock\s*broker|\bsbi\s*caps?\b/i;
 // Money back: the bank undoing a charge.
 const GIVEN_BACK = /\brev\b|revers|refund|waiv|reimb|\brvsl\b|\brev\.|reversed/i;
 

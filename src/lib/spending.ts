@@ -27,7 +27,7 @@ const PURPOSE: Rule[] = [
   ["EMI & pay later", isPayLater],
   [
     "Investments",
-    /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney|vanguard|fidelity|schwab|robinhood|e\*?trade|coinbase|trading\s*212|hargreaves|\bisa\b/i,
+    /\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera|demat|\bcdsl\b|\bnsdl\b|broking|\bsbi\s*caps?\b|\bppf\b|\bnps\b|\blic\b|coin\s*by|indmoney|vanguard|fidelity|schwab|robinhood|e\*?trade|coinbase|trading\s*212|hargreaves|\bisa\b/i,
   ],
   ["Rent", /\brent\b|nobroker|housing\.com|letting|landlord|miete|loyer/i],
   [

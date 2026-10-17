@@ -129,3 +129,15 @@ describe("charges already given back", () => {
     expect(letter).toContain("Total charged: ₹35.40 (of which ₹17.70 has already been reversed)");
   });
 });
+
+describe("investment fees", () => {
+  it("a demat or broking fee is an investment cost, not a bank charge", async () => {
+    const { spendType } = await import("@/lib/spending");
+    const demat = "WDL TFR CMP SBI CAPS DEMAT CHARGESDEMAT CHARGES 1 1 OF SBICAP SECURITI";
+    expect(chargeKind(demat)).toBeNull();
+    expect(chargeKind("CDSL AMC CHARGES")).toBeNull();
+    expect(spendType({ name: demat } as Transaction)).toBe("Investments");
+    // The bank's own SMS charge, as SBI prints it, still is one.
+    expect(chargeKind("SMS CHRG FOR:01-04-2026TO30-06-2026")).toBe("sms");
+  });
+});
