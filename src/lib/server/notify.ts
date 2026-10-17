@@ -125,6 +125,8 @@ async function sendEmail(to: string, ownerId: string, message: Message, settings
       headers: { "api-key": process.env.BREVO_API_KEY!, "content-type": "application/json", accept: "application/json" },
       body: JSON.stringify({
         sender: { email: process.env.REMINDER_FROM_EMAIL, name: process.env.REMINDER_FROM_NAME || "Horizon" },
+        // The sender can be an address nobody reads (on the domain Brevo authenticated); replies go here instead.
+        ...(process.env.REMINDER_REPLY_TO ? { replyTo: { email: process.env.REMINDER_REPLY_TO } } : {}),
         to: [{ email: to }],
         subject: message.title,
         textContent: text,
