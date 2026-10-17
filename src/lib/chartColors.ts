@@ -54,7 +54,7 @@ export function useChartColors(): ChartColors {
 
 /** Canvas colour for a chart segment, matching chartColorClass. */
 export const segmentColor = (colors: ChartColors, name: string, index: number) =>
-  name === "Other" ? colors.other : colors.segments[index % colors.segments.length];
+  name === "Other" || name === "Miscellaneous" ? colors.other : colors.segments[index % colors.segments.length];
 
 /** Entrance animation for every doughnut: spins round while growing from the centre. */
 /** True when the user asked their system for less motion. */

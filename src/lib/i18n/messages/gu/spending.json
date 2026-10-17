@@ -17,6 +17,7 @@
   "allPayeesTitle_other": "જેમને ચૂકવણી કરી ({count})",
   "payeeCount_one": "{count} ચુકવણી",
   "payeeCount_other": "{count} ચુકવણી",
+  "miscNote": "પરચૂરણ: એક વખતની ચુકવણી, જે લોકો અને દુકાનોને માત્ર એક જ વાર ચૂકવ્યું. રંગીન ભાગો બતાવે છે કે તમારા પૈસા વારંવાર ક્યાં જાય છે.",
   "monthsTitle": "મહિના પ્રમાણે",
   "weekdaysTitle": "અઠવાડિયાના દિવસો",
   "weekdaysNote": "સૌથી વધુ {day} એ જાય છે.",

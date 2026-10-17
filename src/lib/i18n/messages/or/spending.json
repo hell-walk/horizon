@@ -17,6 +17,7 @@
   "allPayeesTitle_other": "ଯାହାଙ୍କୁ ଦେୟ ଦିଆଗଲା ({count})",
   "payeeCount_one": "{count}ଟି ଦେୟ",
   "payeeCount_other": "{count}ଟି ଦେୟ",
+  "miscNote": "ବିବିଧ: ଥରେ ମାତ୍ର ଦେୟ, ଯେଉଁ ଲୋକ ଓ ଦୋକାନଙ୍କୁ କେବଳ ଥରେ ଟଙ୍କା ଦିଆଗଲା। ରଙ୍ଗୀନ ଭାଗଗୁଡ଼ିକ ଦେଖାଏ ଆପଣଙ୍କ ଟଙ୍କା ବାରମ୍ବାର କେଉଁଠିକୁ ଯାଏ।",
   "monthsTitle": "ମାସ ଅନୁସାରେ",
   "weekdaysTitle": "ସପ୍ତାହର ଦିନ",
   "weekdaysNote": "ଅଧିକାଂଶ {day} ଦିନ ଯାଏ।",

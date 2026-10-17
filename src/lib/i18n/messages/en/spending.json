@@ -17,6 +17,7 @@
   "allPayeesTitle_other": "Everyone paid ({count})",
   "payeeCount_one": "{count} payment",
   "payeeCount_other": "{count} payments",
+  "miscNote": "Miscellaneous: one-off payments, to people and shops paid only once. The coloured slices are where your money keeps going.",
   "monthsTitle": "Month by month",
   "weekdaysTitle": "Days of the week",
   "weekdaysNote": "Most of it goes out on {day}.",

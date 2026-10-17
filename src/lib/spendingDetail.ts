@@ -24,7 +24,10 @@ export type SpendingDetail = {
   allSpent: number;
   from: string;
   to: string;
-  /** Who the money went to, for the pie: the largest seven, the rest (and unreadable payees) as one slice named "Other". */
+  /**
+   * Who the money went to, for the pie: the payees paid again and again (and every lender), largest
+   * seven first; one-off payments and the rest as one slice named "Miscellaneous".
+   */
   payees: DetailSlice[];
   /** Everyone the money went to, largest first, none folded away. */
   allPayees: DetailSlice[];
@@ -42,8 +45,10 @@ export type SpendingDetail = {
 
 const WINDOW_DAYS = 365;
 const DAY = 86_400_000;
-// Seven and "Other": eight slices, one colour each.
+// Seven and "Miscellaneous": eight slices, one colour each.
 const PAYEES_SHOWN = 7;
+/** The pie's slice for one-off payments and the long tail (grey, like "Other"). */
+export const MISC = "Miscellaneous";
 const MONTHS_SHOWN = 6;
 const ENTRIES_SHOWN = 200;
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -76,19 +81,26 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
   const from = rows.reduce((first, r) => (r.date < first ? r.date : first), to);
 
   const byPayee = new Map<string, DetailSlice>();
+  const lenders = new Set<string>();
   for (const r of rows) {
     // Each payee by its own name ("Zepto", "Rahul Kumar"), not a group label ("Groceries"):
     // inside one kind of spending, the point is who. Loans by lender ("HDFC Bank", "KreditBee").
-    const who = r.tx.shownName || (name === "EMI & pay later" ? lenderOf(r.name)?.name : undefined) || payeeWords(r.name);
+    const lender = name === "EMI & pay later" ? lenderOf(r.name)?.name : undefined;
+    const who = r.tx.shownName || lender || payeeWords(r.name);
+    if (lender && who === lender) lenders.add(who);
     const slice = byPayee.get(who) ?? { name: who, amount: 0, count: 0, share: 0 };
     slice.amount += r.amount;
     slice.count++;
     byPayee.set(who, slice);
   }
+  // A slice for each payee paid more than once (and each lender, even after one EMI): that is where
+  // the money keeps going. One-off payments fold into "Miscellaneous". When nobody repeats, the
+  // largest ones get the slices instead, or the pie would be one grey ring.
   const sorted = [...byPayee.values()].filter((p) => p.name !== "Other").sort((a, b) => b.amount - a.amount);
-  const head = sorted.slice(0, PAYEES_SHOWN);
-  const rest = [...sorted.slice(PAYEES_SHOWN), ...(byPayee.has("Other") ? [byPayee.get("Other")!] : [])];
-  if (rest.length) head.push({ name: "Other", amount: rest.reduce((s, p) => s + p.amount, 0), count: rest.reduce((s, p) => s + p.count, 0), share: 0 });
+  const repeating = sorted.filter((p) => p.count > 1 || lenders.has(p.name));
+  const head = (repeating.length ? repeating : sorted).slice(0, PAYEES_SHOWN);
+  const rest = [...byPayee.values()].filter((p) => !head.includes(p));
+  if (rest.length) head.push({ name: MISC, amount: rest.reduce((s, p) => s + p.amount, 0), count: rest.reduce((s, p) => s + p.count, 0), share: 0 });
   const payees = head.map((p) => ({ ...p, amount: round2(p.amount), share: total ? p.amount / total : 0 }));
   const allPayees = [...byPayee.values()]
     .sort((a, b) => b.amount - a.amount)

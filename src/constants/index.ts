@@ -30,9 +30,9 @@ export const moreLinks = [
 // Chart segment classes, in the order accounts and categories are drawn.
 export const CHART_COLOR_CLASSES = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-chart-6", "bg-chart-7", "bg-chart-8"];
 
-/** Colour class for a chart segment: "Other" is always neutral, the rest cycle the palette. */
+/** Colour class for a chart segment: "Other" and "Miscellaneous" are always neutral, the rest cycle the palette. */
 export const chartColorClass = (name: string, index: number) =>
-  name === "Other" ? "bg-chart-other" : CHART_COLOR_CLASSES[index % CHART_COLOR_CLASSES.length];
+  name === "Other" || name === "Miscellaneous" ? "bg-chart-other" : CHART_COLOR_CLASSES[index % CHART_COLOR_CLASSES.length];
 
 // Labels for the three ways a bank can be linked. `name`, `region` and `mode`
 // are the English words; show t(nameKey), t(regionKey) and t(modeKey) on screen.

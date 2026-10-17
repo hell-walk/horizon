@@ -15,7 +15,7 @@ import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
-import { spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/spendingDetail";
+import { MISC, spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/spendingDetail";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import PayeePie from "../../components/payeePie";
@@ -243,8 +243,9 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
           </li>
         ))}
       </ul>
+      {detail.payees.some((p) => p.name === MISC) && <p className="text-13 text-ink-muted">{t("spending.miscNote")}</p>}
     </div>
-    {/* The pie folds the small ones into "Other"; here is everyone, one line each. */}
+    {/* The pie folds one-off payments into "Miscellaneous"; here is everyone, one line each. */}
     {detail.allPayees.length > detail.payees.length && (
       <details className="border-t border-line">
         <summary className="panel-head cursor-pointer">

@@ -30,7 +30,7 @@ describe("one kind of spending, closely", () => {
     expect(food.share).toBeCloseTo(3000 / 5300); // own transfers are not spending
     expect(food.payees.map((p) => [p.name, p.amount])).toEqual([
       ["Swiggy", 2400],
-      ["Zomato", 600],
+      ["Miscellaneous", 600], // Zomato, once
     ]);
     expect(food.months.slice(-3)).toEqual([
       { month: "2026-07", amount: 1000, count: 2 },
@@ -50,15 +50,40 @@ describe("one kind of spending, closely", () => {
     expect(upi.upi).toEqual({ people: { amount: 2000, count: 1 }, shops: { amount: 300, count: 1 } });
   });
 
-  it("breaks UPI down by who was paid: seven and Other in the pie, everyone in the list", () => {
-    const names = ["Aman Verma", "Rahul Kumar", "Priya S", "Gupta Tent House", "Sunita Devi", "Ankit Jain", "Ravi Stores", "Meena K", "Book Hub"];
-    const rows = names.map((n, i) => debit(`u${i}`, "2026-09-10", `WDL TFR UPI/DR/65921488465${i}/${n}/YESB/x${i}@ybl/Paid vi 0097 AT 16727`, 900 - i * 50));
+  const upiRow = (id: string, name: string, amount: number) =>
+    debit(id, "2026-09-10", `WDL TFR UPI/DR/6592148846${id}/${name}/YESB/x${id}@ybl/Paid vi 0097 AT 16727`, amount);
+
+  it("gives the payees paid again and again a slice each, one-off payments go into Miscellaneous", () => {
+    const rows = [
+      upiRow("1", "Ravi Stores", 300),
+      upiRow("2", "Ravi Stores", 350),
+      upiRow("3", "Ravi Stores", 250),
+      upiRow("4", "Rahul Kumar", 2000),
+      upiRow("5", "Rahul Kumar", 2000),
+      upiRow("6", "Gupta Tent House", 5000), // big, but once
+      upiRow("7", "Book Hub", 400),
+      upiRow("8", "Sunita Devi", 150),
+    ];
     const upi = spendingDetail(rows, "upi-payments")!;
     // Each by its own name, not the phone company Vi ("Paid vi..." is the bank cutting "Paid via" short).
-    expect(upi.payees.map((p) => p.name)).toEqual([...names.slice(0, 7), "Other"]);
+    expect(upi.payees.map((p) => [p.name, p.amount, p.count])).toEqual([
+      ["Rahul Kumar", 4000, 2],
+      ["Ravi Stores", 900, 3],
+      ["Miscellaneous", 5550, 3],
+    ]);
+    expect(upi.payees.reduce((s, p) => s + p.share, 0)).toBeCloseTo(1);
+    // The list still has everyone, largest first.
+    expect(upi.allPayees.map((p) => p.name)).toEqual(["Gupta Tent House", "Rahul Kumar", "Ravi Stores", "Book Hub", "Sunita Devi"]);
+  });
+
+  it("when nobody is paid twice, the largest seven get the slices", () => {
+    const names = ["Aman Verma", "Rahul Kumar", "Priya S", "Gupta Tent House", "Sunita Devi", "Ankit Jain", "Ravi Stores", "Meena K", "Book Hub"];
+    const upi = spendingDetail(
+      names.map((n, i) => upiRow(String(i), n, 900 - i * 50)),
+      "upi-payments",
+    )!;
+    expect(upi.payees.map((p) => p.name)).toEqual([...names.slice(0, 7), "Miscellaneous"]);
     expect(upi.payees.at(-1)!.amount).toBe(550 + 500);
-    expect(upi.allPayees.map((p) => p.name)).toEqual(names);
-    expect(upi.allPayees.reduce((s, p) => s + p.share, 0)).toBeCloseTo(1);
   });
 
   it("breaks EMIs down by lender", () => {

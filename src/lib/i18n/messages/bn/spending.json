@@ -17,6 +17,7 @@
   "allPayeesTitle_other": "যাদের টাকা দেওয়া হয়েছে ({count})",
   "payeeCount_one": "{count}টি পেমেন্ট",
   "payeeCount_other": "{count}টি পেমেন্ট",
+  "miscNote": "বিবিধ: একবারের পেমেন্ট, যাদের মাত্র একবার টাকা দেওয়া হয়েছে। রঙিন অংশগুলো দেখায় আপনার টাকা বারবার কোথায় যায়।",
   "monthsTitle": "মাস অনুযায়ী",
   "weekdaysTitle": "সপ্তাহের দিন",
   "weekdaysNote": "সবচেয়ে বেশি যায় {day}।",

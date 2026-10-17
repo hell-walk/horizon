@@ -17,6 +17,7 @@
   "allPayeesTitle_other": "ಪಾವತಿ ಮಾಡಿದ ಎಲ್ಲರೂ ({count})",
   "payeeCount_one": "{count} ಪಾವತಿ",
   "payeeCount_other": "{count} ಪಾವತಿಗಳು",
+  "miscNote": "ಇತರೆ ಸಣ್ಣ ಪಾವತಿಗಳು: ಒಮ್ಮೆ ಮಾತ್ರ ಹಣ ಕೊಟ್ಟ ಜನರು ಮತ್ತು ಅಂಗಡಿಗಳು. ಬಣ್ಣದ ಭಾಗಗಳು ನಿಮ್ಮ ಹಣ ಮತ್ತೆ ಮತ್ತೆ ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತದೆ ಎಂದು ತೋರಿಸುತ್ತವೆ.",
   "monthsTitle": "ತಿಂಗಳುವಾರು",
   "weekdaysTitle": "ವಾರದ ದಿನಗಳು",
   "weekdaysNote": "ಹೆಚ್ಚಾಗಿ {day} ದಿನ ಹೋಗುತ್ತದೆ.",
