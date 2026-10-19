@@ -78,6 +78,12 @@ export default withSentryConfig(nextConfig, {
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
 
+  // Sentry would otherwise weave its server runtime into every server module at
+  // build time, which loads the whole server SDK (OpenTelemetry included) on
+  // every cold start, about half a second. Server errors are reported through
+  // src/instrumentation.ts instead, which loads the SDK only when one happens.
+  buildTimeInstrumentation: false,
+
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
 
