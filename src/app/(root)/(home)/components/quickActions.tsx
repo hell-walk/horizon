@@ -6,7 +6,7 @@ import { getT } from "@/lib/i18n/server";
 // Statement upload first: it is how most people keep Horizon up to date. Sending money
 // (US only) and connecting a bank are in the menus.
 const ACTIONS = [
-  { labelKey: "home.actionUpload", href: "/connect-bank#statement", icon: FileUp },
+  { labelKey: "home.actionUpload", href: "/upload-statement", icon: FileUp },
   { labelKey: "nav.bills", href: "/bills", icon: CalendarClock },
   { labelKey: "nav.goals", href: "/goals", icon: Target },
 ];

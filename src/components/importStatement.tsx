@@ -18,13 +18,19 @@ import DoubtfulRows from "./doubtfulRows";
 import GapNotice from "./gapNotice";
 import { Input } from "./ui/input";
 
-type Props = { variant?: "primary" | "card" };
+// `account`: an existing statement account the file is for (the "+" on its card): the bank
+// name and last digits are filled in, so the entries join that account.
+type Props = { variant?: "primary" | "card"; account?: { name: string; mask: string } };
+
+/** The guide bank an account name points at: "HDFC Bank ••4421" is hdfc. */
+const guessBank = (name: string) =>
+  STATEMENT_BANKS.find((b) => new RegExp(`\\b${b.id}\\b`, "i").test(name) || name.toLowerCase().includes(b.name.toLowerCase()))?.id ?? "";
 
 /**
  * Statement import in two steps: parse the file and show what was understood,
  * then import once the user confirms. Only the server ever sees the file.
  */
-const ImportStatement = ({ variant = "card" }: Props) => {
+const ImportStatement = ({ variant = "card", account }: Props) => {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -33,7 +39,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [busy, setBusy] = useState<"preview" | "import" | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(Boolean(account && guessBank(account.name)));
   const [revealPassword, setRevealPassword] = useState(false);
   // Column mapping: the rows to label, and the user's choice (sent with every read once set).
   const [mapSample, setMapSample] = useState<StatementSample | null>(null);
@@ -63,7 +69,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
   };
   // Guided import: which bank the statement is from, to show how to get it and its usual password.
   const t = useT();
-  const [bank, setBank] = useState<StatementBankId | "">("");
+  const [bank, setBank] = useState<StatementBankId | "">(account ? guessBank(account.name) : "");
   const institutionRef = useRef<HTMLInputElement>(null);
   const bankName = STATEMENT_BANKS.find((b) => b.id === bank)?.name;
   const chooseBank = (id: StatementBankId | "") => {
@@ -283,6 +289,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
             ref={institutionRef}
             id="statement-institution"
             name="institution"
+            defaultValue={account?.name}
             placeholder={preview?.ok && preview.institution ? preview.institution : t("connect.bankNamePlaceholder")}
             className="field-input"
           />
@@ -294,6 +301,7 @@ const ImportStatement = ({ variant = "card" }: Props) => {
           <Input
             id="statement-mask"
             name="mask"
+            defaultValue={account?.mask || undefined}
             placeholder={preview?.ok && preview.mask ? preview.mask : "1234"}
             className="field-input font-mono"
             aria-describedby={preview?.ok && !preview.mask ? "statement-mask-missing" : undefined}

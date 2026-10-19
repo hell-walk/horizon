@@ -6,9 +6,11 @@ import HomeLanguageSync from "./components/homeLanguageSync";
 import PlanBanner from "./components/planBanner";
 import ScrollCalm from "./components/scrollCalm";
 import Topbar from "./components/topbar";
+import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";
-import { DataUnavailableError, getBanks } from "@/lib/server/banks";
+import { DataUnavailableError } from "@/lib/server/banks";
 import { currentPlan } from "@/lib/server/plan";
+import { activeAccountId } from "@/lib/server/selectedAccount";
 import { loadExtraTerms } from "@/lib/server/terms";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
@@ -40,14 +42,21 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Signed in without a profile (first time with Google): finish setting up first.
   if (!loggedIn) redirect((await loadSession()) ? "/welcome" : "/sign-in");
 
-  // Cached for 30s, so this costs nothing on top of the page's own call. The
-  // team's added lender and subscription names (cached minutes) are loaded here
-  // so every page's sorting sees them.
-  const [banks, plan] = await Promise.all([getBanks({ userId: ownerIdOf(loggedIn) }).then((b) => b ?? []), currentPlan(), loadExtraTerms()]);
+  // The bank rows are cached for 30s, so this costs little on top of the page's
+  // own call. The accounts feed the switcher in the profile panel. The team's
+  // added lender and subscription names (cached minutes) are loaded here so
+  // every page's sorting sees them.
+  const [accounts, plan] = await Promise.all([
+    getAccounts({ userId: ownerIdOf(loggedIn) }).then((a): Account[] => a?.data ?? []),
+    currentPlan(),
+    loadExtraTerms(),
+  ]);
+  // Only what the switcher shows leaves the server.
+  const switchAccounts = accounts.map(({ appwriteItemId, name, mask, currentBalance, currency }) => ({ appwriteItemId, name, mask, currentBalance, currency }));
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden overscroll-none">
-      <Topbar user={loggedIn} bankCount={banks.length} planLine={plan ? await planLine(plan) : ""} />
+      <Topbar user={loggedIn} accounts={switchAccounts} activeId={await activeAccountId(accounts)} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
       {/* The page itself is the main landmark; the skip link lands here. */}
       <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-hidden">

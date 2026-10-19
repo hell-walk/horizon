@@ -12,6 +12,7 @@
   "emptyBody": "तुमचे पहिले खाते जोडण्यासाठी बँक स्टेटमेंट अपलोड करा.",
   "connectBank": "बँक जोडा",
   "selectedAccount": "निवडलेले खाते",
+  "addStatement": "{name}मध्ये स्टेटमेंट जोडा",
   "provider_plaid": "बँक लिंक",
   "provider_setu": "बँक लिंक",
   "provider_manual": "स्टेटमेंट",

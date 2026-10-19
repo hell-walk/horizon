@@ -12,6 +12,7 @@
   "emptyBody": "ଆପଣଙ୍କ ପ୍ରଥମ ଖାତା ଯୋଡ଼ିବାକୁ ଏକ ବ୍ୟାଙ୍କ ଷ୍ଟେଟମେଣ୍ଟ ଅପଲୋଡ୍ କରନ୍ତୁ।",
   "connectBank": "ବ୍ୟାଙ୍କ ଯୋଡ଼ନ୍ତୁ",
   "selectedAccount": "ବଛା ଯାଇଥିବା ଖାତା",
+  "addStatement": "{name}ରେ ଷ୍ଟେଟମେଣ୍ଟ ଯୋଡ଼ନ୍ତୁ",
   "provider_plaid": "ବ୍ୟାଙ୍କ ଲିଙ୍କ",
   "provider_setu": "ବ୍ୟାଙ୍କ ଲିଙ୍କ",
   "provider_manual": "ଷ୍ଟେଟମେଣ୍ଟ",

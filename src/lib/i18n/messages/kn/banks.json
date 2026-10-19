@@ -12,6 +12,7 @@
   "emptyBody": "ನಿಮ್ಮ ಮೊದಲ ಖಾತೆ ಸೇರಿಸಲು ಬ್ಯಾಂಕ್ ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
   "connectBank": "ಬ್ಯಾಂಕ್ ಸೇರಿಸಿ",
   "selectedAccount": "ಆಯ್ಕೆ ಮಾಡಿದ ಖಾತೆ",
+  "addStatement": "{name}ಗೆ ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಸೇರಿಸಿ",
   "provider_plaid": "ಬ್ಯಾಂಕ್ ಲಿಂಕ್",
   "provider_setu": "ಬ್ಯಾಂಕ್ ಲಿಂಕ್",
   "provider_manual": "ಸ್ಟೇಟ್‌ಮೆಂಟ್",

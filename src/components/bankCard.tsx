@@ -1,12 +1,12 @@
 "use client";
 
-import { Nfc } from "lucide-react";
+import { Nfc, Plus } from "lucide-react";
 import Link from "next/link";
 import { useId } from "react";
 
 import { PROVIDER_LABELS } from "@/constants";
 import { cardBackground, resolveCardDesign } from "@/lib/cardDesigns";
-import { formatAmount, maskKnown } from "@/lib/utils";
+import { cn, formatAmount, maskKnown } from "@/lib/utils";
 
 import { canTransfer } from "@/lib/transfers";
 
@@ -51,9 +51,12 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
   const providerName = providerText === `banks.provider_${providerKey}` ? PROVIDER_LABELS[providerKey].name : providerText;
   const design = resolveCardDesign(account);
   const isClassic = design.kind === "classic";
+  // A statement account takes more statements. Only on a card that is a link: behind the
+  // front card the whole card is one button, and a link inside would be a control in a control.
+  const addStatement = linked && account.provider === "manual";
 
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="relative flex w-full flex-col gap-3">
       <CardShell
         linked={linked}
         href={`/transaction-history/?id=${account.appwriteItemId}`}
@@ -70,7 +73,7 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
           <span className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/10 via-transparent to-black/20" />
         )}
 
-        <div className="relative flex items-start justify-between gap-3">
+        <div className={cn("relative flex items-start justify-between gap-3", addStatement && "pr-9")}>
           <div className="flex min-w-0 flex-col">
             <span translate="no" className="font-display text-14 font-bold uppercase tracking-tight">
               Horizon
@@ -113,6 +116,17 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
           </div>
         </div>
       </CardShell>
+
+      {addStatement && (
+        <Link
+          href={`/upload-statement?account=${account.appwriteItemId}`}
+          aria-label={t("banks.addStatement", { name: account.name })}
+          title={t("banks.addStatement", { name: account.name })}
+          className="flex-center absolute right-4 top-4 z-10 size-7 rounded-full bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-lime hover:text-lime-foreground hover:ring-lime"
+        >
+          <Plus className="size-4" strokeWidth={2.25} />
+        </Link>
+      )}
 
       {showBalance && withCopy && canTransfer(account) && <Copy title={account.sharableId} />}
     </div>

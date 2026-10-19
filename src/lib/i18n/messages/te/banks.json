@@ -12,6 +12,7 @@
   "emptyBody": "మీ మొదటి ఖాతా జోడించడానికి బ్యాంకు స్టేట్‌మెంట్ అప్‌లోడ్ చేయండి.",
   "connectBank": "బ్యాంకు జోడించండి",
   "selectedAccount": "ఎంచుకున్న ఖాతా",
+  "addStatement": "{name}కు స్టేట్‌మెంట్ జోడించండి",
   "provider_plaid": "బ్యాంకు లింక్",
   "provider_setu": "బ్యాంకు లింక్",
   "provider_manual": "స్టేట్‌మెంట్",

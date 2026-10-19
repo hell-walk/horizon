@@ -12,6 +12,7 @@
   "emptyBody": "ਆਪਣਾ ਪਹਿਲਾ ਖਾਤਾ ਜੋੜਨ ਲਈ ਬੈਂਕ ਸਟੇਟਮੈਂਟ ਅੱਪਲੋਡ ਕਰੋ।",
   "connectBank": "ਬੈਂਕ ਜੋੜੋ",
   "selectedAccount": "ਚੁਣਿਆ ਹੋਇਆ ਖਾਤਾ",
+  "addStatement": "{name} ਵਿੱਚ ਸਟੇਟਮੈਂਟ ਜੋੜੋ",
   "provider_plaid": "ਬੈਂਕ ਲਿੰਕ",
   "provider_setu": "ਬੈਂਕ ਲਿੰਕ",
   "provider_manual": "ਸਟੇਟਮੈਂਟ",

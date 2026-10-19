@@ -74,7 +74,7 @@ async function ChargesContent({ ownerId, holder }: { ownerId: string; holder: st
     return (
       <div className="panel panel-body flex max-w-2xl flex-col gap-3">
         <p className="text-14 text-ink">{t("charges.empty")}</p>
-        <Link href="/connect-bank" className="btn-secondary w-fit">
+        <Link href="/upload-statement" className="btn-secondary w-fit">
           <FileUp className="size-4" aria-hidden /> {t("charges.emptyAction")}
         </Link>
       </div>

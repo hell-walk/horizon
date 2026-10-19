@@ -10,6 +10,13 @@ export function rememberAccount(appwriteItemId: string | undefined) {
   document.cookie = `${SELECTED_ACCOUNT_COOKIE}=${encodeURIComponent(appwriteItemId)}; path=/; max-age=31536000; samesite=lax`;
 }
 
+// Pages that show one account and take ?id= for it. The rest show every account
+// (bills, charges, loans) or read only the remembered one (My banks).
+const ACCOUNT_PAGES = ["/", "/transaction-history", "/payment-transfer", "/goals", "/spending"];
+
+/** True when the page at this path follows ?id=: switching accounts there means a new address, elsewhere a refresh. */
+export const pageFollowsAccount = (pathname: string) => ACCOUNT_PAGES.some((p) => pathname === p || (p !== "/" && pathname.startsWith(`${p}/`)));
+
 /**
  * Picks the active account: an explicit ?id on the page wins, then the
  * remembered one, then the first account. Ids that no longer belong to the

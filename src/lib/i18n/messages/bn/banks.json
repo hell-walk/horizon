@@ -12,6 +12,7 @@
   "emptyBody": "প্রথম অ্যাকাউন্ট যোগ করতে একটি ব্যাংক স্টেটমেন্ট আপলোড করুন।",
   "connectBank": "ব্যাংক যোগ করুন",
   "selectedAccount": "বেছে নেওয়া অ্যাকাউন্ট",
+  "addStatement": "{name}-এ স্টেটমেন্ট যোগ করুন",
   "provider_plaid": "ব্যাংক লিংক",
   "provider_setu": "ব্যাংক লিংক",
   "provider_manual": "স্টেটমেন্ট",

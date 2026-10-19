@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { FileSpreadsheet, Landmark } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import AccountsTable from "@/components/accountsTable";
 import ComingSoon from "@/components/comingSoon";
-import ImportStatement from "@/components/importStatement";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
@@ -64,27 +64,11 @@ const ConnectBank = async () => {
             [t("connect.fileFactSaved"), t("connect.fileFactSavedValue")],
           ]}
         >
-          <a href="#statement" className="btn-secondary w-full">
+          <Link href="/upload-statement" className="btn-primary w-full">
             {t("connect.uploadStatement")}
-          </a>
+          </Link>
         </ProviderCard>
       </div>
-
-      <section id="statement" className="panel scroll-mt-6">
-        <header className="panel-head">
-          <div className="flex items-center gap-2">
-            <span className="eyebrow">{t("connect.statementSection")}</span>
-            <span className="eyebrow">{t("connect.statementSectionHint")}</span>
-          </div>
-          <span className="chip">
-            <span className="dot bg-lime" />
-            {t("connect.ready")}
-          </span>
-        </header>
-        <div className="panel-body">
-          <ImportStatement />
-        </div>
-      </section>
 
       <AccountsTable accounts={accountsData} />
     </section>

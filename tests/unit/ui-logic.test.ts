@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { bankDesignFor, cardBackground, CLASSIC, designChoices, isKnownDesign, resolveCardDesign } from "@/lib/cardDesigns";
-import { resolveAccountId } from "@/lib/selectedAccount";
+import { pageFollowsAccount, resolveAccountId } from "@/lib/selectedAccount";
 import { extractCustomerIdFromUrl, formatAmount, maskLabel } from "@/lib/utils";
 
 const account = (id: string) => ({ appwriteItemId: id }) as Account;
+
+describe("pageFollowsAccount: where switching accounts means a new address", () => {
+  it("is the pages that show one account", () => {
+    for (const p of ["/", "/transaction-history", "/payment-transfer", "/goals", "/spending/upi-payments"]) expect(pageFollowsAccount(p)).toBe(true);
+  });
+  it("not the pages that show every account, or read only the remembered one", () => {
+    for (const p of ["/bills", "/charges", "/loans", "/my-banks", "/upload-statement", "/goalsetting"]) expect(pageFollowsAccount(p)).toBe(false);
+  });
+});
 
 describe("resolveAccountId: the account the whole app is looking at", () => {
   const accounts = [account("a1"), account("a2")];

@@ -12,6 +12,7 @@
   "emptyBody": "Upload a bank statement to add your first account.",
   "connectBank": "Connect a bank",
   "selectedAccount": "Selected account",
+  "addStatement": "Add a statement to {name}",
   "provider_plaid": "Bank link",
   "provider_setu": "Bank link",
   "provider_manual": "Statement",

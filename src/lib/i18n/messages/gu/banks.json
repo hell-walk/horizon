@@ -12,6 +12,7 @@
   "emptyBody": "તમારું પહેલું ખાતું ઉમેરવા બેંક સ્ટેટમેન્ટ અપલોડ કરો.",
   "connectBank": "બેંક જોડો",
   "selectedAccount": "પસંદ કરેલું ખાતું",
+  "addStatement": "{name}માં સ્ટેટમેન્ટ ઉમેરો",
   "provider_plaid": "બેંક લિંક",
   "provider_setu": "બેંક લિંક",
   "provider_manual": "સ્ટેટમેન્ટ",

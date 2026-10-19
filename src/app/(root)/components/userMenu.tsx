@@ -11,10 +11,12 @@ import { useT } from "@/components/i18nProvider";
 import LanguageSwitch from "@/components/languageSwitch";
 import ThemeSwitch from "@/components/themeSwitch";
 
-// Avatar button in the top bar. Opens a panel with the account, the theme
-// slider and language switch (useful on phones, where the bar has no room for
-// them) and log out.
-const UserMenu = ({ user, planLine }: { user: User; planLine: string }) => {
+import BankSwitch, { type SwitchAccount } from "./bankSwitch";
+
+// Avatar button in the top bar. Opens a panel with the account, the bank
+// switcher (so any page can move to another account), the theme slider and
+// language switch (useful on phones, where the bar has no room for them) and log out.
+const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine: string; accounts: SwitchAccount[]; activeId?: string }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}` || user.name?.[0] || "?";
@@ -44,7 +46,7 @@ const UserMenu = ({ user, planLine }: { user: User; planLine: string }) => {
       >
         {initials}
       </SheetTrigger>
-      <SheetContent side="right" className="flex w-[320px] flex-col gap-6 border-line bg-surface-low p-5 sm:max-w-sm">
+      <SheetContent side="right" className="flex w-[320px] flex-col gap-6 overflow-y-auto border-line bg-surface-low p-5 sm:max-w-sm">
         <SheetTitle className="sr-only">{t("nav.account")}</SheetTitle>
 
         <div className="flex items-center gap-3 pt-6">
@@ -68,6 +70,8 @@ const UserMenu = ({ user, planLine }: { user: User; planLine: string }) => {
             </span>
           </div>
         </div>
+
+        <BankSwitch accounts={accounts} activeId={activeId} onPicked={() => setOpen(false)} />
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between rounded-md border border-line bg-card px-3 py-2.5">
