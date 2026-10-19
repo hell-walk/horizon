@@ -43,5 +43,7 @@
   "uploadTitle": "Time for a statement",
   "uploadBody": "Your newest entries are over a week old. Upload this week's statement so Horizon stays current.",
   "weeklyTitle": "Weekly statement reminder",
-  "weeklyNote": "Every Monday, when your newest entries are more than a week old."
+  "weeklyNote": "Every Monday, when your newest entries are more than a week old.",
+  "monthlyTitle": "Monthly report by email",
+  "monthlyNote": "On the 1st, last month's money in, out and kept, with a link to the full report. Needs email reminders on."
 }

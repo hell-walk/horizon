@@ -39,7 +39,7 @@ describe("push endpoints", () => {
 
 describe("stored settings", () => {
   it("are off by default and read defensively", () => {
-    expect(readNotify(undefined)).toEqual({ email: false, push: [], locale: "en", localeChosen: false, sent: [], weekly: true });
+    expect(readNotify(undefined)).toEqual({ email: false, push: [], locale: "en", localeChosen: false, sent: [], weekly: true, monthly: true });
     expect(readNotify({ email: "yes", locale: "xx", push: [{ endpoint: "https://evil.example" }], sent: [1, "emi:a:b"] })).toEqual({
       email: false,
       push: [],
@@ -47,6 +47,7 @@ describe("stored settings", () => {
       localeChosen: false,
       sent: ["emi:a:b"],
       weekly: true,
+      monthly: true,
     });
     expect(readNotify({ weekly: false }).weekly).toBe(false);
   });

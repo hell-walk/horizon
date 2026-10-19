@@ -19,6 +19,8 @@ export type NotifySettings = {
   sent: string[];
   /** Monday's nudge to upload the newer statement when the saved entries are over a week old. On unless switched off. */
   weekly: boolean;
+  /** The month's report by email on the 1st, when email is on. On unless switched off. */
+  monthly: boolean;
 };
 
 export const MAX_DEVICES = 5;
@@ -71,6 +73,7 @@ export function readNotify(value: unknown): NotifySettings {
     localeChosen: v.localeChosen === true,
     sent: Array.isArray(v.sent) ? v.sent.filter((s): s is string => typeof s === "string" && s.length <= 120).slice(-MAX_SENT) : [],
     weekly: v.weekly !== false,
+    monthly: v.monthly !== false,
   };
 }
 

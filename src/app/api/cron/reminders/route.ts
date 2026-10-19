@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 
 import { logError } from "@/lib/server/log";
-import { runReminders } from "@/lib/server/notify";
+import { runMonthlyReports, runReminders } from "@/lib/server/notify";
 
 // The daily reminder run. Vercel Cron calls it (vercel.json) with
 // "Authorization: Bearer <CRON_SECRET>"; anyone else is refused.
@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
   if (!authorized(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   try {
     const stats = await runReminders();
-    return NextResponse.json(stats ?? { skipped: "already ran today" });
+    // The 1st of the month: last month's report by email, after the day's reminders.
+    const reports = stats ? await runMonthlyReports() : 0;
+    return NextResponse.json(stats ? { ...stats, reports } : { skipped: "already ran today" });
   } catch (error) {
     logError("cron: reminders failed", error);
     return NextResponse.json({ error: "failed" }, { status: 500 });

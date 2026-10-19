@@ -17,6 +17,9 @@ import { loadCorrections } from "./corrections";
 import { signFor } from "./crypto";
 import { logError } from "./log";
 import { readPrefs, updatePrefs } from "./prefs";
+import { reportForOwner } from "./report";
+import { LOCALE_TAGS } from "../i18n/config";
+import { formatAmount } from "../utils";
 import { claim } from "./shared";
 
 // Sends reminders: web push to the person's devices and email through Brevo.
@@ -163,7 +166,56 @@ export async function deliver(ownerId: string, email: string, settings: NotifySe
   return { push: push.delivered, email: mailed };
 }
 
-export type RunStats = { people: number; reminded: number; push: number; email: number; failed: number };
+export type RunStats = { people: number; reminded: number; push: number; email: number; failed: number; reports?: number };
+
+/**
+ * The 1st of the month: the previous month's report by email, to everyone with
+ * email reminders on who has not switched the report off. Once per month each.
+ */
+export async function runMonthlyReports(today = new Date()): Promise<number> {
+  if (today.getUTCDate() !== 1 || !emailConfigured()) return 0;
+  const { database } = await createAdminClient();
+  let sent = 0;
+  let cursor: string | undefined;
+  for (;;) {
+    const page = await database.listDocuments(DATABASE_ID!, USER_COLLECTION_ID!, [Query.limit(100), ...(cursor ? [Query.cursorAfter(cursor)] : [])]);
+    const people = (page.documents as unknown as { $id: string; email?: string; prefs?: string }[])
+      .filter((doc) => doc.prefs?.includes('"notify"') && doc.email)
+      .map((doc) => {
+        try {
+          return { id: doc.$id, email: doc.email!, settings: readNotify(JSON.parse(doc.prefs!).notify) };
+        } catch {
+          return null;
+        }
+      })
+      .filter((p): p is { id: string; email: string; settings: NotifySettings } => p !== null && p.settings.email && p.settings.monthly);
+    await mapWithLimit(people, 4, async (person) => {
+      try {
+        const { report, currency } = await reportForOwner(person.id);
+        if (!report) return;
+        const key = `report:${report.month}`;
+        if (person.settings.sent.includes(key)) return;
+        const t = makeTranslator(person.settings.locale);
+        const month = new Intl.DateTimeFormat(LOCALE_TAGS[person.settings.locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
+          new Date(`${report.month}-01T00:00:00Z`),
+        );
+        const money = (n: number) => formatAmount(Math.round(n), currency);
+        const message: Message = {
+          title: t("report.emailTitle", { month }),
+          body: t("report.emailBody", { month, in: money(report.moneyIn), out: money(report.spent), kept: money(report.kept) }),
+          url: `/report?month=${report.month}`,
+        };
+        const result = await deliver(person.id, person.email, { ...person.settings, push: [] }, message, [key]);
+        if (result.email) sent++;
+      } catch (error) {
+        logError("notify: a monthly report failed", error);
+      }
+    });
+    if (page.documents.length < 100) break;
+    cursor = page.documents[page.documents.length - 1].$id;
+  }
+  return sent;
+}
 
 /** The daily run: everyone who turned reminders on, at most one message each. */
 export async function runReminders(today = new Date()): Promise<RunStats | null> {

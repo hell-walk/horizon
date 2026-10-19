@@ -42,6 +42,7 @@ const MyData = async () => {
             emailReady={emailConfigured()}
             emailOn={reminders?.email ?? false}
             weeklyOn={reminders?.weekly ?? true}
+            monthlyOn={reminders?.monthly ?? true}
             reminderLocale={reminders?.locale ?? "en"}
             address={user.email}
           />

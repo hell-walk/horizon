@@ -6,6 +6,7 @@ import AllocationPanel from "./components/allocationPanel";
 import ChecksPanel from "./components/checksPanel";
 import HealthPanel from "./components/healthPanel";
 import IncomePanel from "./components/incomePanel";
+import ReportTeaser from "./components/reportTeaser";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
 import BeReady from "./components/beReady";
@@ -90,6 +91,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           {/* The health score: a number for everyone, the five parts for subscribers. */}
           <Suspense fallback={null}>
             <HealthPanel ownerId={ownerIdOf(loggedIn)} />
+          </Suspense>
+
+          {/* The latest month's report in three numbers. */}
+          <Suspense fallback={null}>
+            <ReportTeaser ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}

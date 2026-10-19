@@ -1,12 +1,12 @@
 "use client";
 
-import { BellRing, CalendarClock, Loader2, Mail, Send, Smartphone } from "lucide-react";
+import { BellRing, CalendarClock, FileText, Loader2, Mail, Send, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
 import ReminderLanguage from "@/components/reminderLanguage";
 import type { Locale } from "@/lib/i18n/config";
-import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders, setWeeklyReminder } from "@/lib/actions/notify.action";
+import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders, setMonthlyReport, setWeeklyReminder } from "@/lib/actions/notify.action";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -17,6 +17,8 @@ type Props = {
   emailOn: boolean;
   /** Monday's statement nudge is on. */
   weeklyOn: boolean;
+  /** The month's report by email is on. */
+  monthlyOn: boolean;
   address: string;
   /** The language reminders are written in now. */
   reminderLocale: Locale;
@@ -35,12 +37,13 @@ const keyBytes = (base64url: string) => {
  * email. Both off until switched on. A device is a browser: each phone or
  * computer is turned on separately.
  */
-const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, address, reminderLocale }: Props) => {
+const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, monthlyOn, address, reminderLocale }: Props) => {
   const t = useT();
   const [device, setDevice] = useState<DeviceState>("checking");
   const [email, setEmail] = useState(emailOn);
   const [weekly, setWeekly] = useState(weeklyOn);
-  const [busy, setBusy] = useState<"device" | "email" | "weekly" | "test" | null>(null);
+  const [monthly, setMonthly] = useState(monthlyOn);
+  const [busy, setBusy] = useState<"device" | "email" | "weekly" | "monthly" | "test" | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   // What this browser can do, and whether it already has reminders on.
@@ -140,6 +143,20 @@ const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, address, reminderL
     }
   };
 
+  const toggleMonthly = async () => {
+    setBusy("monthly");
+    setMessage(null);
+    try {
+      const result = await setMonthlyReport({ on: !monthly });
+      if (result.ok) setMonthly(!monthly);
+      else setMessage({ ok: false, text: result.error });
+    } catch {
+      setMessage({ ok: false, text: t("common.notReachable") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const test = async () => {
     setBusy("test");
     setMessage(null);
@@ -206,6 +223,17 @@ const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, address, reminderL
           working={busy === "weekly"}
           onToggle={toggleWeekly}
           label={t("remind.weeklyTitle")}
+        />
+
+        <Option
+          icon={FileText}
+          title={t("remind.monthlyTitle")}
+          note={t("remind.monthlyNote")}
+          on={monthly}
+          disabled={busy !== null}
+          working={busy === "monthly"}
+          onToggle={toggleMonthly}
+          label={t("remind.monthlyTitle")}
         />
 
         <ReminderLanguage current={reminderLocale} />

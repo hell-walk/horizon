@@ -3,6 +3,7 @@ import {
   BadgeIndianRupee,
   CalendarClock,
   CalendarDays,
+  FileText,
   HandCoins,
   Gem,
   Home,
@@ -35,6 +36,7 @@ export const sidebarLinks = [
 // in India people pay with UPI, so it does not need a place in the main bar.
 export const moreLinks = [
   { icon: CalendarDays, route: "/calendar", label: "Cash-flow calendar", labelKey: "nav.calendar", shortKey: "nav.calendarShort" },
+  { icon: FileText, route: "/report", label: "Monthly report", labelKey: "nav.report", shortKey: "nav.reportShort" },
   { icon: Target, route: "/goals", label: "Savings goals", labelKey: "nav.goals", shortKey: "nav.goals" },
   { icon: ArrowLeftRight, route: "/payment-transfer", label: "Payment Transfer", labelKey: "nav.transfer", shortKey: "nav.transferShort" },
   { icon: ShieldCheck, route: "/my-data", label: "Privacy and your data", labelKey: "nav.myData", shortKey: "nav.myData" },

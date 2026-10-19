@@ -30,5 +30,7 @@
   "plans": "Plans",
   "feedback": "Feedback",
   "calendar": "Cash-flow calendar",
-  "calendarShort": "Calendar"
+  "calendarShort": "Calendar",
+  "report": "Monthly report",
+  "reportShort": "Report"
 }
