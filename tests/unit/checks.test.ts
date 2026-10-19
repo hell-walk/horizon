@@ -54,6 +54,16 @@ describe("findChecks: the questions worth asking", () => {
     expect(checks[0]).toMatchObject({ kind: "ownCredit", key: "owncredit:aaditya pandey", payeeKey: "aaditya pandey", txId: "c1" });
   });
 
+  it("the person's name in the UPI handle counts too (SBI puts the sender's id there); a surname alone does not", () => {
+    const a = account("a", "A", [
+      tx("c1", "2026-09-05", "UPI/CR/1/RANI S/PUNB/pandey.aaditya@pnb/UPI 2 AT 3 SOUTH CITY WDL TFR", 2000, "credit"),
+      tx("c2", "2026-09-06", "UPI/CR/2/MEENA K/SBIN/AADITY4/UPI 2 AT 3 SOUTH CITY WDL TFR", 1500, "credit"),
+      tx("c3", "2026-09-07", "UPI/CR/3/RAHUL PANDEY/SBIN/rahul22@oksbi", 500, "credit"),
+    ]);
+    const checks = findChecks({ ...base, accounts: [a] });
+    expect(checks.map((c) => c.key).sort()).toEqual(["owncredit:meena k", "owncredit:rani s"]);
+  });
+
   it("the salary, only for a salaried person who has not confirmed one", () => {
     const rows = [tx("s1", "2026-07-31", "NEFT/CR/INFOSYS LTD/SALARY", 62000, "credit"), tx("s2", "2026-08-31", "NEFT/CR/INFOSYS LTD/SALARY", 62000, "credit")];
     const a = account("a", "A", rows);

@@ -104,14 +104,26 @@ export function findChecks(input: CheckInput, limit = 8): Check[] {
       add({ key: `salary:${salary.payee.toLowerCase()}`, kind: "salary", payee: salary.payee, monthly: salary.monthly, months: salary.months, currency });
   }
 
-  // Money in from a payee carrying the person's own name: probably their own money.
-  const names = [input.person.firstName, input.person.lastName].map((n) => (n ?? "").trim().toLowerCase()).filter((n) => n.length >= 3);
-  if (names.length) {
+  // Money in from the person themselves: their first name in the payee's name, or
+  // either name inside the UPI handle ("pandey.aaditya@oksbi", "aadity4"), where SBI
+  // and others put the sender's id. A surname alone is a relative, not asked about.
+  const first = (input.person.firstName ?? "").trim().toLowerCase();
+  const handleNames = [first, (input.person.lastName ?? "").trim().toLowerCase()].filter((n) => n.length >= 4);
+  if (first.length >= 3 || handleNames.length) {
     for (const a of accounts) {
       for (const t of a.transactions) {
         if (isDebit(t) || t.userCategory) continue;
         const key = payeeKey(t.name);
-        if (!key || !key.split(" ").some((w) => names.includes(w))) continue;
+        if (!key) continue;
+        const byName = first.length >= 3 && key.split(" ").includes(first);
+        const handles = String(t.name)
+          .toLowerCase()
+          .split(/[/|]/)
+          .filter((seg) => seg.includes("@") || /^[a-z]+[.\-_]?[a-z]*\d*$/.test(seg.trim()))
+          .map((seg) => seg.replace(/[^a-z]/g, ""));
+        // Handles get cut short ("aadity4" for Aaditya): the name may contain the handle, or the handle the name.
+        const byHandle = handleNames.some((n) => handles.some((h) => h.length >= 5 && (h.includes(n) || n.includes(h))));
+        if (!byName && !byHandle) continue;
         add({
           key: `owncredit:${key}`,
           kind: "ownCredit",
