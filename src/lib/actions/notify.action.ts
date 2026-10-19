@@ -144,7 +144,7 @@ export async function sendTestReminder(): Promise<{ ok: true; push: number; emai
     const stored = await loadNotify(ownerIdOf(user));
     const settings = { ...stored, locale: stored.localeChosen ? stored.locale : await getLocale() };
     if (!settings.email && settings.push.length === 0) return { ok: false, error: t("remind.errNothingOn") };
-    const result = await deliver(ownerIdOf(user), user.email, settings, messageFor("test", 1, settings));
+    const result = await deliver(ownerIdOf(user), user.email, settings, await messageFor("test", 1, settings));
     return { ok: true, push: result.push, email: result.email };
   } catch (error) {
     logError("notify: test failed", error);

@@ -69,8 +69,8 @@ export async function headsUpForOwner(ownerId: string, today = new Date()): Prom
 type Message = { title: string; body: string; url: string };
 
 /** What a reminder says, in the person's language. Short, with no amounts or bank names. */
-export function messageFor(kind: ReminderKind | "test", count: number, settings: NotifySettings): Message {
-  const t = makeTranslator(settings.locale);
+export async function messageFor(kind: ReminderKind | "test", count: number, settings: NotifySettings): Promise<Message> {
+  const t = await makeTranslator(settings.locale);
   return { title: t(`remind.${kind}Title`), body: t(`remind.${kind}Body`, { count }), url: kind === "upload" ? "/upload-statement" : "/" };
 }
 
@@ -116,7 +116,7 @@ const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", 
 /** One email through Brevo's transactional API. */
 async function sendEmail(to: string, ownerId: string, message: Message, settings: NotifySettings): Promise<boolean> {
   if (!emailConfigured() || !to) return false;
-  const t = makeTranslator(settings.locale);
+  const t = await makeTranslator(settings.locale);
   const open = `${siteUrl()}${message.url}`;
   const stop = unsubscribeUrl(ownerId);
   const oneClick = unsubscribeUrl(ownerId, "oneClick");
@@ -194,7 +194,7 @@ export async function runMonthlyReports(today = new Date()): Promise<number> {
         if (!report) return;
         const key = `report:${report.month}`;
         if (person.settings.sent.includes(key)) return;
-        const t = makeTranslator(person.settings.locale);
+        const t = await makeTranslator(person.settings.locale);
         const month = new Intl.DateTimeFormat(LOCALE_TAGS[person.settings.locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
           new Date(`${report.month}-01T00:00:00Z`),
         );
@@ -249,7 +249,7 @@ export async function runReminders(today = new Date()): Promise<RunStats | null>
         reminderFor(heads, person.settings.sent, { emis: person.settings.emis, charges: person.settings.charges }) ??
         (person.settings.weekly ? uploadReminder(heads.latest, today, person.settings.sent) : null);
       if (!reminder) return;
-      const result = await deliver(person.id, person.email, person.settings, messageFor(reminder.kind, reminder.count, person.settings), reminder.keys);
+      const result = await deliver(person.id, person.email, person.settings, await messageFor(reminder.kind, reminder.count, person.settings), reminder.keys);
       if (result.push || result.email) stats.reminded++;
       stats.push += result.push;
       stats.email += result.email ? 1 : 0;

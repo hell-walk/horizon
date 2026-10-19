@@ -15,7 +15,8 @@ import { completeProfile, logoutAccount, signIn, signInWithGoogle, signUp } from
 import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/countries";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { INCOME_KINDS } from "@/lib/income";
-import { authFormSchema, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { authFormSchema } from "@/lib/authSchema";
 
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";

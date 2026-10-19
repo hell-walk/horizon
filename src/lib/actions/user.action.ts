@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 // Every export here is a public endpoint the browser can call with any
 // arguments. So none of them take "who the user is" as a parameter: that always
@@ -10,7 +10,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
+import type { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
 import { passwordProblemKey } from "../passwordRules";
 import { istDay } from "../plans";
@@ -25,11 +25,11 @@ import { newSharableId } from "../server/crypto";
 import { addFundingSource } from "../server/dwolla";
 import { allow, clientIp, isBlocked, MINUTE, record } from "../server/rateLimit";
 import { clearSessionCookies, createSupabaseServerClient } from "../server/supabase";
-import { plaidClient } from "../plaid";
+// The Plaid SDK is slow to load and only US banks need it: loaded on first use.
+const plaid = async () => (await import("../plaid")).plaidClient;
 import { logError } from "../server/log";
 
 export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string };
-
 
 // The server talks to Supabase from one address for everyone, so its per-IP
 // limits cannot tell people apart: sign-in and sign-up are limited here instead.
@@ -38,17 +38,21 @@ export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok:
 // - Per IP: 100 attempts in 10 minutes, generous because a whole college or
 //   office can share one public IP.
 const EMAIL_FAILURES = 8;
-const emailKey = (email: string) => `auth:fail:${String(email ?? "").trim().toLowerCase()}`;
+const emailKey = (email: string) =>
+  `auth:fail:${String(email ?? "")
+    .trim()
+    .toLowerCase()}`;
 
 const allowAuthAttempt = async (email: string) => {
-    if (await isBlocked(emailKey(email), EMAIL_FAILURES)) return false;
-    return await allow(`auth:ip:${await clientIp()}`, 100, 10 * MINUTE);
+  if (await isBlocked(emailKey(email), EMAIL_FAILURES)) return false;
+  return await allow(`auth:ip:${await clientIp()}`, 100, 10 * MINUTE);
 };
 
 // Callers can send anything, not just what the form sends: check the shape first.
 const strings = (value: unknown, keys: string[], max = 200): value is Record<string, string> =>
-    typeof value === "object" && value !== null &&
-    keys.every((k) => typeof (value as Record<string, unknown>)[k] === "string" && ((value as Record<string, string>)[k]).length <= max);
+  typeof value === "object" &&
+  value !== null &&
+  keys.every((k) => typeof (value as Record<string, unknown>)[k] === "string" && (value as Record<string, string>)[k].length <= max);
 // Messages come from en/auth.json and hi/auth.json ("auth.errorCheckDetails" etc.).
 const badInput = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorCheckDetails") });
 const tooMany = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorTooMany") });
@@ -56,35 +60,35 @@ const tooMany = (t: Translate): AuthResult => ({ ok: false, error: t("auth.error
 // The rules the forms show (lib/passwordRules.ts), enforced where they cannot
 // be skipped. Not exported: every export of this file is a public endpoint.
 const passwordProblem = (password: string, email: string, t: Translate): string | null => {
-    const key = passwordProblemKey(password, email);
-    return key ? t(key) : null;
+  const key = passwordProblemKey(password, email);
+  return key ? t(key) : null;
 };
 
 /** Supabase saying "slow down" (its own limits), as opposed to a wrong password. */
 const isRateLimited = (error: unknown) => (error as { status?: number } | null)?.status === 429;
 
 export const signIn = async (input: signInProps): Promise<AuthResult> => {
-    const t = await getT();
-    if (!strings(input, ["email", "password"], 256)) return badInput(t);
-    const { email, password } = input;
-    if (!(await allowAuthAttempt(email))) return tooMany(t);
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (isRateLimited(error)) return tooMany(t);
-        // Only said after the right password, so it tells nothing to a guesser.
-        if ((error as { code?: string } | null)?.code === "email_not_confirmed") return { ok: false, error: t("auth.errorNotConfirmed") };
-        if (error) throw error;
-        return { ok: true };
-    } catch {
-        // Same answer for a wrong password, a missing account and a Google-only
-        // account: the reply never tells whether an email is registered.
-        await record(emailKey(email), 10 * MINUTE);
-        // One count per day of every failed sign-in, for the admin portal's Health page (nothing about who).
-        await record(`auth:fails:${istDay()}`, 8 * 24 * 60 * MINUTE);
-        return { ok: false, error: t("auth.errorSignIn") };
-    }
-}
+  const t = await getT();
+  if (!strings(input, ["email", "password"], 256)) return badInput(t);
+  const { email, password } = input;
+  if (!(await allowAuthAttempt(email))) return tooMany(t);
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (isRateLimited(error)) return tooMany(t);
+    // Only said after the right password, so it tells nothing to a guesser.
+    if ((error as { code?: string } | null)?.code === "email_not_confirmed") return { ok: false, error: t("auth.errorNotConfirmed") };
+    if (error) throw error;
+    return { ok: true };
+  } catch {
+    // Same answer for a wrong password, a missing account and a Google-only
+    // account: the reply never tells whether an email is registered.
+    await record(emailKey(email), 10 * MINUTE);
+    // One count per day of every failed sign-in, for the admin portal's Health page (nothing about who).
+    await record(`auth:fails:${istDay()}`, 8 * 24 * 60 * MINUTE);
+    return { ok: false, error: t("auth.errorSignIn") };
+  }
+};
 
 /**
  * Sign-up. Nothing is usable yet: Supabase emails a link, and only a confirmed
@@ -95,36 +99,36 @@ export const signIn = async (input: signInProps): Promise<AuthResult> => {
  * US partner's questions are asked after confirming).
  */
 export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
-    const t = await getT();
-    if (!strings(userData, ["email", "password", ...PROFILE_FIELDS], 256)) return badInput(t);
-    const { email, password, firstName, lastName } = userData;
-    if (!profileIsValid(userData, { identity: false })) return badInput(t);
-    const weak = passwordProblem(password, email, t);
-    if (weak) return { ok: false, error: weak };
-    if (!(await allowAuthAttempt(email))) return tooMany(t);
-    // Each sign-up sends an email: a tighter cap per network.
-    if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
+  const t = await getT();
+  if (!strings(userData, ["email", "password", ...PROFILE_FIELDS], 256)) return badInput(t);
+  const { email, password, firstName, lastName } = userData;
+  if (!profileIsValid(userData, { identity: false })) return badInput(t);
+  const weak = passwordProblem(password, email, t);
+  if (weak) return { ok: false, error: weak };
+  if (!(await allowAuthAttempt(email))) return tooMany(t);
+  // Each sign-up sends an email: a tighter cap per network.
+  if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
 
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { error } = await supabase.auth.signUp({
-            email: email.trim(),
-            password,
-            options: {
-                emailRedirectTo: `${siteUrl()}/auth/callback`,
-                data: { full_name: `${firstName.trim()} ${lastName.trim()}`, pending_profile: pendingFrom(userData), terms_accepted_at: new Date().toISOString() },
-            },
-        });
-        if (isRateLimited(error)) return tooMany(t);
-        if (error) throw error;
-        // The same answer when the email already has an account (Supabase then
-        // sends nothing): the reply never tells whether an email is registered.
-        return { ok: true, checkEmail: true };
-    } catch (error) {
-        logError("sign-up failed", error);
-        return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorSignUp") };
-    }
-}
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: `${siteUrl()}/auth/callback`,
+        data: { full_name: `${firstName.trim()} ${lastName.trim()}`, pending_profile: pendingFrom(userData), terms_accepted_at: new Date().toISOString() },
+      },
+    });
+    if (isRateLimited(error)) return tooMany(t);
+    if (error) throw error;
+    // The same answer when the email already has an account (Supabase then
+    // sends nothing): the reply never tells whether an email is registered.
+    return { ok: true, checkEmail: true };
+  } catch (error) {
+    logError("sign-up failed", error);
+    return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorSignUp") };
+  }
+};
 
 /**
  * Starts "Continue with Google". Returns Google's address for the browser to
@@ -132,68 +136,78 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
  * check (PKCE) is kept in a cookie, so the callback only works in this browser.
  */
 export const signInWithGoogle = async (): Promise<{ ok: true; url: string } | { ok: false; error: string }> => {
-    const t = await getT();
-    if (!(await allow(`auth:google:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: { redirectTo: `${siteUrl()}/auth/callback`, skipBrowserRedirect: true, queryParams: { prompt: "select_account" } },
-        });
-        if (error || !data.url) throw error ?? new Error("no URL");
-        return { ok: true, url: data.url };
-    } catch (error) {
-        logError("Google sign-in could not start", error);
-        // Says what is wrong when it is the site's own settings, so whoever runs it can fix it.
-        return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorGoogle") };
-    }
-}
+  const t = await getT();
+  if (!(await allow(`auth:google:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${siteUrl()}/auth/callback`, skipBrowserRedirect: true, queryParams: { prompt: "select_account" } },
+    });
+    if (error || !data.url) throw error ?? new Error("no URL");
+    return { ok: true, url: data.url };
+  } catch (error) {
+    logError("Google sign-in could not start", error);
+    // Says what is wrong when it is the site's own settings, so whoever runs it can fix it.
+    return { ok: false, error: t(error instanceof SiteConfigError ? "auth.errorSiteSetup" : "auth.errorGoogle") };
+  }
+};
 
 /**
  * "Finish setting up": a confirmed login (Google, or a US sign-up that still
  * owes the payment partner's questions) with no Horizon profile yet.
  */
 export const completeProfile = async (input: ProfileInput & { terms: boolean }): Promise<AuthResult> => {
-    const t = await getT();
-    const session = await loadSession();
-    if (!session) return { ok: false, error: t("auth.errorSignIn") };
-    if (!strings(input, PROFILE_FIELDS, 256) || input.terms !== true || !profileIsValid(input, { identity: true })) return badInput(t);
-    if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
-    // One profile per login, even when the form is sent twice.
-    if (!(await allow(`welcome:${session.id}`, 1, MINUTE))) return tooMany(t);
-    try {
-        if (await getUserInfo({ userId: session.id })) return { ok: true };
-        const profileId = await createProfile(session.id, session.email, input);
-        revalidatePath("/", "layout");
-        return { ok: true, user: { $id: profileId, userId: session.id, email: session.email, firstName: input.firstName, lastName: input.lastName, name: `${input.firstName} ${input.lastName}` } as User };
-    } catch (error) {
-        if (error instanceof DataUnavailableError) return { ok: false, error: t("common.dataUnavailableBody") };
-        logError("finishing the profile failed", error);
-        return { ok: false, error: t("auth.errorSignUp") };
-    }
-}
+  const t = await getT();
+  const session = await loadSession();
+  if (!session) return { ok: false, error: t("auth.errorSignIn") };
+  if (!strings(input, PROFILE_FIELDS, 256) || input.terms !== true || !profileIsValid(input, { identity: true })) return badInput(t);
+  if (!(await allow(`signup:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t);
+  // One profile per login, even when the form is sent twice.
+  if (!(await allow(`welcome:${session.id}`, 1, MINUTE))) return tooMany(t);
+  try {
+    if (await getUserInfo({ userId: session.id })) return { ok: true };
+    const profileId = await createProfile(session.id, session.email, input);
+    revalidatePath("/", "layout");
+    return {
+      ok: true,
+      user: {
+        $id: profileId,
+        userId: session.id,
+        email: session.email,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        name: `${input.firstName} ${input.lastName}`,
+      } as User,
+    };
+  } catch (error) {
+    if (error instanceof DataUnavailableError) return { ok: false, error: t("common.dataUnavailableBody") };
+    logError("finishing the profile failed", error);
+    return { ok: false, error: t("auth.errorSignUp") };
+  }
+};
 
 /**
  * Sends a "set a new password" link. Always answers the same way, whether or
  * not the email has an account, so nobody can use it to test emails.
  */
 export const requestPasswordReset = async (input: { email: string }): Promise<{ ok: true } | { ok: false; error: string }> => {
-    const t = await getT();
-    if (!strings(input, ["email"], 256) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return badInput(t) as { ok: false; error: string };
-    const email = input.email.trim().toLowerCase();
-    // Every request may send an email: few per address, a few more per network.
-    if (!(await allow(`reset:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t) as { ok: false; error: string };
-    if (!(await allow(`reset:email:${email}`, 3, 60 * MINUTE))) return { ok: true };
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/auth/callback?next=/reset-password` });
-        if (error && !isRateLimited(error)) logError("password reset email failed", error);
-    } catch (error) {
-        logError("password reset email failed", error);
-        if (error instanceof SiteConfigError) return { ok: false, error: t("auth.errorSiteSetup") };
-    }
-    return { ok: true };
-}
+  const t = await getT();
+  if (!strings(input, ["email"], 256) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return badInput(t) as { ok: false; error: string };
+  const email = input.email.trim().toLowerCase();
+  // Every request may send an email: few per address, a few more per network.
+  if (!(await allow(`reset:ip:${await clientIp()}`, 10, 60 * MINUTE))) return tooMany(t) as { ok: false; error: string };
+  if (!(await allow(`reset:email:${email}`, 3, 60 * MINUTE))) return { ok: true };
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/auth/callback?next=/reset-password` });
+    if (error && !isRateLimited(error)) logError("password reset email failed", error);
+  } catch (error) {
+    logError("password reset email failed", error);
+    if (error instanceof SiteConfigError) return { ok: false, error: t("auth.errorSiteSetup") };
+  }
+  return { ok: true };
+};
 
 // What an emailed link may be for. "email" is Supabase's name for confirming a
 // sign-up (older templates say "signup"); "recovery" is a password reset.
@@ -208,135 +222,137 @@ const LINK_TYPES: Record<string, "email" | "signup" | "recovery"> = { email: "em
  * the browser that asked for it.
  */
 export const openEmailLink = async (input: { tokenHash: string; type: string }): Promise<{ ok: true; next: string } | { ok: false; error: string }> => {
-    const t = await getT();
-    if (!strings(input, ["tokenHash", "type"], 512)) return { ok: false, error: t("auth.errorResetExpired") };
-    const type = LINK_TYPES[input.type];
-    if (!type || !/^[A-Za-z0-9_-]{16,512}$/.test(input.tokenHash)) return { ok: false, error: t("auth.errorResetExpired") };
-    // Guessing a token hash is hopeless anyway; this keeps a flood of tries cheap.
-    if (!(await allow(`auth:link:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { error } = await supabase.auth.verifyOtp({ type, token_hash: input.tokenHash });
-        if (error) return { ok: false, error: t("auth.errorResetExpired") };
-        return { ok: true, next: type === "recovery" ? "/reset-password" : "/" };
-    } catch (error) {
-        logError("opening an emailed link failed", error);
-        return { ok: false, error: t("auth.errorResetExpired") };
-    }
-}
+  const t = await getT();
+  if (!strings(input, ["tokenHash", "type"], 512)) return { ok: false, error: t("auth.errorResetExpired") };
+  const type = LINK_TYPES[input.type];
+  if (!type || !/^[A-Za-z0-9_-]{16,512}$/.test(input.tokenHash)) return { ok: false, error: t("auth.errorResetExpired") };
+  // Guessing a token hash is hopeless anyway; this keeps a flood of tries cheap.
+  if (!(await allow(`auth:link:${await clientIp()}`, 30, 10 * MINUTE))) return { ok: false, error: t("auth.errorTooMany") };
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash: input.tokenHash });
+    if (error) return { ok: false, error: t("auth.errorResetExpired") };
+    return { ok: true, next: type === "recovery" ? "/reset-password" : "/" };
+  } catch (error) {
+    logError("opening an emailed link failed", error);
+    return { ok: false, error: t("auth.errorResetExpired") };
+  }
+};
 
 /** Sets a new password for the signed-in person (after following a reset link). */
 export const setNewPassword = async (input: { password: string }): Promise<AuthResult> => {
-    const t = await getT();
-    const session = await loadSession();
-    if (!session) return { ok: false, error: t("auth.errorResetExpired") };
-    if (!strings(input, ["password"], 256)) return badInput(t);
-    const weak = passwordProblem(input.password, session.email, t);
-    if (weak) return { ok: false, error: weak };
-    if (!(await allow(`reset:set:${session.id}`, 5, 10 * MINUTE))) return tooMany(t);
-    try {
-        const supabase = await createSupabaseServerClient();
-        const { error } = await supabase.auth.updateUser({ password: input.password });
-        if (error) throw error;
-        // Other devices signed in with the old password are signed out.
-        await supabase.auth.signOut({ scope: "others" }).catch(() => {});
-        return { ok: true };
-    } catch (error) {
-        logError("setting a new password failed", error);
-        return { ok: false, error: t("auth.errorResetFailed") };
-    }
-}
+  const t = await getT();
+  const session = await loadSession();
+  if (!session) return { ok: false, error: t("auth.errorResetExpired") };
+  if (!strings(input, ["password"], 256)) return badInput(t);
+  const weak = passwordProblem(input.password, session.email, t);
+  if (weak) return { ok: false, error: weak };
+  if (!(await allow(`reset:set:${session.id}`, 5, 10 * MINUTE))) return tooMany(t);
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.updateUser({ password: input.password });
+    if (error) throw error;
+    // Other devices signed in with the old password are signed out.
+    await supabase.auth.signOut({ scope: "others" }).catch(() => {});
+    return { ok: true };
+  } catch (error) {
+    logError("setting a new password failed", error);
+    return { ok: false, error: t("auth.errorResetFailed") };
+  }
+};
 
 export const logoutAccount = async () => {
-    try {
-        const supabase = await createSupabaseServerClient();
-        await supabase.auth.signOut({ scope: "local" });
-    } catch (error) {
-        // The session may already be invalid; clearing the cookie below still logs the user out.
-        logError('Error ending the Supabase session', error);
-    }
+  try {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut({ scope: "local" });
+  } catch (error) {
+    // The session may already be invalid; clearing the cookie below still logs the user out.
+    logError("Error ending the Supabase session", error);
+  }
 
-    await clearSessionCookies();
-    (await cookies()).delete("setu-consent"); // a half-finished bank link belongs to this user only
+  await clearSessionCookies();
+  (await cookies()).delete("setu-consent"); // a half-finished bank link belongs to this user only
 
-    return true;
-}
+  return true;
+};
 
 export const createLinkToken = async () => {
-    try {
-        const user = await requireUser();
-        // Each call costs a Plaid API request.
-        if (!(await allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return null;
-        // Opening Plaid costs a call: refused when adding a bank would be, never counted.
-        if (await changeBlocked(await getT())) return null;
-        const response = await plaidClient.linkTokenCreate({
-            user: { client_user_id: authIdOf(user) },
-            client_name: "Horizon",
-            products: ['auth', 'transactions'] as Products[],
-            language: 'en',
-            country_codes: ['US'] as CountryCode[],
-        })
-        return { linkToken: response.data.link_token };
-    } catch (error) {
-        logError("createLinkToken failed", error);
-        return null;
-    }
-}
+  try {
+    const user = await requireUser();
+    // Each call costs a Plaid API request.
+    if (!(await allow(`plaid:link:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return null;
+    // Opening Plaid costs a call: refused when adding a bank would be, never counted.
+    if (await changeBlocked(await getT())) return null;
+    const response = await (
+      await plaid()
+    ).linkTokenCreate({
+      user: { client_user_id: authIdOf(user) },
+      client_name: "Horizon",
+      products: ["auth", "transactions"] as Products[],
+      language: "en",
+      country_codes: ["US"] as CountryCode[],
+    });
+    return { linkToken: response.data.link_token };
+  } catch (error) {
+    logError("createLinkToken failed", error);
+    return null;
+  }
+};
 
 export const exchangePublicToken = async ({ publicToken }: { publicToken: string }) => {
-    try {
-        const user = await requireUser();
-        if (typeof publicToken !== "string" || !publicToken || publicToken.length > 200) return null;
-        if (!(await allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return null;
-        if (await changeBlocked(await getT())) return null;
+  try {
+    const user = await requireUser();
+    if (typeof publicToken !== "string" || !publicToken || publicToken.length > 200) return null;
+    if (!(await allow(`plaid:exchange:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return null;
+    if (await changeBlocked(await getT())) return null;
 
-        // Exchange the short-lived public token for a permanent access token
-        const response = await plaidClient.itemPublicTokenExchange({ public_token: publicToken });
-        const accessToken = response.data.access_token;
-        const itemId = response.data.item_id;
+    // Exchange the short-lived public token for a permanent access token
+    const response = await (await plaid()).itemPublicTokenExchange({ public_token: publicToken });
+    const accessToken = response.data.access_token;
+    const itemId = response.data.item_id;
 
-        // Get the account linked through Plaid Link
-        const accountsResponse = await plaidClient.accountsGet({ access_token: accessToken });
-        const accountData = accountsResponse.data.accounts[0];
+    // Get the account linked through Plaid Link
+    const accountsResponse = await (await plaid()).accountsGet({ access_token: accessToken });
+    const accountData = accountsResponse.data.accounts[0];
 
-        // Attach the bank to the user's Dwolla customer as a funding source so it
-        // can send and receive transfers. Users without a Dwolla customer (non-US
-        // address) still get the bank, just without transfers.
-        let fundingSourceUrl = "";
-        if (user.dwollaCustomerId) {
-            const request: ProcessorTokenCreateRequest = {
-                access_token: accessToken,
-                account_id: accountData.account_id,
-                processor: "dwolla" as ProcessorTokenCreateRequestProcessorEnum,
-            };
-            const processorTokenResponse = await plaidClient.processorTokenCreate(request);
-            const processorToken = processorTokenResponse.data.processor_token;
+    // Attach the bank to the user's Dwolla customer as a funding source so it
+    // can send and receive transfers. Users without a Dwolla customer (non-US
+    // address) still get the bank, just without transfers.
+    let fundingSourceUrl = "";
+    if (user.dwollaCustomerId) {
+      const request: ProcessorTokenCreateRequest = {
+        access_token: accessToken,
+        account_id: accountData.account_id,
+        processor: "dwolla" as ProcessorTokenCreateRequestProcessorEnum,
+      };
+      const processorTokenResponse = await (await plaid()).processorTokenCreate(request);
+      const processorToken = processorTokenResponse.data.processor_token;
 
-            fundingSourceUrl =
-                (await addFundingSource({
-                    dwollaCustomerId: user.dwollaCustomerId,
-                    processorToken,
-                    bankName: accountData.name,
-                })) ?? "";
+      fundingSourceUrl =
+        (await addFundingSource({
+          dwollaCustomerId: user.dwollaCustomerId,
+          processorToken,
+          bankName: accountData.name,
+        })) ?? "";
 
-            if (!fundingSourceUrl) throw Error("Funding source was not created");
-        }
-
-        await createBankAccount({
-            userId: ownerIdOf(user),
-            bankId: itemId,
-            accountId: accountData.account_id,
-            accessToken,
-            fundingSourceUrl,
-            sharableId: newSharableId(),
-        });
-        await countChange();
-
-        revalidatePath("/");
-
-        return { publicTokenExchange: "complete" as const };
-    } catch (error) {
-        logError("exchangePublicToken failed", error);
-        return null;
+      if (!fundingSourceUrl) throw Error("Funding source was not created");
     }
+
+    await createBankAccount({
+      userId: ownerIdOf(user),
+      bankId: itemId,
+      accountId: accountData.account_id,
+      accessToken,
+      fundingSourceUrl,
+      sharableId: newSharableId(),
+    });
+    await countChange();
+
+    revalidatePath("/");
+
+    return { publicTokenExchange: "complete" as const };
+  } catch (error) {
+    logError("exchangePublicToken failed", error);
+    return null;
+  }
 };

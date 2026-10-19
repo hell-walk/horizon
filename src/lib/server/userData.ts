@@ -3,7 +3,8 @@ import "server-only";
 import { Query, type Models } from "node-appwrite";
 
 import { invalidate } from "../cache";
-import { plaidClient } from "../plaid";
+// The Plaid SDK is slow to load and only US banks need it: loaded on first use.
+const plaid = async () => (await import("../plaid")).plaidClient;
 import { createAdminClient } from "./appwrite";
 import { authIdOf, ownerIdOf } from "./auth";
 import { readCorrections } from "../corrections";
@@ -65,7 +66,7 @@ async function deleteAll(collection: string, queries: string[]): Promise<number>
 export async function removeBank(bank: Bank): Promise<{ statements: number }> {
   if ((!bank.provider || bank.provider === "plaid") && bank.accessToken && bank.accessToken.startsWith("access-")) {
     try {
-      await plaidClient.itemRemove({ access_token: bank.accessToken });
+      await (await plaid()).itemRemove({ access_token: bank.accessToken });
     } catch (error) {
       logError("privacy: Plaid item removal failed", error);
     }
@@ -125,8 +126,7 @@ export async function exportUserData(user: User) {
 
   return {
     exportedAt: new Date().toISOString(),
-    about:
-      "Everything Horizon stores about you. Bank access tokens and payment-provider links are left out: they are keys, not information about you.",
+    about: "Everything Horizon stores about you. Bank access tokens and payment-provider links are left out: they are keys, not information about you.",
     profile: {
       email: user.email,
       firstName: profile?.firstName ?? null,

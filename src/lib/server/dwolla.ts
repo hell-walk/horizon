@@ -1,6 +1,5 @@
 import "server-only";
 
-import { Client } from "dwolla-v2";
 import { logError } from "./log";
 
 const getEnvironment = (): "production" | "sandbox" => {
@@ -19,8 +18,10 @@ const getEnvironment = (): "production" | "sandbox" => {
 // Created on first use so a missing DWOLLA_* value only breaks Dwolla calls,
 // not every page that imports the user actions.
 let dwollaClientInstance: any;
-const getDwollaClient = () => {
+// The Dwolla SDK is loaded on first use: only US transfers need it.
+const getDwollaClient = async () => {
     if (!dwollaClientInstance) {
+        const { Client } = await import("dwolla-v2");
         dwollaClientInstance = new Client({
             environment: getEnvironment(),
             key: process.env.DWOLLA_KEY as string,
@@ -33,7 +34,7 @@ const getDwollaClient = () => {
 // Create a Dwolla Funding Source using a Plaid Processor Token
 export const createFundingSource = async (options: CreateFundingSourceOptions) => {
     try {
-        return await getDwollaClient()
+        return await (await getDwollaClient())
             .post(`customers/${options.customerId}/funding-sources`, {
                 name: options.fundingSourceName,
                 plaidToken: options.plaidToken,
@@ -46,7 +47,7 @@ export const createFundingSource = async (options: CreateFundingSourceOptions) =
 
 export const createOnDemandAuthorization = async () => {
     try {
-        const onDemandAuthorization = await getDwollaClient().post("on-demand-authorizations");
+        const onDemandAuthorization = await (await getDwollaClient()).post("on-demand-authorizations");
         const authLink = onDemandAuthorization.body._links;
         return authLink;
     } catch (err) {
@@ -56,7 +57,7 @@ export const createOnDemandAuthorization = async () => {
 
 export const createDwollaCustomer = async (newCustomer: NewDwollaCustomerParams) => {
     try {
-        return await getDwollaClient()
+        return await (await getDwollaClient())
             .post("customers", newCustomer)
             .then((res: any) => res.headers.get("location"));
     } catch (err: any) {
@@ -90,7 +91,7 @@ export const createTransfer = async ({
         };
         // Dwolla answers a repeated Idempotency-Key with the transfer it already
         // made (for 24 hours), so a retry after a timeout cannot pay twice.
-        return await getDwollaClient()
+        return await (await getDwollaClient())
             .post("transfers", requestBody, { "Idempotency-Key": idempotencyKey })
             .then((res: any) => res.headers.get("location") as string);
     } catch (err) {
@@ -123,7 +124,7 @@ export const addFundingSource = async ({
 /** Removes a funding source (a linked bank) from its Dwolla customer. */
 export const removeFundingSource = async (fundingSourceUrl: string) => {
     try {
-        await getDwollaClient().post(fundingSourceUrl, { removed: true });
+        await (await getDwollaClient()).post(fundingSourceUrl, { removed: true });
         return true;
     } catch (err) {
         logError("Removing a Dwolla funding source failed", err);
@@ -134,7 +135,7 @@ export const removeFundingSource = async (fundingSourceUrl: string) => {
 /** Dwolla never deletes customers; deactivating stops all further use. */
 export const deactivateCustomer = async (customerUrl: string) => {
     try {
-        await getDwollaClient().post(customerUrl, { status: "deactivated" });
+        await (await getDwollaClient()).post(customerUrl, { status: "deactivated" });
         return true;
     } catch (err) {
         logError("Deactivating a Dwolla customer failed", err);

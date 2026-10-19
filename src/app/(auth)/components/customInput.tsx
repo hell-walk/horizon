@@ -8,7 +8,7 @@ import z from "zod";
 import { useT } from "@/components/i18nProvider";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authFormSchema } from "@/lib/utils";
+import { authFormSchema } from "@/lib/authSchema";
 
 type Values = z.infer<ReturnType<typeof authFormSchema>>;
 

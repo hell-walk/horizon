@@ -2,24 +2,28 @@
 // Everything here returns the app's own Account / Transaction shapes so pages and
 // components never see raw Plaid objects. The Setu adapter mirrors this file.
 
-import { CountryCode } from "plaid";
+import type { CountryCode } from "plaid";
 
-import { plaidClient } from "../plaid";
 import { cached, TTL } from "../cache";
+
+// The Plaid SDK is slow to load and only US banks need it: loaded on first use.
+const plaid = async () => (await import("../plaid")).plaidClient;
 
 export const PLAID_PROVIDER = "plaid" as const;
 
 /** Account data for one Plaid item, cached for a minute. */
 export const getPlaidAccountsData = (accessToken: string) =>
   cached(`plaid:accounts:${accessToken}`, TTL.minute, async () => {
-    const response = await plaidClient.accountsGet({ access_token: accessToken });
+    const response = await (await plaid()).accountsGet({ access_token: accessToken });
     return response.data;
   });
 
 /** Institution details never change, so they are cached for a day. */
 export const getPlaidInstitution = (institutionId: string) =>
   cached(`plaid:institution:${institutionId}`, TTL.day, async () => {
-    const response = await plaidClient.institutionsGetById({
+    const response = await (
+      await plaid()
+    ).institutionsGetById({
       institution_id: institutionId,
       country_codes: ["US"] as CountryCode[],
     });
@@ -59,7 +63,9 @@ export const getPlaidTransactions = (accessToken: string, currency = "USD") =>
 
     // Walk every page of the sync feed; the cursor marks where the last page ended.
     while (hasMore) {
-      const response = await plaidClient.transactionsSync({
+      const response = await (
+        await plaid()
+      ).transactionsSync({
         access_token: accessToken,
         cursor,
       });
