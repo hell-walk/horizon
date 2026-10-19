@@ -19,8 +19,69 @@ export type PayoffInput = {
 
 export type Payoff = { months: number; interest: number; totalPaid: number; payoffDate: string };
 
-/** What the person told Horizon about a loan (the statements show only the EMI); saved with the loan. */
-export type LoanPlan = { outstanding: number; annualRate: number; extraMonthly?: number; lumpSum?: number };
+/**
+ * What the person told Horizon about a loan, saved with it. The statements show
+ * the EMI and nothing else: when it was taken and for how many months say when
+ * it ends; the outstanding amount and the rate say what it still costs.
+ */
+export type LoanPlan = {
+  outstanding?: number;
+  annualRate?: number;
+  extraMonthly?: number;
+  lumpSum?: number;
+  /** The EMI as the person knows it, when the statements' figure is off. */
+  emi?: number;
+  /** YYYY-MM-DD */
+  borrowed?: string;
+  /** Months, in all. */
+  tenure?: number;
+};
+
+export type Schedule = { firstDue: string; paid: number; remaining: number; endDate: string };
+
+/**
+ * The EMI calendar of a loan from when it was taken and for how long. The first
+ * EMI falls in the month after borrowing, on the lender's usual day (or the
+ * same day of the month as the loan); borrowing after the lender's cut-off day
+ * pushes it one more month, as Snapmint does after the 26th.
+ */
+export function scheduleFrom({
+  borrowed,
+  tenure,
+  dueDay,
+  cutoffDay,
+  today = new Date(),
+}: {
+  borrowed: string;
+  tenure: number;
+  dueDay?: number;
+  cutoffDay?: number;
+  today?: Date;
+}): Schedule | null {
+  const start = new Date(`${borrowed}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || !Number.isInteger(tenure) || tenure < 1) return null;
+  const day = dueDay ?? start.getUTCDate();
+  const skip = cutoffDay !== undefined && start.getUTCDate() > cutoffDay ? 2 : 1;
+  const due = (n: number) => {
+    // The n-th EMI (1-based): `skip` months after borrowing, then monthly, on `day` or the month's last day.
+    const y = start.getUTCFullYear();
+    const m = start.getUTCMonth() + skip + (n - 1);
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(y, m, Math.min(day, last))).toISOString().slice(0, 10);
+  };
+  const todayIso = today.toISOString().slice(0, 10);
+  let paid = 0;
+  while (paid < tenure && due(paid + 1) <= todayIso) paid++;
+  return { firstDue: due(1), paid, remaining: tenure - paid, endDate: due(tenure) };
+}
+
+/** What is still owed when `remaining` EMIs are left at this rate: the present value of those payments. */
+export function outstandingFromSchedule({ emi, annualRate, remaining }: { emi: number; annualRate: number; remaining: number }): number {
+  const i = annualRate / 1200;
+  if (remaining <= 0 || emi <= 0) return 0;
+  if (i === 0) return round2(emi * remaining);
+  return round2((emi * (1 - Math.pow(1 + i, -remaining))) / i);
+}
 
 const MAX_MONTHS = 600;
 const round2 = (n: number) => Math.round(n * 100) / 100;

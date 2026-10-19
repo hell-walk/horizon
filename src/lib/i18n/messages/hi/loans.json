@@ -74,5 +74,12 @@
   "planSaves": "इससे {interest} और {months} महीने बचते हैं।",
   "planSave": "सहेजें",
   "planSaved": "सहेज लिया। आँकड़े इस लोन के साथ रहेंगे।",
-  "planErr": "आँकड़े जाँचें: राशि शून्य से ज़्यादा, और दर 0 से 60 के बीच।"
+  "planErr": "आँकड़े जाँचें: राशि शून्य से ज़्यादा, और दर 0 से 60 के बीच।",
+  "nextLikely": "अगला शायद {date} के आसपास",
+  "planEmi": "EMI राशि",
+  "planBorrowed": "कब लिया था?",
+  "planTenure": "कितने महीनों के लिए?",
+  "planSchedule": "{tenure} में से {paid} EMI चुकीं, {remaining} बाक़ी, लगभग {date} तक खत्म।",
+  "planRemainingTotal": "इस EMI पर लगभग {amount} और देना बाक़ी।",
+  "planOutstandingEstimated": "EMI, दर और बचे महीनों से बकाया लगभग {amount} आँका गया; लेंडर का आँकड़ा अलग हो तो वह लिखें।"
 }

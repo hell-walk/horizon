@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { comparePayoff, monthsFrom, payoff } from "@/lib/payoff";
+import { comparePayoff, monthsFrom, outstandingFromSchedule, payoff, scheduleFrom } from "@/lib/payoff";
 
 const today = new Date("2026-10-20T00:00:00Z");
 
@@ -32,6 +32,29 @@ describe("payoff: a reducing-balance loan, month by month", () => {
 
   it("a prepayment covering everything ends it now", () => {
     expect(payoff({ outstanding: 50000, annualRate: 12, emi: 5000, lumpSum: 60000 }, today)).toMatchObject({ months: 0, interest: 0 });
+  });
+
+  it("lays out the EMIs from when the loan was taken and for how long", () => {
+    // Taken 10 March for 12 months, on the lender's 3rd: first EMI 3 April, last 3 March next year; by 20 Oct, seven paid.
+    expect(scheduleFrom({ borrowed: "2026-03-10", tenure: 12, dueDay: 3, today })).toEqual({
+      firstDue: "2026-04-03",
+      paid: 7,
+      remaining: 5,
+      endDate: "2027-03-03",
+    });
+    // Without a lender day, the same day of the month as the loan.
+    expect(scheduleFrom({ borrowed: "2026-01-31", tenure: 3, today })).toEqual({ firstDue: "2026-02-28", paid: 3, remaining: 0, endDate: "2026-04-30" });
+    // Snapmint after the 26th: the first EMI skips a month.
+    expect(scheduleFrom({ borrowed: "2026-09-28", tenure: 3, dueDay: 3, cutoffDay: 26, today })!.firstDue).toBe("2026-11-03");
+    expect(scheduleFrom({ borrowed: "2026-09-20", tenure: 3, dueDay: 3, cutoffDay: 26, today })!.firstDue).toBe("2026-10-03");
+    expect(scheduleFrom({ borrowed: "not a date", tenure: 3, today })).toBeNull();
+  });
+
+  it("works out what is still owed from the EMI, the rate and the months left", () => {
+    // 10,624 a month at 10% with 60 left is the 5,00,000 loan.
+    expect(outstandingFromSchedule({ emi: 10624, annualRate: 10, remaining: 60 })).toBeCloseTo(500000, -3);
+    expect(outstandingFromSchedule({ emi: 1000, annualRate: 0, remaining: 12 })).toBe(12000);
+    expect(outstandingFromSchedule({ emi: 1000, annualRate: 12, remaining: 0 })).toBe(0);
   });
 
   it("counts months on the calendar, clamping to the last day", () => {

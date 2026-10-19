@@ -9,8 +9,7 @@ import HeaderBox from "@/components/ui/headerBox";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { loadBand, type Loan, type LoanReport } from "@/lib/loans";
-import { monthsFrom } from "@/lib/payoff";
+import { lenderDays, loadBand, type Loan, type LoanReport } from "@/lib/loans";
 import { dateFormat } from "@/lib/regularText";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { loadLoanPlans, type LoanPlan } from "@/lib/server/loanPlans";
@@ -218,8 +217,6 @@ const Analysis = ({ t, locale, report, plans }: { t: Translate; locale: Locale; 
 // `savedPlan`: the payoff planner shows under an active loan; undefined leaves it out (closed loans).
 const LoanCard = ({ l, t, day, savedPlan }: { l: Loan; t: Translate; day: (d: string) => string; savedPlan?: LoanPlan | null }) => {
   const amount = (n: number) => formatAmount(n, l.currency);
-  // The planner's dates in the person's language: the next twenty years of month-ends, done here, not in the browser.
-  const dates = savedPlan !== undefined ? Object.fromEntries(plannerDates().map((d) => [d, day(d)])) : {};
   return (
     <li className="panel flex flex-col gap-2 p-4">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -234,7 +231,7 @@ const LoanCard = ({ l, t, day, savedPlan }: { l: Loan; t: Translate; day: (d: st
       </div>
       <p className={cn("text-13", l.status === "missed" ? "text-warn-ink" : "text-ink-muted")}>
         {t(`loans.status_${l.status}`)}
-        {l.next && l.status === "active" ? ` · ${t("loans.nextDue", { date: day(l.next) })}` : ""}
+        {l.next && l.status === "active" ? ` · ${t(l.nextLikely ? "loans.nextLikely" : "loans.nextDue", { date: day(l.next) })}` : ""}
       </p>
       <p className="text-13 text-ink">{t("loans.paidSince", { count: l.count, amount: amount(l.paid), date: day(l.first) })}</p>
       {l.borrowed > 0 && <p className="text-13 text-ink-muted">{t("loans.borrowed", { amount: amount(l.borrowed) })}</p>}
@@ -262,7 +259,7 @@ const LoanCard = ({ l, t, day, savedPlan }: { l: Loan; t: Translate; day: (d: st
         </ul>
       </details>
       {savedPlan !== undefined && l.status === "active" && (
-        <PayoffPlanner loanKey={l.key} emi={l.monthly} currency={l.currency} saved={savedPlan} dates={dates} />
+        <PayoffPlanner loanKey={l.key} emi={l.monthly} currency={l.currency} saved={savedPlan} {...lenderDays(l.lender)} />
       )}
     </li>
   );
@@ -277,11 +274,5 @@ const Tile = ({ label, value, note }: { label: string; value: string; note: stri
     <p className="eyebrow">{note}</p>
   </article>
 );
-
-/** Every day a payoff could land on in the next twenty years: the same day of the month as today. */
-function plannerDates(): string[] {
-  const today = new Date();
-  return Array.from({ length: 241 }, (_, n) => monthsFrom(today, n));
-}
 
 export default Loans;

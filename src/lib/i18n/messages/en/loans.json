@@ -74,5 +74,12 @@
   "planSaves": "That saves {interest} and {months} months.",
   "planSave": "Save",
   "planSaved": "Saved. The figures stay with this loan.",
-  "planErr": "Check the figures: a positive amount, and a rate between 0 and 60."
+  "planErr": "Check the figures: a positive amount, and a rate between 0 and 60.",
+  "nextLikely": "next likely around {date}",
+  "planEmi": "EMI amount",
+  "planBorrowed": "When did you borrow?",
+  "planTenure": "For how many months?",
+  "planSchedule": "{paid} of {tenure} EMIs paid, {remaining} to go, ends around {date}.",
+  "planRemainingTotal": "About {amount} still to pay at this EMI.",
+  "planOutstandingEstimated": "Outstanding estimated at {amount} from the EMI, the rate and the months left; type the lender's figure if it differs."
 }

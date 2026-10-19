@@ -74,5 +74,12 @@
   "planSaves": "ଏଥିରୁ {interest} ଓ {months} ମାସ ବଞ୍ଚେ।",
   "planSave": "ସଞ୍ଚୟ କରନ୍ତୁ",
   "planSaved": "ସଞ୍ଚିତ ହେଲା। ସଂଖ୍ୟାଗୁଡ଼ିକ ଏହି ଋଣ ସହ ରହିବ।",
-  "planErr": "ସଂଖ୍ୟା ଯାଞ୍ଚ କରନ୍ତୁ: ଶୂନ୍ୟରୁ ଅଧିକ ରାଶି, ଏବଂ 0 ରୁ 60 ମଧ୍ୟରେ ହାର।"
+  "planErr": "ସଂଖ୍ୟା ଯାଞ୍ଚ କରନ୍ତୁ: ଶୂନ୍ୟରୁ ଅଧିକ ରାଶି, ଏବଂ 0 ରୁ 60 ମଧ୍ୟରେ ହାର।",
+  "nextLikely": "ପରବର୍ତ୍ତୀ ସମ୍ଭବତଃ {date} ପାଖାପାଖି",
+  "planEmi": "EMI ରାଶି",
+  "planBorrowed": "କେବେ ନେଇଥିଲେ?",
+  "planTenure": "କେତେ ମାସ ପାଇଁ?",
+  "planSchedule": "{tenure} ମଧ୍ୟରୁ {paid}ଟି EMI ଦିଆଗଲା, {remaining}ଟି ବାକି, ପ୍ରାୟ {date}ରେ ଶେଷ।",
+  "planRemainingTotal": "ଏହି EMIରେ ଆଉ ପ୍ରାୟ {amount} ଦେବାକୁ ବାକି।",
+  "planOutstandingEstimated": "EMI, ହାର ଓ ବାକି ମାସରୁ ବକେୟା ପ୍ରାୟ {amount} ଅନୁମାନ କରାଗଲା; ଋଣଦାତାଙ୍କ ସଂଖ୍ୟା ଅଲଗା ହେଲେ ତାହା ଲେଖନ୍ତୁ।"
 }

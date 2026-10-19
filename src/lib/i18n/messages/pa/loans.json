@@ -74,5 +74,12 @@
   "planSaves": "ਇਸ ਨਾਲ {interest} ਅਤੇ {months} ਮਹੀਨੇ ਬਚਦੇ ਹਨ।",
   "planSave": "ਸੰਭਾਲੋ",
   "planSaved": "ਸੰਭਾਲ ਲਿਆ। ਅੰਕੜੇ ਇਸ ਲੋਨ ਨਾਲ ਰਹਿਣਗੇ।",
-  "planErr": "ਅੰਕੜੇ ਜਾਂਚੋ: ਸਿਫ਼ਰ ਤੋਂ ਵੱਧ ਰਕਮ, ਅਤੇ 0 ਤੋਂ 60 ਵਿਚਕਾਰ ਦਰ।"
+  "planErr": "ਅੰਕੜੇ ਜਾਂਚੋ: ਸਿਫ਼ਰ ਤੋਂ ਵੱਧ ਰਕਮ, ਅਤੇ 0 ਤੋਂ 60 ਵਿਚਕਾਰ ਦਰ।",
+  "nextLikely": "ਅਗਲੀ ਸ਼ਾਇਦ {date} ਦੇ ਨੇੜੇ",
+  "planEmi": "EMI ਰਕਮ",
+  "planBorrowed": "ਕਦੋਂ ਲਿਆ ਸੀ?",
+  "planTenure": "ਕਿੰਨੇ ਮਹੀਨਿਆਂ ਲਈ?",
+  "planSchedule": "{tenure} ਵਿੱਚੋਂ {paid} EMI ਭਰੀਆਂ, {remaining} ਬਾਕੀ, ਲਗਭਗ {date} ਤੱਕ ਮੁੱਕੇਗਾ।",
+  "planRemainingTotal": "ਇਸ EMI 'ਤੇ ਲਗਭਗ {amount} ਹੋਰ ਭਰਨਾ ਬਾਕੀ।",
+  "planOutstandingEstimated": "EMI, ਦਰ ਅਤੇ ਬਾਕੀ ਮਹੀਨਿਆਂ ਤੋਂ ਬਕਾਇਆ ਲਗਭਗ {amount} ਅੰਦਾਜ਼ਾ ਲਾਇਆ; ਕਰਜ਼ਦਾਤਾ ਦਾ ਅੰਕੜਾ ਵੱਖ ਹੋਵੇ ਤਾਂ ਉਹ ਲਿਖੋ।"
 }

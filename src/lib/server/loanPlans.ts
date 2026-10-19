@@ -10,16 +10,25 @@ export type { LoanPlan };
 export const MAX_LOAN_PLANS = 40;
 const positive = (v: unknown, max: number) => (typeof v === "number" && Number.isFinite(v) && v > 0 && v <= max ? v : undefined);
 
-/** One plan, read defensively; null when the figures are not usable. */
+/** One plan, read defensively; null when nothing in it is usable. */
 export function readLoanPlan(value: unknown): LoanPlan | null {
   if (!value || typeof value !== "object") return null;
   const v = value as Record<string, unknown>;
+  const plan: LoanPlan = {};
   const outstanding = positive(v.outstanding, 1e9);
-  const annualRate = typeof v.annualRate === "number" && Number.isFinite(v.annualRate) && v.annualRate >= 0 && v.annualRate <= 60 ? v.annualRate : undefined;
-  if (outstanding === undefined || annualRate === undefined) return null;
+  if (outstanding) plan.outstanding = outstanding;
+  if (typeof v.annualRate === "number" && Number.isFinite(v.annualRate) && v.annualRate >= 0 && v.annualRate <= 60) plan.annualRate = v.annualRate;
   const extraMonthly = positive(v.extraMonthly, 1e8);
+  if (extraMonthly) plan.extraMonthly = extraMonthly;
   const lumpSum = positive(v.lumpSum, 1e9);
-  return { outstanding, annualRate, ...(extraMonthly ? { extraMonthly } : {}), ...(lumpSum ? { lumpSum } : {}) };
+  if (lumpSum) plan.lumpSum = lumpSum;
+  const emi = positive(v.emi, 1e8);
+  if (emi) plan.emi = emi;
+  if (typeof v.borrowed === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.borrowed) && !Number.isNaN(Date.parse(v.borrowed))) plan.borrowed = v.borrowed;
+  if (typeof v.tenure === "number" && Number.isInteger(v.tenure) && v.tenure >= 1 && v.tenure <= 360) plan.tenure = v.tenure;
+  // Worth keeping when it says what the loan costs, or when it ends.
+  const usable = plan.outstanding !== undefined || (plan.borrowed !== undefined && plan.tenure !== undefined);
+  return usable ? plan : null;
 }
 
 /** The saved plans, by the loan's key (lib/loans). */

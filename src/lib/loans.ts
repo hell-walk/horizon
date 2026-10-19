@@ -14,26 +14,29 @@ import { spendType } from "./spending";
 export type LenderKind = "bank" | "nbfc" | "app" | "payLater" | "unknown";
 export type LoanType = "home" | "car" | "twoWheeler" | "personal" | "education" | "gold" | "consumer" | "business" | "creditCard" | "payLater";
 
-type Lender = { name: string; kind: Exclude<LenderKind, "unknown">; pattern: RegExp; type?: LoanType };
+// `dueDay`: the day of the month the lender usually takes the EMI or bill, where it
+// is the same for everyone (pay-later apps; banks let the borrower choose). `cutoffDay`:
+// borrowing after this day puts the first EMI a month later (Snapmint, after the 26th).
+type Lender = { name: string; kind: Exclude<LenderKind, "unknown">; pattern: RegExp; type?: LoanType; dueDay?: number; cutoffDay?: number };
 
 // Most specific first: "ICICI PayLater" before "ICICI Bank", "Kotak Mahindra
 // Prime" before "Kotak", "Muthoot Capital" before "Muthoot Finance".
 const LENDERS: Lender[] = [
   // Pay later
-  { name: "Amazon Pay Later", kind: "payLater", pattern: /amazon\s*pay\s*later/i },
-  { name: "Flipkart Pay Later", kind: "payLater", pattern: /flipkart\s*pay\s*later/i },
+  { name: "Amazon Pay Later", kind: "payLater", pattern: /amazon\s*pay\s*later/i, dueDay: 5 },
+  { name: "Flipkart Pay Later", kind: "payLater", pattern: /flipkart\s*pay\s*later/i, dueDay: 5 },
   { name: "ICICI PayLater", kind: "payLater", pattern: /icici\s*pay\s*later/i },
   { name: "HDFC PayLater", kind: "payLater", pattern: /hdfc\s*pay\s*later/i },
   { name: "Kotak PayLater", kind: "payLater", pattern: /kotak\s*pay\s*later/i },
   { name: "Axis PayLater", kind: "payLater", pattern: /axis\s*pay\s*later/i },
   { name: "SBI PayLater", kind: "payLater", pattern: /sbi\s*pay\s*later/i },
-  { name: "Paytm Postpaid", kind: "payLater", pattern: /paytm\s*post\s*paid/i },
+  { name: "Paytm Postpaid", kind: "payLater", pattern: /paytm\s*post\s*paid/i, dueDay: 7 },
   { name: "Ola Money Postpaid", kind: "payLater", pattern: /ola\s*(money|post\s*paid)/i },
-  { name: "MobiKwik ZIP", kind: "payLater", pattern: /mobikwik\s*(zip|pay\s*later)/i },
+  { name: "MobiKwik ZIP", kind: "payLater", pattern: /mobikwik\s*(zip|pay\s*later)/i, dueDay: 5 },
   { name: "Simpl", kind: "payLater", pattern: /\bsimpl\b/i },
-  { name: "LazyPay", kind: "payLater", pattern: /lazy\s*pay/i },
-  { name: "Snapmint", kind: "payLater", pattern: /snapmint/i },
-  { name: "slice", kind: "payLater", pattern: /(?<!pizza\s)\bslice\b|sliceit|slicepay|quadrillion/i },
+  { name: "LazyPay", kind: "payLater", pattern: /lazy\s*pay/i, dueDay: 3 },
+  { name: "Snapmint", kind: "payLater", pattern: /snapmint/i, dueDay: 3, cutoffDay: 26 },
+  { name: "slice", kind: "payLater", pattern: /(?<!pizza\s)\bslice\b|sliceit|slicepay|quadrillion/i, dueDay: 5 },
   { name: "Uni", kind: "payLater", pattern: /\buni\s*(pay|card)/i },
   // Loan apps
   { name: "KreditBee", kind: "app", pattern: /kreditbee/i, type: "personal" },
@@ -113,9 +116,24 @@ const TYPES: [LoanType, RegExp][] = [
 ];
 
 /** The lender named in a bank's description, if Horizon knows it. */
-export function lenderOf(text: string): { name: string; kind: Exclude<LenderKind, "unknown">; type?: LoanType } | null {
+export function lenderOf(text: string): { name: string; kind: Exclude<LenderKind, "unknown">; type?: LoanType; dueDay?: number; cutoffDay?: number } | null {
   const found = LENDERS.find((l) => l.pattern.test(text));
-  return found ? { name: found.name, kind: found.kind, type: found.type } : null;
+  return found ? { name: found.name, kind: found.kind, type: found.type, dueDay: found.dueDay, cutoffDay: found.cutoffDay } : null;
+}
+
+/** The lender's usual due day and cut-off day, by its name as Horizon shows it. */
+export function lenderDays(name: string): { dueDay?: number; cutoffDay?: number } {
+  const found = LENDERS.find((l) => l.name === name);
+  return found ? { dueDay: found.dueDay, cutoffDay: found.cutoffDay } : {};
+}
+
+/** The next time a monthly due day comes round after a date (the month's last day when it is shorter). */
+export function nextDueAfter(date: string, dueDay: number): string {
+  const d = new Date(`${date.slice(0, 10)}T00:00:00Z`);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth() + (d.getUTCDate() >= dueDay ? 1 : 0);
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m, Math.min(dueDay, last))).toISOString().slice(0, 10);
 }
 
 /** The kind of loan a description points to: its own words first, then what the lender mostly lends for. */
@@ -165,6 +183,8 @@ export type Loan = {
   first: string;
   last: string;
   next?: string;
+  /** The next date came from the lender's usual day, not from a rhythm in the statements (one payment so far). */
+  nextLikely?: boolean;
   /** Money that came in from this lender (the loan itself, most likely). */
   borrowed: number;
   /** Failed payments and what the bank charged for them. */
@@ -311,6 +331,9 @@ export function findLoans(accounts: AccountInput[]): LoanReport {
           ? "ended"
           : "active";
       const next = live.map((r) => r.next).sort()[0];
+      // One payment so far: no rhythm yet, but the lender's usual day says when the next one is likely.
+      const usual = status !== "ended" && !next ? lenderDays(g.lender).dueDay : undefined;
+      const likely = usual ? nextDueAfter(last, usual) : undefined;
       return {
         ...g,
         first,
@@ -318,7 +341,7 @@ export function findLoans(accounts: AccountInput[]): LoanReport {
         monthly: round2(steady.length ? (live.length ? live : steady).reduce((sum, r) => sum + r.perMonth, 0) : g.paid / months),
         steady: steady.length > 0,
         status,
-        ...(next && status !== "ended" ? { next } : {}),
+        ...(next && status !== "ended" ? { next } : likely ? { next: likely, nextLikely: true } : {}),
         cost: costBand(COST_RANK[g.type ?? "unknown"]),
         entries: g.entries.sort((a, b) => b.date.localeCompare(a.date)).slice(0, ENTRIES_SHOWN),
       };
