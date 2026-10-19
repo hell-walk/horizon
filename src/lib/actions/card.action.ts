@@ -46,6 +46,39 @@ export async function setCardDesign({ appwriteItemId, design }: { appwriteItemId
  * statement did not show them (saved as "0000"). Only then: a known number
  * stays as it is, because later statements are matched to the account by it.
  */
+/** Rename an imported account: a statement with no bank name was saved as "My Bank". */
+export async function renameAccount({ appwriteItemId, name }: { appwriteItemId: string; name: string }) {
+  const t = await getT();
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false as const, error: t("connect.errSignIn") };
+  const clean = typeof name === "string" ? name.replace(/\s+/g, " ").trim() : "";
+  if (clean.length < 2 || clean.length > 40) return { ok: false as const, error: t("banks.renameInvalid") };
+  if (!(await allow(`rename:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
+
+  try {
+    const { database } = await createAdminClient();
+    const bank = await database.getDocument(DATABASE_ID!, BANK_COLLECTION_ID!, String(appwriteItemId ?? ""));
+    if (bank.userId !== ownerIdOf(user)) return { ok: false as const, error: t("connect.cardNotYours") };
+    if (bank.provider !== "manual") return { ok: false as const, error: t("banks.renameLinked") };
+    // Later uploads find the account by its name and digits: two with the same would be indistinguishable.
+    const twin = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [
+      Query.equal("userId", [ownerIdOf(user)]),
+      Query.equal("provider", ["manual"]),
+      Query.equal("institutionName", [clean]),
+      Query.equal("accountMask", [String(bank.accountMask ?? "")]),
+    ]);
+    if (twin.documents.some((d) => d.$id !== bank.$id)) return { ok: false as const, error: t("banks.renameTaken") };
+
+    await database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bank.$id, { institutionName: clean });
+    invalidate("banks:");
+    revalidatePath("/", "layout");
+    return { ok: true as const };
+  } catch (error) {
+    logError("bank: could not rename the account", error);
+    return { ok: false as const, error: t("connect.cardSaveFailed") };
+  }
+}
+
 export async function setAccountDigits({ appwriteItemId, digits }: { appwriteItemId: string; digits: string }) {
   const t = await getT();
   const user = await getLoggedInUser();

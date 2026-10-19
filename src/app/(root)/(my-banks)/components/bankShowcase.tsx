@@ -10,6 +10,7 @@ import type { Translate } from "@/lib/i18n/translate";
 import { formatAmount, maskKnown, maskLabel } from "@/lib/utils";
 
 import AddDigits from "./addDigits";
+import RenameAccount from "./renameAccount";
 import CardDesignPicker from "./cardDesignPicker";
 import CardStack from "@/components/cardStack";
 import Copy from "@/components/copy";
@@ -66,9 +67,13 @@ const BankShowcase = ({
         </header>
         <div className="panel-body flex flex-col gap-5">
           <div className="flex flex-col gap-1">
-            <h2 translate="no" className="font-display text-20 font-semibold tracking-tight text-ink">
-              {account.name}
-            </h2>
+            {account.provider === "manual" ? (
+              <RenameAccount appwriteItemId={account.appwriteItemId} name={account.name} />
+            ) : (
+              <h2 translate="no" className="font-display text-20 font-semibold tracking-tight text-ink">
+                {account.name}
+              </h2>
+            )}
             <p translate="no" className="text-13 text-ink-muted">
               {account.officialName}
             </p>
@@ -77,7 +82,11 @@ const BankShowcase = ({
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
             <Fact label={t("banks.balance")} value={formatAmount(account.currentBalance, account.currency)} mono />
             <Fact label={t("banks.available")} value={formatAmount(account.availableBalance ?? account.currentBalance, account.currency)} mono />
-            <Fact label={t("banks.lastDigits")} value={maskKnown(account.mask) ? maskLabel(account.mask) : t("banks.digitsUnknown")} mono={maskKnown(account.mask)} />
+            <Fact
+              label={t("banks.lastDigits")}
+              value={maskKnown(account.mask) ? maskLabel(account.mask) : t("banks.digitsUnknown")}
+              mono={maskKnown(account.mask)}
+            />
             <Fact label={t("banks.accountType")} value={labelFor(t, `banks.type_${accountType.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`, accountType)} />
           </dl>
 
@@ -86,10 +95,7 @@ const BankShowcase = ({
           {/* The receiving code only means something where money can be sent (US accounts via Plaid). */}
           {canTransfer(account) && <Copy title={account.sharableId} />}
 
-          <CardDesignPicker
-            account={account}
-            onPick={(design) => setDesigns((d) => ({ ...d, [account.appwriteItemId]: design }))}
-          />
+          <CardDesignPicker account={account} onPick={(design) => setDesigns((d) => ({ ...d, [account.appwriteItemId]: design }))} />
 
           <div className={canTransfer(account) ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
             <Link href={`/transaction-history/?id=${account.appwriteItemId}`} className="btn-secondary">

@@ -86,6 +86,16 @@ describe("one kind of spending, closely", () => {
     expect(upi.payees.at(-1)!.amount).toBe(550 + 500);
   });
 
+  it("names a brand properly even when the bank cut it short", () => {
+    const rows = [
+      debit("z1", "2026-09-01", "UPI/DR/1/ZOMATO L/UTIB/ZOMATOORDE/UPI 2 AT 3 SOUTH CITY DEP TFR", 300),
+      debit("z2", "2026-09-02", "UPI/DR/1/ZOMATO L/UTIB/ZOMATOORDE/UPI 2 AT 3 SOUTH CITY WDL TFR", 250),
+      debit("s1", "2026-09-03", "UPI/DR/1/SWIGGY L/UTIB/SWIGGY1ONL/UPI 2 AT 3 SOUTH CITY DEP TFR", 400),
+    ];
+    const food = spendingDetail(rows, "food")!;
+    expect(food.allPayees.map((p) => p.name)).toEqual(["Zomato", "Swiggy"]);
+  });
+
   it("breaks EMIs down by lender", () => {
     const rows = [
       debit("l1", "2026-08-05", "ACH D- BAJAJ FINANCE LTD-P400PHT1234", 2100),

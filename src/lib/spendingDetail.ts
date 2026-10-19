@@ -1,6 +1,6 @@
 import { OWN_TRANSFER } from "./corrections";
 import { lenderOf } from "./loans";
-import { isPersonPayment, payeeWords, PEOPLE_GROUP } from "./payees";
+import { brandName, isPersonPayment, payeeWords, PEOPLE_GROUP } from "./payees";
 import { spendType } from "./spending";
 import { spendSlug } from "./spendSlug";
 
@@ -84,9 +84,10 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
   const lenders = new Set<string>();
   for (const r of rows) {
     // Each payee by its own name ("Zepto", "Rahul Kumar"), not a group label ("Groceries"):
-    // inside one kind of spending, the point is who. Loans by lender ("HDFC Bank", "KreditBee").
+    // inside one kind of spending, the point is who. A known brand by its proper name (SBI
+    // writes "ZOMATO L"); loans by lender ("HDFC Bank", "KreditBee").
     const lender = name === "EMI & pay later" ? lenderOf(r.name)?.name : undefined;
-    const who = r.tx.shownName || lender || payeeWords(r.name);
+    const who = r.tx.shownName || lender || brandName(r.name) || payeeWords(r.name);
     if (lender && who === lender) lenders.add(who);
     const slice = byPayee.get(who) ?? { name: who, amount: 0, count: 0, share: 0 };
     slice.amount += r.amount;

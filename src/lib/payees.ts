@@ -14,12 +14,80 @@ export type PayeeSpend = {
 
 // Tokens that describe the rail or the direction, never the payee.
 const NOISE = new Set([
-  "upi", "neft", "imps", "rtgs", "ach", "nach", "ecs", "pos", "atm", "dr", "cr", "txn", "ref", "id", "no", "chq", "cheque",
-  "payment", "paid", "purchase", "transfer", "trf", "tfr", "dep", "to", "from", "by", "via", "the", "and", "ltd", "limited", "pvt", "private",
-  "india", "ind", "in", "order", "bill", "online", "card", "debit", "credit", "autopay", "mandate", "emi", "settlement", "wdl", "withdrawal", "cash",
+  "upi",
+  "neft",
+  "imps",
+  "rtgs",
+  "ach",
+  "nach",
+  "ecs",
+  "pos",
+  "atm",
+  "dr",
+  "cr",
+  "txn",
+  "ref",
+  "id",
+  "no",
+  "chq",
+  "cheque",
+  "payment",
+  "paid",
+  "purchase",
+  "transfer",
+  "trf",
+  "tfr",
+  "dep",
+  "to",
+  "from",
+  "by",
+  "via",
+  "the",
+  "and",
+  "ltd",
+  "limited",
+  "pvt",
+  "private",
+  "india",
+  "ind",
+  "in",
+  "order",
+  "bill",
+  "online",
+  "card",
+  "debit",
+  "credit",
+  "autopay",
+  "mandate",
+  "emi",
+  "settlement",
+  "wdl",
+  "withdrawal",
+  "cash",
   // Rails and words from other countries' statements.
-  "zelle", "venmo", "paypal", "sepa", "wire", "bacs", "fps", "interac", "contactless", "visa", "mastercard", "dd", "so", "lastschrift",
-  "kartenzahlung", "uberweisung", "virement", "carte", "prlv", "inc", "llc", "gmbh", "co",
+  "zelle",
+  "venmo",
+  "paypal",
+  "sepa",
+  "wire",
+  "bacs",
+  "fps",
+  "interac",
+  "contactless",
+  "visa",
+  "mastercard",
+  "dd",
+  "so",
+  "lastschrift",
+  "kartenzahlung",
+  "uberweisung",
+  "virement",
+  "carte",
+  "prlv",
+  "inc",
+  "llc",
+  "gmbh",
+  "co",
 ]);
 
 // Well-known merchants: any narration containing the key gets the label.
@@ -70,7 +138,12 @@ const ALIASES: [RegExp, string][] = [
   [/\bjio\b/i, "Jio"],
   // Not "Paid vi": banks cut "Paid via" short, which is not the phone company (categories.ts does the same).
   [/(?<!paid\s)\bvi\b|vodafone/i, "Vi"],
-  [/bigbasket|blinkit|zepto|instamart|dmart|reliance\s*fresh|grofers/i, "Groceries"],
+  [/zepto/i, "Zepto"],
+  [/blinkit/i, "Blinkit"],
+  [/bigbasket/i, "BigBasket"],
+  [/instamart/i, "Instamart"],
+  [/jiomart/i, "JioMart"],
+  [/dmart|reliance\s*fresh|grofers/i, "Groceries"],
   [/starbucks|cafe|coffee/i, "Cafe"],
   [/mcdonald|kfc|domino|pizza|burger/i, "Fast food"],
   [/petrol|hpcl|bpcl|indian\s*oil|iocl|shell/i, "Fuel"],
@@ -85,9 +158,44 @@ const ALIASES: [RegExp, string][] = [
 
 // Bank short codes that ride along in UPI/IMPS narrations (IFSC prefixes).
 const BANK_CODES = new Set([
-  "sbin", "hdfc", "icic", "utib", "punb", "kkbk", "idib", "bkid", "cnrb", "ubin", "barb", "yesb", "indb", "fdrl", "ioba",
-  "mahb", "cbin", "psib", "ucba", "ibkl", "ratn", "karb", "sibl", "cius", "dlxb", "tmbl", "jaka", "aubm", "paytm", "pytm", "ybl", "okaxis",
-  "oksbi", "okhdfcbank", "okicici", "ibl", "axl", "apl",
+  "sbin",
+  "hdfc",
+  "icic",
+  "utib",
+  "punb",
+  "kkbk",
+  "idib",
+  "bkid",
+  "cnrb",
+  "ubin",
+  "barb",
+  "yesb",
+  "indb",
+  "fdrl",
+  "ioba",
+  "mahb",
+  "cbin",
+  "psib",
+  "ucba",
+  "ibkl",
+  "ratn",
+  "karb",
+  "sibl",
+  "cius",
+  "dlxb",
+  "tmbl",
+  "jaka",
+  "aubm",
+  "paytm",
+  "pytm",
+  "ybl",
+  "okaxis",
+  "oksbi",
+  "okhdfcbank",
+  "okicici",
+  "ibl",
+  "axl",
+  "apl",
 ]);
 
 const DATE_LIKE = /^\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?$|^\d{6,}$/;
@@ -98,10 +206,36 @@ const isNoise = (t: string) => {
   return NOISE.has(lower) || BANK_CODES.has(lower) || DATE_LIKE.test(t) || CODE_LIKE.test(t) || !/\p{L}/u.test(t) || /^\d+[a-z]{0,2}$/i.test(t);
 };
 
+// Alias labels that name a kind of shop, not one business.
+const GROUP_ALIASES = new Set([
+  "Groceries",
+  "Cafe",
+  "Fast food",
+  "Fuel",
+  "ATM cash",
+  "Rent",
+  "Investments",
+  "Loan EMI",
+  "Electricity",
+  "Healthcare",
+  "Cloud and software",
+  "Airlines",
+]);
+
 /** A stable, readable label for whoever a transaction went to. */
 export function payeeName(raw: string): string {
   const alias = ALIASES.find(([pattern]) => pattern.test(raw));
   return alias ? alias[1] : payeeWords(raw);
+}
+
+/**
+ * The business a narration names, when it is a known brand: "Zomato" for
+ * SBI's cut-short "ZOMATO L". Nothing for a kind of shop ("Groceries") or an
+ * unknown name, so the caller can show the words as the bank wrote them.
+ */
+export function brandName(raw: string): string | undefined {
+  const alias = ALIASES.find(([pattern]) => pattern.test(raw));
+  return alias && !GROUP_ALIASES.has(alias[1]) ? alias[1] : undefined;
 }
 
 /**
@@ -121,7 +255,7 @@ export function payeeWords(raw: string): string {
         .trim()
         .split(/\s+/)
         .map((t) => t.replace(/^[.\s]+|[.\s]+$/g, ""))
-        .filter((t) => t.length > 0 && !isNoise(t))
+        .filter((t) => t.length > 0 && !isNoise(t)),
     )
     // A segment left with single letters only is a rail marker, not a payee: the
     // "D" of "ACH D- HDFC BANK LOAN" (D for debit). Without this every such line
@@ -136,7 +270,7 @@ export function payeeWords(raw: string): string {
 
 // Words that mark a business, a bank line or a purpose, never a person's name.
 const NOT_PERSON =
-  /\b(stores?|mart|traders?|trading|enterprises?|services?|solutions?|pvt|ltd|limited|llp|inc|corp|company|shops?|centre|center|hotel|restaurant|cafe|foods?|medical|medicos?|pharma|clinic|hospital|bank|finance|finserv|motors|electronics|agency|industries|distributors|merchant|retail|technologies|tech|labs|studio|bazaar|kirana|general|supermarket|hardware|textiles|jewell?ers|travels|tours|petroleum|fuels?|station|school|college|academy|institute|university|insurance|securities|capital|payments?|wallet|recharge|bill|deposit|interest|salary|refund|charges?|fees?|gst|tax|credit|debit|cash|atm|emi|loan|dividend|order|purchase|subscription|trip|ticket|postpaid|prepaid|groceries|savings|account|transfer|rent|investment|fund|sip|trust|foundation|society|club|gym|fitness|salon|parlour|boutique|enterprise|associates|consultants?|builders?|developers?|properties|realty|logistics|couriers?|express|digital|online|software|systems|network|media|games?|movies?|cinemas?)\b/i;
+  /\b(stores?|mart|traders?|trading|enterprises?|services?|solutions?|pvt|ltd|limited|llp|inc|corp|company|shops?|centre|center|hotel|restaurant|cafe|foods?|medical|medicos?|pharma|clinic|hospital|bank|finance|finserv|motors|electronics|agency|industries|distributors|merchant|retail|technologies|tech|labs|studio|bazaar|kirana|general|supermarket|hardware|textiles|jewell?ers|travels|tours|petroleum|fuels?|station|school|college|academy|institute|university|insurance|securities|capital|payments?|wallet|recharge|bill|deposit|interest|salary|refund|charges?|fees?|gst|tax|credit|debit|cash|atm|emi|loan|dividend|order|purchase|subscription|trip|ticket|postpaid|prepaid|groceries|savings|account|transfer|rent|investment|fund|sip|trust|foundation|society|club|gym|fitness|salon|parlour|boutique|enterprise|associates|consultants?|builders?|developers?|properties|realty|logistics|couriers?|express|digital|online|software|systems|network|media|games?|movies?|cinemas?|chgs?|chrgs?|penal\w*|gst|amc|sms|alert)\b/i;
 
 /**
  * True when a payment looks like money sent to a person (a friend, a
@@ -152,7 +286,12 @@ export function isPersonPayment(raw: string): boolean {
     .split(" ")
     .map((w) => w.replace(/[\d._]+$/g, "").replace(/[._]/g, ""))
     .filter(Boolean);
-  return words.length >= 1 && words.length <= 3 && words.every((w) => /^[A-Za-z][A-Za-z']*$/.test(w) && w.length >= 2);
+  // SBI cuts names short, leaving an initial at the end ("RANI S", "MAHENDR A"): one letter is fine there.
+  return (
+    words.length >= 1 &&
+    words.length <= 3 &&
+    words.every((w, i) => /^[A-Za-z][A-Za-z']*$/.test(w) && (w.length >= 2 || (i === words.length - 1 && words.length >= 2)))
+  );
 }
 
 export const PEOPLE_GROUP = "UPI payments";

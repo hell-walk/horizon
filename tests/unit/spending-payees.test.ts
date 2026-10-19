@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { groupByPayee, isPersonPayment, payeeName, PEOPLE_GROUP } from "@/lib/payees";
+import { brandName, groupByPayee, isPersonPayment, payeeName, PEOPLE_GROUP } from "@/lib/payees";
 import { groupBySpendType, spendType, splitUpi } from "@/lib/spending";
 
 const tx = (name: string, amount: number, type = "debit", category = "") =>
   ({ id: `${name}-${amount}`, name, amount, type, date: "2025-11-01", category, paymentChannel: "other" }) as unknown as Transaction;
+
+describe("spendType: SBI's cut-short words", () => {
+  it("a Google Pay recharge is a bill, not money sent to someone", () => {
+    expect(spendType({ name: "UPI/DR/1/GOOGLE I/UTIB/GPAYRECHAR/UPI 2 AT 3 SOUTH CITY DEP TFR", category: "Bills", paymentChannel: "online" } as Transaction)).toBe(
+      "Bills & recharges",
+    );
+  });
+});
 
 describe("spendType: plain-language buckets", () => {
   it.each([
@@ -106,14 +114,39 @@ describe("isPersonPayment", () => {
     ["Acme Traders", false],
     ["Rent", false],
     ["Axis savings", false],
+    // SBI cuts names short and leaves an initial.
+    ["UPI/DR/1/RANI S/UBIN/ranis1/UPI 2 AT 3 SOUTH CITY WDL TFR", true],
+    ["UPI/DR/1/MAHENDR A/YESB/Q1/UPI 2 AT 3 SOUTH CITY DEP TFR", true],
+    // A bank's own charge line is not a person.
+    ["SMS CHGS 01-01-25TO31-03-25", false],
+    ["SMS ALERT CHGS", false],
   ])("%s -> %s", (raw, expected) => {
     expect(isPersonPayment(raw)).toBe(expected);
   });
 });
 
+describe("brandName: a known business by its proper name, nothing for a kind of shop", () => {
+  it.each([
+    ["UPI/DR/1/ZOMATO L/UTIB/ZOMATOORDE/UPI 2 AT 3 SOUTH CITY DEP TFR", "Zomato"],
+    ["UPI/DR/1/SWIGGY L/UTIB/SWIGGY1ONL/UPI", "Swiggy"],
+    ["WDL TFR UPI/DR/1/Zepto/YESB/zeptoonlin /Paid vi 2", "Zepto"],
+    ["UPI/DR/1/BLINKIT/HD FC/BLINKIT.PA/UPIIN", "Blinkit"],
+    ["POS 412345XXXXXX1234 RELIANCE FRESH", undefined],
+    ["UPI/DR/1/RAMESH KUMAR/SBIN/r@oksbi", undefined],
+  ])("%s -> %s", (raw, expected) => {
+    expect(brandName(raw)).toBe(expected);
+  });
+});
+
 describe("groupByPayee", () => {
   it("merges repeat payees and leaves out credits", () => {
-    const groups = groupByPayee([tx("UPI/DR/1/ZOMATO", 300), tx("UPI/DR/2/ZOMATO", 500), tx("Swiggy order", 640), tx("NEFT/CR/INFOSYS", 145000, "credit"), tx("Rent", 28000)]);
+    const groups = groupByPayee([
+      tx("UPI/DR/1/ZOMATO", 300),
+      tx("UPI/DR/2/ZOMATO", 500),
+      tx("Swiggy order", 640),
+      tx("NEFT/CR/INFOSYS", 145000, "credit"),
+      tx("Rent", 28000),
+    ]);
     expect(groups.find((g) => g.name === "Zomato")).toMatchObject({ count: 2, amount: 800 });
     expect(groups.some((g) => g.name.includes("Infosys"))).toBe(false);
   });
@@ -129,7 +162,7 @@ describe('"Paid vi" (a cut-short "Paid via")', () => {
     const { payeeName } = await import("@/lib/payees");
     const zepto = "WDL TFR UPI/DR/659214884656/Zepto/YESB/zeptoonlin /Paid vi 0097694162092 AT 16727 UTRETHIA , LUCKNOW";
     expect(payeeName(zepto)).not.toBe("Vi");
-    expect(payeeName(zepto)).toBe("Groceries");
+    expect(payeeName(zepto)).toBe("Zepto");
     expect(payeeName("VI PREPAID RECHARGE")).toBe("Vi");
   });
 });

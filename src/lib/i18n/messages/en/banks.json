@@ -62,6 +62,12 @@
   "digitsUnknown": "Not added",
   "digitsHint": "This statement did not show the account number. Add its last 4 digits, so later statements from this account land here.",
   "digitsSave": "Save",
+  "rename": "Rename account",
+  "renameSave": "Save",
+  "renameCancel": "Cancel",
+  "renameInvalid": "Give the account a name of 2 to 40 characters.",
+  "renameTaken": "You already have an account with this name and these digits.",
+  "renameLinked": "Only an account from a statement can be renamed.",
   "digitsInvalid": "Type the last 4 digits of the account number.",
   "digitsAlreadySet": "This account already has its number.",
   "digitsTaken": "Another account at this bank already ends with those digits."

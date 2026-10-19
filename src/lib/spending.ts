@@ -45,12 +45,13 @@ const PURPOSE: Rule[] = [
   [
     "Subscriptions",
     (text) =>
-      /netflix|spotify|prime\s*video|hotstar|youtube|crunchyroll|ellation|sony\s*liv|\bzee5\b|jio\s*cinema|jiohotstar|\bvoot\b|mx\s*player|erosnow|altbalaji|hoichoi|sun\s*nxt|gaana|jiosaavn|wynk|apple\s*music|apple\.com|google\s*play|play\s*store|playstore|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i.test(text) ||
-      extraSubscription(text),
+      /netflix|spotify|prime\s*video|hotstar|youtube|crunchyroll|ellation|sony\s*liv|\bzee5\b|jio\s*cinema|jiohotstar|\bvoot\b|mx\s*player|erosnow|altbalaji|hoichoi|sun\s*nxt|gaana|jiosaavn|wynk|apple\s*music|apple\.com|google\s*play|play\s*store|playstore|subscription|github|microsoft|amazon\s*web|\baws\b|\bhulu\b|disney|\bhbo\b|paramount|peacock|audible|icloud|dropbox|adobe|openai|patreon|duolingo/i.test(
+        text,
+      ) || extraSubscription(text),
   ],
   [
     "Bills & recharges",
-    /airtel|air\s*fib|\bjio\b|vodafone|(?<!paid\s)\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|recharge|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
+    /airtel|air\s*fib|\bjio\b|vodafone|(?<!paid\s)\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|rechar|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
   ],
   [
     "Travel",
@@ -134,7 +135,7 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
   // however small, never hidden inside "Other".
   const pinned = sorted.filter((b) => b.name === "EMI & pay later");
   const head = [...pinned, ...sorted.filter((b) => b.name !== "Other" && !pinned.includes(b)).slice(0, limit - 1 - pinned.length)].sort(
-    (a, b) => b.amount - a.amount
+    (a, b) => b.amount - a.amount,
   );
   const rest = sorted.filter((b) => !head.includes(b));
   return [
