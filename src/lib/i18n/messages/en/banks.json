@@ -70,5 +70,16 @@
   "renameLinked": "Only an account from a statement can be renamed.",
   "digitsInvalid": "Type the last 4 digits of the account number.",
   "digitsAlreadySet": "This account already has its number.",
-  "digitsTaken": "Another account at this bank already ends with those digits."
+  "digitsTaken": "Another account at this bank already ends with those digits.",
+  "coverageTitle": "Statement coverage",
+  "coverageIntro": "What your uploaded statements cover, and where entries may be missing. A hole is reported only where the saved entries show one: a statement that simply ends does not prove the weeks after it are missing.",
+  "coverageRange": "{from} to {to}",
+  "coverageEntries_one": "{count} entry",
+  "coverageEntries_other": "{count} entries",
+  "coverageNone": "No entries saved yet.",
+  "coverageOk": "No holes in the entries saved.",
+  "coverageHoleDates": "Possibly missing: {from} to {to}, {days} days with no entries.",
+  "coverageHoleBalance": "The balances do not join up between {from} and {to}: entries around those days may be missing.",
+  "coverageLatestOld": "No entries since {date}, {days} days ago. If you have a newer statement, add it.",
+  "coverageAdd": "Add a statement"
 }

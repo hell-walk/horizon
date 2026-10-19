@@ -9,7 +9,9 @@
 //             (or the other way round), so entries are missing even if the
 //             dates nearly touch.
 
-export type GapRow = { date: string; amount: number; type: string; balance?: number | null };
+// `batch`: which upload a saved row came from (coverageOf). A statement is complete
+// for its own period, so silence inside one upload is not a hole; between two it may be.
+export type GapRow = { date: string; amount: number; type: string; balance?: number | null; batch?: string | number };
 export type Gap = { from: string; to: string; days: number; reason: "dates" | "balance" };
 
 /** Days of silence between statements that count as missing entries. A quiet week is normal; a month is not. */
@@ -59,6 +61,48 @@ export function importGap(saved: GapRow[], incoming: GapRow[]): Gap | null {
     return { from: iso(earlier.last), to: iso(later.first), days, reason: "balance" };
   }
   return null;
+}
+
+export type Coverage = { from: string; to: string; count: number; holes: Gap[] };
+
+/**
+ * What the saved entries of one account cover, and the holes inside that span:
+ * the same two tests as an import (silence longer than GAP_DAYS, or balances
+ * that do not join between one day and the next), run along the whole run of
+ * entries. Nothing is said about the time after the last entry: a statement
+ * that ends does not prove the weeks after it are missing.
+ */
+export function coverageOf(rows: GapRow[], maxHoles = 6): Coverage | null {
+  const valid = rows.filter((r) => Number.isFinite(dayOf(r.date)));
+  if (!valid.length) return null;
+  const byDay = new Map<number, GapRow[]>();
+  for (const r of valid) {
+    const d = dayOf(r.date);
+    byDay.set(d, [...(byDay.get(d) ?? []), r]);
+  }
+  const days = [...byDay.keys()].sort((a, b) => a - b);
+  const iso = (day: number) => new Date(day * DAY).toISOString().slice(0, 10);
+
+  // Rows on two days from one and the same upload: the file covered the days between.
+  const oneUpload = (a: GapRow[], b: GapRow[]) => {
+    const batches = new Set([...a, ...b].map((r) => r.batch));
+    return batches.size === 1 && !batches.has(undefined);
+  };
+
+  const holes: Gap[] = [];
+  for (let i = 1; i < days.length && holes.length < maxHoles; i++) {
+    const prev = days[i - 1];
+    const cur = days[i];
+    const apart = cur - prev;
+    if (apart > GAP_DAYS && !oneUpload(byDay.get(prev)!, byDay.get(cur)!)) {
+      holes.push({ from: iso(prev), to: iso(cur), days: apart, reason: "dates" });
+      continue;
+    }
+    const end = only(byDay.get(prev)!, prev);
+    const start = only(byDay.get(cur)!, cur);
+    if (end && start && !near(end.balance!, start.balance! - signed(start))) holes.push({ from: iso(prev), to: iso(cur), days: apart, reason: "balance" });
+  }
+  return { from: iso(days[0]), to: iso(days[days.length - 1]), count: valid.length, holes };
 }
 
 /** Whether a new statement reaches at least as far as the saved entries (so its closing balance is the latest). */

@@ -11,7 +11,8 @@
 // Only saved entries inside the new file's own date range are considered, so
 // an entry just outside it is never mistaken for a new one inside it.
 
-export type OverlapRow = { date: string; amount: number; type: string; name: string; balance?: number | null; hash: string };
+// `createdAt`: when the row was saved, which tells one upload's rows from another's.
+export type OverlapRow = { date: string; amount: number; type: string; name: string; balance?: number | null; hash: string; createdAt?: string };
 
 export type LikelyDuplicate = { index: number; saved: { date: string; name: string } };
 export type Overlap = { exact: number[]; likely: LikelyDuplicate[] };

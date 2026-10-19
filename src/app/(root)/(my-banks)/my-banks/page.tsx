@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { PlugZap } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import AccountsTable from "@/components/accountsTable";
 import BankShowcase from "../components/bankShowcase";
+import CoveragePanel from "../components/coveragePanel";
 import HeaderBox from "@/components/ui/headerBox";
 import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import type { SpendingByAccount } from "../components/spendingThin";
@@ -41,7 +43,10 @@ const MyBanks = async () => {
       try {
         const account = await getAccount({ appwriteItemId: a.appwriteItemId });
         const all: Transaction[] = account?.transactions ?? [];
-        const monthBuckets = groupBySpendType(all.filter((tx) => isThisMonth(tx.date)), 5);
+        const monthBuckets = groupBySpendType(
+          all.filter((tx) => isThisMonth(tx.date)),
+          5,
+        );
         // This month when there is spending in it; statements cover past months, so fall back to all of it.
         const thisMonth = monthBuckets.length > 0;
         const buckets = thisMonth ? monthBuckets : groupBySpendType(all, 5);
@@ -50,7 +55,7 @@ const MyBanks = async () => {
       } catch {
         return [a.appwriteItemId, { buckets: [], total: 0, currency: a.currency || "USD", period: "all" }] as const;
       }
-    })
+    }),
   ).then((entries) => Object.fromEntries(entries));
 
   return (
@@ -85,9 +90,7 @@ const MyBanks = async () => {
         {accountsData.length === 0 ? (
           <div className="panel flex-center flex-col gap-3 p-10 text-center">
             <p className="text-16 font-semibold text-ink">{t("banks.emptyTitle")}</p>
-            <p className="max-w-md text-14 text-ink-muted">
-              {t("banks.emptyBody")}
-            </p>
+            <p className="max-w-md text-14 text-ink-muted">{t("banks.emptyBody")}</p>
             <Link href="/connect-bank" className="btn-primary mt-2">
               {t("banks.connectBank")}
             </Link>
@@ -96,6 +99,11 @@ const MyBanks = async () => {
           <BankShowcase accounts={accountsData} holder={holder} spending={spending} initialId={await activeAccountId(accountsData)} />
         )}
       </div>
+
+      {/* Reads every saved entry of each uploaded account: streams in under the cards. */}
+      <Suspense fallback={null}>
+        <CoveragePanel accounts={accountsData} />
+      </Suspense>
 
       <AccountsTable accounts={accountsData} />
     </section>

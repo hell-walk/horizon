@@ -33,7 +33,7 @@ export async function savedStatementRows(bankId: string): Promise<OverlapRow[]> 
     const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
       Query.equal("bankId", [bankId]),
       Query.limit(1000),
-      Query.select(["date", "amount", "type", "name", "balance", "hash"]),
+      Query.select(["date", "amount", "type", "name", "balance", "hash", "$createdAt"]),
       ...(cursor ? [Query.cursorAfter(cursor)] : []),
     ]);
     for (const doc of result.documents) {
@@ -44,6 +44,7 @@ export async function savedStatementRows(bankId: string): Promise<OverlapRow[]> 
         name: String(doc.name ?? ""),
         balance: typeof doc.balance === "number" ? doc.balance : null,
         hash: String(doc.hash ?? ""),
+        createdAt: typeof doc.$createdAt === "string" ? doc.$createdAt : undefined,
       });
     }
     if (result.documents.length < 1000) break;
