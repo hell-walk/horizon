@@ -9,8 +9,8 @@ import { currentPlan } from "@/lib/server/plan";
 import { cn } from "@/lib/utils";
 
 /**
- * Home's financial health: the score and its band for everyone, the five
- * parts and what would raise the score most for subscribers.
+ * Home's financial health: the score, its band and the part with most to gain
+ * for everyone; the five parts, with the figure behind each, for subscribers.
  */
 const HealthPanel = async ({ ownerId }: { ownerId: string }) => {
   const [health, plan, t] = await Promise.all([healthForOwner(ownerId).catch(() => null), currentPlan(), getT()]);

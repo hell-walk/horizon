@@ -15,6 +15,7 @@ import { logError } from "../server/log";
 import { currentPlan } from "../server/plan";
 import { updatePrefs } from "../server/prefs";
 import { allow, MINUTE } from "../server/rateLimit";
+import { claim, release } from "../server/shared";
 
 const ANSWERS = new Set<string>(["yes", "no", "skip", ...REGULAR_CHOICES]);
 const MAX_EXCLUDED = 20;
@@ -32,6 +33,8 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
     return { ok: false as const, error: t("home.checksErrGone") };
   const owner = ownerIdOf(user);
   if (!(await allow(`checks:${owner}`, 60, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
+  // One answer at a time per person: parallel calls would each see the same "used" count and all pass the free limit.
+  if (!(await claim("checks-answer", owner, 15_000))) return { ok: false as const, error: t("connect.cardTooMany") };
 
   try {
     const [plan, state] = await Promise.all([currentPlan(), loadChecksState(owner)]);
@@ -82,5 +85,7 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
   } catch (error) {
     logError("checks: could not save an answer", error);
     return { ok: false as const, error: t("connect.cardSaveFailed") };
+  } finally {
+    await release("checks-answer", owner);
   }
 }

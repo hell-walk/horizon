@@ -49,21 +49,41 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       expect(page.html).not.toContain('data-sentry-component="Home"');
     });
 
-    it.each(["/my-banks", "/transaction-history", "/payment-transfer", "/connect-bank", "/setu/callback", "/transaction-history?id=anything", "/my-data", "/bills", "/charges", "/loans", "/spending/upi-payments", "/goals", "/welcome", "/plans", "/feedback"])(
-      "%s sends you to sign in",
-      async (path) => {
-        const page = await getPage(path);
-        expect([302, 303, 307, 308]).toContain(page.status);
-        expect(page.location).toMatch(/\/sign-in/);
-      }
-    );
+    it.each([
+      "/my-banks",
+      "/transaction-history",
+      "/payment-transfer",
+      "/connect-bank",
+      "/setu/callback",
+      "/transaction-history?id=anything",
+      "/my-data",
+      "/bills",
+      "/charges",
+      "/loans",
+      "/spending/upi-payments",
+      "/goals",
+      "/welcome",
+      "/plans",
+      "/feedback",
+    ])("%s sends you to sign in", async (path) => {
+      const page = await getPage(path);
+      expect([302, 303, 307, 308]).toContain(page.status);
+      expect(page.location).toMatch(/\/sign-in/);
+    });
 
     it("a forged or stale session cookie gets nowhere", async () => {
       // A token that looks right but is not signed by Supabase ("alg": "none").
       const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString("base64url");
       const fakeJwt = `${b64({ alg: "none", typ: "JWT" })}.${b64({ sub: "00000000-0000-0000-0000-000000000000", role: "authenticated", exp: 4102444800 })}.`;
-      const forgedSession = "base64-" + b64({ access_token: fakeJwt, refresh_token: "forged", expires_at: 4102444800, token_type: "bearer", user: { id: "x" } });
-      for (const cookie of ["horizon-session=forged", "horizon-session=", "horizon-session=" + "a".repeat(4096), `horizon-session=${forgedSession}`, "banking-session=forged"]) {
+      const forgedSession =
+        "base64-" + b64({ access_token: fakeJwt, refresh_token: "forged", expires_at: 4102444800, token_type: "bearer", user: { id: "x" } });
+      for (const cookie of [
+        "horizon-session=forged",
+        "horizon-session=",
+        "horizon-session=" + "a".repeat(4096),
+        `horizon-session=${forgedSession}`,
+        "banking-session=forged",
+      ]) {
         const page = await getPage("/my-banks", cookie);
         expect(page.location ?? "", cookie.slice(0, 30)).toMatch(/\/sign-in/);
       }
@@ -90,7 +110,10 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
       fetch(`${BASE}/api/razorpay/webhook`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...headers },
-        body: JSON.stringify({ event: "subscription.charged", payload: { subscription: { entity: { id: "sub_forged", status: "active", notes: { login: "00000000-0000-0000-0000-000000000000" } } } } }),
+        body: JSON.stringify({
+          event: "subscription.charged",
+          payload: { subscription: { entity: { id: "sub_forged", status: "active", notes: { login: "00000000-0000-0000-0000-000000000000" } } } },
+        }),
       });
 
     it("refuses a message without a signature", async () => {
@@ -126,10 +149,20 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
 
   describe("the server action surface", () => {
     it("exposes exactly the intended actions", () => {
-      expect(Object.keys(actionIds()).filter((name) => !OPTIONAL_ACTIONS.includes(name)).sort()).toEqual(
+      expect(
+        Object.keys(actionIds())
+          .filter((name) => !OPTIONAL_ACTIONS.includes(name))
+          .sort(),
+      ).toEqual(
         [
+          "answerCheck",
           "applyCode",
           "askAboutGapsAgain",
+          "renameAccount",
+          "saveLoanPlan",
+          "setIncome",
+          "setMonthlyReport",
+          "setWeeklyReminder",
           "cancelMySubscription",
           "checkSubscription",
           "completeProfile",
@@ -164,7 +197,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "startSubscription",
           "undoCorrection",
           "unsubscribeEmail",
-        ].sort()
+        ].sort(),
       );
     });
 
@@ -180,10 +213,16 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     // Each action is posted to the page that uses it: Next only serves an
     // action from a route whose code reaches it (anything else is a 409).
     it.each([
-      ["sendTransfer", [{ senderBank: "x", sharableId: "y", amount: "1", name: "test", email: "a@b.co", idempotencyKey: crypto.randomUUID() }], "/payment-transfer"],
+      [
+        "sendTransfer",
+        [{ senderBank: "x", sharableId: "y", amount: "1", name: "test", email: "a@b.co", idempotencyKey: crypto.randomUUID() }],
+        "/payment-transfer",
+      ],
       ["setCardDesign", [{ appwriteItemId: "x", design: "auto" }], "/my-banks"],
       ...(hasAction("createLinkToken") ? ([["createLinkToken", [], "/connect-bank"]] as [string, unknown[], string][]) : []),
-      ...(hasAction("exchangePublicToken") ? ([["exchangePublicToken", [{ publicToken: "public-sandbox-x" }], "/connect-bank"]] as [string, unknown[], string][]) : []),
+      ...(hasAction("exchangePublicToken")
+        ? ([["exchangePublicToken", [{ publicToken: "public-sandbox-x" }], "/connect-bank"]] as [string, unknown[], string][])
+        : []),
       ["createSetuConsent", [{ mobile: "9876543210" }], "/connect-bank"],
       ["completeSetuConsent", [{ consentId: "x" }], "/connect-bank"],
       ["deleteBank", [{ appwriteItemId: "x" }], "/my-banks"],
@@ -275,14 +314,20 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
   });
 
   describe("files that should never be served", () => {
-    it.each(["/.env", "/.env.local", "/_next/../.env", "/%2e%2e/.env", "/.git/config", "/package.json", "/next.config.ts", "/.next/server/server-reference-manifest.json"])(
-      "%s",
-      async (path) => {
-        const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
-        const text = await res.text();
-        expect(text).not.toMatch(/APPWRITE|DWOLLA_SECRET|PLAID_SECRET|\[core\]|"dependencies"|exportedName/);
-      }
-    );
+    it.each([
+      "/.env",
+      "/.env.local",
+      "/_next/../.env",
+      "/%2e%2e/.env",
+      "/.git/config",
+      "/package.json",
+      "/next.config.ts",
+      "/.next/server/server-reference-manifest.json",
+    ])("%s", async (path) => {
+      const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
+      const text = await res.text();
+      expect(text).not.toMatch(/APPWRITE|DWOLLA_SECRET|PLAID_SECRET|\[core\]|"dependencies"|exportedName/);
+    });
 
     it("client source maps are not public", async () => {
       const scripts = [...signInPage.html.matchAll(/src="(\/_next\/static\/[^"]+\.js)"/g)].map((m) => m[1]).slice(0, 5);

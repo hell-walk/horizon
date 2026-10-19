@@ -9,6 +9,7 @@ import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
+import { getOwnBank } from "../server/banks";
 import { allow, MINUTE } from "../server/rateLimit";
 import { logError } from "../server/log";
 
@@ -54,11 +55,14 @@ export async function renameAccount({ appwriteItemId, name }: { appwriteItemId: 
   const clean = typeof name === "string" ? name.replace(/\s+/g, " ").trim() : "";
   if (clean.length < 2 || clean.length > 40) return { ok: false as const, error: t("banks.renameInvalid") };
   if (!(await allow(`rename:${ownerIdOf(user)}`, 20, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false as const, error: blocked };
 
   try {
     const { database } = await createAdminClient();
-    const bank = await database.getDocument(DATABASE_ID!, BANK_COLLECTION_ID!, String(appwriteItemId ?? ""));
-    if (bank.userId !== ownerIdOf(user)) return { ok: false as const, error: t("connect.cardNotYours") };
+    // One answer for "not yours" and "no such account": the id is not an oracle.
+    const bank = await getOwnBank(ownerIdOf(user), String(appwriteItemId ?? ""));
+    if (!bank) return { ok: false as const, error: t("connect.cardNotYours") };
     if (bank.provider !== "manual") return { ok: false as const, error: t("banks.renameLinked") };
     // Later uploads find the account by its name and digits: two with the same would be indistinguishable.
     const twin = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [

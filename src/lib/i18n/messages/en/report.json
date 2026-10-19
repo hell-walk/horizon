@@ -33,5 +33,5 @@
   "teaserTitle": "{month} report",
   "teaserOpen": "Open",
   "emailTitle": "Your {month} report",
-  "emailBody": "In {month}, {in} came in, {out} went out, and {kept} stayed with you. Open Horizon for where it went and what is due next."
+  "emailBody": "Your {month} report is ready: what came in, what went out, what stayed with you, where it went and what is due next. Open Horizon to see it."
 }

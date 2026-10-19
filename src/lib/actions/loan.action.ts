@@ -6,6 +6,7 @@ import { getT } from "../i18n/server";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { loadLoanPlans, MAX_LOAN_PLANS, readLoanPlan, type LoanPlan } from "../server/loanPlans";
 import { logError } from "../server/log";
+import { changeBlocked, countChange } from "../server/plan";
 import { updatePrefs } from "../server/prefs";
 import { allow, MINUTE } from "../server/rateLimit";
 
@@ -19,6 +20,9 @@ export async function saveLoanPlan({ key, plan }: { key: string; plan: LoanPlan 
   if (plan !== null && !clean) return { ok: false as const, error: t("loans.planErr") };
   const owner = ownerIdOf(user);
   if (!(await allow(`loanplan:${owner}`, 30, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
+  // A saved plan is a change like any other: the trial's daily few, read-only once it ends.
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false as const, error: blocked };
   try {
     const plans = { ...(await loadLoanPlans(owner)) };
     if (clean) {
@@ -26,6 +30,7 @@ export async function saveLoanPlan({ key, plan }: { key: string; plan: LoanPlan 
       plans[key] = clean;
     } else delete plans[key];
     await updatePrefs(owner, { loanPlans: plans });
+    await countChange();
     revalidatePath("/loans");
     return { ok: true as const };
   } catch (error) {

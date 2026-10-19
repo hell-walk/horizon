@@ -13,7 +13,8 @@ import { addMonths, regularKeyOf, type Regular } from "./recurring";
 // careful side. Everything the screen says about "how we worked this out"
 // comes from the numbers returned here.
 
-export type ForecastEvent = { date: string; name: string; amount: number; kind: Regular["kind"] };
+/** `confidence`: "high" is a rhythm seen three or more times; "low" is seen twice so far (lib/recurring). */
+export type ForecastEvent = { date: string; name: string; amount: number; kind: Regular["kind"]; confidence: Regular["confidence"] };
 
 export type Forecast =
   | {
@@ -95,7 +96,7 @@ export function forecast({
     for (let date = r.next; dayOf(date) <= endDay; date = step(date, r.cadence)) {
       // Expected just before the start but not in the statements yet: still to come, so on the first day.
       const on = dayOf(date) > startDay ? date : iso(startDay + 1);
-      events.push({ date: on, name: r.name, amount: r.direction === "out" ? -r.amount : r.amount, kind: r.kind });
+      events.push({ date: on, name: r.name, amount: r.direction === "out" ? -r.amount : r.amount, kind: r.kind, confidence: r.confidence });
     }
   }
   events.sort((a, b) => a.date.localeCompare(b.date));

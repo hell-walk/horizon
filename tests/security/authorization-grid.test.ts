@@ -36,7 +36,7 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     const env = localEnv();
     const res = await fetch(
       `${env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/databases/${env.APPWRITE_DATABASE_ID}/collections/${env.APPWRITE_BANK_COLLECTION_ID}/documents/${victimBank}`,
-      { headers: { "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT, "X-Appwrite-Key": env.NEXT_APPWRITE_KEY } }
+      { headers: { "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT, "X-Appwrite-Key": env.NEXT_APPWRITE_KEY } },
     );
     victimProfile = ((await res.json()) as { userId: string }).userId;
     expect(victimProfile).toMatch(/^[a-z0-9]{10,}$/);
@@ -47,18 +47,89 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
   // [action, args as A, what must hold]
   const grid: [string, () => unknown[], (value: unknown) => void][] = [
     // B's account, with A's session: never A's to change.
-    ["setAccountDigits", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, digits: "4321" }], (v) => expect(v).toMatchObject({ ok: false })],
-    ["setCardDesign", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, design: "auto" }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "setAccountDigits",
+      () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, digits: "4321" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    [
+      "setCardDesign",
+      () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, design: "auto" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     [
       "sendTransfer",
-      () => [{ senderBank: victimBank, sharableId: "x", amount: "1.00", name: "grid test", email: "a@example.com", idempotencyKey: crypto.randomUUID(), ...forged(victimProfile, victimBank) }],
+      () => [
+        {
+          senderBank: victimBank,
+          sharableId: "x",
+          amount: "1.00",
+          name: "grid test",
+          email: "a@example.com",
+          idempotencyKey: crypto.randomUUID(),
+          ...forged(victimProfile, victimBank),
+        },
+      ],
       (v) => expect(v).toMatchObject({ ok: false, field: "senderBank" }),
     ],
     ["completeSetuConsent", () => [{ consentId: "consent-of-b", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ status: "MISSING" })],
-    ["correctTransaction", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any", category: "Rent", everyPayment: true }], (v) => expect(v).toMatchObject({ ok: false })],
-    ["undoCorrection", () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any" }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "correctTransaction",
+      () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any", category: "Rent", everyPayment: true }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    [
+      "undoCorrection",
+      () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    // B's imported account cannot be renamed by A.
+    [
+      "renameAccount",
+      () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank, name: "Grid Renamed" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    // A question key naming B's entries is not one of A's questions: nothing to answer.
+    [
+      "answerCheck",
+      () => [{ ...forged(victimProfile, victimBank), key: `own:${victimBank}:${victimBank}`, answer: "yes" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    // Reminders and language: A's own settings only; a device on a host that is not a push service is refused.
+    ["askAboutGapsAgain", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: true })],
+    [
+      "savePushDevice",
+      () => [{ subscription: { endpoint: "https://evil.example/push", keys: { p256dh: "x", auth: "y" } }, ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
+    [
+      "removePushDevice",
+      () => [{ endpoint: "https://fcm.googleapis.com/fcm/send/none", ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toHaveProperty("ok"),
+    ],
+    ["setEmailReminders", () => [{ on: false, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    ["setReminderLanguage", () => [{ locale: "en", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    // Nothing turned on, so nothing goes out; B is never the recipient.
+    ["sendTestReminder", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: false })],
+    // B's id with a made-up signature unsubscribes nobody.
+    ["unsubscribeEmail", () => [{ u: victimProfile, t: "f".repeat(64), ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    ["saveHomeLanguage", () => [{ locale: "hi", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    // Settings written under A's own profile only, whatever B's ids ride along.
+    ["setIncome", () => [{ kind: "student", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    ["setWeeklyReminder", () => [{ on: true, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    ["setMonthlyReport", () => [{ on: true, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    // A loan plan is stored under A's own settings whatever the key says: it never reaches B.
+    [
+      "saveLoanPlan",
+      () => [{ ...forged(victimProfile, victimBank), key: victimBank, plan: { outstanding: 1, annualRate: 1 } }],
+      (v) => expect(v).toMatchObject({ ok: true }),
+    ],
     // Goals belong to the signed-in user only: an id that is not theirs finds nothing.
-    ["saveGoal", () => [{ ...forged(victimProfile, victimBank), id: "g-victim-goal", name: "Hijack", target: 1 }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "saveGoal",
+      () => [{ ...forged(victimProfile, victimBank), id: "g-victim-goal", name: "Hijack", target: 1 }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     ["deleteGoal", () => [{ ...forged(victimProfile, victimBank), id: "g-victim-goal" }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteBank", () => [{ ...forged(victimProfile, victimBank), appwriteItemId: victimBank }], (v) => expect(v).toMatchObject({ ok: false })],
     ["deleteMyAccount", () => [{ ...forged(victimProfile, victimBank), password: "not-the-password" }], (v) => expect(v).toMatchObject({ ok: false })],
@@ -72,22 +143,46 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ],
     ["createSetuConsent", () => [{ mobile: "9876543210", ...forged(victimProfile, victimBank) }], (v) => expect(JSON.stringify(v)).not.toMatch(/consentId/)],
     ...(hasAction("exchangePublicToken")
-      ? ([["exchangePublicToken", () => [{ publicToken: "public-sandbox-forged", ...forged(victimProfile, victimBank) }], (v: unknown) => expect(v).toBeNull()]] as typeof grid)
+      ? ([
+          ["exchangePublicToken", () => [{ publicToken: "public-sandbox-forged", ...forged(victimProfile, victimBank) }], (v: unknown) => expect(v).toBeNull()],
+        ] as typeof grid)
       : []),
     ...(hasAction("createLinkToken") ? ([["createLinkToken", () => [forged(victimProfile, victimBank)], () => {}]] as typeof grid) : []),
-    ["signIn", () => [{ email: accounts.b.email, password: "not-bs-password", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "signIn",
+      () => [{ email: accounts.b.email, password: "not-bs-password", ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     ["signUp", () => [{ email: accounts.b.email, password: "x", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // A already has a profile: finishing one again creates nothing, whatever ids it names.
     [
       "completeProfile",
-      () => [{ country: "IN", firstName: "Grid", lastName: "Test", address1: "1 Grid Road", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "", terms: true, ...forged(victimProfile, victimBank) }],
+      () => [
+        {
+          country: "IN",
+          firstName: "Grid",
+          lastName: "Test",
+          address1: "1 Grid Road",
+          city: "Pune",
+          state: "MH",
+          postalCode: "411001",
+          dateOfBirth: "",
+          ssn: "",
+          terms: true,
+          ...forged(victimProfile, victimBank),
+        },
+      ],
       (v) => expect(v).toEqual({ ok: true }),
     ],
     // A weak password, so A's real one never changes: the rules apply before anything else.
     ["setNewPassword", () => [{ password: "password123", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // A made-up code gives nothing, whoever A names.
     ["applyCode", () => [{ code: "NOTACODE1", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
-    ["confirmSubscriptionPayment", () => [{ paymentId: "pay_FORGED000001", signature: "f".repeat(64), ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "confirmSubscriptionPayment",
+      () => [{ paymentId: "pay_FORGED000001", signature: "f".repeat(64), ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     // A's plan only: A has free test access, so there is nothing to start or cancel, and B's is never touched.
     ["startSubscription", () => [{ period: "monthly", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     ["checkSubscription", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: false })],
@@ -95,7 +190,11 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     // Too short to be kept, so the security run leaves no feedback behind; the sender is never B.
     ["sendFeedback", () => [{ kind: "idea", message: "short", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
     // A made-up link: never opens anything, whoever is signed in.
-    ["openEmailLink", () => [{ tokenHash: "f".repeat(40), type: "recovery", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: false })],
+    [
+      "openEmailLink",
+      () => [{ tokenHash: "f".repeat(40), type: "recovery", ...forged(victimProfile, victimBank) }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     // The same answer for any address; a made-up one, so no email is sent.
     ["requestPasswordReset", () => [{ email: "grid-nobody@example.invalid", ...forged(victimProfile, victimBank) }], (v) => expect(v).toEqual({ ok: true })],
     [

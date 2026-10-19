@@ -19,7 +19,6 @@ import { logError } from "./log";
 import { readPrefs, updatePrefs } from "./prefs";
 import { reportForOwner } from "./report";
 import { LOCALE_TAGS } from "../i18n/config";
-import { formatAmount } from "../utils";
 import { claim } from "./shared";
 
 // Sends reminders: web push to the person's devices and email through Brevo.
@@ -191,7 +190,7 @@ export async function runMonthlyReports(today = new Date()): Promise<number> {
       .filter((p): p is { id: string; email: string; settings: NotifySettings } => p !== null && p.settings.email && p.settings.monthly);
     await mapWithLimit(people, 4, async (person) => {
       try {
-        const { report, currency } = await reportForOwner(person.id);
+        const { report } = await reportForOwner(person.id);
         if (!report) return;
         const key = `report:${report.month}`;
         if (person.settings.sent.includes(key)) return;
@@ -199,10 +198,10 @@ export async function runMonthlyReports(today = new Date()): Promise<number> {
         const month = new Intl.DateTimeFormat(LOCALE_TAGS[person.settings.locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
           new Date(`${report.month}-01T00:00:00Z`),
         );
-        const money = (n: number) => formatAmount(Math.round(n), currency);
         const message: Message = {
           title: t("report.emailTitle", { month }),
-          body: t("report.emailBody", { month, in: money(report.moneyIn), out: money(report.spent), kept: money(report.kept) }),
+          // No amounts: an inbox is not a private place (the rule every reminder follows).
+          body: t("report.emailBody", { month }),
           url: `/report?month=${report.month}`,
         };
         const result = await deliver(person.id, person.email, { ...person.settings, push: [] }, message, [key]);

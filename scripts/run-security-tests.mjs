@@ -8,7 +8,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync } from "node:fs";
 
-const MIN_TESTS = 125; // 95 attack tests + 29 in the authorization grid + 1 account deletion (4 Plaid tests run only while Plaid is switched on)
+const MIN_TESTS = 140; // 95 attack tests + 46 in the authorization grid + 1 account deletion (4 Plaid tests run only while Plaid is switched on)
 const OUTPUT = "reports/security-results.json";
 const allowSkip = process.env.HORIZON_SECURITY_ALLOW_SKIP === "1";
 

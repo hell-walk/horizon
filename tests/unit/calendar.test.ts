@@ -4,12 +4,7 @@ import { buildCalendar } from "@/lib/calendar";
 import type { Forecast, ForecastEvent } from "@/lib/forecast";
 
 const account = (id: string, currency = "INR") => ({ id, name: `Bank ${id}`, mask: "1234", currency });
-const ok = (
-  start: number,
-  points: { date: string; balance: number }[],
-  events: ForecastEvent[],
-  belowZero?: string,
-): Forecast => ({
+const ok = (start: number, points: { date: string; balance: number }[], events: ForecastEvent[], belowZero?: string): Forecast => ({
   ok: true,
   start: { date: "2026-10-01", balance: start },
   end: points.at(-1)!,
@@ -29,7 +24,7 @@ const a = ok(
     { date: "2026-10-03", balance: 800 },
     { date: "2026-10-04", balance: 700 },
   ],
-  [{ date: "2026-10-03", name: "Home loan EMI", amount: -9000, kind: "emi" }],
+  [{ date: "2026-10-03", name: "Home loan EMI", amount: -9000, kind: "emi", confidence: "high" }],
 );
 const b = ok(
   5000,
@@ -38,7 +33,7 @@ const b = ok(
     { date: "2026-10-03", balance: 4800 },
     { date: "2026-10-04", balance: 44700 },
   ],
-  [{ date: "2026-10-04", name: "Salary", amount: 40000, kind: "income" }],
+  [{ date: "2026-10-04", name: "Salary", amount: 40000, kind: "income", confidence: "high" }],
 );
 
 describe("buildCalendar: every account's forecast, day by day", () => {
@@ -57,7 +52,12 @@ describe("buildCalendar: every account's forecast, day by day", () => {
   });
 
   it("names the first account expected to go below zero, and keeps unprojectable accounts aside", () => {
-    const short = ok(100, [{ date: "2026-10-02", balance: -50 }], [{ date: "2026-10-02", name: "Rent", amount: -150, kind: "rent" }], "2026-10-02");
+    const short = ok(
+      100,
+      [{ date: "2026-10-02", balance: -50 }],
+      [{ date: "2026-10-02", name: "Rent", amount: -150, kind: "rent", confidence: "low" }],
+      "2026-10-02",
+    );
     const cal = buildCalendar([
       { account: account("a"), forecast: short },
       { account: account("c"), forecast: { ok: false, reason: "noBalance" } },

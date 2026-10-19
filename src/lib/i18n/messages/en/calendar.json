@@ -18,5 +18,7 @@
   "lockedText": "Subscribers see the next {days} days, the lowest point, and each account's expected balance after every day.",
   "without": "Not laid out (no known balance or too little history): {names}.",
   "howTitle": "How this is worked out",
-  "how": "Each account starts from its balance where the statements end. Every day takes off everyday spending at its recent average, and adds regular payments and income on their expected dates. Irregular income is not counted, so the estimate errs on the careful side."
+  "how": "Each account starts from its balance where the statements end. Every day takes off everyday spending at its recent average, and adds regular payments and income on their expected dates. Irregular income is not counted, so the estimate errs on the careful side.",
+  "evidenceNote": "Balances start from the statements as they stood on {date}; every later day is a projection. Amounts come from payments seen before; a rhythm seen only twice is marked estimated.",
+  "estimated": "estimated, seen twice so far"
 }

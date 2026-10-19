@@ -89,6 +89,8 @@ async function CalendarContent({ ownerId }: { ownerId: string }) {
         )}
       </div>
 
+      <p className="text-12 text-ink-muted">{t("calendar.evidenceNote", { date: day(calendar.from) })}</p>
+
       {subscribed && calendar.belowZero && (
         <p className="flex items-start gap-2 rounded-md border border-danger/30 bg-danger-soft p-3 text-13 text-danger">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -179,7 +181,7 @@ const DayCard = ({
               {e.name}
             </span>
             <span className="text-12 text-ink-muted">
-              {t(`bills.kind_${e.kind}`)} ·{" "}
+              {t(`bills.kind_${e.kind}`)} · {e.confidence === "low" && <>{t("calendar.estimated")} · </>}
               <span translate="no">
                 {e.account.name} {maskLabel(e.account.mask)}
               </span>

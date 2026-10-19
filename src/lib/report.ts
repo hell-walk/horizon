@@ -11,7 +11,7 @@ import type { Regular } from "./recurring";
 import { groupBySpendType, spendType, type SpendBucket } from "./spending";
 
 export type ReportPayment = { name: string; amount: number; date: string; type: string };
-export type ReportDue = { name: string; amount: number; date: string; kind: Regular["kind"] };
+export type ReportDue = { name: string; amount: number; date: string; kind: Regular["kind"]; confidence: Regular["confidence"] };
 export type Report = {
   /** YYYY-MM */
   month: string;
@@ -101,7 +101,7 @@ export function monthlyReport(transactions: Transaction[], regular: Regular[], m
   const next = nextOf(month);
   const nextMonth = regular
     .filter((r) => r.status !== "stopped" && r.next.startsWith(next))
-    .map((r) => ({ name: r.name, amount: r.direction === "out" ? -r.amount : r.amount, date: r.next, kind: r.kind }))
+    .map((r) => ({ name: r.name, amount: r.direction === "out" ? -r.amount : r.amount, date: r.next, kind: r.kind, confidence: r.confidence }))
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, DUE);
   const changes = regular.filter((r) => r.changed || r.status === "missed" || r.status === "stopped").slice(0, CHANGES);

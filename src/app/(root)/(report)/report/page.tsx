@@ -210,6 +210,7 @@ const Details = ({
                   </span>
                   <span className="text-12 text-ink-muted">
                     {day(d.date)} · {t(`bills.kind_${d.kind}`)}
+                    {d.confidence === "low" && <> · {t("calendar.estimated")}</>}
                   </span>
                 </span>
                 <span translate="no" className={cn("amount shrink-0 text-14 font-semibold", d.amount < 0 ? "text-ink" : "text-success")}>
