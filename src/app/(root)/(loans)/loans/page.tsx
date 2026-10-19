@@ -9,7 +9,7 @@ import HeaderBox from "@/components/ui/headerBox";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { lenderDays, loadBand, type Loan, type LoanReport } from "@/lib/loans";
+import { lenderDays, loadBand, nextDueAfter, type Loan, type LoanReport } from "@/lib/loans";
 import { dateFormat } from "@/lib/regularText";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { loadLoanPlans, type LoanPlan } from "@/lib/server/loanPlans";
@@ -231,7 +231,12 @@ const LoanCard = ({ l, t, day, savedPlan }: { l: Loan; t: Translate; day: (d: st
       </div>
       <p className={cn("text-13", l.status === "missed" ? "text-warn-ink" : "text-ink-muted")}>
         {t(`loans.status_${l.status}`)}
-        {l.next && l.status === "active" ? ` · ${t(l.nextLikely ? "loans.nextLikely" : "loans.nextDue", { date: day(l.next) })}` : ""}
+        {l.status === "active" &&
+          (savedPlan?.dueDay && (!l.next || l.nextLikely)
+            ? ` · ${t("loans.nextDue", { date: day(nextDueAfter(l.last, savedPlan.dueDay)) })}`
+            : l.next
+              ? ` · ${t(l.nextLikely ? "loans.nextLikely" : "loans.nextDue", { date: day(l.next) })}`
+              : "")}
       </p>
       <p className="text-13 text-ink">{t("loans.paidSince", { count: l.count, amount: amount(l.paid), date: day(l.first) })}</p>
       {l.borrowed > 0 && <p className="text-13 text-ink-muted">{t("loans.borrowed", { amount: amount(l.borrowed) })}</p>}

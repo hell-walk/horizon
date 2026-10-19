@@ -81,5 +81,6 @@
   "planTenure": "ఎన్ని నెలలకు?",
   "planSchedule": "{tenure}లో {paid} EMIలు చెల్లించారు, {remaining} మిగిలాయి, సుమారు {date}కి ముగుస్తుంది.",
   "planRemainingTotal": "ఈ EMIతో ఇంకా సుమారు {amount} చెల్లించాలి.",
-  "planOutstandingEstimated": "EMI, రేటు, మిగిలిన నెలల నుండి బకాయి సుమారు {amount}గా అంచనా; రుణదాత అంకె వేరైతే అది రాయండి."
+  "planOutstandingEstimated": "EMI, రేటు, మిగిలిన నెలల నుండి బకాయి సుమారు {amount}గా అంచనా; రుణదాత అంకె వేరైతే అది రాయండి.",
+  "planDueDay": "నెలలో ఏ తేదీన చెల్లించాలి?"
 }

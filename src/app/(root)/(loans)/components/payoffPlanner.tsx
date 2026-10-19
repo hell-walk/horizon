@@ -37,6 +37,8 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
   const [emi, setEmi] = useState(saved?.emi ? String(saved.emi) : String(Math.round(shownEmi)));
   const [borrowed, setBorrowed] = useState(saved?.borrowed ?? "");
   const [tenure, setTenure] = useState(saved?.tenure ? String(saved.tenure) : "");
+  // The due day: the person's own answer first, then the lender's known day.
+  const [dueDayText, setDueDayText] = useState(saved?.dueDay ? String(saved.dueDay) : dueDay ? String(dueDay) : "");
   const [outstanding, setOutstanding] = useState(saved?.outstanding ? String(saved.outstanding) : "");
   const [rate, setRate] = useState(saved?.annualRate !== undefined ? String(saved.annualRate) : "");
   const [extra, setExtra] = useState(saved?.extraMonthly ? String(saved.extraMonthly) : "");
@@ -54,8 +56,9 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
   const schedule = useMemo(() => {
     const months = toNumber(tenure);
     if (!borrowed || months === undefined || !Number.isInteger(months) || months < 1) return null;
-    return scheduleFrom({ borrowed, tenure: months, dueDay, cutoffDay });
-  }, [borrowed, tenure, dueDay, cutoffDay]);
+    const day = toNumber(dueDayText);
+    return scheduleFrom({ borrowed, tenure: months, dueDay: day && day >= 1 && day <= 31 ? day : undefined, cutoffDay });
+  }, [borrowed, tenure, dueDayText, cutoffDay]);
   const rateNumber = toNumber(rate);
   // The outstanding amount: typed, else worked out from the EMI, the rate and the months left.
   const estimatedOutstanding = useMemo(() => {
@@ -69,7 +72,9 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
   }, [outstanding, estimatedOutstanding, rateNumber, emiNumber, extra, lump]);
   const plan = useMemo(() => (input ? comparePayoff(input) : null), [input]);
   const withExtra = Boolean(input && (input.extraMonthly || input.lumpSum));
-  const canSave = Boolean(input || schedule);
+  const ownDueDay = toNumber(dueDayText);
+  const dueDayOk = ownDueDay !== undefined && Number.isInteger(ownDueDay) && ownDueDay >= 1 && ownDueDay <= 31;
+  const canSave = Boolean(input || schedule || dueDayOk);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -88,6 +93,7 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
           emi: emiNumber && Math.round(emiNumber) !== Math.round(shownEmi) ? emiNumber : undefined,
           borrowed: borrowed || undefined,
           tenure: toNumber(tenure),
+          dueDay: dueDayOk ? ownDueDay : undefined,
         },
       });
       if (result.ok) {
@@ -115,7 +121,7 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
       </p>
       <p className="text-13 text-ink-muted">{t("loans.planIntro")}</p>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field id={`plan-emi-${loanKey}`} label={t("loans.planEmi")} value={emi} onChange={setEmi} />
         <div className="field">
           <label htmlFor={`plan-from-${loanKey}`} className="field-label">
@@ -131,6 +137,7 @@ const PayoffPlanner = ({ loanKey, emi: shownEmi, currency, saved, dueDay, cutoff
           />
         </div>
         <Field id={`plan-months-${loanKey}`} label={t("loans.planTenure")} value={tenure} onChange={setTenure} />
+        <Field id={`plan-day-${loanKey}`} label={t("loans.planDueDay")} value={dueDayText} onChange={(v) => setDueDayText(v.slice(0, 2))} />
       </div>
       {schedule && (
         <p className="text-13 text-ink">

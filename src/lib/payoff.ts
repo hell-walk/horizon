@@ -35,6 +35,8 @@ export type LoanPlan = {
   borrowed?: string;
   /** Months, in all. */
   tenure?: number;
+  /** The day of the month the EMI is due, as the person knows it (1 to 31). */
+  dueDay?: number;
 };
 
 export type Schedule = { firstDue: string; paid: number; remaining: number; endDate: string };

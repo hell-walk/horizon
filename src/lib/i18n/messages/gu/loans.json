@@ -81,5 +81,6 @@
   "planTenure": "કેટલા મહિના માટે?",
   "planSchedule": "{tenure}માંથી {paid} EMI ચૂકવાઈ, {remaining} બાકી, આશરે {date} સુધીમાં પૂરી.",
   "planRemainingTotal": "આ EMI પર આશરે {amount} હજુ ચૂકવવાના.",
-  "planOutstandingEstimated": "EMI, દર અને બાકી મહિનાઓ પરથી બાકી રકમ આશરે {amount} અંદાજી; ધિરાણકર્તાનો આંકડો જુદો હોય તો તે લખો."
+  "planOutstandingEstimated": "EMI, દર અને બાકી મહિનાઓ પરથી બાકી રકમ આશરે {amount} અંદાજી; ધિરાણકર્તાનો આંકડો જુદો હોય તો તે લખો.",
+  "planDueDay": "મહિનાની કઈ તારીખે બાકી હોય છે?"
 }

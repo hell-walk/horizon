@@ -81,5 +81,6 @@
   "planTenure": "কত মাসের জন্য?",
   "planSchedule": "{tenure}টির মধ্যে {paid}টি EMI দেওয়া হয়েছে, {remaining}টি বাকি, প্রায় {date}-এ শেষ।",
   "planRemainingTotal": "এই EMI-তে আরও প্রায় {amount} দিতে হবে।",
-  "planOutstandingEstimated": "EMI, হার ও বাকি মাস থেকে বকেয়া প্রায় {amount} ধরা হয়েছে; ঋণদাতার অঙ্ক আলাদা হলে সেটি লিখুন।"
+  "planOutstandingEstimated": "EMI, হার ও বাকি মাস থেকে বকেয়া প্রায় {amount} ধরা হয়েছে; ঋণদাতার অঙ্ক আলাদা হলে সেটি লিখুন।",
+  "planDueDay": "মাসের কোন তারিখে দেয়?"
 }

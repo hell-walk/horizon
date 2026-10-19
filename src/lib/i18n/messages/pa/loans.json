@@ -81,5 +81,6 @@
   "planTenure": "ਕਿੰਨੇ ਮਹੀਨਿਆਂ ਲਈ?",
   "planSchedule": "{tenure} ਵਿੱਚੋਂ {paid} EMI ਭਰੀਆਂ, {remaining} ਬਾਕੀ, ਲਗਭਗ {date} ਤੱਕ ਮੁੱਕੇਗਾ।",
   "planRemainingTotal": "ਇਸ EMI 'ਤੇ ਲਗਭਗ {amount} ਹੋਰ ਭਰਨਾ ਬਾਕੀ।",
-  "planOutstandingEstimated": "EMI, ਦਰ ਅਤੇ ਬਾਕੀ ਮਹੀਨਿਆਂ ਤੋਂ ਬਕਾਇਆ ਲਗਭਗ {amount} ਅੰਦਾਜ਼ਾ ਲਾਇਆ; ਕਰਜ਼ਦਾਤਾ ਦਾ ਅੰਕੜਾ ਵੱਖ ਹੋਵੇ ਤਾਂ ਉਹ ਲਿਖੋ।"
+  "planOutstandingEstimated": "EMI, ਦਰ ਅਤੇ ਬਾਕੀ ਮਹੀਨਿਆਂ ਤੋਂ ਬਕਾਇਆ ਲਗਭਗ {amount} ਅੰਦਾਜ਼ਾ ਲਾਇਆ; ਕਰਜ਼ਦਾਤਾ ਦਾ ਅੰਕੜਾ ਵੱਖ ਹੋਵੇ ਤਾਂ ਉਹ ਲਿਖੋ।",
+  "planDueDay": "ਮਹੀਨੇ ਦੀ ਕਿਹੜੀ ਤਾਰੀਖ਼ ਨੂੰ ਬਕਾਇਆ ਹੈ?"
 }

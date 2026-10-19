@@ -14,27 +14,29 @@ import { spendType } from "./spending";
 export type LenderKind = "bank" | "nbfc" | "app" | "payLater" | "unknown";
 export type LoanType = "home" | "car" | "twoWheeler" | "personal" | "education" | "gold" | "consumer" | "business" | "creditCard" | "payLater";
 
-// `dueDay`: the day of the month the lender usually takes the EMI or bill, where it
-// is the same for everyone (pay-later apps; banks let the borrower choose). `cutoffDay`:
-// borrowing after this day puts the first EMI a month later (Snapmint, after the 26th).
+// `dueDay`: the day of the month the lender takes the bill, only where that is the same
+// for every customer and there is something to back it (slice's help page: statement on
+// the 27th, due by the 5th; Snapmint: the 3rd, reported by a user). Banks and most apps
+// set the day per loan, so they have none: the statements or the person say when.
+// `cutoffDay`: borrowing after this day puts the first EMI a month later (Snapmint, after the 26th).
 type Lender = { name: string; kind: Exclude<LenderKind, "unknown">; pattern: RegExp; type?: LoanType; dueDay?: number; cutoffDay?: number };
 
 // Most specific first: "ICICI PayLater" before "ICICI Bank", "Kotak Mahindra
 // Prime" before "Kotak", "Muthoot Capital" before "Muthoot Finance".
 const LENDERS: Lender[] = [
   // Pay later
-  { name: "Amazon Pay Later", kind: "payLater", pattern: /amazon\s*pay\s*later/i, dueDay: 5 },
-  { name: "Flipkart Pay Later", kind: "payLater", pattern: /flipkart\s*pay\s*later/i, dueDay: 5 },
+  { name: "Amazon Pay Later", kind: "payLater", pattern: /amazon\s*pay\s*later/i },
+  { name: "Flipkart Pay Later", kind: "payLater", pattern: /flipkart\s*pay\s*later/i },
   { name: "ICICI PayLater", kind: "payLater", pattern: /icici\s*pay\s*later/i },
   { name: "HDFC PayLater", kind: "payLater", pattern: /hdfc\s*pay\s*later/i },
   { name: "Kotak PayLater", kind: "payLater", pattern: /kotak\s*pay\s*later/i },
   { name: "Axis PayLater", kind: "payLater", pattern: /axis\s*pay\s*later/i },
   { name: "SBI PayLater", kind: "payLater", pattern: /sbi\s*pay\s*later/i },
-  { name: "Paytm Postpaid", kind: "payLater", pattern: /paytm\s*post\s*paid/i, dueDay: 7 },
+  { name: "Paytm Postpaid", kind: "payLater", pattern: /paytm\s*post\s*paid/i },
   { name: "Ola Money Postpaid", kind: "payLater", pattern: /ola\s*(money|post\s*paid)/i },
-  { name: "MobiKwik ZIP", kind: "payLater", pattern: /mobikwik\s*(zip|pay\s*later)/i, dueDay: 5 },
+  { name: "MobiKwik ZIP", kind: "payLater", pattern: /mobikwik\s*(zip|pay\s*later)/i },
   { name: "Simpl", kind: "payLater", pattern: /\bsimpl\b/i },
-  { name: "LazyPay", kind: "payLater", pattern: /lazy\s*pay/i, dueDay: 3 },
+  { name: "LazyPay", kind: "payLater", pattern: /lazy\s*pay/i },
   { name: "Snapmint", kind: "payLater", pattern: /snapmint/i, dueDay: 3, cutoffDay: 26 },
   { name: "slice", kind: "payLater", pattern: /(?<!pizza\s)\bslice\b|sliceit|slicepay|quadrillion/i, dueDay: 5 },
   { name: "Uni", kind: "payLater", pattern: /\buni\s*(pay|card)/i },

@@ -81,5 +81,6 @@
   "planTenure": "कितने महीनों के लिए?",
   "planSchedule": "{tenure} में से {paid} EMI चुकीं, {remaining} बाक़ी, लगभग {date} तक खत्म।",
   "planRemainingTotal": "इस EMI पर लगभग {amount} और देना बाक़ी।",
-  "planOutstandingEstimated": "EMI, दर और बचे महीनों से बकाया लगभग {amount} आँका गया; लेंडर का आँकड़ा अलग हो तो वह लिखें।"
+  "planOutstandingEstimated": "EMI, दर और बचे महीनों से बकाया लगभग {amount} आँका गया; लेंडर का आँकड़ा अलग हो तो वह लिखें।",
+  "planDueDay": "महीने की किस तारीख़ को देय है?"
 }

@@ -81,5 +81,6 @@
   "planTenure": "किती महिन्यांसाठी?",
   "planSchedule": "{tenure} पैकी {paid} EMI भरले, {remaining} बाकी, सुमारे {date} पर्यंत संपेल.",
   "planRemainingTotal": "या EMI वर सुमारे {amount} अजून भरायचे.",
-  "planOutstandingEstimated": "EMI, दर आणि उरलेल्या महिन्यांवरून थकबाकी सुमारे {amount} अंदाजली; कर्जदात्याचा आकडा वेगळा असल्यास तो लिहा."
+  "planOutstandingEstimated": "EMI, दर आणि उरलेल्या महिन्यांवरून थकबाकी सुमारे {amount} अंदाजली; कर्जदात्याचा आकडा वेगळा असल्यास तो लिहा.",
+  "planDueDay": "महिन्याच्या कोणत्या तारखेला देय आहे?"
 }

@@ -81,5 +81,6 @@
   "planTenure": "For how many months?",
   "planSchedule": "{paid} of {tenure} EMIs paid, {remaining} to go, ends around {date}.",
   "planRemainingTotal": "About {amount} still to pay at this EMI.",
-  "planOutstandingEstimated": "Outstanding estimated at {amount} from the EMI, the rate and the months left; type the lender's figure if it differs."
+  "planOutstandingEstimated": "Outstanding estimated at {amount} from the EMI, the rate and the months left; type the lender's figure if it differs.",
+  "planDueDay": "Which day of the month is it due?"
 }

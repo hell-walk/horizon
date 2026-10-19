@@ -81,5 +81,6 @@
   "planTenure": "ಎಷ್ಟು ತಿಂಗಳಿಗೆ?",
   "planSchedule": "{tenure} ರಲ್ಲಿ {paid} EMI ಕಟ್ಟಿದೆ, {remaining} ಬಾಕಿ, ಸುಮಾರು {date} ಕ್ಕೆ ಮುಗಿಯುತ್ತದೆ.",
   "planRemainingTotal": "ಈ EMI ಯಲ್ಲಿ ಇನ್ನೂ ಸುಮಾರು {amount} ಕಟ್ಟಬೇಕು.",
-  "planOutstandingEstimated": "EMI, ದರ ಮತ್ತು ಉಳಿದ ತಿಂಗಳುಗಳಿಂದ ಬಾಕಿ ಸುಮಾರು {amount} ಎಂದು ಅಂದಾಜು; ಸಾಲದಾತರ ಅಂಕಿ ಬೇರೆ ಇದ್ದರೆ ಅದನ್ನು ಬರೆಯಿರಿ."
+  "planOutstandingEstimated": "EMI, ದರ ಮತ್ತು ಉಳಿದ ತಿಂಗಳುಗಳಿಂದ ಬಾಕಿ ಸುಮಾರು {amount} ಎಂದು ಅಂದಾಜು; ಸಾಲದಾತರ ಅಂಕಿ ಬೇರೆ ಇದ್ದರೆ ಅದನ್ನು ಬರೆಯಿರಿ.",
+  "planDueDay": "ತಿಂಗಳ ಯಾವ ದಿನ ಬಾಕಿ?"
 }

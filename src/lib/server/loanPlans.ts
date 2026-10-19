@@ -26,8 +26,9 @@ export function readLoanPlan(value: unknown): LoanPlan | null {
   if (emi) plan.emi = emi;
   if (typeof v.borrowed === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.borrowed) && !Number.isNaN(Date.parse(v.borrowed))) plan.borrowed = v.borrowed;
   if (typeof v.tenure === "number" && Number.isInteger(v.tenure) && v.tenure >= 1 && v.tenure <= 360) plan.tenure = v.tenure;
+  if (typeof v.dueDay === "number" && Number.isInteger(v.dueDay) && v.dueDay >= 1 && v.dueDay <= 31) plan.dueDay = v.dueDay;
   // Worth keeping when it says what the loan costs, or when it ends.
-  const usable = plan.outstanding !== undefined || (plan.borrowed !== undefined && plan.tenure !== undefined);
+  const usable = plan.outstanding !== undefined || (plan.borrowed !== undefined && plan.tenure !== undefined) || plan.dueDay !== undefined;
   return usable ? plan : null;
 }
 
