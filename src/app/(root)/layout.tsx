@@ -55,7 +55,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const switchAccounts = accounts.map(({ appwriteItemId, name, mask, currentBalance, currency }) => ({ appwriteItemId, name, mask, currentBalance, currency }));
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden overscroll-none">
+    // Phones scroll the page itself (native, the browser bar hides); tablets and up scroll inside the shell.
+    <div className="flex min-h-dvh w-full flex-col md:h-dvh md:overflow-hidden md:overscroll-none">
       <Topbar user={loggedIn} accounts={switchAccounts} activeId={await activeAccountId(accounts)} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
       {/* The page itself is the main landmark; the skip link lands here. */}

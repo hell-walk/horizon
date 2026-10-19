@@ -1,21 +1,12 @@
-"use client";
-
-import CountUp from "react-countup";
-
-import { prefersReducedMotion } from "@/lib/chartColors";
 import { formatAmount } from "@/lib/utils";
 
-const AnimatedCounter = ({ amount, currency = "USD" }: { amount: number; currency?: string }) => {
-  return (
-    <span translate="no" className="inline-block w-full">
-      <CountUp
-        duration={prefersReducedMotion() ? 0 : 2.75}
-        decimals={2}
-        end={amount}
-        formattingFn={(value) => formatAmount(value, currency)}
-      />
-    </span>
-  );
-};
+// The balance, rendered on the server so it is there with the page. It used to
+// count up from zero in the browser, which left the box empty until the page's
+// script had run: on a slow phone, seconds of a blank panel.
+const AnimatedCounter = ({ amount, currency = "USD" }: { amount: number; currency?: string }) => (
+  <span translate="no" className="amount-arrive inline-block w-full">
+    {formatAmount(amount, currency)}
+  </span>
+);
 
 export default AnimatedCounter;

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 
+import ChartCentre from "@/components/chartCentre";
 import { useT } from "@/components/i18nProvider";
 import { chartColorClass } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
@@ -126,7 +127,7 @@ const PayeePanel = ({ groups, currency, arrive = false, accountId }: { groups: P
           ) : (
             <div className="size-full rounded-full border-14 border-surface-container" />
           )}
-          <div className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
+          <ChartCentre className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
             <span translate={active ? "no" : undefined} className="eyebrow">
               {active ? bucketLabel(t, active.name) : showAll ? t("history.allPayments") : t("history.spent")}
             </span>
@@ -137,7 +138,7 @@ const PayeePanel = ({ groups, currency, arrive = false, accountId }: { groups: P
             {!active && groups.length > 0 && (
               <span className="eyebrow">{showAll ? t("history.payments", { count }) : t(accountId ? "history.tapForAnalysis" : "history.tapSlice")}</span>
             )}
-          </div>
+          </ChartCentre>
         </div>
 
         <ul className="flex flex-col divide-y divide-line">

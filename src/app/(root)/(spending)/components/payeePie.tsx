@@ -3,6 +3,7 @@
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
+import ChartCentre from "@/components/chartCentre";
 import { useT } from "@/components/i18nProvider";
 import { spendTypeLabel } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
@@ -57,12 +58,12 @@ const PayeePie = ({ payees, currency, total }: { payees: DetailSlice[]; currency
           },
         }}
       />
-      <div className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
+      <ChartCentre className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
         <span className="eyebrow">{t("spending.tileTotal")}</span>
         <span translate="no" className="amount text-16 font-semibold text-ink">
           {formatAmount(total, currency)}
         </span>
-      </div>
+      </ChartCentre>
     </div>
   );
 };

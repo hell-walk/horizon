@@ -292,7 +292,7 @@
 
 @utility page {
   /* App shell */
-  @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto px-4 pb-28 pt-5 sm:px-6 md:pb-7 lg:px-8 lg:py-7;
+  @apply no-scrollbar flex min-h-0 w-full flex-1 flex-col gap-6 px-4 pb-28 pt-5 sm:px-6 md:overflow-y-auto md:pb-7 lg:px-8 lg:py-7;
 }
 
 @utility page-header {
@@ -859,8 +859,30 @@
 
 /* While scrolling, content passing under a still pointer must not react as
    if hovered (see app/(root)/components/scrollCalm.tsx). */
-html[data-scrolling] .page * {
-  pointer-events: none !important;
+@media (hover: hover) {
+  html[data-scrolling] .page * {
+    pointer-events: none !important;
+  }
+}
+
+/* The balance arriving with the page: a short rise, no counting. */
+.amount-arrive {
+  animation: amount-arrive 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes amount-arrive {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amount-arrive {
+    animation: none;
+  }
 }
 
 .chart-arrive {

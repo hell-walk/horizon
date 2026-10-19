@@ -69,16 +69,23 @@ const CategoryChartLink = ({
       className="group relative mx-auto block size-[180px] cursor-pointer rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-4 focus-visible:ring-offset-card md:size-[200px]"
     >
       <span className={`absolute inset-0 block ${unfolding ? "chart-unfold" : "transition-transform duration-300 group-hover:scale-[1.04]"}`}>
-        <RadialBarChart items={items} currency={currency} unfold={unfolding} chartRef={chart} />
-      </span>
-      <span
-        className={`pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center transition-opacity duration-200 ${unfolding ? "opacity-0" : ""}`}
-      >
-        <span className="eyebrow">{t("home.spent")}</span>
-        <span translate="no" className="amount text-16 font-semibold text-ink">
-          {formatAmount(total, currency)}
-        </span>
-        <span className="eyebrow mt-1 text-ink-faint transition-colors group-hover:text-ink">{t("home.tapToOpen")}</span>
+        <RadialBarChart
+          items={items}
+          currency={currency}
+          unfold={unfolding}
+          chartRef={chart}
+          centre={
+            <span
+              className={`pointer-events-none absolute inset-0 flex-center flex-col px-8 text-center transition-opacity duration-200 ${unfolding ? "opacity-0" : ""}`}
+            >
+              <span className="eyebrow">{t("home.spent")}</span>
+              <span translate="no" className="amount text-16 font-semibold text-ink">
+                {formatAmount(total, currency)}
+              </span>
+              <span className="eyebrow mt-1 text-ink-faint transition-colors group-hover:text-ink">{t("home.tapToOpen")}</span>
+            </span>
+          }
+        />
       </span>
     </button>
   );

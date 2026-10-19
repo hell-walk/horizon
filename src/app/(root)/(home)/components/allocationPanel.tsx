@@ -13,6 +13,13 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
   const charted = accounts.filter((a) => (a.currency || "USD") === primaryCurrency && a.currentBalance > 0);
   const chartTotal = charted.reduce((sum, a) => sum + a.currentBalance, 0);
   const others = accounts.filter((a) => (a.currency || "USD") !== primaryCurrency);
+  const centre = (
+    <div className="pointer-events-none absolute inset-0 flex-center flex-col">
+      <span className="eyebrow">{t("home.total")}</span>
+      <span className="font-display text-24 font-semibold text-ink">{accounts.length}</span>
+      <span className="eyebrow">{t("home.accountWord", { count: accounts.length })}</span>
+    </div>
+  );
 
   return (
     <section className="panel">
@@ -27,15 +34,13 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
       <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center">
         <div className="relative mx-auto size-[180px] md:size-[200px]">
           {charted.length > 0 ? (
-            <DoughnutChart accounts={charted} />
+            <DoughnutChart accounts={charted} centre={centre} />
           ) : (
-            <div className="size-full rounded-full border-14 border-surface-container" />
+            <>
+              <div className="size-full rounded-full border-14 border-surface-container" />
+              {centre}
+            </>
           )}
-          <div className="pointer-events-none absolute inset-0 flex-center flex-col">
-            <span className="eyebrow">{t("home.total")}</span>
-            <span className="font-display text-24 font-semibold text-ink">{accounts.length}</span>
-            <span className="eyebrow">{t("home.accountWord", { count: accounts.length })}</span>
-          </div>
         </div>
 
         <ul className="flex flex-col divide-y divide-line">

@@ -14,7 +14,7 @@ const Topbar = async ({ user, accounts, activeId, planLine }: { user: User; acco
   const bankCount = accounts.length;
 
   return (
-    <header className="relative z-50 grid h-16 shrink-0 grid-cols-[1fr_auto] items-center gap-3 border-b border-line bg-surface-low px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
+    <header className="relative z-50 grid h-16 max-md:sticky max-md:top-0 shrink-0 grid-cols-[1fr_auto] items-center gap-3 border-b border-line bg-surface-low px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         {/* The middle column holds the whole menu, so beside it there is only
             room for the full logo and the account count from 2xl up. */}

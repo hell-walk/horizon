@@ -61,7 +61,13 @@ export const segmentColor = (colors: ChartColors, name: string, index: number) =
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
-// Entrance animation for charts; none at all for people who asked for less motion.
+/** True on a touch screen (a phone, a tablet): no pointer to hover with. */
+export const isTouchScreen = () => typeof window !== "undefined" && window.matchMedia?.("(hover: none)").matches === true;
+
+// Entrance animation for charts; none at all for people who asked for less
+// motion, and a short grow (no spin) on phones, where a long one feels slow.
 export const ENTRANCE = prefersReducedMotion()
   ? (false as const)
-  : { animateRotate: true, animateScale: true, duration: 900, easing: "easeOutQuart" as const };
+  : isTouchScreen()
+    ? { animateRotate: false, animateScale: true, duration: 450, easing: "easeOutQuart" as const }
+    : { animateRotate: true, animateScale: true, duration: 900, easing: "easeOutQuart" as const };

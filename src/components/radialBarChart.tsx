@@ -1,7 +1,7 @@
 "use client";
 
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { Doughnut } from "react-chartjs-2";
 
 import { useT } from "@/components/i18nProvider";
@@ -22,11 +22,14 @@ const RadialBarChart = ({
   currency,
   unfold = false,
   chartRef,
+  centre,
 }: {
   items: RadialBarItem[];
   currency?: string;
   unfold?: boolean;
   chartRef?: RefObject<ChartJS<"doughnut"> | null>;
+  // What sits in the middle: it arrives with the chart, never floating over the loader.
+  centre?: ReactNode;
 }) => {
   const colors = useChartColors();
   const t = useT();
@@ -46,41 +49,44 @@ const RadialBarChart = ({
   };
 
   return (
-    <Doughnut
-      ref={chartRef}
-      role="img"
-      aria-label={t("home.spendingChartLabel", {
-        list: items.map((item) => `${spendTypeLabel(t, item.name)} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; "),
-      })}
-      data={data}
-      options={{
-        cutout: "48%",
-        rotation: -90,
-        maintainAspectRatio: false,
-        animation: unfold && !prefersReducedMotion() ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
-        onHover: (event, elements) => {
-          const target = event.native?.target as HTMLElement | null;
-          if (target && chartRef) target.style.cursor = elements.some((e) => e.index === 0) ? "pointer" : "";
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: colors.text,
-            titleColor: colors.card,
-            bodyColor: colors.card,
-            displayColors: false,
-            filter: (item) => item.dataIndex === 0,
-            callbacks: {
-              title: (ctx) => ctx[0]?.dataset.label ?? "",
-              label: (item) => {
-                const entry = items[item.datasetIndex];
-                return `${formatAmount(entry.amount, currency)} (${Math.round(entry.share * 100)}%)`;
+    <>
+      <Doughnut
+        ref={chartRef}
+        role="img"
+        aria-label={t("home.spendingChartLabel", {
+          list: items.map((item) => `${spendTypeLabel(t, item.name)} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; "),
+        })}
+        data={data}
+        options={{
+          cutout: "48%",
+          rotation: -90,
+          maintainAspectRatio: false,
+          animation: unfold && !prefersReducedMotion() ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
+          onHover: (event, elements) => {
+            const target = event.native?.target as HTMLElement | null;
+            if (target && chartRef) target.style.cursor = elements.some((e) => e.index === 0) ? "pointer" : "";
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: colors.text,
+              titleColor: colors.card,
+              bodyColor: colors.card,
+              displayColors: false,
+              filter: (item) => item.dataIndex === 0,
+              callbacks: {
+                title: (ctx) => ctx[0]?.dataset.label ?? "",
+                label: (item) => {
+                  const entry = items[item.datasetIndex];
+                  return `${formatAmount(entry.amount, currency)} (${Math.round(entry.share * 100)}%)`;
+                },
               },
             },
           },
-        },
-      }}
-    />
+        }}
+      />
+      {centre}
+    </>
   );
 };
 

@@ -13,6 +13,8 @@ const SETTLE_MS = 150;
 
 const ScrollCalm = () => {
   useEffect(() => {
+    // Nothing to calm on a touch screen: no pointer rests on the page while it scrolls.
+    if (window.matchMedia("(hover: none)").matches) return;
     const root = document.documentElement;
     let timer: number | undefined;
     const onScroll = () => {
