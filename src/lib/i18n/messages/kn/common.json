@@ -84,5 +84,9 @@
   "footerPricing": "ಬೆಲೆಗಳು",
   "footerRefunds": "ರೀಫಂಡ್",
   "footerContact": "ಸಂಪರ್ಕ",
-  "moreLanguages": "ಇನ್ನಷ್ಟು ಭಾಷೆಗಳು"
+  "moreLanguages": "ಇನ್ನಷ್ಟು ಭಾಷೆಗಳು",
+  "incomeKind_salaried": "ಸಂಬಳದಾರ",
+  "incomeKind_student": "ವಿದ್ಯಾರ್ಥಿ",
+  "incomeKind_freelancer": "ಫ್ರೀಲ್ಯಾನ್ಸರ್ ಅಥವಾ ಸ್ವಯಂ ಉದ್ಯೋಗಿ",
+  "incomeKind_none": "ಸದ್ಯಕ್ಕೆ ಆದಾಯವಿಲ್ಲ"
 }

@@ -14,6 +14,7 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { completeProfile, logoutAccount, signIn, signInWithGoogle, signUp } from "@/lib/actions/user.action";
 import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/countries";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
+import { INCOME_KINDS } from "@/lib/income";
 import { authFormSchema, cn } from "@/lib/utils";
 
 import CustomInput from "./customInput";
@@ -108,6 +109,7 @@ const AuthForm = ({
       city: defaults?.city ?? "",
       state: defaults?.state ?? "",
       postalCode: defaults?.postalCode ?? "",
+      incomeKind: defaults?.incomeKind ?? "",
       dob: "",
       ssn: "",
     },
@@ -139,6 +141,7 @@ const AuthForm = ({
           city: data.city!,
           state: data.state ?? "",
           postalCode: data.postalCode ?? "",
+          incomeKind: data.incomeKind ?? "",
           dateOfBirth: needsUsIdentity(data.country ?? "") ? (data.dob ?? "") : "",
           ssn: needsUsIdentity(data.country ?? "") ? (data.ssn ?? "") : "",
           terms: Boolean(data.terms),
@@ -155,6 +158,7 @@ const AuthForm = ({
           city: data.city!,
           state: data.state ?? "",
           postalCode: data.postalCode ?? "",
+          incomeKind: data.incomeKind ?? "",
           // Asked after the email is confirmed (welcome step), never at sign-up.
           dateOfBirth: "",
           ssn: "",
@@ -367,6 +371,38 @@ const AuthForm = ({
                           label={t("auth.lastName")}
                           placeholder={t("auth.lastNamePlaceholder")}
                           autoComplete="family-name"
+                        />
+                        <FormField
+                          control={form.control}
+                          name="incomeKind"
+                          render={({ field }) => (
+                            <FormItem className="field sm:col-span-2">
+                              <label className="field-label" htmlFor="signup-income">
+                                {t("auth.incomeKind")}
+                              </label>
+                              <select
+                                id="signup-income"
+                                value={field.value ?? ""}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                onBlur={field.onBlur}
+                                className="field-input"
+                                aria-describedby="signup-income-hint"
+                              >
+                                <option value="" disabled>
+                                  {t("auth.errorIncomeKind")}
+                                </option>
+                                {INCOME_KINDS.map((kind) => (
+                                  <option key={kind} value={kind}>
+                                    {t(`common.incomeKind_${kind}`)}
+                                  </option>
+                                ))}
+                              </select>
+                              <p id="signup-income-hint" className="field-hint">
+                                {t("auth.incomeKindHint")}
+                              </p>
+                              <FormMessage className="field-error" />
+                            </FormItem>
+                          )}
                         />
                         {isSignUp && needsUsIdentity(country) && <p className="text-13 text-ink-muted sm:col-span-2">{t("auth.usLaterNote")}</p>}
                         {usIdentity && (

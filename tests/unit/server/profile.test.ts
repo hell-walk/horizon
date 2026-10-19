@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { pendingFrom, profileIsValid, readPending } from "@/lib/server/profile";
 
-const india = { country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", dateOfBirth: "", ssn: "" };
+const india = {
+  country: "IN",
+  firstName: "Ada",
+  lastName: "Lovelace",
+  address1: "1 Main St",
+  city: "Pune",
+  state: "MH",
+  postalCode: "411001",
+  dateOfBirth: "",
+  ssn: "",
+};
 
 describe("sign-up details waiting on the login", () => {
   it("never carry the date of birth or SSN", () => {
@@ -12,7 +22,18 @@ describe("sign-up details waiting on the login", () => {
 
   it("are read back only when every field is a sane string (the person can edit their own metadata)", () => {
     expect(readPending(pendingFrom(india))).toMatchObject({ country: "IN", city: "Pune", dateOfBirth: "", ssn: "" });
-    for (const bad of [null, "x", {}, { ...pendingFrom(india), country: "XX" }, { ...pendingFrom(india), city: { $ne: 1 } }, { ...pendingFrom(india), address1: "a".repeat(500) }]) {
+    // How they earn travels with the rest; anything odd is dropped, not refused.
+    expect(readPending(pendingFrom({ ...india, incomeKind: "student" }))).toMatchObject({ incomeKind: "student" });
+    expect(readPending({ ...pendingFrom(india), incomeKind: "ceo" })).toMatchObject({ incomeKind: "" });
+    expect(profileIsValid({ ...india, incomeKind: "ceo" }, { identity: false })).toBe(false);
+    for (const bad of [
+      null,
+      "x",
+      {},
+      { ...pendingFrom(india), country: "XX" },
+      { ...pendingFrom(india), city: { $ne: 1 } },
+      { ...pendingFrom(india), address1: "a".repeat(500) },
+    ]) {
       expect(readPending(bad)).toBeNull();
     }
   });

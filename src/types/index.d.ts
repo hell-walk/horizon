@@ -18,6 +18,8 @@ declare type SignUpParams = {
   postalCode: string;
   dateOfBirth: string;
   ssn: string;
+  /** How the person earns: "salaried", "student", "freelancer" or "none" (lib/income). Asked at sign-up; older profiles answer on Home. */
+  incomeKind?: string;
   email: string;
   password: string;
 };

@@ -84,5 +84,9 @@
   "footerPricing": "ଦାମ୍",
   "footerRefunds": "ରିଫଣ୍ଡ",
   "footerContact": "ଯୋଗାଯୋଗ",
-  "moreLanguages": "ଅଧିକ ଭାଷା"
+  "moreLanguages": "ଅଧିକ ଭାଷା",
+  "incomeKind_salaried": "ଦରମାଭୋଗୀ",
+  "incomeKind_student": "ଛାତ୍ର",
+  "incomeKind_freelancer": "ଫ୍ରିଲାନ୍ସର କିମ୍ବା ସ୍ୱନିଯୁକ୍ତ",
+  "incomeKind_none": "ବର୍ତ୍ତମାନ କୌଣସି ଆୟ ନାହିଁ"
 }

@@ -84,5 +84,9 @@
   "footerPricing": "Pricing",
   "footerRefunds": "Refunds",
   "footerContact": "Contact",
-  "moreLanguages": "More languages"
+  "moreLanguages": "More languages",
+  "incomeKind_salaried": "Salaried",
+  "incomeKind_student": "Student",
+  "incomeKind_freelancer": "Freelancer or self-employed",
+  "incomeKind_none": "No income right now"
 }

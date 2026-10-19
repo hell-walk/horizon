@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
+import IncomePanel from "./components/incomePanel";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
 import BeReady from "./components/beReady";
@@ -81,10 +82,12 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           />
 
           <Suspense fallback={null}>
-            <CombinedTotal
-              totals={accounts.totalsByCurrency}
-              base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency}
-            />
+            <CombinedTotal totals={accounts.totalsByCurrency} base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency} />
+          </Suspense>
+
+          {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
+          <Suspense fallback={null}>
+            <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
           </Suspense>
 
           <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
@@ -171,20 +174,10 @@ async function SpendingSection({ appwriteItemId }: { appwriteItemId?: string }) 
   return <SpendingStrip transactions={account?.transactions} currency={account?.data?.currency} href={breakdownHref(appwriteItemId)} />;
 }
 
-async function RecentTransactionsSection({
-  accounts,
-  appwriteItemId,
-  page,
-}: {
-  accounts: Account[];
-  appwriteItemId?: string;
-  page: number;
-}) {
+async function RecentTransactionsSection({ accounts, appwriteItemId, page }: { accounts: Account[]; appwriteItemId?: string; page: number }) {
   const account = appwriteItemId ? await getAccount({ appwriteItemId }) : null;
 
-  return (
-    <RecentTransaction accounts={accounts} transactions={account?.transactions} appwriteItemId={appwriteItemId ?? ""} page={page} />
-  );
+  return <RecentTransaction accounts={accounts} transactions={account?.transactions} appwriteItemId={appwriteItemId ?? ""} page={page} />;
 }
 
 export default Home;

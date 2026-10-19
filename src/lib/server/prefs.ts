@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { IncomeKind } from "../income";
+
 import { createAdminClient } from "./appwrite";
 
 // A person's settings: the column layouts they chose for their bank's
@@ -17,6 +19,8 @@ export type Prefs = {
   notify?: unknown;
   /** Missing weeks found while importing: "ask" first (the default) or "add" without asking. */
   importGaps?: "ask" | "add";
+  /** How the person earns, and a freelancer's own monthly figure (lib/income). */
+  income?: { kind: IncomeKind; declared?: number };
 };
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;

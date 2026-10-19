@@ -84,5 +84,9 @@
   "footerPricing": "നിരക്കുകൾ",
   "footerRefunds": "റീഫണ്ട്",
   "footerContact": "ബന്ധപ്പെടുക",
-  "moreLanguages": "കൂടുതൽ ഭാഷകൾ"
+  "moreLanguages": "കൂടുതൽ ഭാഷകൾ",
+  "incomeKind_salaried": "ശമ്പളക്കാരൻ",
+  "incomeKind_student": "വിദ്യാർത്ഥി",
+  "incomeKind_freelancer": "ഫ്രീലാൻസർ അല്ലെങ്കിൽ സ്വയംതൊഴിൽ",
+  "incomeKind_none": "ഇപ്പോൾ വരുമാനമില്ല"
 }

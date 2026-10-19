@@ -16,10 +16,16 @@ import { createSupabaseAdmin } from "./supabase";
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;
 
+import { isIncomeKind } from "../income";
+
 export const PROFILE_FIELDS = ["country", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"];
 export type ProfileInput = Omit<SignUpParams, "email" | "password">;
 
-const US_STATES = new Set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split(" "));
+const US_STATES = new Set(
+  "AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split(
+    " ",
+  ),
+);
 const isUsAddress = (state: string, postalCode: string) => US_STATES.has(state.trim().toUpperCase()) && /^\d{5}(-\d{4})?$/.test(postalCode.trim());
 
 // Date of birth and SSN go to Dwolla once, to open the payments customer, and are
@@ -38,6 +44,8 @@ export function profileIsValid(p: ProfileInput, { identity }: { identity: boolea
   if (needsStateAndPostal(p.country) && (p.state.trim().length < 2 || !/^[A-Za-z0-9 -]{3,10}$/.test(p.postalCode.trim()))) return false;
   if (p.country === "US" && !isUsAddress(p.state, p.postalCode)) return false;
   if (identity && p.country === "US" && (!/^\d{4}-\d{2}-\d{2}$/.test(p.dateOfBirth) || p.ssn.trim().length < 4)) return false;
+  // How they earn is optional (older forms never asked), but when given it is one of the four.
+  if (p.incomeKind && !isIncomeKind(p.incomeKind)) return false;
   return true;
 }
 
@@ -50,6 +58,7 @@ export const pendingFrom = (p: ProfileInput) => ({
   city: p.city.trim(),
   state: p.state.trim(),
   postalCode: p.postalCode.trim(),
+  incomeKind: isIncomeKind(p.incomeKind) ? p.incomeKind : "",
 });
 
 /** Reads them back defensively (the person can edit their own login's metadata). */
@@ -58,7 +67,12 @@ export function readPending(value: unknown): ProfileInput | null {
   const v = value as Record<string, unknown>;
   const keys = ["country", "firstName", "lastName", "address1", "city", "state", "postalCode"];
   if (!keys.every((k) => typeof v[k] === "string" && (v[k] as string).length <= 100)) return null;
-  const p = { ...(Object.fromEntries(keys.map((k) => [k, v[k]])) as Record<string, string>), dateOfBirth: "", ssn: "" } as ProfileInput;
+  const p = {
+    ...(Object.fromEntries(keys.map((k) => [k, v[k]])) as Record<string, string>),
+    dateOfBirth: "",
+    ssn: "",
+    incomeKind: isIncomeKind(v.incomeKind) ? v.incomeKind : "",
+  } as ProfileInput;
   return profileIsValid(p, { identity: false }) ? p : null;
 }
 
@@ -92,8 +106,8 @@ export async function createProfile(authId: string, email: string, p: ProfileInp
     dateOfBirth: NOT_KEPT,
     ssn: NOT_KEPT,
     userId: authId,
-    // The person's settings start with their country (see server/prefs.ts).
-    prefs: JSON.stringify({ country: p.country }),
+    // The person's settings start with their country and how they earn (see server/prefs.ts).
+    prefs: JSON.stringify({ country: p.country, ...(isIncomeKind(p.incomeKind) ? { income: { kind: p.incomeKind } } : {}) }),
     ...dwolla,
   });
 

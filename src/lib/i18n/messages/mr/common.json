@@ -84,5 +84,9 @@
   "footerPricing": "किंमत",
   "footerRefunds": "परतावा",
   "footerContact": "संपर्क",
-  "moreLanguages": "आणखी भाषा"
+  "moreLanguages": "आणखी भाषा",
+  "incomeKind_salaried": "पगारदार",
+  "incomeKind_student": "विद्यार्थी",
+  "incomeKind_freelancer": "फ्रीलान्सर किंवा स्वयंरोजगार",
+  "incomeKind_none": "सध्या उत्पन्न नाही"
 }

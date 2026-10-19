@@ -84,5 +84,9 @@
   "footerPricing": "விலை",
   "footerRefunds": "ரீஃபண்ட்",
   "footerContact": "தொடர்பு",
-  "moreLanguages": "மேலும் மொழிகள்"
+  "moreLanguages": "மேலும் மொழிகள்",
+  "incomeKind_salaried": "சம்பளம் பெறுபவர்",
+  "incomeKind_student": "மாணவர்",
+  "incomeKind_freelancer": "ஃப்ரீலான்சர் அல்லது சுயதொழில்",
+  "incomeKind_none": "இப்போது வருமானம் இல்லை"
 }

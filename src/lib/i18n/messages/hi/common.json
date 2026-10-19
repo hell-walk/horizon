@@ -84,5 +84,9 @@
   "footerPricing": "कीमतें",
   "footerRefunds": "रिफ़ंड",
   "footerContact": "संपर्क",
-  "moreLanguages": "और भाषाएँ"
+  "moreLanguages": "और भाषाएँ",
+  "incomeKind_salaried": "वेतनभोगी",
+  "incomeKind_student": "छात्र",
+  "incomeKind_freelancer": "फ़्रीलांसर या स्वरोज़गार",
+  "incomeKind_none": "अभी कोई आय नहीं"
 }

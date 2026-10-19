@@ -84,5 +84,9 @@
   "footerPricing": "দাম",
   "footerRefunds": "রিফান্ড",
   "footerContact": "যোগাযোগ",
-  "moreLanguages": "আরও ভাষা"
+  "moreLanguages": "আরও ভাষা",
+  "incomeKind_salaried": "বেতনভোগী",
+  "incomeKind_student": "ছাত্র",
+  "incomeKind_freelancer": "ফ্রিল্যান্সার বা স্বনিযুক্ত",
+  "incomeKind_none": "এখন কোনো আয় নেই"
 }

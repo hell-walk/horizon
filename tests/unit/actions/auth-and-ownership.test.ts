@@ -282,7 +282,7 @@ describe("signUp", () => {
   it("keeps the typed details on the login meanwhile, but never the date of birth or SSN", async () => {
     await userActions.signUp({ ...details, email: `new-${Math.random()}@example.com` });
     const data = state.signUps.at(-1)!.options.data;
-    expect(data.pending_profile).toEqual({ country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001" });
+    expect(data.pending_profile).toEqual({ country: "IN", firstName: "Ada", lastName: "Lovelace", address1: "1 Main St", city: "Pune", state: "MH", postalCode: "411001", incomeKind: "" });
     expect(data.terms_accepted_at).toEqual(expect.any(String));
     expect(JSON.stringify(data)).not.toMatch(/123456789|1990-01-01/);
   });

@@ -5,6 +5,7 @@ import z from "zod";
 
 import type { Translate } from "./i18n/translate";
 import { isCountry, needsStateAndPostal, needsUsIdentity } from "./countries";
+import { isIncomeKind } from "./income";
 
 // Horizon's own text sizes (text-10 ... text-40) and shadows (card, lift), from
 // globals.css. Without this, tailwind-merge reads "text-14" as a colour and
@@ -52,25 +53,13 @@ export const formatDateTime = (dateString: Date) => {
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
   };
 
-  const formattedDateTime: string = new Date(dateString).toLocaleString(
-    "en-US",
-    dateTimeOptions
-  );
+  const formattedDateTime: string = new Date(dateString).toLocaleString("en-US", dateTimeOptions);
 
-  const formattedDateDay: string = new Date(dateString).toLocaleString(
-    "en-US",
-    dateDayOptions
-  );
+  const formattedDateDay: string = new Date(dateString).toLocaleString("en-US", dateDayOptions);
 
-  const formattedDate: string = new Date(dateString).toLocaleString(
-    "en-US",
-    dateOptions
-  );
+  const formattedDate: string = new Date(dateString).toLocaleString("en-US", dateOptions);
 
-  const formattedTime: string = new Date(dateString).toLocaleString(
-    "en-US",
-    timeOptions
-  );
+  const formattedTime: string = new Date(dateString).toLocaleString("en-US", timeOptions);
 
   return {
     dateTime: formattedDateTime,
@@ -133,7 +122,7 @@ export function formUrlQuery({ params, key, value }: UrlQueryParams) {
       url: window.location.pathname,
       query: currentUrl,
     },
-    { skipNull: true }
+    { skipNull: true },
   );
 }
 
@@ -173,7 +162,6 @@ export function extractCustomerIdFromUrl(url: string) {
   return customerId;
 }
 
-
 export const getTransactionStatus = (date: Date) => {
   const today = new Date();
   const twoDaysAgo = new Date(today);
@@ -185,6 +173,7 @@ export const getTransactionStatus = (date: Date) => {
 // Validation for the sign-in and sign-up forms. `t` turns the messages into the
 // reader's language (useT() in the form).
 export const authFormSchema = (type: string, t: Translate) => {
+  // (How the person earns is one of lib/income's four kinds.)
   const signUp = type === "sign-up";
   // "welcome": signed in with Google, finishing the profile. Same questions as
   // sign-up, minus the email and password Google already settled.
@@ -204,6 +193,7 @@ export const authFormSchema = (type: string, t: Translate) => {
       country: profile ? z.string().refine(isCountry, t("auth.errorCountry")) : optional(),
       address1: profile ? z.string().min(3, t("auth.errorStreet")).max(50, tooLong(50)) : optional(),
       city: profile ? z.string().min(2, t("auth.errorCity")).max(20, tooLong(20)) : optional(),
+      incomeKind: profile ? z.string().refine(isIncomeKind, t("auth.errorIncomeKind")) : optional(),
       // Region, postal code, date of birth and SSN depend on the country: checked below.
       state: optional(),
       postalCode: optional(),

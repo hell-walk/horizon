@@ -84,5 +84,9 @@
   "footerPricing": "ధరలు",
   "footerRefunds": "రీఫండ్‌లు",
   "footerContact": "సంప్రదించండి",
-  "moreLanguages": "మరిన్ని భాషలు"
+  "moreLanguages": "మరిన్ని భాషలు",
+  "incomeKind_salaried": "జీతం పొందేవారు",
+  "incomeKind_student": "విద్యార్థి",
+  "incomeKind_freelancer": "ఫ్రీలాన్సర్ లేదా స్వయం ఉపాధి",
+  "incomeKind_none": "ప్రస్తుతం ఆదాయం లేదు"
 }

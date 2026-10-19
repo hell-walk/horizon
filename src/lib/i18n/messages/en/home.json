@@ -52,5 +52,19 @@
   "combinedAbout": "about",
   "combinedRate": "1 {currency} = {rate}",
   "combinedMissing": "Not included: {currencies}. There is no published rate for it.",
-  "combinedSource": "Converted at the European Central Bank's reference rate of {date}. Banks and money changers use their own rates, so treat this as a guide."
+  "combinedSource": "Converted at the European Central Bank's reference rate of {date}. Banks and money changers use their own rates, so treat this as a guide.",
+  "incomeTitle": "Money in",
+  "incomeAsk": "How do you earn? Horizon reads your statements accordingly: a salary from your employer, a freelancer's uneven income, or pocket money that is never called a salary.",
+  "incomeSalary_one": "{amount} a month: your salary from {payee}, seen in {count} month.",
+  "incomeSalary_other": "{amount} a month: your salary from {payee}, seen in {count} months.",
+  "incomeCredits_one": "About {amount} a month comes in, going by {count} full month of statements.",
+  "incomeCredits_other": "About {amount} a month comes in, going by {count} full months of statements.",
+  "incomeDeclared": "{amount} a month, as you told us. Your statements show about {seen} a month coming in.",
+  "incomeMismatch": "That is a long way from the figure you gave: have a look at which is right.",
+  "incomeNoSalary": "No salary credit found yet: add a statement that includes a pay day.",
+  "incomeNone": "Nothing to go on yet: upload a statement.",
+  "incomeYouSaid": "You said: {kind}",
+  "incomeChange": "Change",
+  "incomeDeclaredLabel": "About how much a month?",
+  "incomeSave": "Save"
 }
