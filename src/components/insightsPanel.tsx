@@ -1,4 +1,4 @@
-import { Lightbulb, TrendingDown, TrendingUp, UserPlus } from "lucide-react";
+import { Lightbulb, Repeat, TrendingDown, TrendingUp, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 import { dataLabel } from "@/lib/i18n/labels";
@@ -74,8 +74,15 @@ const Header = ({ t, title }: { t: Translate; title: string }) => (
 
 const Icon = ({ insight }: { insight: Insight }) => {
   const up = insight.kind === "categoryUp" || insight.kind === "keptLess";
-  const Glyph = insight.kind === "newPayee" ? UserPlus : up ? TrendingUp : TrendingDown;
-  const tone = insight.kind === "newPayee" ? "text-ink-muted" : insight.kind === "categoryUp" || insight.kind === "keptLess" ? "text-danger" : "text-success";
+  const Glyph = insight.kind === "newPayee" ? UserPlus : insight.kind === "burst" ? Repeat : up ? TrendingUp : TrendingDown;
+  const tone =
+    insight.kind === "newPayee"
+      ? "text-ink-muted"
+      : insight.kind === "burst"
+        ? "text-warn-ink"
+        : insight.kind === "categoryUp" || insight.kind === "keptLess"
+          ? "text-danger"
+          : "text-success";
   return <Glyph className={`mt-0.5 size-4 shrink-0 ${tone}`} aria-hidden />;
 };
 
@@ -91,6 +98,8 @@ function sentence(t: Translate, i: Insight, money: (n: number) => string, month:
       });
     case "newPayee":
       return t("insights.newPayee", { payee: i.payee, amount: money(i.amount), month: month(i.month) });
+    case "burst":
+      return t("insights.burst", { payee: i.payee, count: i.count, days: i.days, amount: money(i.amount), month: month(i.month) });
     case "keptLess":
     case "keptMore": {
       const kept = `${i.kept < 0 ? "-" : ""}${money(i.kept)}`;
@@ -107,6 +116,8 @@ function explanation(t: Translate, i: Insight, money: (n: number) => string, mon
       return t("insights.usualFrom", { usual: money(i.usual), months: months(i.basis) });
     case "newPayee":
       return t("insights.newPayeeWhy");
+    case "burst":
+      return t("insights.burstWhy", { usual: i.usualCount });
     case "keptLess":
     case "keptMore": {
       // Which side moved: a change smaller than a tenth of the difference counts as "about the same".

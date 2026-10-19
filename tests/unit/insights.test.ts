@@ -5,7 +5,16 @@ import { findInsights, latestFullMonth } from "@/lib/insights";
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;
 const tx = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
-  ({ id: `t${++n}`, date, name, amount: Math.abs(amount), type: amount < 0 ? "debit" : "credit", category: "Transfer", paymentChannel: "other", ...extra }) as Transaction;
+  ({
+    id: `t${++n}`,
+    date,
+    name,
+    amount: Math.abs(amount),
+    type: amount < 0 ? "debit" : "credit",
+    category: "Transfer",
+    paymentChannel: "other",
+    ...extra,
+  }) as Transaction;
 
 /** A steady month: salary, rent, about ₹2,000 on food in four orders. */
 const steadyMonth = (m: string, food = [500, 500, 500, 500]) => [
@@ -54,13 +63,30 @@ describe("findInsights", () => {
   it("says why less was kept: spending rose while income stayed the same", () => {
     const result = findInsights(
       [...steadyMonth("06"), ...steadyMonth("07"), ...steadyMonth("08"), ...steadyMonth("09"), tx("2026-09-15", "CROMA ELECTRONICS", -12000)],
-      TODAY
+      TODAY,
     );
     if (!result.ok) throw new Error("expected insights");
     const kept = result.insights.find((i) => i.kind === "keptLess");
     expect(kept).toMatchObject({ kept: 60000 - 17020 - 12000, usualKept: 60000 - 17020, difference: -12000, incomeChange: 0, spendingChange: 12000 });
     // The new shop also shows, as a new place taking a real share of the month.
     expect(result.insights.find((i) => i.kind === "newPayee")).toMatchObject({ payee: "Croma Electronics", amount: 12000 });
+  });
+
+  it("notices a run of payments to one place inside a week", () => {
+    const tx = (date: string, name: string, amount: number) => ({ id: `${date}-${name}-${amount}`, date, name, amount: -amount, type: "debit" }) as Transaction;
+    const usual = ["2026-06", "2026-07", "2026-08"].flatMap((m) => [
+      tx(`${m}-05`, "UPI/DR/1/SWIGGY", 400),
+      tx(`${m}-15`, "UPI/DR/2/RENT HOUSE OWNER/rent", 15000),
+      tx(`${m}-20`, "UPI/DR/3/SWIGGY", 400),
+    ]);
+    const run = ["2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06"].map((d) => tx(d, "UPI/DR/9/MEDPLUS PHARMACY", 1800));
+    const result = findInsights(
+      [...usual, tx("2026-09-15", "UPI/DR/2/RENT HOUSE OWNER/rent", 15000), ...run, tx("2026-10-02", "UPI/DR/4/SWIGGY", 400)],
+      new Date("2026-10-10T00:00:00Z"),
+    );
+    expect(result.ok).toBe(true);
+    const burst = result.ok ? result.insights.find((i) => i.kind === "burst") : undefined;
+    expect(burst).toMatchObject({ kind: "burst", count: 4, days: 7, amount: 7200, usualCount: 0 });
   });
 
   it("notices spending going down too", () => {

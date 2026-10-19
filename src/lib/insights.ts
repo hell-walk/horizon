@@ -26,6 +26,8 @@ export type Insight =
       count: number;
     }
   | { kind: "newPayee"; payee: string; month: string; amount: number; entries: Evidence[]; count: number }
+  /** Several payments to the same place within a few days, more than that payee usually gets in a whole month. */
+  | { kind: "burst"; payee: string; month: string; amount: number; entries: Evidence[]; count: number; days: number; usualCount: number }
   | {
       kind: "keptLess" | "keptMore";
       month: string;
@@ -41,6 +43,9 @@ export type Insight =
 export type Insights = { ok: true; month: string; insights: Insight[] } | { ok: false; reason: "tooLittle" };
 
 const BASELINE_MONTHS = 3;
+const BURST_COUNT = 3;
+const BURST_DAYS = 7;
+const dayOf = (date: string) => Math.round(Date.parse(`${date}T00:00:00Z`) / 86_400_000);
 const EVIDENCE_SHOWN = 10;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -147,6 +152,34 @@ export function findInsights(transactions: Transaction[] = [], today = new Date(
   for (const [who, p] of current.payees) {
     if (seenBefore.has(who) || p.amount < usualSpend * 0.1) continue;
     found.push({ kind: "newPayee", payee: p.name, month, amount: round2(p.amount), entries: top(p.entries), count: p.entries.length, weight: p.amount * 0.8 });
+  }
+
+  // A run of payments to one place inside a week, well beyond what that payee usually gets in a month.
+  for (const [who, p] of current.payees) {
+    if (p.entries.length < BURST_COUNT) continue;
+    const dates = p.entries.map((e) => e.date).sort();
+    let best = { count: 0, from: 0 };
+    for (let i = 0; i < dates.length; i++) {
+      let j = i;
+      while (j + 1 < dates.length && dayOf(dates[j + 1]) - dayOf(dates[i]) <= BURST_DAYS) j++;
+      if (j - i + 1 > best.count) best = { count: j - i + 1, from: i };
+    }
+    if (best.count < BURST_COUNT) continue;
+    const inRun = p.entries.filter((e) => e.date >= dates[best.from] && dayOf(e.date) - dayOf(dates[best.from]) <= BURST_DAYS);
+    const amount = inRun.reduce((s, e) => s + e.amount, 0);
+    const usualCount = base.reduce((s, m) => s + (m.payees.get(who)?.entries.length ?? 0), 0) / base.length;
+    if (amount < noticeable || best.count < usualCount * 2) continue;
+    found.push({
+      kind: "burst",
+      payee: p.name,
+      month,
+      amount: round2(amount),
+      entries: top(inRun),
+      count: inRun.length,
+      days: BURST_DAYS,
+      usualCount: Math.round(usualCount * 10) / 10,
+      weight: amount * 0.9,
+    });
   }
 
   // What was left over, and why it moved.

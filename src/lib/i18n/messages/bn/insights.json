@@ -43,5 +43,7 @@
   "weekDue_one": "আগামী 7 দিনে দিতে হবে: {names}, {amount}।",
   "weekDue_other": "আগামী 7 দিনে দিতে হবে: {count}টি পেমেন্ট, {amount} ({names})।",
   "weekEveryday": "রোজকার খরচ: {amount}।",
-  "weekRegular": "এই সপ্তাহের নিয়মিত পেমেন্ট:"
+  "weekRegular": "এই সপ্তাহের নিয়মিত পেমেন্ট:",
+  "burst": "{payee}: {days} দিনে {count}টি পেমেন্ট, মোট {amount} ({month})।",
+  "burstWhy": "অল্প সময়ে একই জায়গায় পরপর পেমেন্ট। আগের মাসগুলোতে সেখানে মাসে প্রায় {usual}টি যেত।"
 }

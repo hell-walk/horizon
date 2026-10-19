@@ -43,5 +43,7 @@
   "weekDue_one": "Due in the next 7 days: {names}, {amount}.",
   "weekDue_other": "Due in the next 7 days: {count} payments, {amount} ({names}).",
   "weekEveryday": "Everyday spending: {amount}.",
-  "weekRegular": "Regular payments this week:"
+  "weekRegular": "Regular payments this week:",
+  "burst": "{payee}: {count} payments in {days} days, {amount} in all ({month}).",
+  "burstWhy": "A run of payments to the same place in a short stretch. In the months before, about {usual} a month went there."
 }
