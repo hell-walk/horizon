@@ -68,6 +68,22 @@ export async function setEmailReminders(input: { on: unknown }): Promise<NotifyR
   }
 }
 
+/** Monday's statement nudge on or off. */
+export async function setWeeklyReminder(input: { on: unknown }): Promise<NotifyResult> {
+  const t = await getT();
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false, error: t("remind.errSignIn") };
+  if (!(await allow(`notify:weekly:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return { ok: false, error: t("remind.errTooMany") };
+  try {
+    const settings = await loadNotify(ownerIdOf(user));
+    await saveNotify(ownerIdOf(user), { ...settings, weekly: input?.on === true });
+    return { ok: true };
+  } catch (error) {
+    logError("notify: weekly setting failed", error);
+    return { ok: false, error: t("remind.errFailed") };
+  }
+}
+
 /** The language reminders are written in: the person's own language or English. */
 export async function setReminderLanguage(input: { locale: unknown }): Promise<NotifyResult> {
   const t = await getT();

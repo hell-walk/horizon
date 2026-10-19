@@ -6,7 +6,7 @@ import webpush from "web-push";
 import { applyCorrections } from "../corrections";
 import { headsUp, type HeadsUpInput, type HeadsUpResult } from "../headsUp";
 import { makeTranslator } from "../i18n/translate";
-import { markSent, readNotify, reminderFor, type NotifySettings, type PushSubscription, type Reminder, type ReminderKind } from "../notify";
+import { markSent, readNotify, reminderFor, type NotifySettings, type PushSubscription, type Reminder, type ReminderKind, uploadReminder } from "../notify";
 import { mapWithLimit } from "../parallel";
 import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
 import { findRegular } from "../recurring";
@@ -38,7 +38,7 @@ export async function saveNotify(ownerId: string, settings: NotifySettings) {
 }
 
 /** "Be prepared" for one person, from their profile id alone. */
-export async function headsUpForOwner(ownerId: string, today = new Date()): Promise<HeadsUpResult> {
+export async function headsUpForOwner(ownerId: string, today = new Date()): Promise<HeadsUpResult & { latest: string | null }> {
   const [banks, corrections] = await Promise.all([getBanks({ userId: ownerId }), loadCorrections(ownerId)]);
   const inputs: HeadsUpInput[] = await Promise.all(
     banks
@@ -54,7 +54,14 @@ export async function headsUpForOwner(ownerId: string, today = new Date()): Prom
         };
       }),
   );
-  return headsUp(inputs, today);
+  // The newest entry saved anywhere: how long the statements have been waiting for a newer one.
+  const latest =
+    inputs
+      .flatMap((i) => i.transactions.map((t) => String(t.date).slice(0, 10)))
+      .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+      .sort()
+      .at(-1) ?? null;
+  return { ...headsUp(inputs, today), latest };
 }
 
 type Message = { title: string; body: string; url: string };
@@ -62,7 +69,7 @@ type Message = { title: string; body: string; url: string };
 /** What a reminder says, in the person's language. Short, with no amounts or bank names. */
 export function messageFor(kind: ReminderKind | "test", count: number, settings: NotifySettings): Message {
   const t = makeTranslator(settings.locale);
-  return { title: t(`remind.${kind}Title`), body: t(`remind.${kind}Body`, { count }), url: "/" };
+  return { title: t(`remind.${kind}Title`), body: t(`remind.${kind}Body`, { count }), url: kind === "upload" ? "/upload-statement" : "/" };
 }
 
 /** Sends to every device; drops the ones the push service says are gone. Returns the devices still valid and how many got it. */
@@ -185,7 +192,10 @@ export async function runReminders(today = new Date()): Promise<RunStats | null>
   await mapWithLimit(people, 4, async (person) => {
     stats.people++;
     try {
-      const reminder: Reminder | null = reminderFor(await headsUpForOwner(person.id, today), person.settings.sent);
+      const heads = await headsUpForOwner(person.id, today);
+      // One message a day: what is due comes first; Monday's statement nudge only on a quiet day.
+      const reminder: Reminder | null =
+        reminderFor(heads, person.settings.sent) ?? (person.settings.weekly ? uploadReminder(heads.latest, today, person.settings.sent) : null);
       if (!reminder) return;
       const result = await deliver(person.id, person.email, person.settings, messageFor(reminder.kind, reminder.count, person.settings), reminder.keys);
       if (result.push || result.email) stats.reminded++;

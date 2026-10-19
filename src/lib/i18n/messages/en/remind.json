@@ -39,5 +39,9 @@
   "errFailed": "Something went wrong. Try again.",
   "errNothingOn": "Turn on reminders on this device or by email first.",
   "errLink": "This link is not valid. Turn email reminders off under Privacy and your data instead.",
-  "languageTitle": "Reminders in"
+  "languageTitle": "Reminders in",
+  "uploadTitle": "Time for a statement",
+  "uploadBody": "Your newest entries are over a week old. Upload this week's statement so Horizon stays current.",
+  "weeklyTitle": "Weekly statement reminder",
+  "weeklyNote": "Every Monday, when your newest entries are more than a week old."
 }

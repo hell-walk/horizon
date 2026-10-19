@@ -1,12 +1,12 @@
 "use client";
 
-import { BellRing, Loader2, Mail, Send, Smartphone } from "lucide-react";
+import { BellRing, CalendarClock, Loader2, Mail, Send, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
 import ReminderLanguage from "@/components/reminderLanguage";
 import type { Locale } from "@/lib/i18n/config";
-import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders } from "@/lib/actions/notify.action";
+import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders, setWeeklyReminder } from "@/lib/actions/notify.action";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -15,6 +15,8 @@ type Props = {
   /** Brevo is set up on the server. */
   emailReady: boolean;
   emailOn: boolean;
+  /** Monday's statement nudge is on. */
+  weeklyOn: boolean;
   address: string;
   /** The language reminders are written in now. */
   reminderLocale: Locale;
@@ -33,11 +35,12 @@ const keyBytes = (base64url: string) => {
  * email. Both off until switched on. A device is a browser: each phone or
  * computer is turned on separately.
  */
-const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: Props) => {
+const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, address, reminderLocale }: Props) => {
   const t = useT();
   const [device, setDevice] = useState<DeviceState>("checking");
   const [email, setEmail] = useState(emailOn);
-  const [busy, setBusy] = useState<"device" | "email" | "test" | null>(null);
+  const [weekly, setWeekly] = useState(weeklyOn);
+  const [busy, setBusy] = useState<"device" | "email" | "weekly" | "test" | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   // What this browser can do, and whether it already has reminders on.
@@ -123,6 +126,20 @@ const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: P
     }
   };
 
+  const toggleWeekly = async () => {
+    setBusy("weekly");
+    setMessage(null);
+    try {
+      const result = await setWeeklyReminder({ on: !weekly });
+      if (result.ok) setWeekly(!weekly);
+      else setMessage({ ok: false, text: result.error });
+    } catch {
+      setMessage({ ok: false, text: t("common.notReachable") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const test = async () => {
     setBusy("test");
     setMessage(null);
@@ -178,6 +195,17 @@ const Reminders = ({ vapidKey, emailReady, emailOn, address, reminderLocale }: P
           working={busy === "email"}
           onToggle={toggleEmail}
           label={t("remind.emailTitle")}
+        />
+
+        <Option
+          icon={CalendarClock}
+          title={t("remind.weeklyTitle")}
+          note={t("remind.weeklyNote")}
+          on={weekly}
+          disabled={busy !== null}
+          working={busy === "weekly"}
+          onToggle={toggleWeekly}
+          label={t("remind.weeklyTitle")}
         />
 
         <ReminderLanguage current={reminderLocale} />

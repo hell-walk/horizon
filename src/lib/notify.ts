@@ -17,6 +17,8 @@ export type NotifySettings = {
   localeChosen: boolean;
   /** What has been sent already ("emi:<account>:<date>"), so nothing is sent twice. Newest last. */
   sent: string[];
+  /** Monday's nudge to upload the newer statement when the saved entries are over a week old. On unless switched off. */
+  weekly: boolean;
 };
 
 export const MAX_DEVICES = 5;
@@ -68,6 +70,7 @@ export function readNotify(value: unknown): NotifySettings {
     locale: LOCALES.includes(v.locale as Locale) ? (v.locale as Locale) : "en",
     localeChosen: v.localeChosen === true,
     sent: Array.isArray(v.sent) ? v.sent.filter((s): s is string => typeof s === "string" && s.length <= 120).slice(-MAX_SENT) : [],
+    weekly: v.weekly !== false,
   };
 }
 
@@ -77,7 +80,7 @@ export function withDevice(settings: NotifySettings, sub: PushSubscription): Not
   return { ...settings, push: [...others, sub].slice(-MAX_DEVICES) };
 }
 
-export type ReminderKind = "shortfall" | "emi" | "charge";
+export type ReminderKind = "shortfall" | "emi" | "charge" | "upload";
 export type Reminder = { kind: ReminderKind; count: number; keys: string[] };
 
 /** EMIs and charges this close are worth a message; nearer than that it is too late to act. */
@@ -107,6 +110,33 @@ export function reminderFor(result: HeadsUpResult, sent: string[]): Reminder | n
   const charges = result.items.filter((i) => i.kind === "charge" && i.days <= SEND_WITHIN.charge && fresh(i));
   if (charges.length) return { kind: "charge", count: charges.length, keys: charges.map(keyOf) };
   return null;
+}
+
+/** The ISO week a date falls in, "2026-W43": the upload nudge goes at most once a week. */
+export function isoWeek(date: Date): string {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day); // the Thursday of this week decides the year
+  const week = Math.ceil(((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / 86_400_000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+/** Entries this old with nothing newer: the statement for the week is probably out. */
+const UPLOAD_AFTER_DAYS = 7;
+
+/**
+ * Monday's nudge to upload the newer statement, when the newest saved entry is
+ * more than a week old (or there is none at all). Runs after reminderFor: a due
+ * EMI or charge is the day's one message, and the nudge waits for next Monday.
+ */
+export function uploadReminder(latest: string | null, today: Date, sent: string[]): Reminder | null {
+  if (today.getUTCDay() !== 1) return null;
+  const key = `upload:${isoWeek(today)}`;
+  if (sent.includes(key)) return null;
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const age = latest && Number.isFinite(Date.parse(`${latest}T00:00:00Z`)) ? (todayUtc - Date.parse(`${latest}T00:00:00Z`)) / 86_400_000 : Infinity;
+  if (age <= UPLOAD_AFTER_DAYS) return null;
+  return { kind: "upload", count: 1, keys: [key] };
 }
 
 /** The sent list after a message went out: the new keys added, the oldest dropped. */

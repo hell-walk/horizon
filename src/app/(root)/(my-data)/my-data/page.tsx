@@ -41,6 +41,7 @@ const MyData = async () => {
             vapidKey={pushConfigured() ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY! : ""}
             emailReady={emailConfigured()}
             emailOn={reminders?.email ?? false}
+            weeklyOn={reminders?.weekly ?? true}
             reminderLocale={reminders?.locale ?? "en"}
             address={user.email}
           />
