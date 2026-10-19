@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
 import ChecksPanel from "./components/checksPanel";
+import HealthPanel from "./components/healthPanel";
 import IncomePanel from "./components/incomePanel";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
@@ -84,6 +85,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
           <Suspense fallback={null}>
             <CombinedTotal totals={accounts.totalsByCurrency} base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency} />
+          </Suspense>
+
+          {/* The health score: a number for everyone, the five parts for subscribers. */}
+          <Suspense fallback={null}>
+            <HealthPanel ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
