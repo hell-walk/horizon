@@ -13,6 +13,7 @@ import type { SpendingByAccount } from "../components/spendingThin";
 import { getT } from "@/lib/i18n/server";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { withCoverage } from "@/lib/server/coverage";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { groupBySpendType } from "@/lib/spending";
 
@@ -33,7 +34,7 @@ const MyBanks = async () => {
   if (!loggedIn) redirect("/sign-in");
 
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
-  const accountsData: Account[] = accounts?.data ?? [];
+  const accountsData: Account[] = await withCoverage(accounts?.data ?? []);
   const holder = `${loggedIn.firstName} ${loggedIn.lastName}`;
 
   // Each account's spending, in the same buckets as the Home doughnut. Not

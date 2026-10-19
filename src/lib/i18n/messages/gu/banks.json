@@ -81,5 +81,8 @@
   "coverageHoleDates": "કદાચ ખૂટે છે: {from} થી {to}, {days} દિવસ કોઈ એન્ટ્રી વગર.",
   "coverageHoleBalance": "{from} અને {to} વચ્ચે બેલેન્સ મળતાં નથી: એ દિવસોની આસપાસની એન્ટ્રીઓ ખૂટતી હોઈ શકે.",
   "coverageLatestOld": "{date} પછી કોઈ એન્ટ્રી નથી, {days} દિવસ થયા. નવું સ્ટેટમેન્ટ હોય તો ઉમેરો.",
-  "coverageAdd": "સ્ટેટમેન્ટ ઉમેરો"
+  "coverageAdd": "સ્ટેટમેન્ટ ઉમેરો",
+  "coverage_stale": "સ્ટેટમેન્ટ બાકી",
+  "coverage_gap": "સ્ટેટમેન્ટમાં ખાલી જગ્યા",
+  "coverage_unknown": "હજુ કોઈ એન્ટ્રી નથી"
 }

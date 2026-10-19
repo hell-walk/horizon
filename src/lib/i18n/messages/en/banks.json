@@ -81,5 +81,8 @@
   "coverageHoleDates": "Possibly missing: {from} to {to}, {days} days with no entries.",
   "coverageHoleBalance": "The balances do not join up between {from} and {to}: entries around those days may be missing.",
   "coverageLatestOld": "No entries since {date}, {days} days ago. If you have a newer statement, add it.",
-  "coverageAdd": "Add a statement"
+  "coverageAdd": "Add a statement",
+  "coverage_stale": "Statement due",
+  "coverage_gap": "Gap in statements",
+  "coverage_unknown": "No entries yet"
 }

@@ -3,11 +3,9 @@ import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
 import { dateFormat } from "@/lib/regularText";
-import { accountCoverage } from "@/lib/server/coverage";
+import { accountCoverage, STALE_DAYS } from "@/lib/server/coverage";
 import { maskKnown, maskLabel } from "@/lib/utils";
 
-// Entries older than this with nothing after them: worth a nudge to add the newer statement.
-const STALE_DAYS = 14;
 
 /**
  * What each uploaded account's entries cover and where they have holes, so the

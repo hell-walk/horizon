@@ -109,6 +109,7 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ],
     ["setEmailReminders", () => [{ on: false, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
     ["setReminderLanguage", () => [{ locale: "en", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    ["setReminderKinds", () => [{ emis: true, charges: true, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
     // Nothing turned on, so nothing goes out; B is never the recipient.
     ["sendTestReminder", () => [forged(victimProfile, victimBank)], (v) => expect(v).toMatchObject({ ok: false })],
     // B's id with a made-up signature unsubscribes nobody.

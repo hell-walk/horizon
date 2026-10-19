@@ -94,7 +94,13 @@ const BankCard = ({ account, userName, showBalance = true, withCopy = true, link
         <div className="relative flex items-center gap-2.5">
           <Chip />
           <Nfc className="size-4 text-white/70" strokeWidth={1.75} />
-          {design.kind === "bank" && <span className="chip ml-auto">{providerName}</span>}
+          {/* Coverage, only when something needs doing: a hole, old entries, or nothing saved. */}
+          {account.coverageStatus && account.coverageStatus !== "fresh" && (
+            <span className="chip ml-auto border-white/30 bg-white/15 text-white">{t(`banks.coverage_${account.coverageStatus}`)}</span>
+          )}
+          {design.kind === "bank" && (
+            <span className={cn("chip", !(account.coverageStatus && account.coverageStatus !== "fresh") && "ml-auto")}>{providerName}</span>
+          )}
         </div>
 
         <p translate="no" className="amount relative text-18">

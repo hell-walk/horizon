@@ -246,7 +246,8 @@ export async function runReminders(today = new Date()): Promise<RunStats | null>
       const heads = await headsUpForOwner(person.id, today);
       // One message a day: what is due comes first; Monday's statement nudge only on a quiet day.
       const reminder: Reminder | null =
-        reminderFor(heads, person.settings.sent) ?? (person.settings.weekly ? uploadReminder(heads.latest, today, person.settings.sent) : null);
+        reminderFor(heads, person.settings.sent, { emis: person.settings.emis, charges: person.settings.charges }) ??
+        (person.settings.weekly ? uploadReminder(heads.latest, today, person.settings.sent) : null);
       if (!reminder) return;
       const result = await deliver(person.id, person.email, person.settings, messageFor(reminder.kind, reminder.count, person.settings), reminder.keys);
       if (result.push || result.email) stats.reminded++;

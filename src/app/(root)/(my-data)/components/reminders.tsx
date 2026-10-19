@@ -1,12 +1,20 @@
 "use client";
 
-import { BellRing, CalendarClock, FileText, Loader2, Mail, Send, Smartphone } from "lucide-react";
+import { BadgeIndianRupee, BellRing, CalendarClock, FileText, HandCoins, Loader2, Mail, Send, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
 import ReminderLanguage from "@/components/reminderLanguage";
 import type { Locale } from "@/lib/i18n/config";
-import { removePushDevice, savePushDevice, sendTestReminder, setEmailReminders, setMonthlyReport, setWeeklyReminder } from "@/lib/actions/notify.action";
+import {
+  removePushDevice,
+  savePushDevice,
+  sendTestReminder,
+  setEmailReminders,
+  setMonthlyReport,
+  setReminderKinds,
+  setWeeklyReminder,
+} from "@/lib/actions/notify.action";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -19,6 +27,9 @@ type Props = {
   weeklyOn: boolean;
   /** The month's report by email is on. */
   monthlyOn: boolean;
+  /** EMI reminders and bank-charge alerts are on. */
+  emisOn: boolean;
+  chargesOn: boolean;
   address: string;
   /** The language reminders are written in now. */
   reminderLocale: Locale;
@@ -37,13 +48,15 @@ const keyBytes = (base64url: string) => {
  * email. Both off until switched on. A device is a browser: each phone or
  * computer is turned on separately.
  */
-const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, monthlyOn, address, reminderLocale }: Props) => {
+const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, monthlyOn, emisOn, chargesOn, address, reminderLocale }: Props) => {
   const t = useT();
   const [device, setDevice] = useState<DeviceState>("checking");
   const [email, setEmail] = useState(emailOn);
   const [weekly, setWeekly] = useState(weeklyOn);
   const [monthly, setMonthly] = useState(monthlyOn);
-  const [busy, setBusy] = useState<"device" | "email" | "weekly" | "monthly" | "test" | null>(null);
+  const [emis, setEmis] = useState(emisOn);
+  const [charges, setCharges] = useState(chargesOn);
+  const [busy, setBusy] = useState<"device" | "email" | "weekly" | "monthly" | "emis" | "charges" | "test" | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   // What this browser can do, and whether it already has reminders on.
@@ -157,6 +170,21 @@ const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, monthlyOn, address
     }
   };
 
+  const toggleKind = async (kind: "emis" | "charges") => {
+    setBusy(kind);
+    setMessage(null);
+    const next = kind === "emis" ? !emis : !charges;
+    try {
+      const result = await setReminderKinds({ [kind]: next });
+      if (result.ok) (kind === "emis" ? setEmis : setCharges)(next);
+      else setMessage({ ok: false, text: result.error });
+    } catch {
+      setMessage({ ok: false, text: t("common.notReachable") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const test = async () => {
     setBusy("test");
     setMessage(null);
@@ -212,6 +240,28 @@ const Reminders = ({ vapidKey, emailReady, emailOn, weeklyOn, monthlyOn, address
           working={busy === "email"}
           onToggle={toggleEmail}
           label={t("remind.emailTitle")}
+        />
+
+        <Option
+          icon={HandCoins}
+          title={t("remind.emisTitle")}
+          note={t("remind.emisNote")}
+          on={emis}
+          disabled={busy !== null}
+          working={busy === "emis"}
+          onToggle={() => toggleKind("emis")}
+          label={t("remind.emisTitle")}
+        />
+
+        <Option
+          icon={BadgeIndianRupee}
+          title={t("remind.chargesTitle")}
+          note={t("remind.chargesNote")}
+          on={charges}
+          disabled={busy !== null}
+          working={busy === "charges"}
+          onToggle={() => toggleKind("charges")}
+          label={t("remind.chargesTitle")}
         />
 
         <Option

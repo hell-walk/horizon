@@ -28,6 +28,7 @@ import TotalBalanceBox from "@/components/ui/totalBalanceBox";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { getT } from "@/lib/i18n/server";
+import { withCoverage } from "@/lib/server/coverage";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import CardStack from "@/components/cardStack";
@@ -58,7 +59,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   if (!accounts) return;
 
-  const accountsData: Account[] = accounts.data;
+  const accountsData: Account[] = await withCoverage(accounts.data);
   const appwriteItemId = await activeAccountId(accountsData, id);
 
   return (

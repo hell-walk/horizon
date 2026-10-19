@@ -21,6 +21,10 @@ export type NotifySettings = {
   weekly: boolean;
   /** The month's report by email on the 1st, when email is on. On unless switched off. */
   monthly: boolean;
+  /** EMI reminders (and the shortfall warning that goes with them). On unless switched off. */
+  emis: boolean;
+  /** Bank-charge alerts. On unless switched off. */
+  charges: boolean;
 };
 
 export const MAX_DEVICES = 5;
@@ -74,6 +78,8 @@ export function readNotify(value: unknown): NotifySettings {
     sent: Array.isArray(v.sent) ? v.sent.filter((s): s is string => typeof s === "string" && s.length <= 120).slice(-MAX_SENT) : [],
     weekly: v.weekly !== false,
     monthly: v.monthly !== false,
+    emis: v.emis !== false,
+    charges: v.charges !== false,
   };
 }
 
@@ -103,14 +109,18 @@ const keyOf = (item: HeadsUp) =>
  * bounce), then EMIs due within two days, then charges within three. Items
  * already sent are skipped; the minimum-balance reminder stays in the app.
  */
-export function reminderFor(result: HeadsUpResult, sent: string[]): Reminder | null {
+export function reminderFor(
+  result: HeadsUpResult,
+  sent: string[],
+  kinds: { emis: boolean; charges: boolean } = { emis: true, charges: true },
+): Reminder | null {
   const fresh = (item: HeadsUp) => !sent.includes(keyOf(item));
-  const emis = result.items.filter((i): i is Extract<HeadsUp, { kind: "emi" }> => i.kind === "emi" && i.days <= SEND_WITHIN.emi);
-  const shortfalls = result.items.filter((i) => i.kind === "shortfall" && fresh(i));
+  const emis = kinds.emis ? result.items.filter((i): i is Extract<HeadsUp, { kind: "emi" }> => i.kind === "emi" && i.days <= SEND_WITHIN.emi) : [];
+  const shortfalls = kinds.emis ? result.items.filter((i) => i.kind === "shortfall" && fresh(i)) : [];
   if (shortfalls.length && emis.length) return { kind: "shortfall", count: shortfalls.length, keys: [...shortfalls, ...emis].map(keyOf) };
   const dueEmis = emis.filter(fresh);
   if (dueEmis.length) return { kind: "emi", count: dueEmis.length, keys: dueEmis.map(keyOf) };
-  const charges = result.items.filter((i) => i.kind === "charge" && i.days <= SEND_WITHIN.charge && fresh(i));
+  const charges = kinds.charges ? result.items.filter((i) => i.kind === "charge" && i.days <= SEND_WITHIN.charge && fresh(i)) : [];
   if (charges.length) return { kind: "charge", count: charges.length, keys: charges.map(keyOf) };
   return null;
 }

@@ -20,7 +20,7 @@ export type Prefs = {
   /** Missing weeks found while importing: "ask" first (the default) or "add" without asking. */
   importGaps?: "ask" | "add";
   /** How the person earns, and a freelancer's own monthly figure (lib/income). */
-  income?: { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[] };
+  income?: { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[]; side?: number };
   /** Home's questions: what was answered (keys), and how many answers were used (free: three). */
   checks?: { answered: string[]; used: number };
   /** What the person told Horizon about each loan, by the loan's key (server/loanPlans). */

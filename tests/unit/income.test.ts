@@ -72,6 +72,12 @@ describe("estimateIncome: read the way the person earns", () => {
     expect(e).toMatchObject({ kind: "salaried", monthly: 62000, source: "salary", creditsMonthly: 63333.33, months: 3 });
   });
 
+  it("salaried with a side income the person named: the salary plus that figure", () => {
+    const e = estimateIncome(salaried, "salaried", undefined, {}, 15000);
+    expect(e).toMatchObject({ monthly: 77000, source: "salary", side: 15000 });
+    expect(e.salary?.monthly).toBe(62000);
+  });
+
   it("salaried without a salary credit yet: money in, and says so", () => {
     const e = estimateIncome([credit("2026-06-10", "UPI/CR/1/RAMESH KUMAR/SBIN/r@oksbi", 3000)], "salaried");
     expect(e).toMatchObject({ monthly: 3000, source: "credits" });

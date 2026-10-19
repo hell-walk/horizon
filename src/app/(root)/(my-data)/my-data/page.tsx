@@ -43,6 +43,8 @@ const MyData = async () => {
             emailOn={reminders?.email ?? false}
             weeklyOn={reminders?.weekly ?? true}
             monthlyOn={reminders?.monthly ?? true}
+            emisOn={reminders?.emis ?? true}
+            chargesOn={reminders?.charges ?? true}
             reminderLocale={reminders?.locale ?? "en"}
             address={user.email}
           />

@@ -21,7 +21,14 @@ const IncomePanel = async ({ ownerId, currency }: { ownerId: string; currency: s
   let line: string | null = null;
   let note: string | null = null;
   if (estimate) {
-    if (estimate.source === "salary" && estimate.salary) {
+    if (estimate.source === "salary" && estimate.salary && estimate.side) {
+      line = t("home.incomeSalaryPlus", {
+        amount: money(estimate.monthly ?? 0),
+        payee: estimate.salary.payee,
+        salary: money(estimate.salary.monthly),
+        side: money(estimate.side),
+      });
+    } else if (estimate.source === "salary" && estimate.salary) {
       line = t("home.incomeSalary", { amount: money(estimate.salary.monthly), payee: estimate.salary.payee, count: estimate.salary.months });
     } else if (estimate.source === "declared" && estimate.declared) {
       line = t("home.incomeDeclared", { amount: money(estimate.declared), seen: money(estimate.creditsMonthly) });
@@ -60,7 +67,7 @@ const IncomePanel = async ({ ownerId, currency }: { ownerId: string; currency: s
         ) : (
           <p className="text-14 text-ink-muted">{t("home.incomeAsk")}</p>
         )}
-        <IncomeChooser current={setting?.kind ?? null} declared={setting?.declared} />
+        <IncomeChooser current={setting?.kind ?? null} declared={setting?.declared} side={setting?.side} />
       </div>
     </section>
   );

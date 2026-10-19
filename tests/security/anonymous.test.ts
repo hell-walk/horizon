@@ -190,6 +190,7 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
           "setCardDesign",
           "setEmailReminders",
           "setNewPassword",
+          "setReminderKinds",
           "setReminderLanguage",
           "signIn",
           "signInWithGoogle",

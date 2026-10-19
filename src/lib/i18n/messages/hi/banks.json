@@ -81,5 +81,8 @@
   "coverageHoleDates": "शायद छूटा हुआ: {from} से {to}, {days} दिन बिना किसी एंट्री के।",
   "coverageHoleBalance": "{from} और {to} के बीच बैलेंस आपस में नहीं मिलते: उन दिनों के आसपास की एंट्रियाँ छूटी हो सकती हैं।",
   "coverageLatestOld": "{date} के बाद कोई एंट्री नहीं, {days} दिन हो गए। नया स्टेटमेंट हो तो जोड़ दें।",
-  "coverageAdd": "स्टेटमेंट जोड़ें"
+  "coverageAdd": "स्टेटमेंट जोड़ें",
+  "coverage_stale": "स्टेटमेंट बाक़ी",
+  "coverage_gap": "स्टेटमेंट में कमी",
+  "coverage_unknown": "अभी कोई एंट्री नहीं"
 }

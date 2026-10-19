@@ -84,6 +84,23 @@ export async function setWeeklyReminder(input: { on: unknown }): Promise<NotifyR
   }
 }
 
+/** EMI reminders and bank-charge alerts, each on or off; a kind left out stays as it is. */
+export async function setReminderKinds(input: { emis?: unknown; charges?: unknown }): Promise<NotifyResult> {
+  const t = await getT();
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false, error: t("remind.errSignIn") };
+  if (!(await allow(`notify:kinds:${ownerIdOf(user)}`, 10, 10 * MINUTE))) return { ok: false, error: t("remind.errTooMany") };
+  try {
+    const settings = await loadNotify(ownerIdOf(user));
+    const pick = (value: unknown, current: boolean) => (value === true ? true : value === false ? false : current);
+    await saveNotify(ownerIdOf(user), { ...settings, emis: pick(input?.emis, settings.emis), charges: pick(input?.charges, settings.charges) });
+    return { ok: true };
+  } catch (error) {
+    logError("notify: reminder kinds setting failed", error);
+    return { ok: false, error: t("remind.errFailed") };
+  }
+}
+
 /** The month's report by email on or off. */
 export async function setMonthlyReport(input: { on: unknown }): Promise<NotifyResult> {
   const t = await getT();

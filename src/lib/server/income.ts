@@ -9,7 +9,7 @@ import { getBanks } from "./banks";
 import { loadCorrections } from "./corrections";
 import { readPrefs } from "./prefs";
 
-export type IncomeSetting = { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[] };
+export type IncomeSetting = { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[]; side?: number };
 
 /** How the person said they earn, from their settings; null when never asked (older profiles). */
 export const loadIncome = cache(async (ownerId: string): Promise<IncomeSetting | null> => {
@@ -18,7 +18,8 @@ export const loadIncome = cache(async (ownerId: string): Promise<IncomeSetting |
   const declared = typeof income.declared === "number" && Number.isFinite(income.declared) && income.declared > 0 ? income.declared : undefined;
   const salaryPayee = typeof income.salaryPayee === "string" && income.salaryPayee.length <= 80 ? income.salaryPayee : undefined;
   const excluded = Array.isArray(income.excluded) ? income.excluded.filter((p): p is string => typeof p === "string" && p.length <= 80).slice(-20) : undefined;
-  return { kind: income.kind, declared, salaryPayee, excluded };
+  const side = typeof income.side === "number" && Number.isFinite(income.side) && income.side > 0 ? income.side : undefined;
+  return { kind: income.kind, declared, salaryPayee, excluded, side };
 });
 
 /** Money in each month across every uploaded account, read the way the person earns. */
@@ -31,5 +32,5 @@ export async function incomeForOwner(ownerId: string, setting: IncomeSetting): P
         .map(async (bank) => applyCorrections((await getStatementTransactions(bank)) as Transaction[], corrections) as Transaction[]),
     )
   ).flat();
-  return estimateIncome(transactions, setting.kind, setting.declared, { prefer: setting.salaryPayee, exclude: setting.excluded });
+  return estimateIncome(transactions, setting.kind, setting.declared, { prefer: setting.salaryPayee, exclude: setting.excluded }, setting.side);
 }

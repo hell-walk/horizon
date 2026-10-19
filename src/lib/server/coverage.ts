@@ -24,6 +24,23 @@ export function byUpload<T extends { createdAt?: string }>(rows: T[]): (T & { ba
   return rows.map((r) => ({ ...r, batch: batches.get(r) }));
 }
 
+export type CoverageStatus = NonNullable<Account["coverageStatus"]>;
+/** Entries older than this with nothing after them: the newer statement is probably out. */
+export const STALE_DAYS = 14;
+
+/** One word for an account's coverage: a hole, old entries, nothing saved, or fine. */
+export const coverageStatusOf = (coverage: (Coverage & { sinceLatest: number }) | null): CoverageStatus =>
+  !coverage ? "unknown" : coverage.holes.length > 0 ? "gap" : coverage.sinceLatest > STALE_DAYS ? "stale" : "fresh";
+
+/** The accounts with each uploaded one's coverage status attached, for the cards. */
+export async function withCoverage(accounts: Account[]): Promise<Account[]> {
+  return Promise.all(
+    accounts.map(async (a) =>
+      a.provider === "manual" ? { ...a, coverageStatus: coverageStatusOf(await accountCoverage(a.appwriteItemId).catch(() => null)) } : a,
+    ),
+  );
+}
+
 /** What one imported account's saved entries cover, the holes in them, and how many days ago the last entry was. Once per request per account. */
 export const accountCoverage = cache(async (bankId: string): Promise<(Coverage & { sinceLatest: number }) | null> => {
   const rows: GapRow[] = byUpload(await savedStatementRows(bankId));

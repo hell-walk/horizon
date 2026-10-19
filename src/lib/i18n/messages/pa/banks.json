@@ -81,5 +81,8 @@
   "coverageHoleDates": "ਸ਼ਾਇਦ ਛੁੱਟਿਆ ਹੋਇਆ: {from} ਤੋਂ {to}, {days} ਦਿਨ ਬਿਨਾਂ ਕਿਸੇ ਐਂਟਰੀ ਦੇ।",
   "coverageHoleBalance": "{from} ਅਤੇ {to} ਵਿਚਕਾਰ ਬੈਲੈਂਸ ਨਹੀਂ ਮਿਲਦੇ: ਉਨ੍ਹਾਂ ਦਿਨਾਂ ਦੇ ਆਸ-ਪਾਸ ਦੀਆਂ ਐਂਟਰੀਆਂ ਛੁੱਟੀਆਂ ਹੋ ਸਕਦੀਆਂ ਹਨ।",
   "coverageLatestOld": "{date} ਤੋਂ ਬਾਅਦ ਕੋਈ ਐਂਟਰੀ ਨਹੀਂ, {days} ਦਿਨ ਹੋ ਗਏ। ਨਵੀਂ ਸਟੇਟਮੈਂਟ ਹੋਵੇ ਤਾਂ ਜੋੜੋ।",
-  "coverageAdd": "ਸਟੇਟਮੈਂਟ ਜੋੜੋ"
+  "coverageAdd": "ਸਟੇਟਮੈਂਟ ਜੋੜੋ",
+  "coverage_stale": "ਸਟੇਟਮੈਂਟ ਬਾਕੀ",
+  "coverage_gap": "ਸਟੇਟਮੈਂਟਾਂ ਵਿੱਚ ਖਾਲੀ ਥਾਂ",
+  "coverage_unknown": "ਅਜੇ ਕੋਈ ਐਂਟਰੀ ਨਹੀਂ"
 }

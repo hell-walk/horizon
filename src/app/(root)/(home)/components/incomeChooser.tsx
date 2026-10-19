@@ -13,12 +13,13 @@ import { cn } from "@/lib/utils";
  * "How do you earn?": four choices, and for a freelancer a monthly figure.
  * Open on its own when nothing is known yet; otherwise a "Change" link.
  */
-const IncomeChooser = ({ current, declared }: { current: IncomeKind | null; declared?: number }) => {
+const IncomeChooser = ({ current, declared, side: savedSide }: { current: IncomeKind | null; declared?: number; side?: number }) => {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(current === null);
   const [kind, setKind] = useState<IncomeKind | null>(current);
   const [figure, setFigure] = useState(declared ? String(declared) : "");
+  const [side, setSide] = useState(savedSide ? String(savedSide) : "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -29,7 +30,11 @@ const IncomeChooser = ({ current, declared }: { current: IncomeKind | null; decl
     setBusy(true);
     setError(null);
     try {
-      const result = await setIncome({ kind, declared: kind === "freelancer" && figure ? Number(figure) : null });
+      const result = await setIncome({
+        kind,
+        declared: kind === "freelancer" && figure ? Number(figure) : null,
+        side: kind === "salaried" && side ? Number(side) : null,
+      });
       if (result.ok) {
         setOpen(false);
         startTransition(() => router.refresh());
@@ -76,6 +81,21 @@ const IncomeChooser = ({ current, declared }: { current: IncomeKind | null; decl
             id="income-figure"
             value={figure}
             onChange={(e) => setFigure(e.target.value.replace(/[^\d]/g, "").slice(0, 9))}
+            inputMode="numeric"
+            translate="no"
+            className="field-input font-mono"
+          />
+        </div>
+      )}
+      {kind === "salaried" && (
+        <div className="field max-w-xs">
+          <label htmlFor="income-side" className="field-label">
+            {t("home.incomeSideLabel")}
+          </label>
+          <input
+            id="income-side"
+            value={side}
+            onChange={(e) => setSide(e.target.value.replace(/[^\d]/g, "").slice(0, 9))}
             inputMode="numeric"
             translate="no"
             className="field-input font-mono"

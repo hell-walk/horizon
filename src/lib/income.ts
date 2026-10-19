@@ -31,6 +31,8 @@ export type IncomeEstimate = {
   declared?: number;
   /** Freelancer: the figure given and the statements disagree by more than a third. */
   mismatch?: boolean;
+  /** Salaried with a side income: the monthly figure the person gave for it, counted on top of the salary. */
+  side?: number;
 };
 
 const SALARY_WORDS = /salary|\bsal\b|payroll|wages|stipend|remuneration/i;
@@ -125,12 +127,14 @@ export function creditsPerMonth(transactions: Transaction[]): { monthly: number;
 }
 
 /** What comes in each month, read the way the person said they earn. */
-export function estimateIncome(transactions: Transaction[], kind: IncomeKind, declared?: number, hints: SalaryHints = {}): IncomeEstimate {
+export function estimateIncome(transactions: Transaction[], kind: IncomeKind, declared?: number, hints: SalaryHints = {}, side?: number): IncomeEstimate {
   const { monthly: creditsMonthly, months } = creditsPerMonth(transactions);
   const base = { kind, creditsMonthly, months };
 
   if (kind === "salaried") {
     const salary = findSalary(transactions, hints);
+    // A side income the person named sits on top of the salary; it is their word, not the statements'.
+    if (salary && side && side > 0) return { ...base, monthly: salary.monthly + side, source: "salary", salary, side };
     if (salary) return { ...base, monthly: salary.monthly, source: "salary", salary };
     return { ...base, monthly: months > 0 ? creditsMonthly : null, source: months > 0 ? "credits" : "none" };
   }

@@ -39,7 +39,17 @@ describe("push endpoints", () => {
 
 describe("stored settings", () => {
   it("are off by default and read defensively", () => {
-    expect(readNotify(undefined)).toEqual({ email: false, push: [], locale: "en", localeChosen: false, sent: [], weekly: true, monthly: true });
+    expect(readNotify(undefined)).toEqual({
+      email: false,
+      push: [],
+      locale: "en",
+      localeChosen: false,
+      sent: [],
+      weekly: true,
+      monthly: true,
+      emis: true,
+      charges: true,
+    });
     expect(readNotify({ email: "yes", locale: "xx", push: [{ endpoint: "https://evil.example" }], sent: [1, "emi:a:b"] })).toEqual({
       email: false,
       push: [],
@@ -48,6 +58,8 @@ describe("stored settings", () => {
       sent: ["emi:a:b"],
       weekly: true,
       monthly: true,
+      emis: true,
+      charges: true,
     });
     expect(readNotify({ weekly: false }).weekly).toBe(false);
   });
@@ -91,6 +103,13 @@ describe("what to send today", () => {
     const r = reminderFor(result([emi("2026-10-05", 2)]), []);
     expect(r).toEqual({ kind: "emi", count: 1, keys: ["emi:a1:2026-10-05"] });
     expect(reminderFor(result([emi("2026-10-05", 1)]), markSent([], r!.keys))).toBeNull();
+  });
+
+  it("a kind switched off is not sent, and the other still is", () => {
+    const charge = { kind: "charge" as const, account, charge: "sms" as const, amount: 17.7, date: "2026-10-05", days: 3 };
+    expect(reminderFor(result([emi("2026-10-05", 2), charge]), [], { emis: false, charges: true })).toMatchObject({ kind: "charge" });
+    expect(reminderFor(result([emi("2026-10-05", 2), charge]), [], { emis: true, charges: false })).toMatchObject({ kind: "emi" });
+    expect(reminderFor(result([emi("2026-10-05", 2), charge]), [], { emis: false, charges: false })).toBeNull();
   });
 
   it("not yet when the EMI is a week away", () => {

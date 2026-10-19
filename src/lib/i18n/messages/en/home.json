@@ -111,5 +111,7 @@
   "healthCharges_one": "{count} bank charge in the last {months} months. None is full marks.",
   "healthCharges_other": "{count} bank charges in the last {months} months. None is full marks.",
   "healthCushion": "Your balances would cover about {months} months of spending. Three months is full marks.",
-  "healthLockedText": "Subscribers see the five parts of the score, the figure behind each, and what would raise it most."
+  "healthLockedText": "Subscribers see the five parts of the score, the figure behind each, and what would raise it most.",
+  "incomeSideLabel": "Side income a month, if any (freelance, rent you receive)",
+  "incomeSalaryPlus": "{amount} a month: your salary from {payee} ({salary}) plus about {side} on the side, as you told us."
 }

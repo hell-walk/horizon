@@ -70,6 +70,8 @@ declare type Account = {
   cardDesign?: string; // chosen card skin id, or "auto"
   /** An imported statement with no balance column: the balance shown is not real. */
   balanceUnknown?: boolean;
+  /** How complete the uploaded statements are (server/coverage): set where the cards are shown. */
+  coverageStatus?: "fresh" | "stale" | "gap" | "unknown";
 };
 
 declare type BankProvider = "plaid" | "setu" | "manual";

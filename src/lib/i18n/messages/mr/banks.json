@@ -81,5 +81,8 @@
   "coverageHoleDates": "कदाचित सुटलेले: {from} ते {to}, {days} दिवस कोणतीही नोंद नाही.",
   "coverageHoleBalance": "{from} आणि {to} दरम्यान शिल्लक जुळत नाही: त्या दिवसांच्या आसपासच्या नोंदी सुटल्या असू शकतात.",
   "coverageLatestOld": "{date} नंतर कोणतीही नोंद नाही, {days} दिवस झाले. नवे स्टेटमेंट असल्यास जोडा.",
-  "coverageAdd": "स्टेटमेंट जोडा"
+  "coverageAdd": "स्टेटमेंट जोडा",
+  "coverage_stale": "स्टेटमेंट बाकी",
+  "coverage_gap": "स्टेटमेंटमध्ये खंड",
+  "coverage_unknown": "अजून नोंदी नाहीत"
 }

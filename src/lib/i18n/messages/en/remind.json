@@ -45,5 +45,9 @@
   "weeklyTitle": "Weekly statement reminder",
   "weeklyNote": "Every Monday, when your newest entries are more than a week old.",
   "monthlyTitle": "Monthly report by email",
-  "monthlyNote": "On the 1st, last month's money in, out and kept, with a link to the full report. Needs email reminders on."
+  "monthlyNote": "On the 1st, last month's money in, out and kept, with a link to the full report. Needs email reminders on.",
+  "emisTitle": "EMI reminders",
+  "emisNote": "Two days before an EMI, and when an account may not have enough for it.",
+  "chargesTitle": "Bank-charge alerts",
+  "chargesNote": "Three days before a regular bank charge is due to come back."
 }
