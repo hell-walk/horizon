@@ -24,6 +24,13 @@ describe("findSalary: a company paying much the same each month", () => {
     expect(findSalary(salaried)).toEqual({ payee: "Infosys", monthly: 62000, months: 4, last: "2026-08-31" });
   });
 
+  it("takes the person's word: a confirmed payer is the salary, a denied one never is", () => {
+    expect(findSalary(salaried, { exclude: ["Infosys"] })).toBeUndefined();
+    const uneven = [credit("2026-06-30", "NEFT/CR/ACME TRADERS/", 40000), credit("2026-07-31", "NEFT/CR/ACME TRADERS/", 90000)];
+    expect(findSalary(uneven)).toBeUndefined();
+    expect(findSalary(uneven, { prefer: "Acme Traders" })).toMatchObject({ payee: "Acme Traders", months: 2 });
+  });
+
   it("is not fooled by a person who sends money every month", () => {
     const rows = [credit("2026-06-01", "UPI/CR/1/RAMESH KUMAR/SBIN/r@oksbi", 5000), credit("2026-07-01", "UPI/CR/2/RAMESH KUMAR/SBIN/r@oksbi", 5000)];
     expect(findSalary(rows)).toBeUndefined();

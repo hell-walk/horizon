@@ -20,7 +20,9 @@ export type Prefs = {
   /** Missing weeks found while importing: "ask" first (the default) or "add" without asking. */
   importGaps?: "ask" | "add";
   /** How the person earns, and a freelancer's own monthly figure (lib/income). */
-  income?: { kind: IncomeKind; declared?: number };
+  income?: { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[] };
+  /** Home's questions: what was answered (keys), and how many answers were used (free: three). */
+  checks?: { answered: string[]; used: number };
 };
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;

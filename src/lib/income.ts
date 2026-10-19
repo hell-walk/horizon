@@ -80,25 +80,32 @@ function fullMonths(transactions: Transaction[]): string[] {
  * amount each time. The largest such payer is taken; a payer whose narration
  * says "salary" wins over one that does not.
  */
-export function findSalary(transactions: Transaction[]): SalaryCredit | undefined {
+export type SalaryHints = { prefer?: string; exclude?: string[] };
+
+export function findSalary(transactions: Transaction[], hints: SalaryHints = {}): SalaryCredit | undefined {
+  const excluded = new Set((hints.exclude ?? []).map((p) => p.toLowerCase()));
+  const preferred = hints.prefer?.toLowerCase();
   const byPayee = new Map<string, Credit[]>();
   for (const c of creditsIn(transactions)) {
     // Pocket money from a parent arrives on the same date each month too: a person is never an employer.
     if (!COMPANY_WORDS.test(c.name) && isPersonPayment(c.name)) continue;
     const payee = payeeName(c.name);
-    if (payee === "Other") continue;
+    if (payee === "Other" || excluded.has(payee.toLowerCase())) continue;
     byPayee.set(payee, [...(byPayee.get(payee) ?? []), c]);
   }
   let best: (SalaryCredit & { said: boolean }) | undefined;
   for (const [payee, credits] of byPayee) {
     const months = new Set(credits.map((c) => c.month));
-    if (months.size < 2) continue;
+    // The person said this payer is the salary: it is, however uneven its months look.
+    const confirmed = payee.toLowerCase() === preferred;
+    if (months.size < 2 && !confirmed) continue;
     // One credit per month: a bonus paid alongside the salary would otherwise double it.
     const perMonth = [...months].map((m) => Math.max(...credits.filter((c) => c.month === m).map((c) => c.amount)));
     const usual = median(perMonth);
-    if (!perMonth.every((a) => Math.abs(a - usual) <= usual * 0.25)) continue;
-    const said = credits.some((c) => SALARY_WORDS.test(c.name));
+    if (!confirmed && !perMonth.every((a) => Math.abs(a - usual) <= usual * 0.25)) continue;
+    const said = confirmed || credits.some((c) => SALARY_WORDS.test(c.name));
     const candidate = { payee, monthly: round2(usual), months: months.size, last: credits.reduce((l, c) => (c.date > l ? c.date : l), ""), said };
+    if (confirmed) return { payee, monthly: candidate.monthly, months: candidate.months, last: candidate.last };
     if (!best || (candidate.said && !best.said) || (candidate.said === best.said && candidate.monthly > best.monthly)) best = candidate;
   }
   if (!best) return undefined;
@@ -118,12 +125,12 @@ export function creditsPerMonth(transactions: Transaction[]): { monthly: number;
 }
 
 /** What comes in each month, read the way the person said they earn. */
-export function estimateIncome(transactions: Transaction[], kind: IncomeKind, declared?: number): IncomeEstimate {
+export function estimateIncome(transactions: Transaction[], kind: IncomeKind, declared?: number, hints: SalaryHints = {}): IncomeEstimate {
   const { monthly: creditsMonthly, months } = creditsPerMonth(transactions);
   const base = { kind, creditsMonthly, months };
 
   if (kind === "salaried") {
-    const salary = findSalary(transactions);
+    const salary = findSalary(transactions, hints);
     if (salary) return { ...base, monthly: salary.monthly, source: "salary", salary };
     return { ...base, monthly: months > 0 ? creditsMonthly : null, source: months > 0 ? "credits" : "none" };
   }

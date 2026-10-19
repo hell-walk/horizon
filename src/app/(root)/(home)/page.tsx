@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
+import ChecksPanel from "./components/checksPanel";
 import IncomePanel from "./components/incomePanel";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
@@ -88,6 +89,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
           <Suspense fallback={null}>
             <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
+          </Suspense>
+
+          {/* "Is this right?": one question at a time, where the statements leave Horizon unsure. */}
+          <Suspense fallback={null}>
+            <ChecksPanel ownerId={ownerIdOf(loggedIn)} person={{ firstName: loggedIn.firstName, lastName: loggedIn.lastName }} />
           </Suspense>
 
           <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
