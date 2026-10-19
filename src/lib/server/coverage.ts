@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { coverageOf, type Coverage, type GapRow } from "../statements/gaps";
-import { savedStatementRows } from "./statementRows";
+import { getStatementGapRows } from "../providers/manual";
 
 const DAY = 86_400_000;
 // Rows saved further apart than this came from different uploads (one upload writes its rows within seconds).
@@ -36,14 +36,18 @@ export const coverageStatusOf = (coverage: (Coverage & { sinceLatest: number }) 
 export async function withCoverage(accounts: Account[]): Promise<Account[]> {
   return Promise.all(
     accounts.map(async (a) =>
-      a.provider === "manual" ? { ...a, coverageStatus: coverageStatusOf(await accountCoverage(a.appwriteItemId).catch(() => null)) } : a,
+      a.provider === "manual" ? { ...a, coverageStatus: coverageStatusOf(await accountCoverage(a.appwriteItemId, a.id, a.currency).catch(() => null)) } : a,
     ),
   );
 }
 
-/** What one imported account's saved entries cover, the holes in them, and how many days ago the last entry was. Once per request per account. */
-export const accountCoverage = cache(async (bankId: string): Promise<(Coverage & { sinceLatest: number }) | null> => {
-  const rows: GapRow[] = byUpload(await savedStatementRows(bankId));
+/**
+ * What one imported account's saved entries cover, the holes in them, and how
+ * many days ago the last entry was. Once per request per account, from the
+ * same rows the rest of the page reads (bankId is the bank row's id).
+ */
+export const accountCoverage = cache(async (bankId: string, accountId: string, currency: string): Promise<(Coverage & { sinceLatest: number }) | null> => {
+  const rows: GapRow[] = byUpload(await getStatementGapRows({ $id: bankId, accountId, currency }));
   const coverage = coverageOf(rows);
   if (!coverage) return null;
   const sinceLatest = Math.floor(Date.now() / DAY) - Math.floor(Date.parse(`${coverage.to}T00:00:00Z`) / DAY);

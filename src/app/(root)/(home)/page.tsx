@@ -33,6 +33,7 @@ import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import CardStack from "@/components/cardStack";
 import { BarsLoader } from "@/components/loaders";
+import PanelPlaceholder from "@/components/panelPlaceholder";
 import SpendingStrip from "@/components/spendingStrip";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -90,17 +91,17 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           </Suspense>
 
           {/* The health score: a number for everyone, the five parts for subscribers. */}
-          <Suspense fallback={null}>
+          <Suspense fallback={<PanelPlaceholder className="min-h-44" />}>
             <HealthPanel ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           {/* The latest month's report in three numbers. */}
-          <Suspense fallback={null}>
+          <Suspense fallback={<PanelPlaceholder className="min-h-32" />}>
             <ReportTeaser ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
           {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
-          <Suspense fallback={null}>
+          <Suspense fallback={<PanelPlaceholder className="min-h-28" />}>
             <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
           </Suspense>
 

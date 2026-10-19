@@ -8,13 +8,11 @@ import { createAdminClient } from "../server/appwrite";
 import { cached, TTL } from "../cache";
 import { categorize } from "../categories";
 import { loadExtraTerms } from "../server/terms";
+import type { GapRow } from "../statements/gaps";
 
 export const MANUAL_PROVIDER = "manual" as const;
 
-const {
-  APPWRITE_DATABASE_ID: DATABASE_ID,
-  APPWRITE_STATEMENT_COLLECTION_ID: STATEMENT_COLLECTION_ID,
-} = process.env;
+const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_STATEMENT_COLLECTION_ID: STATEMENT_COLLECTION_ID } = process.env;
 
 /** Maps a manual bank row into the app's Account shape. */
 export function toManualAccount(bank: Bank): Account {
@@ -43,10 +41,36 @@ export function toManualAccount(bank: Bank): Account {
 const PAGE = 1000;
 const MAX_ENTRIES = 50_000;
 
-/** Every imported transaction for one manual bank, newest first, cached briefly. */
-export const getStatementTransactions = (bank: Bank) =>
-  cached(`statement:${bank.$id}`, TTL.short, async () => {
+// Rows kept in this server copy's memory across requests, each with the stamp
+// it was read under: ten minutes at most, a few dozen banks at most.
+const MEMORY_MS = 10 * 60_000;
+const MEMORY_MAX = 40;
+type StatementRows = { transactions: Transaction[]; gapRows: (GapRow & { createdAt?: string })[] };
+const memory = new Map<string, { stamp: string; rows: StatementRows; at: number }>();
+
+/**
+ * Every saved entry of one imported bank: once per request, and across
+ * requests for as long as nothing was added or removed. One small trip asks
+ * how many entries there are and which was saved last; the same answer as
+ * last time means the same rows, so the pages are not read again. Entries
+ * are only ever added (an upload) or removed (an account deleted), never
+ * edited: the person's own names and categories are applied on top, elsewhere.
+ * (Appwrite stops counting at 5,000; the newest entry's id still changes
+ * with every upload, so an addition is never missed.)
+ */
+const loadStatementRows = (bank: Pick<Bank, "$id" | "accountId" | "currency">) =>
+  cached(`statement:${bank.$id}`, TTL.short, async (): Promise<StatementRows> => {
     const { database } = await createAdminClient();
+    const latest = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
+      Query.equal("bankId", [bank.$id]),
+      Query.orderDesc("$createdAt"),
+      Query.limit(1),
+      Query.select(["$id", "$createdAt"]),
+    ]);
+    const stamp = `${latest.total}:${latest.documents[0]?.$id ?? ""}`;
+    const kept = memory.get(bank.$id);
+    if (kept && kept.stamp === stamp && Date.now() - kept.at < MEMORY_MS) return kept.rows;
+
     const documents = [];
     let cursor: string | undefined;
     while (documents.length < MAX_ENTRIES) {
@@ -63,11 +87,30 @@ export const getStatementTransactions = (bank: Bank) =>
 
     // The team's added lender and subscription names, so the re-categorising below sees them.
     await loadExtraTerms();
-    return documents.map((doc) => toTransaction(doc, bank));
+    const rows: StatementRows = {
+      transactions: documents.map((doc) => toTransaction(doc, bank)),
+      gapRows: documents.map((doc) => ({
+        date: String(doc.date),
+        amount: Number(doc.amount),
+        type: String(doc.type),
+        balance: typeof doc.balance === "number" ? doc.balance : null,
+        createdAt: typeof doc.$createdAt === "string" ? doc.$createdAt : undefined,
+      })),
+    };
+    memory.delete(bank.$id);
+    memory.set(bank.$id, { stamp, rows, at: Date.now() });
+    while (memory.size > MEMORY_MAX) memory.delete(memory.keys().next().value!);
+    return rows;
   });
 
+/** Every imported transaction for one manual bank, newest first. Shared: never change the rows in place. */
+export const getStatementTransactions = async (bank: Bank): Promise<Transaction[]> => (await loadStatementRows(bank)).transactions;
+
+/** The same entries in the shape the coverage check reads (date, amount, balance, when saved). */
+export const getStatementGapRows = async (bank: Pick<Bank, "$id" | "accountId" | "currency">) => (await loadStatementRows(bank)).gapRows;
+
 /** One saved statement row in the app's Transaction shape. */
-function toTransaction(doc: Record<string, unknown> & { $id: string }, bank: Bank): Transaction {
+function toTransaction(doc: Record<string, unknown> & { $id: string }, bank: Pick<Bank, "accountId" | "currency">): Transaction {
   return {
     id: doc.$id,
     name: doc.name as string,

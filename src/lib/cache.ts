@@ -15,7 +15,7 @@ import { cache as perRequest } from "react";
 type Entry = { value: unknown; expires: number };
 
 const MULTI_INSTANCE = process.env.VERCEL === "1" || process.env.MULTI_INSTANCE === "1";
-const USER_DATA = ["banks:", "statement:", "transfers:", "corrections:", "goals:"];
+const USER_DATA = ["banks:", "statement:", "transfers:", "corrections:", "goals:", "prefs:"];
 const perUser = (key: string) => MULTI_INSTANCE && USER_DATA.some((prefix) => key.startsWith(prefix));
 // One map per request (React gives each server request its own); a fresh map outside a request.
 const requestStore = perRequest(() => new Map<string, Promise<unknown>>());

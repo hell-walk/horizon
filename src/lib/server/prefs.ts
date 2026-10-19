@@ -2,6 +2,7 @@ import "server-only";
 
 import type { IncomeKind } from "../income";
 
+import { cached, remember, TTL } from "../cache";
 import { createAdminClient } from "./appwrite";
 
 // A person's settings: the column layouts they chose for their bank's
@@ -40,19 +41,29 @@ const parse = (value: unknown): Prefs => {
   }
 };
 
-/** The settings on a profile (`ownerId` is the profile row's id). */
-export async function readPrefs(ownerId: string): Promise<Prefs> {
+const key = (ownerId: string) => `prefs:${ownerId}`;
+
+async function readPrefsNow(ownerId: string): Promise<Prefs> {
   const { database } = await createAdminClient();
   const profile = await database.getDocument(DATABASE_ID!, USER_COLLECTION_ID!, ownerId);
   return parse((profile as Record<string, unknown>).prefs);
 }
 
+/**
+ * The settings on a profile (`ownerId` is the profile row's id): read once per
+ * request, however many parts of the page ask. A change through updatePrefs
+ * is seen by the page drawn right after it.
+ */
+export const readPrefs = (ownerId: string): Promise<Prefs> => cached(key(ownerId), TTL.short, () => readPrefsNow(ownerId));
+
 /** Changes some settings and keeps the rest. Refuses (throws) rather than cut stored JSON short. */
 export async function updatePrefs(ownerId: string, change: Partial<Prefs>): Promise<Prefs> {
-  const next = { ...(await readPrefs(ownerId)), ...change };
+  // Read fresh: a change must build on what is stored now, not on a copy from earlier in the request.
+  const next = { ...(await readPrefsNow(ownerId)), ...change };
   const text = JSON.stringify(next);
   if (text.length > MAX_LENGTH) throw new Error("prefs: too large to store");
   const { database } = await createAdminClient();
   await database.updateDocument(DATABASE_ID!, USER_COLLECTION_ID!, ownerId, { prefs: text });
+  remember(key(ownerId), next, TTL.short);
   return next;
 }

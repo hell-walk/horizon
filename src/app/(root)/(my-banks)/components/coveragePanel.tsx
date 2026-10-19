@@ -6,7 +6,6 @@ import { dateFormat } from "@/lib/regularText";
 import { accountCoverage, STALE_DAYS } from "@/lib/server/coverage";
 import { maskKnown, maskLabel } from "@/lib/utils";
 
-
 /**
  * What each uploaded account's entries cover and where they have holes, so the
  * charts can be trusted (or not). Only accounts from statements: a linked bank
@@ -17,7 +16,9 @@ const CoveragePanel = async ({ accounts }: { accounts: Account[] }) => {
   if (imported.length === 0) return null;
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const day = dateFormat(locale, { day: "numeric", month: "short", year: "numeric" });
-  const items = await Promise.all(imported.map(async (account) => ({ account, coverage: await accountCoverage(account.appwriteItemId).catch(() => null) })));
+  const items = await Promise.all(
+    imported.map(async (account) => ({ account, coverage: await accountCoverage(account.appwriteItemId, account.id, account.currency).catch(() => null) })),
+  );
 
   return (
     <section className="panel" aria-labelledby="coverage-title">
