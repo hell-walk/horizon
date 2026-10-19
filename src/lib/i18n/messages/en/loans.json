@@ -60,5 +60,19 @@
   "endedTitle_other": "{count} loans look closed",
   "lockedTitle": "See every lender, and which to close first",
   "lockedText": "Subscribers see each lender by name, the kind of loan, how much of their income goes to EMIs, failed payments, and the order to close them in.",
-  "lockedAction": "See plans"
+  "lockedAction": "See plans",
+  "planTitle": "Plan the payoff",
+  "planIntro": "Statements show the EMI, not the balance or the rate. Add those from your loan account or app, and Horizon works out the rest. Fixed-rate arithmetic: a floating rate moves, so this is an estimate at today's rate.",
+  "planOutstanding": "Outstanding now",
+  "planRate": "Interest rate, % a year",
+  "planExtra": "Extra every month",
+  "planLump": "One-time prepayment now",
+  "planNeed": "Enter the outstanding amount and the rate to see the plan.",
+  "planNoCover": "At this rate the EMI does not even cover the interest, so the loan would never end. Check the figures.",
+  "planBaseline": "As it is: {months} months to go, {interest} more in interest, done around {date}.",
+  "planFaster": "With the extra: {months} months to go, {interest} in interest, done around {date}.",
+  "planSaves": "That saves {interest} and {months} months.",
+  "planSave": "Save",
+  "planSaved": "Saved. The figures stay with this loan.",
+  "planErr": "Check the figures: a positive amount, and a rate between 0 and 60."
 }

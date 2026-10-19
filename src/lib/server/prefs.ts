@@ -23,6 +23,8 @@ export type Prefs = {
   income?: { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[] };
   /** Home's questions: what was answered (keys), and how many answers were used (free: three). */
   checks?: { answered: string[]; used: number };
+  /** What the person told Horizon about each loan, by the loan's key (server/loanPlans). */
+  loanPlans?: unknown;
 };
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;

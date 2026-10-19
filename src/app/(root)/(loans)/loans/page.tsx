@@ -10,11 +10,15 @@ import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { loadBand, type Loan, type LoanReport } from "@/lib/loans";
+import { monthsFrom } from "@/lib/payoff";
 import { dateFormat } from "@/lib/regularText";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+import { loadLoanPlans, type LoanPlan } from "@/lib/server/loanPlans";
 import { loanPicture } from "@/lib/server/loans";
 import { currentPlan } from "@/lib/server/plan";
 import { cn, formatAmount } from "@/lib/utils";
+
+import PayoffPlanner from "../components/payoffPlanner";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -64,7 +68,7 @@ const Loans = async () => {
 async function LoansContent({ ownerId }: { ownerId: string }) {
   const t = await getT();
   const locale = await getLocale();
-  const [report, plan] = await Promise.all([loanPicture(ownerId), currentPlan()]);
+  const [report, plan, plans] = await Promise.all([loanPicture(ownerId), currentPlan(), loadLoanPlans(ownerId).catch(() => ({}) as Record<string, LoanPlan>)]);
 
   if (report.loans.length === 0) {
     return (
@@ -78,7 +82,7 @@ async function LoansContent({ ownerId }: { ownerId: string }) {
   }
 
   if (plan?.kind !== "subscribed") return <Locked t={t} report={report} />;
-  return <Analysis t={t} locale={locale} report={report} />;
+  return <Analysis t={t} locale={locale} report={report} plans={plans} />;
 }
 
 /** Not subscribed: the headline only, and what subscribing shows. */
@@ -112,7 +116,7 @@ const Locked = ({ t, report }: { t: Translate; report: LoanReport }) => (
   </>
 );
 
-const Analysis = ({ t, locale, report }: { t: Translate; locale: Locale; report: LoanReport }) => {
+const Analysis = ({ t, locale, report, plans }: { t: Translate; locale: Locale; report: LoanReport; plans: Record<string, LoanPlan> }) => {
   const day = dateFormat(locale, { day: "numeric", month: "short", year: "numeric" });
   const currencies = Object.keys(report.monthly);
   // A share of income only makes sense in one currency, with a regular income in it.
@@ -191,7 +195,7 @@ const Analysis = ({ t, locale, report }: { t: Translate; locale: Locale; report:
 
       <ul className="flex flex-col gap-3">
         {active.map((l) => (
-          <LoanCard key={l.key} l={l} t={t} day={day} />
+          <LoanCard key={l.key} l={l} t={t} day={day} savedPlan={plans[l.key] ?? null} />
         ))}
       </ul>
 
@@ -211,8 +215,11 @@ const Analysis = ({ t, locale, report }: { t: Translate; locale: Locale; report:
   );
 };
 
-const LoanCard = ({ l, t, day }: { l: Loan; t: Translate; day: (d: string) => string }) => {
+// `savedPlan`: the payoff planner shows under an active loan; undefined leaves it out (closed loans).
+const LoanCard = ({ l, t, day, savedPlan }: { l: Loan; t: Translate; day: (d: string) => string; savedPlan?: LoanPlan | null }) => {
   const amount = (n: number) => formatAmount(n, l.currency);
+  // The planner's dates in the person's language: the next twenty years of month-ends, done here, not in the browser.
+  const dates = savedPlan !== undefined ? Object.fromEntries(plannerDates().map((d) => [d, day(d)])) : {};
   return (
     <li className="panel flex flex-col gap-2 p-4">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -254,6 +261,9 @@ const LoanCard = ({ l, t, day }: { l: Loan; t: Translate; day: (d: string) => st
           ))}
         </ul>
       </details>
+      {savedPlan !== undefined && l.status === "active" && (
+        <PayoffPlanner loanKey={l.key} emi={l.monthly} currency={l.currency} saved={savedPlan} dates={dates} />
+      )}
     </li>
   );
 };
@@ -267,5 +277,11 @@ const Tile = ({ label, value, note }: { label: string; value: string; note: stri
     <p className="eyebrow">{note}</p>
   </article>
 );
+
+/** Every day a payoff could land on in the next twenty years: the same day of the month as today. */
+function plannerDates(): string[] {
+  const today = new Date();
+  return Array.from({ length: 241 }, (_, n) => monthsFrom(today, n));
+}
 
 export default Loans;
