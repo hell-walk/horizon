@@ -1,4 +1,18 @@
-import { ArrowLeftRight, BadgeIndianRupee, CalendarClock, HandCoins, Gem, Home, Landmark, MessageSquare, PlugZap, ReceiptText, ShieldCheck, Target } from "lucide-react";
+import {
+  ArrowLeftRight,
+  BadgeIndianRupee,
+  CalendarClock,
+  CalendarDays,
+  HandCoins,
+  Gem,
+  Home,
+  Landmark,
+  MessageSquare,
+  PlugZap,
+  ReceiptText,
+  ShieldCheck,
+  Target,
+} from "lucide-react";
 
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -20,6 +34,7 @@ export const sidebarLinks = [
 // Behind "More" (the three dots) everywhere. Sending money is US-only (Dwolla);
 // in India people pay with UPI, so it does not need a place in the main bar.
 export const moreLinks = [
+  { icon: CalendarDays, route: "/calendar", label: "Cash-flow calendar", labelKey: "nav.calendar", shortKey: "nav.calendarShort" },
   { icon: Target, route: "/goals", label: "Savings goals", labelKey: "nav.goals", shortKey: "nav.goals" },
   { icon: ArrowLeftRight, route: "/payment-transfer", label: "Payment Transfer", labelKey: "nav.transfer", shortKey: "nav.transferShort" },
   { icon: ShieldCheck, route: "/my-data", label: "Privacy and your data", labelKey: "nav.myData", shortKey: "nav.myData" },
@@ -39,7 +54,14 @@ export const chartColorClass = (name: string, index: number) =>
 export const PROVIDER_LABELS: Record<string, { name: string; region: string; mode: string; nameKey: string; regionKey: string; modeKey: string }> = {
   plaid: { name: "Plaid", region: "US", mode: "Sandbox", nameKey: "common.providerPlaid", regionKey: "common.regionUs", modeKey: "common.modeSandbox" },
   setu: { name: "Setu AA", region: "India", mode: "Sandbox", nameKey: "common.providerSetu", regionKey: "common.regionIndia", modeKey: "common.modeSandbox" },
-  manual: { name: "Statement", region: "India", mode: "Imported", nameKey: "common.providerManual", regionKey: "common.regionIndia", modeKey: "common.modeImported" },
+  manual: {
+    name: "Statement",
+    region: "India",
+    mode: "Imported",
+    nameKey: "common.providerManual",
+    regionKey: "common.regionIndia",
+    modeKey: "common.modeImported",
+  },
 };
 
 // The spending buckets from lib/spending (and "UPI payments" from lib/payees),

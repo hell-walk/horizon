@@ -6,6 +6,7 @@ import type { Locale } from "../config";
 import enAuth from "./en/auth.json";
 import enBanks from "./en/banks.json";
 import enBills from "./en/bills.json";
+import enCalendar from "./en/calendar.json";
 import enCharges from "./en/charges.json";
 import enCommon from "./en/common.json";
 import enConnect from "./en/connect.json";
@@ -27,6 +28,7 @@ import enTransfer from "./en/transfer.json";
 import hiAuth from "./hi/auth.json";
 import hiBanks from "./hi/banks.json";
 import hiBills from "./hi/bills.json";
+import hiCalendar from "./hi/calendar.json";
 import hiCharges from "./hi/charges.json";
 import hiCommon from "./hi/common.json";
 import hiConnect from "./hi/connect.json";
@@ -48,6 +50,7 @@ import hiTransfer from "./hi/transfer.json";
 import bnAuth from "./bn/auth.json";
 import bnBanks from "./bn/banks.json";
 import bnBills from "./bn/bills.json";
+import bnCalendar from "./bn/calendar.json";
 import bnCharges from "./bn/charges.json";
 import bnCommon from "./bn/common.json";
 import bnConnect from "./bn/connect.json";
@@ -69,6 +72,7 @@ import bnTransfer from "./bn/transfer.json";
 import mrAuth from "./mr/auth.json";
 import mrBanks from "./mr/banks.json";
 import mrBills from "./mr/bills.json";
+import mrCalendar from "./mr/calendar.json";
 import mrCharges from "./mr/charges.json";
 import mrCommon from "./mr/common.json";
 import mrConnect from "./mr/connect.json";
@@ -90,6 +94,7 @@ import mrTransfer from "./mr/transfer.json";
 import teAuth from "./te/auth.json";
 import teBanks from "./te/banks.json";
 import teBills from "./te/bills.json";
+import teCalendar from "./te/calendar.json";
 import teCharges from "./te/charges.json";
 import teCommon from "./te/common.json";
 import teConnect from "./te/connect.json";
@@ -111,6 +116,7 @@ import teTransfer from "./te/transfer.json";
 import taAuth from "./ta/auth.json";
 import taBanks from "./ta/banks.json";
 import taBills from "./ta/bills.json";
+import taCalendar from "./ta/calendar.json";
 import taCharges from "./ta/charges.json";
 import taCommon from "./ta/common.json";
 import taConnect from "./ta/connect.json";
@@ -132,6 +138,7 @@ import taTransfer from "./ta/transfer.json";
 import guAuth from "./gu/auth.json";
 import guBanks from "./gu/banks.json";
 import guBills from "./gu/bills.json";
+import guCalendar from "./gu/calendar.json";
 import guCharges from "./gu/charges.json";
 import guCommon from "./gu/common.json";
 import guConnect from "./gu/connect.json";
@@ -153,6 +160,7 @@ import guTransfer from "./gu/transfer.json";
 import knAuth from "./kn/auth.json";
 import knBanks from "./kn/banks.json";
 import knBills from "./kn/bills.json";
+import knCalendar from "./kn/calendar.json";
 import knCharges from "./kn/charges.json";
 import knCommon from "./kn/common.json";
 import knConnect from "./kn/connect.json";
@@ -174,6 +182,7 @@ import knTransfer from "./kn/transfer.json";
 import mlAuth from "./ml/auth.json";
 import mlBanks from "./ml/banks.json";
 import mlBills from "./ml/bills.json";
+import mlCalendar from "./ml/calendar.json";
 import mlCharges from "./ml/charges.json";
 import mlCommon from "./ml/common.json";
 import mlConnect from "./ml/connect.json";
@@ -195,6 +204,7 @@ import mlTransfer from "./ml/transfer.json";
 import orAuth from "./or/auth.json";
 import orBanks from "./or/banks.json";
 import orBills from "./or/bills.json";
+import orCalendar from "./or/calendar.json";
 import orCharges from "./or/charges.json";
 import orCommon from "./or/common.json";
 import orConnect from "./or/connect.json";
@@ -216,6 +226,7 @@ import orTransfer from "./or/transfer.json";
 import paAuth from "./pa/auth.json";
 import paBanks from "./pa/banks.json";
 import paBills from "./pa/bills.json";
+import paCalendar from "./pa/calendar.json";
 import paCharges from "./pa/charges.json";
 import paCommon from "./pa/common.json";
 import paConnect from "./pa/connect.json";
@@ -241,15 +252,15 @@ const flatten = (areas: Record<string, Record<string, string>>): Messages =>
   Object.fromEntries(Object.entries(areas).flatMap(([area, entries]) => Object.entries(entries).map(([key, text]) => [`${area}.${key}`, text])));
 
 export const MESSAGES: Record<Locale, Messages> = {
-  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, loans: enLoans, nav: enNav, plan: enPlan, ready: enReady, remind: enRemind, spending: enSpending, transfer: enTransfer }),
-  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, loans: hiLoans, nav: hiNav, plan: hiPlan, ready: hiReady, remind: hiRemind, spending: hiSpending, transfer: hiTransfer }),
-  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, loans: bnLoans, nav: bnNav, plan: bnPlan, ready: bnReady, remind: bnRemind, spending: bnSpending, transfer: bnTransfer }),
-  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, loans: mrLoans, nav: mrNav, plan: mrPlan, ready: mrReady, remind: mrRemind, spending: mrSpending, transfer: mrTransfer }),
-  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, loans: teLoans, nav: teNav, plan: tePlan, ready: teReady, remind: teRemind, spending: teSpending, transfer: teTransfer }),
-  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, loans: taLoans, nav: taNav, plan: taPlan, ready: taReady, remind: taRemind, spending: taSpending, transfer: taTransfer }),
-  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, loans: guLoans, nav: guNav, plan: guPlan, ready: guReady, remind: guRemind, spending: guSpending, transfer: guTransfer }),
-  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, loans: knLoans, nav: knNav, plan: knPlan, ready: knReady, remind: knRemind, spending: knSpending, transfer: knTransfer }),
-  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, loans: mlLoans, nav: mlNav, plan: mlPlan, ready: mlReady, remind: mlRemind, spending: mlSpending, transfer: mlTransfer }),
-  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, loans: orLoans, nav: orNav, plan: orPlan, ready: orReady, remind: orRemind, spending: orSpending, transfer: orTransfer }),
-  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, loans: paLoans, nav: paNav, plan: paPlan, ready: paReady, remind: paRemind, spending: paSpending, transfer: paTransfer }),
+  en: flatten({ auth: enAuth, banks: enBanks, bills: enBills, calendar: enCalendar, charges: enCharges, common: enCommon, connect: enConnect, data: enData, feedback: enFeedback, goals: enGoals, history: enHistory, home: enHome, insights: enInsights, landing: enLanding, legal: enLegal, loans: enLoans, nav: enNav, plan: enPlan, ready: enReady, remind: enRemind, spending: enSpending, transfer: enTransfer }),
+  hi: flatten({ auth: hiAuth, banks: hiBanks, bills: hiBills, calendar: hiCalendar, charges: hiCharges, common: hiCommon, connect: hiConnect, data: hiData, feedback: hiFeedback, goals: hiGoals, history: hiHistory, home: hiHome, insights: hiInsights, landing: hiLanding, legal: hiLegal, loans: hiLoans, nav: hiNav, plan: hiPlan, ready: hiReady, remind: hiRemind, spending: hiSpending, transfer: hiTransfer }),
+  bn: flatten({ auth: bnAuth, banks: bnBanks, bills: bnBills, calendar: bnCalendar, charges: bnCharges, common: bnCommon, connect: bnConnect, data: bnData, feedback: bnFeedback, goals: bnGoals, history: bnHistory, home: bnHome, insights: bnInsights, landing: bnLanding, legal: bnLegal, loans: bnLoans, nav: bnNav, plan: bnPlan, ready: bnReady, remind: bnRemind, spending: bnSpending, transfer: bnTransfer }),
+  mr: flatten({ auth: mrAuth, banks: mrBanks, bills: mrBills, calendar: mrCalendar, charges: mrCharges, common: mrCommon, connect: mrConnect, data: mrData, feedback: mrFeedback, goals: mrGoals, history: mrHistory, home: mrHome, insights: mrInsights, landing: mrLanding, legal: mrLegal, loans: mrLoans, nav: mrNav, plan: mrPlan, ready: mrReady, remind: mrRemind, spending: mrSpending, transfer: mrTransfer }),
+  te: flatten({ auth: teAuth, banks: teBanks, bills: teBills, calendar: teCalendar, charges: teCharges, common: teCommon, connect: teConnect, data: teData, feedback: teFeedback, goals: teGoals, history: teHistory, home: teHome, insights: teInsights, landing: teLanding, legal: teLegal, loans: teLoans, nav: teNav, plan: tePlan, ready: teReady, remind: teRemind, spending: teSpending, transfer: teTransfer }),
+  ta: flatten({ auth: taAuth, banks: taBanks, bills: taBills, calendar: taCalendar, charges: taCharges, common: taCommon, connect: taConnect, data: taData, feedback: taFeedback, goals: taGoals, history: taHistory, home: taHome, insights: taInsights, landing: taLanding, legal: taLegal, loans: taLoans, nav: taNav, plan: taPlan, ready: taReady, remind: taRemind, spending: taSpending, transfer: taTransfer }),
+  gu: flatten({ auth: guAuth, banks: guBanks, bills: guBills, calendar: guCalendar, charges: guCharges, common: guCommon, connect: guConnect, data: guData, feedback: guFeedback, goals: guGoals, history: guHistory, home: guHome, insights: guInsights, landing: guLanding, legal: guLegal, loans: guLoans, nav: guNav, plan: guPlan, ready: guReady, remind: guRemind, spending: guSpending, transfer: guTransfer }),
+  kn: flatten({ auth: knAuth, banks: knBanks, bills: knBills, calendar: knCalendar, charges: knCharges, common: knCommon, connect: knConnect, data: knData, feedback: knFeedback, goals: knGoals, history: knHistory, home: knHome, insights: knInsights, landing: knLanding, legal: knLegal, loans: knLoans, nav: knNav, plan: knPlan, ready: knReady, remind: knRemind, spending: knSpending, transfer: knTransfer }),
+  ml: flatten({ auth: mlAuth, banks: mlBanks, bills: mlBills, calendar: mlCalendar, charges: mlCharges, common: mlCommon, connect: mlConnect, data: mlData, feedback: mlFeedback, goals: mlGoals, history: mlHistory, home: mlHome, insights: mlInsights, landing: mlLanding, legal: mlLegal, loans: mlLoans, nav: mlNav, plan: mlPlan, ready: mlReady, remind: mlRemind, spending: mlSpending, transfer: mlTransfer }),
+  or: flatten({ auth: orAuth, banks: orBanks, bills: orBills, calendar: orCalendar, charges: orCharges, common: orCommon, connect: orConnect, data: orData, feedback: orFeedback, goals: orGoals, history: orHistory, home: orHome, insights: orInsights, landing: orLanding, legal: orLegal, loans: orLoans, nav: orNav, plan: orPlan, ready: orReady, remind: orRemind, spending: orSpending, transfer: orTransfer }),
+  pa: flatten({ auth: paAuth, banks: paBanks, bills: paBills, calendar: paCalendar, charges: paCharges, common: paCommon, connect: paConnect, data: paData, feedback: paFeedback, goals: paGoals, history: paHistory, home: paHome, insights: paInsights, landing: paLanding, legal: paLegal, loans: paLoans, nav: paNav, plan: paPlan, ready: paReady, remind: paRemind, spending: paSpending, transfer: paTransfer }),
 };

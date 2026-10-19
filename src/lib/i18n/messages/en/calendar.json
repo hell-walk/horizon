@@ -1,0 +1,22 @@
+{
+  "metaTitle": "Cash-flow calendar",
+  "metaDescription": "What is expected to leave and arrive in your accounts over the coming weeks, day by day, and where the balances will stand.",
+  "eyebrow": "Coming up",
+  "title": "Cash-flow calendar",
+  "subtext": "EMIs, rent, subscriptions, bills and salary on the days they are expected, with the balance each account should have after them.",
+  "tileOut": "Going out",
+  "tileIn": "Coming in",
+  "tileWeekNote": "In the next {count} days",
+  "tileLowest": "Lowest point expected",
+  "tileLowestLocked": "For subscribers",
+  "empty": "Nothing to lay out yet. Horizon needs a few months of statements with regular payments, and a known balance.",
+  "dueAlready": "Due already",
+  "afterDay": "After this day: {amount}",
+  "belowZero": "{name} is expected to go below zero on {date}. Move money there before then.",
+  "lockedTitle_one": "{count} more day with something expected.",
+  "lockedTitle_other": "{count} more days with something expected.",
+  "lockedText": "Subscribers see the next {days} days, the lowest point, and each account's expected balance after every day.",
+  "without": "Not laid out (no known balance or too little history): {names}.",
+  "howTitle": "How this is worked out",
+  "how": "Each account starts from its balance where the statements end. Every day takes off everyday spending at its recent average, and adds regular payments and income on their expected dates. Irregular income is not counted, so the estimate errs on the careful side."
+}

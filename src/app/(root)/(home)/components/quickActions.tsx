@@ -1,4 +1,4 @@
-import { CalendarClock, FileUp, Target } from "lucide-react";
+import { CalendarClock, CalendarDays, FileUp, Target } from "lucide-react";
 import Link from "next/link";
 
 import { getT } from "@/lib/i18n/server";
@@ -8,6 +8,7 @@ import { getT } from "@/lib/i18n/server";
 const ACTIONS = [
   { labelKey: "home.actionUpload", href: "/upload-statement", icon: FileUp },
   { labelKey: "nav.bills", href: "/bills", icon: CalendarClock },
+  { labelKey: "nav.calendarShort", href: "/calendar", icon: CalendarDays },
   { labelKey: "nav.goals", href: "/goals", icon: Target },
 ];
 
@@ -16,7 +17,7 @@ const QuickActions = async () => {
   const t = await getT();
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {ACTIONS.map((action) => {
         const Icon = action.icon;
         return (

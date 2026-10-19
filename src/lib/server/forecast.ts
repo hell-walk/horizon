@@ -14,7 +14,7 @@ export type AccountForecast = {
  * returns the user's own). Imported statements are projected from the day
  * they end; linked banks from today.
  */
-export async function accountForecast(appwriteItemId: string, today = new Date()): Promise<AccountForecast | null> {
+export async function accountForecast(appwriteItemId: string, today = new Date(), days?: number): Promise<AccountForecast | null> {
   const loaded = await getAccount({ appwriteItemId });
   if (!loaded) return null;
   const data = loaded.data as Account;
@@ -32,6 +32,7 @@ export async function accountForecast(appwriteItemId: string, today = new Date()
       transactions,
       regulars: findRegular(transactions, today),
       today,
+      ...(days ? { days } : {}),
     }),
   };
 }

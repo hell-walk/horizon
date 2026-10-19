@@ -28,5 +28,7 @@
   "myData": "Privacy and your data",
   "goals": "Savings goals",
   "plans": "Plans",
-  "feedback": "Feedback"
+  "feedback": "Feedback",
+  "calendar": "Cash-flow calendar",
+  "calendarShort": "Calendar"
 }
