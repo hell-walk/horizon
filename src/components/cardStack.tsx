@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -60,8 +61,13 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
       rememberAccount(id); // the whole app follows the card in front
       onChange?.(id);
     };
-    // The rest of the page follows through the address, once the sweep is under way.
-    const follow = mode === "url" ? () => router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false }) : undefined;
+    // The rest of the page follows through the address: fetched from the tap, during the sweep, and shown once it ends.
+    let follow: (() => void) | undefined;
+    if (mode === "url") {
+      const url = formUrlQuery({ params: searchParams.toString(), key: "id", value: id });
+      router.prefetch(url, { kind: "full" as PrefetchKind });
+      follow = () => router.push(url, { scroll: false });
+    }
     flipToAccount(from ?? deckRef.current, go, follow);
   };
 

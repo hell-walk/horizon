@@ -1,5 +1,6 @@
 "use client";
 
+import type { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,15 +14,13 @@ export type SwitchAccount = Pick<Account, "appwriteItemId" | "name" | "mask" | "
 
 // The same easing as the light/dark pill, so the highlight glides the same way.
 const SLIDE: React.CSSProperties = { transitionDuration: "600ms", transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)" };
-// The slide takes 600 ms: the panel stays open until the highlight has landed,
-// then closes, and the page grows out of where the row was (lib/accountFlip).
-const SETTLE_MS = 700;
-const PANEL_CLOSE_MS = 250;
 
 /**
  * The accounts as a list in the profile panel, with a highlight that slides to
- * the chosen one. Picking an account remembers it for the whole app, then the
- * page follows: a new ?id= where the page shows one account, a refresh elsewhere.
+ * the chosen one. Picking an account remembers it for the whole app and, at
+ * once, the page grows out of the tapped row (lib/accountFlip) with the panel
+ * gone; the page then follows: a new ?id= where the page shows one account, a
+ * refresh elsewhere.
  */
 const BankSwitch = ({ accounts, activeId, onPicked }: { accounts: SwitchAccount[]; activeId?: string; onPicked?: () => void }) => {
   const t = useT();
@@ -48,14 +47,14 @@ const BankSwitch = ({ accounts, activeId, onPicked }: { accounts: SwitchAccount[
     setActive(id);
     rememberAccount(id);
     const from = row.getBoundingClientRect(); // taken now: the row leaves with the panel
+    // Pages that follow ?id=: fetched from the tap, so the page is ready by the time the sweep ends.
+    const url = pageFollowsAccount(pathname) ? formUrlQuery({ params: searchParams.toString(), key: "id", value: id }) : null;
+    if (url) router.prefetch(url, { kind: "full" as PrefetchKind });
     const go = () => {
-      if (pageFollowsAccount(pathname)) router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
+      if (url) router.push(url, { scroll: false });
       else router.refresh();
     };
-    window.setTimeout(() => {
-      onPicked?.();
-      window.setTimeout(() => flipToAccount(from, () => {}, go), onPicked ? PANEL_CLOSE_MS : 0);
-    }, SETTLE_MS);
+    flipToAccount(from, () => onPicked?.(), go);
   };
 
   return (

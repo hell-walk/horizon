@@ -19,6 +19,8 @@ import BankSwitch, { type SwitchAccount } from "./bankSwitch";
 const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine: string; accounts: SwitchAccount[]; activeId?: string }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // Picking an account closes the panel at once, inside the page sweep; the next opening animates again.
+  const [instant, setInstant] = useState(false);
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}` || user.name?.[0] || "?";
 
   const [loggingOut, setLoggingOut] = useState(false);
@@ -38,7 +40,13 @@ const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setInstant(false);
+        setOpen(next);
+      }}
+    >
       <SheetTrigger
         aria-label={t("nav.accountMenu")}
         translate="no"
@@ -46,7 +54,7 @@ const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine
       >
         {initials}
       </SheetTrigger>
-      <SheetContent side="right" className="flex w-[320px] flex-col gap-6 overflow-y-auto border-line bg-surface-low p-5 sm:max-w-sm">
+      <SheetContent side="right" instant={instant} className="flex w-[320px] flex-col gap-6 overflow-y-auto border-line bg-surface-low p-5 sm:max-w-sm">
         <SheetTitle className="sr-only">{t("nav.account")}</SheetTitle>
 
         <div className="flex items-center gap-3 pt-6">
@@ -71,7 +79,14 @@ const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine
           </div>
         </div>
 
-        <BankSwitch accounts={accounts} activeId={activeId} onPicked={() => setOpen(false)} />
+        <BankSwitch
+          accounts={accounts}
+          activeId={activeId}
+          onPicked={() => {
+            setInstant(true);
+            setOpen(false);
+          }}
+        />
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between rounded-md border border-line bg-card px-3 py-2.5">
