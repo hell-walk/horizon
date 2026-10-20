@@ -126,21 +126,33 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
           {/* Transactions need the provider's feed, the slowest call. Stream them in
               so the header, balances and allocation appear first. */}
-          <Suspense fallback={<ChartPanelSkeleton />}>
-            <CategorySection appwriteItemId={appwriteItemId} />
-          </Suspense>
+          {/* Keyed by account: when the switch lands, this part is built afresh and arrives with its entrance animations (charts grow, amounts count up). */}
+          <div key={`category-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
+            <Suspense fallback={<ChartPanelSkeleton />}>
+              <CategorySection appwriteItemId={appwriteItemId} />
+            </Suspense>
+          </div>
 
-          <Suspense fallback={null}>
-            <WeekSection appwriteItemId={appwriteItemId} />
-          </Suspense>
+          {/* Keyed by account, as above. */}
+          <div key={`week-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
+            <Suspense fallback={null}>
+              <WeekSection appwriteItemId={appwriteItemId} />
+            </Suspense>
+          </div>
 
-          <Suspense fallback={null}>
-            <ForecastSection appwriteItemId={appwriteItemId} />
-          </Suspense>
+          {/* Keyed by account, as above. */}
+          <div key={`forecast-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
+            <Suspense fallback={null}>
+              <ForecastSection appwriteItemId={appwriteItemId} />
+            </Suspense>
+          </div>
 
-          <Suspense fallback={null}>
-            <InsightsSection appwriteItemId={appwriteItemId} />
-          </Suspense>
+          {/* Keyed by account, as above. */}
+          <div key={`insights-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
+            <Suspense fallback={null}>
+              <InsightsSection appwriteItemId={appwriteItemId} />
+            </Suspense>
+          </div>
 
           <Suspense fallback={null}>
             <ComingUp ownerId={ownerIdOf(loggedIn)} />
@@ -150,9 +162,12 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             <ChargesTeaser ownerId={ownerIdOf(loggedIn)} />
           </Suspense>
 
-          <Suspense fallback={<RecentTransactionsSkeleton />}>
-            <RecentTransactionsSection accounts={accountsData} appwriteItemId={appwriteItemId} page={currentPage} />
-          </Suspense>
+          {/* Keyed by account, as above. */}
+          <div key={`recent-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
+            <Suspense fallback={<RecentTransactionsSkeleton />}>
+              <RecentTransactionsSection accounts={accountsData} appwriteItemId={appwriteItemId} page={currentPage} />
+            </Suspense>
+          </div>
         </div>
 
         <Suspense fallback={<RightSideBarSkeleton />}>
@@ -161,9 +176,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             banks={accountsData}
             selected={appwriteItemId}
             spending={
-              <Suspense fallback={<BarsLoader className="h-[118px]" />}>
-                <SpendingSection appwriteItemId={appwriteItemId} />
-              </Suspense>
+              <div key={`spending-${appwriteItemId}`} className="section-arrive flex flex-col">
+                <Suspense fallback={<BarsLoader className="h-[118px]" />}>
+                  <SpendingSection appwriteItemId={appwriteItemId} />
+                </Suspense>
+              </div>
             }
           />
         </Suspense>

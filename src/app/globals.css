@@ -917,6 +917,26 @@
 }
 
 /* The balance arriving with the page: a short rise, no counting. */
+/* A part of the page built afresh for another account eases in (Home, keyed by account). */
+.section-arrive {
+  animation: section-arrive 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes section-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-arrive {
+    animation: none;
+  }
+}
+
 .amount-arrive {
   animation: amount-arrive 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -931,7 +951,27 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .amount-arrive {
+  /* A part of the page built afresh for another account eases in (Home, keyed by account). */
+.section-arrive {
+  animation: section-arrive 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes section-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-arrive {
+    animation: none;
+  }
+}
+
+.amount-arrive {
     animation: none;
   }
 }
