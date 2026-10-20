@@ -110,7 +110,9 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
           }
         }}
       >
-        {visible.map((account, i) => {
+        {/* Back to front in the DOM: the account flip stacks each card's layer in DOM order, so the card coming forward must come last. */}
+        {[...visible].reverse().map((account) => {
+          const i = visible.indexOf(account);
           const isFront = i === 0;
           return (
             <div
@@ -146,15 +148,22 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
               style={{
                 // Shrink sideways only, so the full strip below the front card stays visible.
                 transform: `translateY(${i * STEP}px) scaleX(${1 - i * 0.05})`,
-                opacity: isFront ? 1 : 0.92 - i * 0.12,
                 transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
                 // Its own layer in the account flip (globals.css), so it glides to its new place in the deck.
                 viewTransitionName: `card-${account.appwriteItemId}`,
-                viewTransitionClass: "card",
+                // "front" is read from the new deck, so the card coming forward is stacked on top while it glides (globals.css).
+                viewTransitionClass: isFront ? "card front" : "card back",
               }}
             >
               {/* Behind the front card the whole card is one button; a link inside it would be a control within a control. */}
               <BankCard account={account} userName={userName} withCopy={false} linked={isFront} />
+              {/* Cards behind sit in shade. A tint rather than translucency: the account flip moves each card as its own
+                  layer, and a see-through card would ghost over the others on the way. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-lg bg-black transition-opacity duration-500"
+                style={{ opacity: isFront ? 0 : 0.18 + i * 0.14, transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)" }}
+              />
             </div>
           );
         })}

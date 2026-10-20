@@ -770,31 +770,53 @@
   animation: theme-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Another account: the two pages often look alike, so the sweep would be invisible on its own.
-   The old page fades towards black outside the growing circle, which shows the edge whatever the
-   content and makes the swap felt. Opacity only, over a black backdrop: a colour filter on a
-   full-screen snapshot made phones stutter. */
+/* Another account: the two pages often look alike, so the circle alone would be invisible.
+   The old page recedes outside the growing circle: it shrinks a little and fades towards black,
+   which shows the edge in light and dark alike. Opacity and transform only, so phones stay smooth. */
 :root[data-theme-flip="account"]::view-transition {
   background: rgb(0 0 0);
 }
 
 :root[data-theme-flip="account"]::view-transition-old(root) {
-  animation: account-dim 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: 50% 50%;
+  animation: account-recede 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes account-dim {
+@keyframes account-recede {
   from {
     opacity: 1;
+    transform: scale(1);
   }
   to {
-    opacity: 0.18;
+    opacity: 0.3;
+    transform: scale(0.94);
   }
 }
 
-/* The bank cards are their own layers (cardStack.tsx): while the page grows, each card glides to its new place in the deck. */
+/* The bank cards are their own layers (cardStack.tsx): each card glides to its new place in the deck,
+   on top of the page, with no cross-fade (the same card, only moved), so nothing ghosts. */
 ::view-transition-group(.card) {
   animation-duration: 600ms;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The layers stack in the old order unless told otherwise: the card coming forward goes on top. */
+::view-transition-group(.front) {
+  z-index: 3;
+}
+
+::view-transition-group(.back) {
+  z-index: 2;
+}
+
+::view-transition-old(.card),
+::view-transition-new(.card) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(.card) {
+  opacity: 0;
 }
 
 /* to light: old on top, shrinking back into the switch */
