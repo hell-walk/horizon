@@ -2,8 +2,9 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { accountShown, flipToAccount } from "@/lib/accountFlip";
 import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, maskLabel } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
   const searchParams = useSearchParams();
   const [front, setFront] = useState(selected ?? accounts[0]?.appwriteItemId);
   const touchX = useRef<number | null>(null);
+  const deckRef = useRef<HTMLDivElement>(null);
   const swiped = useRef(false);
 
   // Follow the selection made elsewhere on the page (tabs, account rows):
@@ -45,31 +47,44 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
     if (selected) setFront(selected);
   }
 
+  // The page for this account is on screen: a flip waiting for it can finish.
+  useEffect(() => {
+    accountShown(selected);
+  }, [selected]);
+
   if (accounts.length === 0) return null;
 
   const ordered = [...accounts].sort((a, b) => (a.appwriteItemId === front ? -1 : b.appwriteItemId === front ? 1 : 0));
   const visible = ordered.slice(0, MAX_VISIBLE);
 
-  const bringForward = (id: string) => {
+  // The page grows out of whatever was tapped (`from`): a card behind, an arrow, a dot, or the deck itself after a swipe.
+  const bringForward = (id: string, from?: Element | null) => {
     if (id === front) return;
-    setFront(id);
-    rememberAccount(id); // the whole app follows the card in front
-    onChange?.(id);
-    if (mode === "url") {
-      router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
-    }
+    const go = () => {
+      setFront(id);
+      rememberAccount(id); // the whole app follows the card in front
+      onChange?.(id);
+      if (mode === "url") {
+        router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
+      }
+    };
+    flipToAccount(id, from ?? deckRef.current, go, { sameScreen: mode !== "url" });
   };
 
   // Previous / next in the accounts' own order, wrapping round.
-  const step = (dir: 1 | -1) => {
+  const step = (dir: 1 | -1, from?: Element | null) => {
     const n = accounts.length;
-    const at = Math.max(0, accounts.findIndex((a) => a.appwriteItemId === front));
-    bringForward(accounts[(at + dir + n) % n].appwriteItemId);
+    const at = Math.max(
+      0,
+      accounts.findIndex((a) => a.appwriteItemId === front),
+    );
+    bringForward(accounts[(at + dir + n) % n].appwriteItemId, from);
   };
 
   return (
     <div className="flex w-full flex-col gap-3">
       <div
+        ref={deckRef}
         className="relative w-full touch-pan-y"
         style={{ height: CARD_HEIGHT + (visible.length - 1) * STEP }}
         // Swipe left / right on touch screens to change card.
@@ -106,7 +121,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                   : (e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      bringForward(account.appwriteItemId);
+                      bringForward(account.appwriteItemId, e.currentTarget);
                     }
               }
               role={isFront ? undefined : "button"}
@@ -117,7 +132,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                   : (e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        bringForward(account.appwriteItemId);
+                        bringForward(account.appwriteItemId, e.currentTarget);
                       }
                     }
               }
@@ -126,13 +141,16 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                 "absolute inset-x-0 top-0 origin-top transition-[transform,opacity,filter] duration-500",
                 isFront ? "z-30" : "cursor-pointer [&_a]:ring-white/25 hover:[&_a]:ring-lime",
                 i === 1 && "z-20",
-                i === 2 && "z-10"
+                i === 2 && "z-10",
               )}
               style={{
                 // Shrink sideways only, so the full strip below the front card stays visible.
                 transform: `translateY(${i * STEP}px) scaleX(${1 - i * 0.05})`,
                 opacity: isFront ? 1 : 0.92 - i * 0.12,
                 transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+                // Its own layer in the account flip (globals.css), so it glides to its new place in the deck.
+                viewTransitionName: `card-${account.appwriteItemId}`,
+                viewTransitionClass: "card",
               }}
             >
               {/* Behind the front card the whole card is one button; a link inside it would be a control within a control. */}
@@ -146,7 +164,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => step(-1)}
+            onClick={(e) => step(-1, e.currentTarget)}
             aria-label={t("banks.previousAccount")}
             className="flex-center size-8 rounded-full border border-line bg-card text-ink-muted transition-colors hover:bg-surface-container hover:text-ink"
           >
@@ -159,7 +177,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
                 <button
                   key={a.appwriteItemId}
                   type="button"
-                  onClick={() => bringForward(a.appwriteItemId)}
+                  onClick={(e) => bringForward(a.appwriteItemId, e.currentTarget)}
                   aria-label={`${a.name} ${maskLabel(a.mask)}`}
                   aria-pressed={active}
                   className="group flex h-6 min-w-6 items-center justify-center"
@@ -171,7 +189,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
           </div>
           <button
             type="button"
-            onClick={() => step(1)}
+            onClick={(e) => step(1, e.currentTarget)}
             aria-label={t("banks.nextAccount")}
             className="flex-center size-8 rounded-full border border-line bg-card text-ink-muted transition-colors hover:bg-surface-container hover:text-ink"
           >

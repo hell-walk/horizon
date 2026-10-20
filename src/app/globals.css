@@ -758,14 +758,22 @@
   mix-blend-mode: normal;
 }
 
-/* to dark: new on top, growing */
-:root[data-theme-flip="dark"]::view-transition-old(root) {
+/* to dark, and to another account: new on top, growing out of the control */
+:root[data-theme-flip="dark"]::view-transition-old(root),
+:root[data-theme-flip="account"]::view-transition-old(root) {
   z-index: 1;
 }
 
-:root[data-theme-flip="dark"]::view-transition-new(root) {
+:root[data-theme-flip="dark"]::view-transition-new(root),
+:root[data-theme-flip="account"]::view-transition-new(root) {
   z-index: 2;
   animation: theme-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* The bank cards are their own layers (cardStack.tsx): while the page grows, each card glides to its new place in the deck. */
+::view-transition-group(.card) {
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* to light: old on top, shrinking back into the switch */

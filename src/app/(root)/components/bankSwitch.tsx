@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useT } from "@/components/i18nProvider";
+import { flipToAccount } from "@/lib/accountFlip";
 import { pageFollowsAccount, rememberAccount } from "@/lib/selectedAccount";
 import { cn, formatAmount, formUrlQuery, maskLabel } from "@/lib/utils";
 
@@ -12,8 +13,10 @@ export type SwitchAccount = Pick<Account, "appwriteItemId" | "name" | "mask" | "
 
 // The same easing as the light/dark pill, so the highlight glides the same way.
 const SLIDE: React.CSSProperties = { transitionDuration: "600ms", transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)" };
-// Long enough to see the highlight land before the page changes under it.
-const SETTLE_MS = 350;
+// The slide takes 600 ms: the panel stays open until the highlight has landed,
+// then closes, and the page grows out of where the row was (lib/accountFlip).
+const SETTLE_MS = 700;
+const PANEL_CLOSE_MS = 250;
 
 /**
  * The accounts as a list in the profile panel, with a highlight that slides to
@@ -40,14 +43,18 @@ const BankSwitch = ({ accounts, activeId, onPicked }: { accounts: SwitchAccount[
 
   if (accounts.length < 2) return null;
 
-  const pick = (id: string) => {
+  const pick = (id: string, row: Element) => {
     if (id === active) return;
     setActive(id);
     rememberAccount(id);
-    window.setTimeout(() => {
+    const from = row.getBoundingClientRect(); // taken now: the row leaves with the panel
+    const go = () => {
       if (pageFollowsAccount(pathname)) router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
       else router.refresh();
+    };
+    window.setTimeout(() => {
       onPicked?.();
+      window.setTimeout(() => flipToAccount(id, from, go), onPicked ? PANEL_CLOSE_MS : 0);
     }, SETTLE_MS);
   };
 
@@ -71,7 +78,7 @@ const BankSwitch = ({ accounts, activeId, onPicked }: { accounts: SwitchAccount[
               role="radio"
               aria-checked={on}
               data-active={on || undefined}
-              onClick={() => pick(account.appwriteItemId)}
+              onClick={(e) => pick(account.appwriteItemId, e.currentTarget)}
               style={SLIDE}
               className={cn(
                 "relative z-10 flex items-center justify-between gap-3 rounded-sm px-3 py-2 text-left transition-colors",

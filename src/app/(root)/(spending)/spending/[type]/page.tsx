@@ -15,6 +15,7 @@ import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
+import RememberAccount from "@/components/rememberAccount";
 import { MISC, spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/spendingDetail";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ const SpendingType = async ({ params, searchParams }: Props) => {
 
   return (
     <section className="page">
+      <RememberAccount id={account.appwriteItemId} />
       <Link href={`/?id=${account.appwriteItemId}`} className="btn-ghost btn-sm w-fit">
         <ArrowLeft className="size-4" aria-hidden /> {t("spending.back")}
       </Link>
