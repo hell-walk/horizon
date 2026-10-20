@@ -771,7 +771,13 @@
 }
 
 /* Another account: the two pages often look alike, so the sweep would be invisible on its own.
-   The old page dims and greys outside the growing circle, which shows the edge whatever the content. */
+   The old page fades towards black outside the growing circle, which shows the edge whatever the
+   content and makes the swap felt. Opacity only, over a black backdrop: a colour filter on a
+   full-screen snapshot made phones stutter. */
+:root[data-theme-flip="account"]::view-transition {
+  background: rgb(0 0 0);
+}
+
 :root[data-theme-flip="account"]::view-transition-old(root) {
   animation: account-dim 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -779,11 +785,9 @@
 @keyframes account-dim {
   from {
     opacity: 1;
-    filter: saturate(1);
   }
   to {
-    opacity: 0.35;
-    filter: saturate(0.2);
+    opacity: 0.18;
   }
 }
 
