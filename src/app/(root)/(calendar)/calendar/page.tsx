@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 import { BarsLoader } from "@/components/loaders";
 import HeaderBox from "@/components/ui/headerBox";
-import { buildCalendar, type Calendar, type CalendarDay } from "@/lib/calendar";
+import { buildCalendar, type CalendarDay } from "@/lib/calendar";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { dateFormat } from "@/lib/regularText";
@@ -15,6 +15,7 @@ import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { accountForecast, type AccountForecast } from "@/lib/server/forecast";
 import { currentPlan } from "@/lib/server/plan";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
+import MonthGrid, { monthOf, monthsBetween } from "../components/monthGrid";
 
 /** Days everyone sees; subscribers see the whole window. */
 const FREE_DAYS = 7;
@@ -26,10 +27,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("calendar.metaTitle"), description: t("calendar.metaDescription") };
 }
 
-const CalendarPage = async () => {
+const CalendarPage = async ({ searchParams }: { searchParams: Promise<{ month?: string }> }) => {
   const user = await getLoggedInUser();
   if (!user) redirect("/sign-in");
   const t = await getT();
+  const { month } = await searchParams;
 
   return (
     <section className="page">
@@ -41,13 +43,13 @@ const CalendarPage = async () => {
           </div>
         }
       >
-        <CalendarContent ownerId={ownerIdOf(user)} />
+        <CalendarContent ownerId={ownerIdOf(user)} month={typeof month === "string" && /^\d{4}-\d{2}$/.test(month) ? month : undefined} />
       </Suspense>
     </section>
   );
 };
 
-async function CalendarContent({ ownerId }: { ownerId: string }) {
+async function CalendarContent({ ownerId, month: wanted }: { ownerId: string; month?: string }) {
   const [t, locale, accounts, plan] = await Promise.all([getT(), getLocale(), getAccounts({ userId: ownerId }), currentPlan()]);
   const today = new Date();
   const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId, today, WINDOW_DAYS)))).filter(
@@ -71,6 +73,9 @@ async function CalendarContent({ ownerId }: { ownerId: string }) {
     );
   }
 
+  // The grid shows the months the window touches, from this one; a month asked for outside them falls back to this one.
+  const months = monthsBetween(todayIso, calendar.to);
+  const month = wanted && months.includes(wanted) ? wanted : monthOf(todayIso);
   const shown = subscribed ? calendar.days : calendar.days.filter((d) => d.date <= freeUntil);
   const hidden = calendar.days.length - shown.length;
   const week = calendar.days.filter((d) => d.date <= freeUntil).flatMap((d) => d.events);
@@ -90,6 +95,19 @@ async function CalendarContent({ ownerId }: { ownerId: string }) {
       </div>
 
       <p className="text-12 text-ink-muted">{t("calendar.evidenceNote", { date: day(calendar.from) })}</p>
+
+      <MonthGrid
+        month={month}
+        months={months}
+        days={calendar.days}
+        from={calendar.from}
+        to={calendar.to}
+        today={todayIso}
+        freeUntil={freeUntil}
+        subscribed={subscribed}
+        locale={locale}
+        t={t}
+      />
 
       {subscribed && calendar.belowZero && (
         <p className="flex items-start gap-2 rounded-md border border-danger/30 bg-danger-soft p-3 text-13 text-danger">
@@ -160,7 +178,7 @@ const DayCard = ({
   money: (n: number, currency?: string | null) => string;
   subscribed: boolean;
 }) => (
-  <li className="panel">
+  <li id={`day-${day.date}`} className="panel scroll-mt-20">
     <header className="panel-head">
       <span className="flex items-center gap-2">
         <CalendarDays className="size-3.5 text-ink-muted" aria-hidden />
