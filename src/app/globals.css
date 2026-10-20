@@ -770,6 +770,23 @@
   animation: theme-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Another account: the two pages often look alike, so the sweep would be invisible on its own.
+   The old page dims and greys outside the growing circle, which shows the edge whatever the content. */
+:root[data-theme-flip="account"]::view-transition-old(root) {
+  animation: account-dim 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes account-dim {
+  from {
+    opacity: 1;
+    filter: saturate(1);
+  }
+  to {
+    opacity: 0.35;
+    filter: saturate(0.2);
+  }
+}
+
 /* The bank cards are their own layers (cardStack.tsx): while the page grows, each card glides to its new place in the deck. */
 ::view-transition-group(.card) {
   animation-duration: 600ms;
