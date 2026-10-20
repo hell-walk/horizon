@@ -54,7 +54,7 @@ const BankSwitch = ({ accounts, activeId, onPicked }: { accounts: SwitchAccount[
     };
     window.setTimeout(() => {
       onPicked?.();
-      window.setTimeout(() => flipToAccount(id, from, go), onPicked ? PANEL_CLOSE_MS : 0);
+      window.setTimeout(() => flipToAccount(from, () => {}, go), onPicked ? PANEL_CLOSE_MS : 0);
     }, SETTLE_MS);
   };
 

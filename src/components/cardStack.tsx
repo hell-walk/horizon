@@ -2,9 +2,9 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
-import { accountShown, flipToAccount } from "@/lib/accountFlip";
+import { flipToAccount } from "@/lib/accountFlip";
 import { rememberAccount } from "@/lib/selectedAccount";
 import { cn, formUrlQuery, maskLabel } from "@/lib/utils";
 
@@ -47,11 +47,6 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
     if (selected) setFront(selected);
   }
 
-  // The page for this account is on screen: a flip waiting for it can finish.
-  useEffect(() => {
-    accountShown(selected);
-  }, [selected]);
-
   if (accounts.length === 0) return null;
 
   const ordered = [...accounts].sort((a, b) => (a.appwriteItemId === front ? -1 : b.appwriteItemId === front ? 1 : 0));
@@ -64,11 +59,10 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
       setFront(id);
       rememberAccount(id); // the whole app follows the card in front
       onChange?.(id);
-      if (mode === "url") {
-        router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false });
-      }
     };
-    flipToAccount(id, from ?? deckRef.current, go, { sameScreen: mode !== "url" });
+    // The rest of the page follows through the address, once the sweep is under way.
+    const follow = mode === "url" ? () => router.push(formUrlQuery({ params: searchParams.toString(), key: "id", value: id }), { scroll: false }) : undefined;
+    flipToAccount(from ?? deckRef.current, go, follow);
   };
 
   // Previous / next in the accounts' own order, wrapping round.

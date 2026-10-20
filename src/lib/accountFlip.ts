@@ -1,40 +1,31 @@
 // Switching accounts plays the same animation as switching the theme: the page
-// for the new account grows out of the card or row that was tapped, in a
-// circle (globals.css, data-theme-flip), once that page is on screen. Pixels
-// are old or new, never blended. Browser-only: called from click handlers.
+// grows out of the card or row that was tapped, in a circle, while the old page
+// recedes around it (globals.css, data-theme-flip="account"). It plays the
+// moment the tap happens: the deck swaps on the spot inside the sweep, and the
+// rest of the page catches up when the server answers. Browser-only.
 
 type DocWithViewTransition = Document & {
   startViewTransition?: (update: () => void | Promise<void>) => { ready: Promise<void>; finished: Promise<void> };
 };
 
-// The new page usually arrives well inside this; after it the switch simply happens.
-const WAIT_MS = 2500;
-// A state change on the same page is on screen after React's next flush.
+// The change made in `go` is on screen after React's next flush.
 const FLUSH_MS = 30;
 
-let waiting: { id: string; resolve: () => void } | null = null;
-
-/** Pages and decks call this with the account they are showing; a pending flip ends when it is the one asked for. */
-export function accountShown(id?: string) {
-  if (id && waiting?.id === id) {
-    waiting.resolve();
-    waiting = null;
-  }
-}
-
 /**
- * Switch to account `id`, the page growing out of `from` (an element, or its
- * rectangle taken earlier). `go` makes the change: a navigation, whose page
- * then reports itself through accountShown, or (`sameScreen`) a change that
- * is on screen at once. Without view transitions, or with reduced motion,
- * the change simply happens.
+ * Switch accounts with the page growing out of `from` (an element, or its
+ * rectangle taken earlier). `go` makes the change seen at once (the deck,
+ * the highlight), inside the sweep. `then` runs once the sweep has finished:
+ * the navigation, whose page lands with no further animation, so its work
+ * never steals frames from the sweep. Without view transitions, or with
+ * reduced motion, both simply happen.
  */
-export function flipToAccount(id: string, from: Element | DOMRect | null | undefined, go: () => void, { sameScreen = false } = {}) {
+export function flipToAccount(from: Element | DOMRect | null | undefined, go: () => void, then?: () => void) {
   const doc = document as DocWithViewTransition;
   const root = document.documentElement;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!doc.startViewTransition || reduceMotion) {
     go();
+    then?.();
     return;
   }
 
@@ -47,25 +38,17 @@ export function flipToAccount(id: string, from: Element | DOMRect | null | undef
   root.style.setProperty("--theme-r", `${r}px`);
   root.dataset.themeFlip = "account";
 
-  waiting?.resolve();
-  const settled = new Promise<void>((resolve) => {
-    if (sameScreen) {
-      window.setTimeout(resolve, FLUSH_MS);
-      return;
-    }
-    waiting = { id, resolve };
-    window.setTimeout(resolve, WAIT_MS);
-  });
-
   const transition = doc.startViewTransition(async () => {
     go();
-    await settled;
+    await new Promise((resolve) => window.setTimeout(resolve, FLUSH_MS));
   });
   // A hidden tab skips the animation (the change still applies): not an error.
   transition.ready.catch(() => {});
+  // The navigation only after the sweep: a page landing mid-sweep starves it of frames.
   transition.finished
     .catch(() => {})
     .finally(() => {
       if (root.dataset.themeFlip === "account") delete root.dataset.themeFlip;
+      then?.();
     });
 }
