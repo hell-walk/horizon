@@ -17,9 +17,21 @@ import CheckCard, { type CheckOption } from "./checkCard";
  * leave unsure. Three answers are free; subscribers answer as many as they
  * like. Someone who has used their three sees how many are waiting, no more.
  */
-const ChecksPanel = async ({ ownerId, person }: { ownerId: string; person: { firstName?: string; lastName?: string } }) => {
+const ChecksPanel = async ({
+  ownerId,
+  person,
+  showEmpty = false,
+}: {
+  ownerId: string;
+  person: { firstName?: string; lastName?: string };
+  showEmpty?: boolean;
+}) => {
   const [checks, state, plan] = await Promise.all([checksForOwner(ownerId, person).catch(() => [] as Check[]), loadChecksState(ownerId), currentPlan()]);
-  if (checks.length === 0) return null;
+  if (checks.length === 0) {
+    if (!showEmpty) return null;
+    const t = await getT();
+    return <p className="panel panel-body text-14 text-ink-muted">{t("home.checksNone")}</p>;
+  }
   const left = plan?.kind === "subscribed" ? null : Math.max(0, FREE_CHECKS - state.used);
   const [t, locale] = await Promise.all([getT(), getLocale()]);
 

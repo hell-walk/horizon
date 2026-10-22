@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import BottomNav from "./components/bottomNav";
+import ChecksBar from "./components/checksBar";
 import HomeLanguageSync from "./components/homeLanguageSync";
 import PlanBanner from "./components/planBanner";
 import ScrollCalm from "./components/scrollCalm";
@@ -12,22 +13,11 @@ import { DataUnavailableError } from "@/lib/server/banks";
 import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { loadExtraTerms } from "@/lib/server/terms";
-import { getLocale, getT } from "@/lib/i18n/server";
-import { LOCALE_TAGS } from "@/lib/i18n/config";
-import { daysLeft } from "@/lib/plans";
+import { planLine } from "@/lib/server/planLine";
 import DataUnavailable from "@/components/dataUnavailable";
 
 // Every page in this group depends on the session cookie, so never prerender them.
 export const dynamic = "force-dynamic";
-
-// "Free trial: 5 days left", "Subscribed until 13 November 2026", "Free week ended": under the name, everywhere.
-async function planLine(plan: NonNullable<Awaited<ReturnType<typeof currentPlan>>>) {
-  const t = await getT();
-  if (plan.kind === "trial") return t("plan.lineTrial", { count: daysLeft(plan.endsAt) });
-  if (plan.kind === "ended") return t("plan.lineEnded");
-  const date = new Date(plan.until).toLocaleDateString(LOCALE_TAGS[await getLocale()], { day: "numeric", month: "long", year: "numeric" });
-  return t(plan.renews ? "plan.lineRenews" : "plan.lineUntil", { date });
-}
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   let loggedIn: User | null;
@@ -59,6 +49,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <div className="flex min-h-dvh w-full flex-col md:h-dvh md:overflow-hidden md:overscroll-none">
       <Topbar user={loggedIn} accounts={switchAccounts} activeId={await activeAccountId(accounts)} planLine={plan ? await planLine(plan) : ""} />
       {plan && <PlanBanner plan={plan} />}
+      {/* "Is this right?": a line when some payments are unclear, closable for the day. Streamed: never holds the page. */}
+      <Suspense fallback={null}>
+        <ChecksBar ownerId={ownerIdOf(loggedIn)} person={{ firstName: loggedIn.firstName, lastName: loggedIn.lastName }} />
+      </Suspense>
       {/* The page itself is the main landmark; the skip link lands here. */}
       <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-hidden">
         {children}

@@ -90,5 +90,8 @@
   "monthOlder_other": "{count} જૂના મહિના બતાવો",
   "subtextAny": "તમારાં જોડેલાં ખાતાંમાં આવેલું અને ગયેલું બધું.",
   "byType": "પ્રકાર પ્રમાણે",
-  "tapForAnalysis": "વિશ્લેષણ માટે કોઈ ભાગ પર ટૅપ કરો"
+  "tapForAnalysis": "વિશ્લેષણ માટે કોઈ ભાગ પર ટૅપ કરો",
+  "monthView": "મહિના કેવી રીતે બતાવવા",
+  "monthViewList": "યાદી",
+  "monthViewChart": "ચાર્ટ"
 }

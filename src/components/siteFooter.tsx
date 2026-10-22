@@ -22,6 +22,12 @@ const SiteFooter = async () => {
       <Link href="/refunds" className="hover:text-ink">
         {t("common.footerRefunds")}
       </Link>
+      <Link href="/about" className="hover:text-ink">
+        {t("common.footerAbout")}
+      </Link>
+      <Link href="/support" className="hover:text-ink">
+        {t("common.footerSupport")}
+      </Link>
       <Link href="/contact" className="hover:text-ink">
         {t("common.footerContact")}
       </Link>

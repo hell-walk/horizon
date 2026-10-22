@@ -77,5 +77,7 @@
   "payPendingBody": "Razorpay confirmed the payment but the plan has not switched yet. It usually takes a minute: press 'check again' on the Plans page.",
   "payNotConfirmed": "We could not confirm that payment. If money was taken, press 'I have paid: check again'.",
   "payClose": "Close",
-  "percentOff": "{percent}% off"
+  "percentOff": "{percent}% off",
+  "daysLeft_one": "{count} day left",
+  "daysLeft_other": "{count} days left"
 }

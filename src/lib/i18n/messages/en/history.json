@@ -90,5 +90,8 @@
   "monthOlder_other": "Show {count} older months",
   "subtextAny": "Everything that went in and out of your linked accounts.",
   "byType": "by type",
-  "tapForAnalysis": "Tap a slice for its analysis"
+  "tapForAnalysis": "Tap a slice for its analysis",
+  "monthView": "How to show the months",
+  "monthViewList": "List",
+  "monthViewChart": "Chart"
 }

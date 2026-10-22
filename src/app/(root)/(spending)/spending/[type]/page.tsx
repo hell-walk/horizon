@@ -6,7 +6,7 @@ import { ArrowLeft, Gem, Lock, TrendingDown, TrendingUp } from "lucide-react";
 
 import { BarsLoader } from "@/components/loaders";
 import HeaderBox from "@/components/ui/headerBox";
-import { chartColorClass, spendTypeLabel } from "@/constants";
+import { CHART_COLOR_CLASSES, chartColorClass, spendTypeLabel } from "@/constants";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
@@ -123,7 +123,7 @@ async function SpendingContent({ slug, account }: { slug: string; account: Accou
       {detail.compare && <Compare t={t} locale={locale} compare={detail.compare} money={money} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Payees t={t} detail={detail} money={money} currency={currency} />
+        <Payees t={t} detail={detail} money={money} currency={currency} accountId={account.appwriteItemId} />
         <div className="flex flex-col gap-4">
           <Months t={t} locale={locale} detail={detail} money={money} />
           <Weekdays t={t} locale={locale} detail={detail} money={money} />
@@ -218,7 +218,22 @@ const Compare = ({
   );
 };
 
-const Payees = ({ t, detail, money, currency }: { t: Translate; detail: SpendingDetail; money: (n: number) => string; currency: string }) => (
+/** The account's history, searched for this payee: every payment to them, in one tap. */
+const payeeHref = (accountId: string, name: string) => `/transaction-history?id=${accountId}&q=${encodeURIComponent(name)}`;
+
+const Payees = ({
+  t,
+  detail,
+  money,
+  currency,
+  accountId,
+}: {
+  t: Translate;
+  detail: SpendingDetail;
+  money: (n: number) => string;
+  currency: string;
+  accountId: string;
+}) => (
   <section className="panel" aria-labelledby="spending-payees">
     <header className="panel-head">
       <h2 id="spending-payees" className="eyebrow">
@@ -226,22 +241,29 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
       </h2>
     </header>
     <div className="panel-body flex flex-col gap-5">
-      <PayeePie payees={detail.payees} currency={currency} total={detail.total} />
+      <PayeePie payees={detail.payees} currency={currency} total={detail.total} accountId={accountId} />
       <ul className="flex flex-col divide-y divide-line">
         {detail.payees.map((p, i) => (
-          <li key={p.name} className="flex items-center justify-between gap-3 py-2">
-            <span className="flex min-w-0 items-center gap-3">
-              <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(p.name, i))} />
-              <span translate="no" className="truncate text-14 font-semibold text-ink">
-                {spendTypeLabel(t, p.name)}
-              </span>
-            </span>
-            <span className="flex shrink-0 items-baseline gap-2">
-              <span translate="no" className="amount text-14 font-semibold text-ink">
-                {money(p.amount)}
-              </span>
-              <span className="eyebrow">{Math.round(p.share * 100)}%</span>
-            </span>
+          <li key={p.name}>
+            <PayeeRow
+              href={p.name === MISC ? null : payeeHref(accountId, p.name)}
+              left={
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(p.name, i))} />
+                  <span translate="no" className="truncate text-14 font-semibold text-ink">
+                    {spendTypeLabel(t, p.name)}
+                  </span>
+                </span>
+              }
+              right={
+                <span className="flex shrink-0 items-baseline gap-2">
+                  <span translate="no" className="amount text-14 font-semibold text-ink">
+                    {money(p.amount)}
+                  </span>
+                  <span className="eyebrow">{Math.round(p.share * 100)}%</span>
+                </span>
+              }
+            />
           </li>
         ))}
       </ul>
@@ -255,19 +277,26 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
         </summary>
         <ul className="flex flex-col divide-y divide-line px-5 pb-3">
           {detail.allPayees.map((p) => (
-            <li key={p.name} className="flex items-center justify-between gap-3 py-2">
-              <span className="flex min-w-0 flex-col">
-                <span translate="no" className="truncate text-14 font-semibold text-ink">
-                  {spendTypeLabel(t, p.name)}
-                </span>
-                <span className="text-12 text-ink-muted">{t("spending.payeeCount", { count: p.count })}</span>
-              </span>
-              <span className="flex shrink-0 items-baseline gap-2">
-                <span translate="no" className="amount text-14 font-semibold text-ink">
-                  {money(p.amount)}
-                </span>
-                <span className="eyebrow">{Math.round(p.share * 100)}%</span>
-              </span>
+            <li key={p.name}>
+              <PayeeRow
+                href={payeeHref(accountId, p.name)}
+                left={
+                  <span className="flex min-w-0 flex-col">
+                    <span translate="no" className="truncate text-14 font-semibold text-ink">
+                      {spendTypeLabel(t, p.name)}
+                    </span>
+                    <span className="text-12 text-ink-muted">{t("spending.payeeCount", { count: p.count })}</span>
+                  </span>
+                }
+                right={
+                  <span className="flex shrink-0 items-baseline gap-2">
+                    <span translate="no" className="amount text-14 font-semibold text-ink">
+                      {money(p.amount)}
+                    </span>
+                    <span className="eyebrow">{Math.round(p.share * 100)}%</span>
+                  </span>
+                }
+              />
             </li>
           ))}
         </ul>
@@ -276,15 +305,32 @@ const Payees = ({ t, detail, money, currency }: { t: Translate; detail: Spending
   </section>
 );
 
-/** Bars, tallest = 100%: a label under each and the amount on hover and for screen readers. */
+/** One payee line: a link to their payments when there is a payee behind it, plain text for "Miscellaneous". */
+const PayeeRow = ({ href, left, right }: { href: string | null; left: React.ReactNode; right: React.ReactNode }) =>
+  href ? (
+    <Link href={href} className="-mx-2 flex items-center justify-between gap-3 rounded-sm px-2 py-2 transition-colors hover:bg-surface-low">
+      {left}
+      {right}
+    </Link>
+  ) : (
+    <div className="flex items-center justify-between gap-3 py-2">
+      {left}
+      {right}
+    </div>
+  );
+
+/** Bars, tallest = 100%: a label under each and the amount on hover and for screen readers; one palette colour each. */
 const Bars = ({ items }: { items: { label: string; amount: number; text: string }[] }) => {
   const top = Math.max(...items.map((i) => i.amount), 1);
   return (
     <ul className="flex h-36 items-end gap-2 px-4 pb-3 pt-4">
-      {items.map((item) => (
+      {items.map((item, i) => (
         <li key={item.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5" title={item.text}>
           <span className="sr-only">{item.text}</span>
-          <div className="w-full max-w-10 rounded-t-sm bg-lime" style={{ height: `${Math.max((item.amount / top) * 100, item.amount ? 3 : 0)}%` }} />
+          <div
+            className={cn("w-full max-w-10 rounded-t-sm", CHART_COLOR_CLASSES[i % CHART_COLOR_CLASSES.length])}
+            style={{ height: `${Math.max((item.amount / top) * 100, item.amount ? 3 : 0)}%` }}
+          />
           <span aria-hidden className="eyebrow">
             {item.label}
           </span>

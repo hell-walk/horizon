@@ -88,5 +88,7 @@
   "incomeKind_salaried": "ਤਨਖ਼ਾਹਦਾਰ",
   "incomeKind_student": "ਵਿਦਿਆਰਥੀ",
   "incomeKind_freelancer": "ਫ੍ਰੀਲਾਂਸਰ ਜਾਂ ਸਵੈ-ਰੁਜ਼ਗਾਰ",
-  "incomeKind_none": "ਇਸ ਵੇਲੇ ਕੋਈ ਆਮਦਨ ਨਹੀਂ"
+  "incomeKind_none": "ਇਸ ਵੇਲੇ ਕੋਈ ਆਮਦਨ ਨਹੀਂ",
+  "footerAbout": "ਬਾਰੇ",
+  "footerSupport": "ਸਹਾਇਤਾ"
 }

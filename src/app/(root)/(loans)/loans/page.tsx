@@ -18,6 +18,7 @@ import { currentPlan } from "@/lib/server/plan";
 import { cn, formatAmount } from "@/lib/utils";
 
 import PayoffPlanner from "../components/payoffPlanner";
+import SubscriptionsPanel from "../components/subscriptionsPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -69,19 +70,27 @@ async function LoansContent({ ownerId }: { ownerId: string }) {
   const locale = await getLocale();
   const [report, plan, plans] = await Promise.all([loanPicture(ownerId), currentPlan(), loadLoanPlans(ownerId).catch(() => ({}) as Record<string, LoanPlan>)]);
 
-  if (report.loans.length === 0) {
-    return (
+  const loans =
+    report.loans.length === 0 ? (
       <div className="panel panel-body flex max-w-2xl flex-col gap-3">
         <p className="text-14 text-ink">{t("loans.none")}</p>
         <Link href="/upload-statement" className="btn-secondary w-fit">
           <FileUp className="size-4" aria-hidden /> {t("loans.emptyAction")}
         </Link>
       </div>
+    ) : plan?.kind !== "subscribed" ? (
+      <Locked t={t} report={report} />
+    ) : (
+      <Analysis t={t} locale={locale} report={report} plans={plans} />
     );
-  }
 
-  if (plan?.kind !== "subscribed") return <Locked t={t} report={report} />;
-  return <Analysis t={t} locale={locale} report={report} plans={plans} />;
+  // Subscriptions sit under the loans: the same kind of money leaving on a rhythm, the same gate.
+  return (
+    <>
+      {loans}
+      <SubscriptionsPanel ownerId={ownerId} />
+    </>
+  );
 }
 
 /** Not subscribed: the headline only, and what subscribing shows. */

@@ -88,5 +88,7 @@
   "incomeKind_salaried": "પગારદાર",
   "incomeKind_student": "વિદ્યાર્થી",
   "incomeKind_freelancer": "ફ્રીલાન્સર કે સ્વરોજગાર",
-  "incomeKind_none": "હાલ કોઈ આવક નથી"
+  "incomeKind_none": "હાલ કોઈ આવક નથી",
+  "footerAbout": "વિશે",
+  "footerSupport": "સહાય"
 }

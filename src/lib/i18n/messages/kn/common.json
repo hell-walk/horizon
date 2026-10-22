@@ -88,5 +88,7 @@
   "incomeKind_salaried": "ಸಂಬಳದಾರ",
   "incomeKind_student": "ವಿದ್ಯಾರ್ಥಿ",
   "incomeKind_freelancer": "ಫ್ರೀಲ್ಯಾನ್ಸರ್ ಅಥವಾ ಸ್ವಯಂ ಉದ್ಯೋಗಿ",
-  "incomeKind_none": "ಸದ್ಯಕ್ಕೆ ಆದಾಯವಿಲ್ಲ"
+  "incomeKind_none": "ಸದ್ಯಕ್ಕೆ ಆದಾಯವಿಲ್ಲ",
+  "footerAbout": "ಕುರಿತು",
+  "footerSupport": "ಬೆಂಬಲ"
 }

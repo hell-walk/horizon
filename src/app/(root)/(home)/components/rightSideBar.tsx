@@ -5,19 +5,23 @@ import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 
 import BankInfo from "./bankInfo";
+import ProfileCard from "./profileCard";
 import CardStack from "@/components/cardStack";
 import { canTransfer } from "@/lib/transfers";
 import Copy from "@/components/copy";
 
 // Right column on Home. Pinned while the main column scrolls: it holds the
 // card deck, the profile and the account switcher, which are all actionable.
-const RightSideBar = async ({ user, banks, selected, spending }: RightSidebarProps) => {
+const RightSideBar = async ({ user, banks, selected, spending, planLine }: RightSidebarProps) => {
   const t = await getT();
   const current = banks.find((b) => b.appwriteItemId === selected) ?? banks[0];
 
   return (
     <aside className="no-scrollbar flex w-full flex-col gap-4 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem-3.5rem)] xl:w-[340px] xl:shrink-0 xl:overflow-y-auto">
-      {/* Wide screens only: below xl the Home page shows the cards under the balances chart. */}
+      {/* Wide screens only: below xl the Home page shows the profile and the cards in the main column. */}
+      <div className="hidden xl:block">
+        <ProfileCard user={user} planLine={planLine ?? ""} />
+      </div>
       {banks.length > 0 && (
         <section className="hidden flex-col gap-3 xl:flex">
           <CardStack accounts={banks} selected={current?.appwriteItemId} userName={`${user.firstName} ${user.lastName}`} mode="url" />
@@ -26,33 +30,6 @@ const RightSideBar = async ({ user, banks, selected, spending }: RightSidebarPro
       )}
 
       {spending}
-
-      <section className="panel">
-        <header className="panel-head">
-          <span className="eyebrow">{t("home.profile")}</span>
-          <span className="chip-lime">{t("common.verified")}</span>
-        </header>
-        <div className="panel-body flex items-center gap-4">
-          <div translate="no" className="flex-center size-12 shrink-0 rounded-sm bg-primary font-display text-18 font-bold text-primary-foreground">
-            {user.firstName?.[0]}
-            {user.lastName?.[0]}
-          </div>
-          <div className="flex min-w-0 flex-col">
-            <p translate="no" className="truncate text-16 font-semibold text-ink">
-              {user.firstName} {user.lastName}
-            </p>
-            <p translate="no" className="truncate text-12 text-ink-muted">
-              {user.email}
-            </p>
-            {user.city && (
-              <p translate="no" className="eyebrow mt-1">
-                {user.city}
-                {user.state ? `, ${user.state}` : ""}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
 
       <section className="panel">
         <header className="panel-head">

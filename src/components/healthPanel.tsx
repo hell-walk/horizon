@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import type { Health, HealthPart } from "@/lib/health";
+import type { HealthPart } from "@/lib/health";
 import { healthForOwner } from "@/lib/server/health";
 import { currentPlan } from "@/lib/server/plan";
 import { cn } from "@/lib/utils";

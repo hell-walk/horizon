@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
@@ -71,6 +71,10 @@ export default async function PricingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structured }} />
+      {/* Reached from the Plans page most of the time: the way back is at the top. */}
+      <Link href="/plans" className="btn-ghost btn-sm not-prose mb-4 w-fit">
+        <ArrowLeft className="size-4" aria-hidden /> {t("legal.backToPlans")}
+      </Link>
       <h1>{t("legal.pricingTitle")}</h1>
       {locale !== "en" && <p className="rounded-md border border-line bg-card px-3 py-2 text-ink">{t("legal.englishOnlyNote")}</p>}
       <div lang="en">

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import HealthPanel from "@/components/healthPanel";
+
 import { BarsLoader } from "@/components/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { chartColorClass, spendTypeLabel } from "@/constants";
@@ -109,6 +111,11 @@ async function ReportContent({ ownerId, month }: { ownerId: string; month?: stri
       ) : (
         <Details report={report} t={t} money={money} day={day} monthName={monthName} />
       )}
+
+      {/* The health score and its five parts (the parts for subscribers): the ring on Home opens here. */}
+      <Suspense fallback={null}>
+        <HealthPanel ownerId={ownerId} />
+      </Suspense>
     </>
   );
 }

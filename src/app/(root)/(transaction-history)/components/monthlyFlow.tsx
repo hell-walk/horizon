@@ -7,6 +7,8 @@ import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount } from "@/lib/utils";
 
+import MonthlyFlowView from "./monthlyFlowView";
+
 const SHOWN = 6; // months shown before "older months"
 
 /**
@@ -22,6 +24,7 @@ const MonthlyFlow = async ({ transactions, currency }: { transactions: Transacti
   const locale = await getLocale();
   const monthName = new Intl.DateTimeFormat(LOCALE_TAGS[locale], { month: "long", year: "numeric", timeZone: "UTC" });
   const dayName = new Intl.DateTimeFormat(LOCALE_TAGS[locale], { day: "numeric", month: "short", timeZone: "UTC" });
+  const shortName = new Intl.DateTimeFormat(LOCALE_TAGS[locale], { month: "short", year: "2-digit", timeZone: "UTC" });
   const label = (month: string) => monthName.format(new Date(`${month}-01T00:00:00Z`));
   const day = (date: string) => dayName.format(new Date(`${date}T00:00:00Z`));
 
@@ -73,15 +76,24 @@ const MonthlyFlow = async ({ transactions, currency }: { transactions: Transacti
         </h2>
         <p className="mt-1 text-13 text-ink-muted">{t("history.monthHint")}</p>
       </header>
-      <ul className="divide-y divide-line">{recent.map(row)}</ul>
-      {older.length > 0 && (
-        <details className="border-t border-line">
-          <summary className="cursor-pointer px-4 py-3 text-13 font-semibold text-ink underline underline-offset-2">
-            {t("history.monthOlder", { count: older.length })}
-          </summary>
-          <ul className="divide-y divide-line border-t border-line">{older.map(row)}</ul>
-        </details>
-      )}
+      {/* The list, or the same months as paired bars: the reader's choice. */}
+      <MonthlyFlowView
+        months={months.map((m) => ({ month: m.month, label: shortName.format(new Date(`${m.month}-01T00:00:00Z`)), moneyIn: m.moneyIn, moneyOut: m.moneyOut }))}
+        currency={currency}
+        list={
+          <>
+            <ul className="divide-y divide-line">{recent.map(row)}</ul>
+            {older.length > 0 && (
+              <details className="border-t border-line">
+                <summary className="cursor-pointer px-4 py-3 text-13 font-semibold text-ink underline underline-offset-2">
+                  {t("history.monthOlder", { count: older.length })}
+                </summary>
+                <ul className="divide-y divide-line border-t border-line">{older.map(row)}</ul>
+              </details>
+            )}
+          </>
+        }
+      />
     </section>
   );
 };

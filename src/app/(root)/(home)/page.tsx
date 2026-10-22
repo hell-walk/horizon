@@ -3,10 +3,8 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
-import ChecksPanel from "./components/checksPanel";
-import HealthPanel from "./components/healthPanel";
 import IncomePanel from "./components/incomePanel";
-import ReportTeaser from "./components/reportTeaser";
+import ProfileCard from "./components/profileCard";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
 import BeReady from "./components/beReady";
@@ -29,6 +27,8 @@ import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { getT } from "@/lib/i18n/server";
 import { withCoverage } from "@/lib/server/coverage";
+import { currentPlan } from "@/lib/server/plan";
+import { planLine } from "@/lib/server/planLine";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import RememberAccount from "@/components/rememberAccount";
 import CardStack from "@/components/cardStack";
@@ -62,6 +62,8 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
   const accountsData: Account[] = await withCoverage(accounts.data);
   const appwriteItemId = await activeAccountId(accountsData, id);
+  const plan = await currentPlan();
+  const standing = plan ? await planLine(plan) : "";
 
   return (
     <section className="page">
@@ -75,6 +77,9 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             user={loggedIn.firstName || loggedIn.name || t("home.greetingFallbackName")}
             subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
           />
+
+          {/* Connected banks first: where the money is, the health score and the latest month, in one glance. */}
+          <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} ownerId={ownerIdOf(loggedIn)} />
 
           <QuickActions />
 
@@ -90,29 +95,15 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             <CombinedTotal totals={accounts.totalsByCurrency} base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency} />
           </Suspense>
 
-          {/* The health score: a number for everyone, the five parts for subscribers. */}
-          <Suspense fallback={<PanelPlaceholder className="min-h-44" />}>
-            <HealthPanel ownerId={ownerIdOf(loggedIn)} />
-          </Suspense>
-
-          {/* The latest month's report in three numbers. */}
-          <Suspense fallback={<PanelPlaceholder className="min-h-32" />}>
-            <ReportTeaser ownerId={ownerIdOf(loggedIn)} />
-          </Suspense>
-
           {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
           <Suspense fallback={<PanelPlaceholder className="min-h-28" />}>
             <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
           </Suspense>
 
-          {/* "Is this right?": one question at a time, where the statements leave Horizon unsure. */}
-          <Suspense fallback={null}>
-            <ChecksPanel ownerId={ownerIdOf(loggedIn)} person={{ firstName: loggedIn.firstName, lastName: loggedIn.lastName }} />
-          </Suspense>
-
-          <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} />
-
-          {/* Phones and tablets: the bank cards right under the accounts chart, not at the end of the page. */}
+          {/* Phones and tablets: the profile, then the bank cards, here rather than at the end of the page. */}
+          <div className="xl:hidden">
+            <ProfileCard user={loggedIn} planLine={standing} />
+          </div>
           {accountsData.length > 0 && (
             <div className="xl:hidden">
               <CardStack accounts={accountsData} selected={appwriteItemId} userName={`${loggedIn.firstName} ${loggedIn.lastName}`} mode="url" />
@@ -173,6 +164,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
         <Suspense fallback={<RightSideBarSkeleton />}>
           <RightSideBar
             user={loggedIn}
+            planLine={standing}
             banks={accountsData}
             selected={appwriteItemId}
             spending={

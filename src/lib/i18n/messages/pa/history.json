@@ -90,5 +90,8 @@
   "monthOlder_other": "{count} ਪੁਰਾਣੇ ਮਹੀਨੇ ਦੇਖੋ",
   "subtextAny": "ਤੁਹਾਡੇ ਜੁੜੇ ਹੋਏ ਖਾਤਿਆਂ ਵਿੱਚ ਆਏ ਅਤੇ ਗਏ ਸਾਰੇ ਪੈਸੇ।",
   "byType": "ਕਿਸਮ ਮੁਤਾਬਕ",
-  "tapForAnalysis": "ਵਿਸ਼ਲੇਸ਼ਣ ਲਈ ਕਿਸੇ ਹਿੱਸੇ 'ਤੇ ਟੈਪ ਕਰੋ"
+  "tapForAnalysis": "ਵਿਸ਼ਲੇਸ਼ਣ ਲਈ ਕਿਸੇ ਹਿੱਸੇ 'ਤੇ ਟੈਪ ਕਰੋ",
+  "monthView": "ਮਹੀਨੇ ਕਿਵੇਂ ਦਿਖਾਉਣੇ",
+  "monthViewList": "ਸੂਚੀ",
+  "monthViewChart": "ਚਾਰਟ"
 }

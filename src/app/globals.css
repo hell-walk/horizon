@@ -940,6 +940,20 @@
 .amount-arrive {
   animation: amount-arrive 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+/* The health ring on Home draws from empty to its score (346 = the ring's circumference, healthRing.tsx). */
+.ring-arrive {
+  animation: ring-arrive 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes ring-arrive {
+  from {
+    stroke-dashoffset: 346;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-arrive {
+    animation: none;
+  }
+}
 @keyframes amount-arrive {
   from {
     transform: translateY(6px);

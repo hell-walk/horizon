@@ -113,5 +113,13 @@
   "healthCushion": "Your balances would cover about {months} months of spending. Three months is full marks.",
   "healthLockedText": "Subscribers see the five parts of the score, the figure behind each, and what would raise it most.",
   "incomeSideLabel": "Side income a month, if any (freelance, rent you receive)",
-  "incomeSalaryPlus": "{amount} a month: your salary from {payee} ({salary}) plus about {side} on the side, as you told us."
+  "incomeSalaryPlus": "{amount} a month: your salary from {payee} ({salary}) plus about {side} on the side, as you told us.",
+  "healthNotYetShort": "Not enough yet",
+  "checksBarText_one": "{count} payment needs a quick look. Until it is confirmed, your charts and income figure may be off.",
+  "checksBarText_other": "{count} payments need a quick look. Until they are confirmed, your charts and income figure may be off.",
+  "checksBarReview": "Review",
+  "checksBarClose": "Hide for today",
+  "checksPageTitle": "Quick checks",
+  "checksPageIntro": "Where your statements leave Horizon unsure, it asks. Each answer makes your charts and your income figure more accurate.",
+  "checksNone": "Nothing needs checking right now."
 }

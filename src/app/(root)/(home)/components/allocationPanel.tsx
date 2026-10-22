@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { CHART_COLOR_CLASSES, PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
@@ -6,9 +7,12 @@ import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { DoughnutChart } from "./doughnutChartLazy";
+import HealthRing from "./healthRing";
+import ReportNumbers from "./reportNumbers";
 
-// Solid doughnut of balances in the primary currency, with every account listed beside it.
-const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Account[]; primaryCurrency: string }) => {
+// Solid doughnut of balances in the primary currency, every account listed beside it, and
+// on the right the health score as a ring and the latest month's three numbers (both open the report).
+const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { accounts: Account[]; primaryCurrency: string; ownerId: string }) => {
   const t = await getT();
   const charted = accounts.filter((a) => (a.currency || "USD") === primaryCurrency && a.currentBalance > 0);
   const chartTotal = charted.reduce((sum, a) => sum + a.currentBalance, 0);
@@ -31,7 +35,7 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
         <span className="eyebrow">{t("home.shareIn", { currency: primaryCurrency })}</span>
       </header>
 
-      <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center">
+      <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center lg:grid-cols-[200px_1fr_auto]">
         <div className="relative mx-auto size-[180px] md:size-[200px]">
           {charted.length > 0 ? (
             <DoughnutChart accounts={charted} centre={centre} />
@@ -65,6 +69,18 @@ const AllocationPanel = async ({ accounts, primaryCurrency }: { accounts: Accoun
             </li>
           )}
         </ul>
+
+        {/* Streamed: the accounts show at once, the score and the month follow. */}
+        {accounts.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-line pt-4 md:col-span-2 md:flex-row md:items-center md:justify-around lg:col-span-1 lg:min-w-52 lg:flex-col lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <Suspense fallback={<div className="h-44 w-32 animate-pulse rounded-md bg-surface-low" />}>
+              <HealthRing ownerId={ownerId} />
+            </Suspense>
+            <Suspense fallback={<div className="h-24 w-44 animate-pulse rounded-md bg-surface-low" />}>
+              <ReportNumbers ownerId={ownerId} />
+            </Suspense>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -90,5 +90,8 @@
   "monthOlder_other": "{count} पुराने महीने देखें",
   "subtextAny": "आपके जुड़े हुए खातों में आए और गए सारे पैसे।",
   "byType": "प्रकार के हिसाब से",
-  "tapForAnalysis": "विश्लेषण के लिए किसी हिस्से पर टैप करें"
+  "tapForAnalysis": "विश्लेषण के लिए किसी हिस्से पर टैप करें",
+  "monthView": "महीने कैसे दिखाएँ",
+  "monthViewList": "सूची",
+  "monthViewChart": "चार्ट"
 }

@@ -253,6 +253,8 @@ declare interface RightSidebarProps {
   banks: Account[];
   selected?: string;
   spending?: React.ReactNode; // the strip under the bank card, streamed in
+  /** Where the plan stands ("Free trial: 5 days left"), shown in the profile. */
+  planLine?: string;
 }
 
 declare interface SidebarProps {

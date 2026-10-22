@@ -88,5 +88,7 @@
   "incomeKind_salaried": "జీతం పొందేవారు",
   "incomeKind_student": "విద్యార్థి",
   "incomeKind_freelancer": "ఫ్రీలాన్సర్ లేదా స్వయం ఉపాధి",
-  "incomeKind_none": "ప్రస్తుతం ఆదాయం లేదు"
+  "incomeKind_none": "ప్రస్తుతం ఆదాయం లేదు",
+  "footerAbout": "గురించి",
+  "footerSupport": "సహాయం"
 }

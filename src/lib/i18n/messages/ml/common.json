@@ -88,5 +88,7 @@
   "incomeKind_salaried": "ശമ്പളക്കാരൻ",
   "incomeKind_student": "വിദ്യാർത്ഥി",
   "incomeKind_freelancer": "ഫ്രീലാൻസർ അല്ലെങ്കിൽ സ്വയംതൊഴിൽ",
-  "incomeKind_none": "ഇപ്പോൾ വരുമാനമില്ല"
+  "incomeKind_none": "ഇപ്പോൾ വരുമാനമില്ല",
+  "footerAbout": "കുറിച്ച്",
+  "footerSupport": "പിന്തുണ"
 }

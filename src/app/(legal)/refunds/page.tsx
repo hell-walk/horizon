@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
@@ -25,6 +26,10 @@ export default async function RefundsPage() {
 
   return (
     <>
+      {/* Reached from the Plans page most of the time: the way back is at the top. */}
+      <Link href="/plans" className="btn-ghost btn-sm not-prose mb-4 w-fit">
+        <ArrowLeft className="size-4" aria-hidden /> {t("legal.backToPlans")}
+      </Link>
       <h1>{t("legal.refundsTitle")}</h1>
       <p className="eyebrow">{t("legal.lastUpdated", { date: updated })}</p>
       {locale !== "en" && <p className="rounded-md border border-line bg-card px-3 py-2 text-ink">{t("legal.englishOnlyNote")}</p>}
@@ -32,8 +37,8 @@ export default async function RefundsPage() {
       <div lang="en">
         <h2>Try before you pay</h2>
         <p>
-          Every account starts with a {TRIAL_DAYS}-day free trial, with no payment details asked. Nothing is ever
-          charged unless you choose a plan on the Plans page.
+          Every account starts with a {TRIAL_DAYS}-day free trial, with no payment details asked. Nothing is ever charged unless you choose a plan on the Plans
+          page.
         </p>
 
         <h2>Cancelling</h2>
@@ -52,17 +57,15 @@ export default async function RefundsPage() {
           <li>you write to us within 7 days of your first payment for a plan and have not used it since (for example, you subscribed by mistake).</li>
         </ul>
         <p>
-          To ask for a refund, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from the address you
-          sign in with, with the date and amount of the charge. We answer within 2 working days. Approved refunds
-          go back to the card, UPI account or bank account you paid with, normally within 5 to 7 working days
-          (Razorpay and your bank set the exact time).
+          To ask for a refund, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from the address you sign in with, with the date and amount of the
+          charge. We answer within 2 working days. Approved refunds go back to the card, UPI account or bank account you paid with, normally within 5 to 7
+          working days (Razorpay and your bank set the exact time).
         </p>
 
         <h2>Prices and taxes</h2>
         <p>
-          Prices are shown on the <Link href="/pricing">pricing page</Link> in Indian rupees. If GST applies, it is
-          shown on the payment page before you pay. A price change never affects a period you have already paid for;
-          we tell you by email before it applies to your next renewal.
+          Prices are shown on the <Link href="/pricing">pricing page</Link> in Indian rupees. If GST applies, it is shown on the payment page before you pay. A
+          price change never affects a period you have already paid for; we tell you by email before it applies to your next renewal.
         </p>
       </div>
     </>

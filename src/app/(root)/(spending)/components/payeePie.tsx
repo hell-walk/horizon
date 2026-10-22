@@ -1,13 +1,14 @@
 "use client";
 
 import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
+import { useRouter } from "next/navigation";
 import { Doughnut } from "react-chartjs-2";
 
 import ChartCentre from "@/components/chartCentre";
 import { useT } from "@/components/i18nProvider";
 import { spendTypeLabel } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
-import type { DetailSlice } from "@/lib/spendingDetail";
+import { MISC, type DetailSlice } from "@/lib/spendingDetail";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);
@@ -16,9 +17,10 @@ ChartJS.register(ArcElement, Tooltip);
  * Who the money went to, as a pie: one slice per payee (the lender, on the
  * EMI page), "Other" in grey. The same colours as the list beside it.
  */
-const PayeePie = ({ payees, currency, total }: { payees: DetailSlice[]; currency: string; total: number }) => {
+const PayeePie = ({ payees, currency, total, accountId }: { payees: DetailSlice[]; currency: string; total: number; accountId: string }) => {
   const t = useT();
   const colors = useChartColors();
+  const router = useRouter();
 
   return (
     <div className="relative mx-auto size-[200px]">
@@ -41,6 +43,15 @@ const PayeePie = ({ payees, currency, total }: { payees: DetailSlice[]; currency
           cutout: "58%",
           maintainAspectRatio: false,
           animation: ENTRANCE,
+          // A slice opens that payee's payments in the account's history ("Miscellaneous" has no one behind it).
+          onClick: (_event, elements) => {
+            const p = elements[0] ? payees[elements[0].index] : undefined;
+            if (p && p.name !== MISC) router.push(`/transaction-history?id=${accountId}&q=${encodeURIComponent(p.name)}`);
+          },
+          onHover: (event, elements) => {
+            const target = event.native?.target as HTMLElement | null;
+            if (target) target.style.cursor = elements[0] && payees[elements[0].index]?.name !== MISC ? "pointer" : "default";
+          },
           plugins: {
             legend: { display: false },
             tooltip: {

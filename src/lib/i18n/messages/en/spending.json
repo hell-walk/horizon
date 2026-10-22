@@ -1,6 +1,6 @@
 {
   "metaTitle": "Spending in detail",
-  "back": "Back to Home",
+  "back": "Back",
   "intro": "Everything paid as {name} from this account in the last 12 months your statements cover: who it went to, month by month, which days, and how it compares with usual.",
   "openDetail": "Open {name} in detail",
   "tileTotal": "Spent",

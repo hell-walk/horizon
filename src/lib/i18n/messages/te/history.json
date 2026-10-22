@@ -90,5 +90,8 @@
   "monthOlder_other": "ఇంకా {count} పాత నెలలు చూపించండి",
   "subtextAny": "మీ జోడించిన ఖాతాల్లోకి వచ్చిన, బయటకు వెళ్లిన ప్రతిదీ.",
   "byType": "రకం వారీగా",
-  "tapForAnalysis": "విశ్లేషణ కోసం ఒక భాగంపై నొక్కండి"
+  "tapForAnalysis": "విశ్లేషణ కోసం ఒక భాగంపై నొక్కండి",
+  "monthView": "నెలలను ఎలా చూపాలి",
+  "monthViewList": "జాబితా",
+  "monthViewChart": "చార్ట్"
 }

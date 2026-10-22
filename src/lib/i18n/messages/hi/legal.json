@@ -11,5 +11,10 @@
   "refundsTitle": "रिफ़ंड और रद्द करने की नीति",
   "refundsDescription": "Horizon प्लान कैसे रद्द करें और भुगतान कब लौटाया जाता है।",
   "contactTitle": "संपर्क करें",
-  "contactDescription": "Horizon चलाने वालों तक कैसे पहुँचें।"
+  "contactDescription": "Horizon चलाने वालों तक कैसे पहुँचें।",
+  "backToPlans": "प्लान पर वापस",
+  "aboutTitle": "Horizon के बारे में",
+  "aboutDescription": "Horizon क्या है, यह आपके स्टेटमेंट कैसे पढ़ता है, और इसे कौन बनाता है।",
+  "supportTitle": "सहायता",
+  "supportDescription": "स्टेटमेंट, वर्गीकरण, प्लान और आपके डेटा के बारे में पूछे जाने वाले सवालों के जवाब, और हमसे संपर्क कैसे करें।"
 }

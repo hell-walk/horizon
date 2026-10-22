@@ -11,5 +11,10 @@
   "refundsTitle": "Refund & cancellation policy",
   "refundsDescription": "How to cancel a Horizon plan and when payments are refunded.",
   "contactTitle": "Contact us",
-  "contactDescription": "How to reach the people behind Horizon."
+  "contactDescription": "How to reach the people behind Horizon.",
+  "backToPlans": "Back to plans",
+  "aboutTitle": "About Horizon",
+  "aboutDescription": "What Horizon is, how it reads your statements, and who makes it.",
+  "supportTitle": "Support",
+  "supportDescription": "Answers to the questions people ask about statements, sorting, plans and your data, and how to reach us."
 }

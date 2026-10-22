@@ -88,5 +88,7 @@
   "incomeKind_salaried": "वेतनभोगी",
   "incomeKind_student": "छात्र",
   "incomeKind_freelancer": "फ़्रीलांसर या स्वरोज़गार",
-  "incomeKind_none": "अभी कोई आय नहीं"
+  "incomeKind_none": "अभी कोई आय नहीं",
+  "footerAbout": "परिचय",
+  "footerSupport": "सहायता"
 }
