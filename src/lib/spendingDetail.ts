@@ -31,6 +31,8 @@ export type SpendingDetail = {
   payees: DetailSlice[];
   /** Everyone the money went to, largest first, none folded away. */
   allPayees: DetailSlice[];
+  /** Each payee's own entries, newest first, by the payee's name as shown. */
+  payeeEntries: Record<string, DetailEntry[]>;
   /** Month by month, oldest first, the last six months the statements cover. */
   months: { month: string; amount: number; count: number }[];
   /** The latest month next to the average of the months before it (when there are two or more). */
@@ -81,6 +83,7 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
   const from = rows.reduce((first, r) => (r.date < first ? r.date : first), to);
 
   const byPayee = new Map<string, DetailSlice>();
+  const payeeEntries: Record<string, DetailEntry[]> = {};
   const lenders = new Set<string>();
   for (const r of rows) {
     // Each payee by its own name ("Zepto", "Rahul Kumar"), not a group label ("Groceries"):
@@ -93,7 +96,9 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
     slice.amount += r.amount;
     slice.count++;
     byPayee.set(who, slice);
+    (payeeEntries[who] ??= []).push({ id: r.id, date: r.date, name: r.name, amount: r.amount });
   }
+  for (const list of Object.values(payeeEntries)) list.sort((a, b) => b.date.localeCompare(a.date));
   // A slice for each payee paid more than once (and each lender, even after one EMI): that is where
   // the money keeps going. One-off payments fold into "Miscellaneous". When nobody repeats, the
   // largest ones get the slices instead, or the pie would be one grey ring.
@@ -159,6 +164,7 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
     to,
     payees,
     allPayees,
+    payeeEntries,
     months,
     compare,
     weekdays: weekdays.map(round2),

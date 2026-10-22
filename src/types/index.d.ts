@@ -241,6 +241,8 @@ declare interface TotlaBalanceBoxProps {
   totalCurrentBalance: number;
   totalsByCurrency?: Record<string, number>;
   primaryCurrency?: string;
+  /** The wrapper's classes; "contents" lets the cards sit in a parent grid. */
+  className?: string;
 }
 
 declare interface FooterProps {

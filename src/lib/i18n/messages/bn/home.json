@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count}টি অ্যাকাউন্ট, {providers} দিয়ে যুক্ত",
   "noAccountsTitle": "এখনও কোনো অ্যাকাউন্ট নেই",
   "noAccountsBody": "এখানে ব্যালান্স দেখতে একটি ব্যাংক যোগ করুন বা স্টেটমেন্ট আপলোড করুন।",
-  "allocationTitle": "আপনার টাকা কোথায় আছে",
+  "allocationTitle": "যুক্ত ব্যাংক",
   "accountCount_one": "{count}টি অ্যাকাউন্ট",
   "accountCount_other": "{count}টি অ্যাকাউন্ট",
   "shareIn": "{currency}-এ ভাগ",

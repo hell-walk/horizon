@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count} கணக்குகள், {providers} மூலம் இணைக்கப்பட்டவை",
   "noAccountsTitle": "இன்னும் கணக்குகள் இல்லை",
   "noAccountsBody": "உங்கள் இருப்பை இங்கே பார்க்க, ஒரு வங்கியை இணையுங்கள் அல்லது ஸ்டேட்மென்ட்டைப் பதிவேற்றுங்கள்.",
-  "allocationTitle": "உங்கள் பணம் எங்கே உள்ளது",
+  "allocationTitle": "இணைக்கப்பட்ட வங்கிகள்",
   "accountCount_one": "{count} கணக்கு",
   "accountCount_other": "{count} கணக்குகள்",
   "shareIn": "{currency}-இல் பங்கு",

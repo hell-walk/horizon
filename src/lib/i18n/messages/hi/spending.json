@@ -31,5 +31,8 @@
   "entriesTitle_other": "सभी {count} भुगतान",
   "lockedTitle": "{name} की पूरी तस्वीर देखें",
   "lockedText": "सब्सक्राइबर देखते हैं कि पैसा किसे गया, महीने-दर-महीने, किन दिनों में जाता है, सबसे बड़े भुगतान, और यह महीना आम से कैसा है।",
-  "lockedAction": "प्लान देखें"
+  "lockedAction": "प्लान देखें",
+  "payeeEntriesTitle_one": "{name}: {count} भुगतान",
+  "payeeEntriesTitle_other": "{name}: {count} भुगतान",
+  "payeeClear": "सब दिखाएँ"
 }

@@ -31,5 +31,8 @@
   "entriesTitle_other": "എല്ലാ {count} പേയ്മെന്റുകളും",
   "lockedTitle": "{name} മുഴുവൻ ചിത്രം കാണുക",
   "lockedText": "വരിക്കാർ പണം ആർക്ക് പോയി, മാസം തിരിച്ച്, ഏത് ദിവസങ്ങളിൽ പോകുന്നു, ഏറ്റവും വലിയ പേയ്മെന്റുകൾ, ഈ മാസം പതിവുമായി താരതമ്യം ചെയ്താൽ എങ്ങനെ എന്നിവ കാണുന്നു.",
-  "lockedAction": "പ്ലാനുകൾ കാണുക"
+  "lockedAction": "പ്ലാനുകൾ കാണുക",
+  "payeeEntriesTitle_one": "{name}: {count} പേയ്‌മെന്റ്",
+  "payeeEntriesTitle_other": "{name}: {count} പേയ്‌മെന്റുകൾ",
+  "payeeClear": "എല്ലാം കാണിക്കുക"
 }

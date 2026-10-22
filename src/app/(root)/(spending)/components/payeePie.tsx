@@ -17,7 +17,7 @@ ChartJS.register(ArcElement, Tooltip);
  * Who the money went to, as a pie: one slice per payee (the lender, on the
  * EMI page), "Other" in grey. The same colours as the list beside it.
  */
-const PayeePie = ({ payees, currency, total, accountId }: { payees: DetailSlice[]; currency: string; total: number; accountId: string }) => {
+const PayeePie = ({ payees, currency, total, linkBase }: { payees: DetailSlice[]; currency: string; total: number; linkBase: string }) => {
   const t = useT();
   const colors = useChartColors();
   const router = useRouter();
@@ -43,10 +43,10 @@ const PayeePie = ({ payees, currency, total, accountId }: { payees: DetailSlice[
           cutout: "58%",
           maintainAspectRatio: false,
           animation: ENTRANCE,
-          // A slice opens that payee's payments in the account's history ("Miscellaneous" has no one behind it).
+          // A slice shows that payee's payments on this page ("Miscellaneous" has no one behind it).
           onClick: (_event, elements) => {
             const p = elements[0] ? payees[elements[0].index] : undefined;
-            if (p && p.name !== MISC) router.push(`/transaction-history?id=${accountId}&q=${encodeURIComponent(p.name)}`);
+            if (p && p.name !== MISC) router.push(`${linkBase}${encodeURIComponent(p.name)}`, { scroll: false });
           },
           onHover: (event, elements) => {
             const target = event.native?.target as HTMLElement | null;

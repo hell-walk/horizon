@@ -31,5 +31,8 @@
   "entriesTitle_other": "ಎಲ್ಲಾ {count} ಪಾವತಿಗಳು",
   "lockedTitle": "{name} ನ ಪೂರ್ಣ ಚಿತ್ರ ನೋಡಿ",
   "lockedText": "ಚಂದಾದಾರರು ಹಣ ಯಾರಿಗೆ ಹೋಯಿತು, ತಿಂಗಳುವಾರು, ಯಾವ ದಿನಗಳಲ್ಲಿ ಹೋಗುತ್ತದೆ, ದೊಡ್ಡ ಪಾವತಿಗಳು, ಮತ್ತು ಈ ತಿಂಗಳು ಸಾಮಾನ್ಯಕ್ಕೆ ಹೋಲಿಸಿದರೆ ಹೇಗಿದೆ ಎಂದು ನೋಡುತ್ತಾರೆ.",
-  "lockedAction": "ಯೋಜನೆಗಳನ್ನು ನೋಡಿ"
+  "lockedAction": "ಯೋಜನೆಗಳನ್ನು ನೋಡಿ",
+  "payeeEntriesTitle_one": "{name}: {count} ಪಾವತಿ",
+  "payeeEntriesTitle_other": "{name}: {count} ಪಾವತಿಗಳು",
+  "payeeClear": "ಎಲ್ಲಾ ತೋರಿಸಿ"
 }

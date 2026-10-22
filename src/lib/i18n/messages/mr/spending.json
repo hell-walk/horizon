@@ -31,5 +31,8 @@
   "entriesTitle_other": "सर्व {count} पेमेंट्स",
   "lockedTitle": "{name} चे पूर्ण चित्र पाहा",
   "lockedText": "सबस्क्रायबर्सना दिसते की पैसे कोणाला गेले, महिन्यानुसार, कोणत्या दिवशी जातात, सर्वात मोठी पेमेंट्स, आणि हा महिना नेहमीच्या तुलनेत कसा आहे.",
-  "lockedAction": "प्लॅन पाहा"
+  "lockedAction": "प्लॅन पाहा",
+  "payeeEntriesTitle_one": "{name}: {count} पेमेंट",
+  "payeeEntriesTitle_other": "{name}: {count} पेमेंट",
+  "payeeClear": "सर्व दाखवा"
 }

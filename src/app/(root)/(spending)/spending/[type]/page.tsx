@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Gem, Lock, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeft, Gem, Lock, TrendingDown, TrendingUp, X } from "lucide-react";
 
 import { BarsLoader } from "@/components/loaders";
 import HeaderBox from "@/components/ui/headerBox";
@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const SpendingType = async ({ params, searchParams }: Props) => {
   const { type } = await params;
   if (!isSlug(type)) notFound();
-  const { id } = await searchParams;
+  const { id, payee } = await searchParams;
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) redirect("/sign-in");
@@ -51,7 +51,8 @@ const SpendingType = async ({ params, searchParams }: Props) => {
   return (
     <section className="page">
       <RememberAccount id={account.appwriteItemId} />
-      <Link href={`/?id=${account.appwriteItemId}`} className="btn-ghost btn-sm w-fit">
+      {/* Back to the account's history, where the entries themselves are. */}
+      <Link href={`/transaction-history?id=${account.appwriteItemId}`} className="btn-ghost btn-sm w-fit">
         <ArrowLeft className="size-4" aria-hidden /> {t("spending.back")}
       </Link>
       <Suspense
@@ -71,13 +72,13 @@ const SpendingType = async ({ params, searchParams }: Props) => {
           </>
         }
       >
-        <SpendingContent slug={type} account={account} />
+        <SpendingContent slug={type} account={account} payee={typeof payee === "string" ? payee.slice(0, 80) : undefined} />
       </Suspense>
     </section>
   );
 };
 
-async function SpendingContent({ slug, account }: { slug: string; account: Account }) {
+async function SpendingContent({ slug, account, payee }: { slug: string; account: Account; payee?: string }) {
   const t = await getT();
   const locale = await getLocale();
   const [loaded, plan] = await Promise.all([getAccount({ appwriteItemId: account.appwriteItemId }), currentPlan()]);
@@ -122,8 +123,23 @@ async function SpendingContent({ slug, account }: { slug: string; account: Accou
 
       {detail.compare && <Compare t={t} locale={locale} compare={detail.compare} money={money} />}
 
+      {/* One payee's payments, picked from the pie or the list: here, on the same page. */}
+      {payee && detail.payeeEntries[payee] && (
+        <section className="panel" aria-labelledby="spending-payee">
+          <header className="panel-head">
+            <h2 id="spending-payee" className="eyebrow">
+              {t("spending.payeeEntriesTitle", { name: payee, count: detail.payeeEntries[payee].length })}
+            </h2>
+            <Link href={`/spending/${slug}?id=${account.appwriteItemId}`} scroll={false} className="btn-ghost btn-sm">
+              <X className="size-3.5" aria-hidden /> {t("spending.payeeClear")}
+            </Link>
+          </header>
+          <EntryRows entries={detail.payeeEntries[payee]} money={money} day={day} />
+        </section>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Payees t={t} detail={detail} money={money} currency={currency} accountId={account.appwriteItemId} />
+        <Payees t={t} detail={detail} money={money} currency={currency} linkBase={`/spending/${slug}?id=${account.appwriteItemId}&payee=`} picked={payee} />
         <div className="flex flex-col gap-4">
           <Months t={t} locale={locale} detail={detail} money={money} />
           <Weekdays t={t} locale={locale} detail={detail} money={money} />
@@ -218,21 +234,21 @@ const Compare = ({
   );
 };
 
-/** The account's history, searched for this payee: every payment to them, in one tap. */
-const payeeHref = (accountId: string, name: string) => `/transaction-history?id=${accountId}&q=${encodeURIComponent(name)}`;
-
 const Payees = ({
   t,
   detail,
   money,
   currency,
-  accountId,
+  linkBase,
+  picked,
 }: {
   t: Translate;
   detail: SpendingDetail;
   money: (n: number) => string;
   currency: string;
-  accountId: string;
+  /** This page's address with "&payee=" at the end: a payee's name completes it. */
+  linkBase: string;
+  picked?: string;
 }) => (
   <section className="panel" aria-labelledby="spending-payees">
     <header className="panel-head">
@@ -241,12 +257,13 @@ const Payees = ({
       </h2>
     </header>
     <div className="panel-body flex flex-col gap-5">
-      <PayeePie payees={detail.payees} currency={currency} total={detail.total} accountId={accountId} />
+      <PayeePie payees={detail.payees} currency={currency} total={detail.total} linkBase={linkBase} />
       <ul className="flex flex-col divide-y divide-line">
         {detail.payees.map((p, i) => (
           <li key={p.name}>
             <PayeeRow
-              href={p.name === MISC ? null : payeeHref(accountId, p.name)}
+              href={p.name === MISC ? null : `${linkBase}${encodeURIComponent(p.name)}`}
+              current={p.name === picked}
               left={
                 <span className="flex min-w-0 items-center gap-3">
                   <span className={cn("size-2.5 shrink-0 rounded-sm", chartColorClass(p.name, i))} />
@@ -279,7 +296,8 @@ const Payees = ({
           {detail.allPayees.map((p) => (
             <li key={p.name}>
               <PayeeRow
-                href={payeeHref(accountId, p.name)}
+                href={`${linkBase}${encodeURIComponent(p.name)}`}
+                current={p.name === picked}
                 left={
                   <span className="flex min-w-0 flex-col">
                     <span translate="no" className="truncate text-14 font-semibold text-ink">
@@ -305,10 +323,15 @@ const Payees = ({
   </section>
 );
 
-/** One payee line: a link to their payments when there is a payee behind it, plain text for "Miscellaneous". */
-const PayeeRow = ({ href, left, right }: { href: string | null; left: React.ReactNode; right: React.ReactNode }) =>
+/** One payee line: a link that shows their payments on this page when there is a payee behind it, plain text for "Miscellaneous". */
+const PayeeRow = ({ href, left, right, current = false }: { href: string | null; left: React.ReactNode; right: React.ReactNode; current?: boolean }) =>
   href ? (
-    <Link href={href} className="-mx-2 flex items-center justify-between gap-3 rounded-sm px-2 py-2 transition-colors hover:bg-surface-low">
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={current ? "true" : undefined}
+      className={cn("-mx-2 flex items-center justify-between gap-3 rounded-sm px-2 py-2 transition-colors hover:bg-surface-low", current && "bg-surface-low")}
+    >
       {left}
       {right}
     </Link>

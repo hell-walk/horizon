@@ -31,5 +31,8 @@
   "entriesTitle_other": "সব {count}টি পেমেন্ট",
   "lockedTitle": "{name}-এর পুরো ছবি দেখুন",
   "lockedText": "সাবস্ক্রাইবাররা দেখেন টাকা কার কাছে গেছে, মাস অনুযায়ী, কোন দিনে যায়, সবচেয়ে বড় পেমেন্ট, আর এই মাস সাধারণের তুলনায় কেমন।",
-  "lockedAction": "প্ল্যান দেখুন"
+  "lockedAction": "প্ল্যান দেখুন",
+  "payeeEntriesTitle_one": "{name}: {count}টি পেমেন্ট",
+  "payeeEntriesTitle_other": "{name}: {count}টি পেমেন্ট",
+  "payeeClear": "সব দেখান"
 }

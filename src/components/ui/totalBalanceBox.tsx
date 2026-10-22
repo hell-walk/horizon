@@ -8,12 +8,12 @@ const NAMED_CURRENCIES = new Set(["USD", "INR", "GBP", "EUR"]);
 
 // One card per currency. Balances in different currencies are never added together.
 // Server only: rendered by the Home and My Banks pages.
-const TotalBalanceBox = async ({ accounts = [], totalsByCurrency, totalCurrentBalance, primaryCurrency = "USD" }: TotlaBalanceBoxProps) => {
+const TotalBalanceBox = async ({ accounts = [], totalsByCurrency, totalCurrentBalance, primaryCurrency = "USD", className }: TotlaBalanceBoxProps) => {
   const t = await getT();
   const totals = Object.entries(totalsByCurrency ?? { [primaryCurrency]: totalCurrentBalance });
 
   return (
-    <section className="grid gap-3 md:grid-cols-2">
+    <section className={className ?? "grid gap-3 md:grid-cols-2"}>
       {totals.map(([currency, total]) => {
         const group = accounts.filter((a) => (a.currency || "USD") === currency);
         const providers = Array.from(new Set(group.map((a) => t((PROVIDER_LABELS[a.provider] ?? PROVIDER_LABELS.plaid).nameKey))));

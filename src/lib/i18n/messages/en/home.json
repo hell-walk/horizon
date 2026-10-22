@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count} accounts, connected with {providers}",
   "noAccountsTitle": "No accounts yet",
   "noAccountsBody": "Connect a bank or upload a statement to see your balance here.",
-  "allocationTitle": "Where your money is",
+  "allocationTitle": "Connected banks",
   "accountCount_one": "{count} account",
   "accountCount_other": "{count} accounts",
   "shareIn": "Share in {currency}",

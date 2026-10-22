@@ -5,6 +5,7 @@ import {
   CalendarDays,
   FileText,
   HandCoins,
+  Info,
   Gem,
   Home,
   Landmark,
@@ -42,6 +43,7 @@ export const moreLinks = [
   { icon: ShieldCheck, route: "/my-data", label: "Privacy and your data", labelKey: "nav.myData", shortKey: "nav.myData" },
   { icon: Gem, route: "/plans", label: "Plans", labelKey: "nav.plans", shortKey: "nav.plans" },
   { icon: MessageSquare, route: "/feedback", label: "Feedback", labelKey: "nav.feedback", shortKey: "nav.feedback" },
+  { icon: Info, route: "/about-horizon", label: "About Horizon", labelKey: "nav.about", shortKey: "nav.aboutShort" },
 ];
 
 // Chart segment classes, in the order accounts and categories are drawn.

@@ -31,5 +31,8 @@
   "entriesTitle_other": "ସମସ୍ତ {count}ଟି ପେମେଣ୍ଟ",
   "lockedTitle": "{name}ର ପୂର୍ଣ୍ଣ ଚିତ୍ର ଦେଖନ୍ତୁ",
   "lockedText": "ସବସ୍କ୍ରାଇବରମାନେ ଦେଖନ୍ତି ଟଙ୍କା କାହାକୁ ଗଲା, ମାସ ଅନୁସାରେ, କେଉଁ ଦିନରେ ଯାଏ, ସବୁଠୁ ବଡ଼ ପେମେଣ୍ଟ, ଏବଂ ଏହି ମାସ ସାଧାରଣ ତୁଳନାରେ କିପରି।",
-  "lockedAction": "ପ୍ଲାନ୍ ଦେଖନ୍ତୁ"
+  "lockedAction": "ପ୍ଲାନ୍ ଦେଖନ୍ତୁ",
+  "payeeEntriesTitle_one": "{name}: {count} ଦେୟ",
+  "payeeEntriesTitle_other": "{name}: {count} ଦେୟ",
+  "payeeClear": "ସବୁ ଦେଖାନ୍ତୁ"
 }

@@ -31,5 +31,8 @@
   "entriesTitle_other": "ਸਾਰੇ {count} ਭੁਗਤਾਨ",
   "lockedTitle": "{name} ਦੀ ਪੂਰੀ ਤਸਵੀਰ ਦੇਖੋ",
   "lockedText": "ਸਬਸਕ੍ਰਾਈਬਰ ਦੇਖਦੇ ਹਨ ਕਿ ਪੈਸਾ ਕਿਸਨੂੰ ਗਿਆ, ਮਹੀਨੇ ਮੁਤਾਬਕ, ਕਿਹੜੇ ਦਿਨਾਂ ਵਿੱਚ ਜਾਂਦਾ ਹੈ, ਸਭ ਤੋਂ ਵੱਡੇ ਭੁਗਤਾਨ, ਅਤੇ ਇਹ ਮਹੀਨਾ ਆਮ ਨਾਲੋਂ ਕਿਵੇਂ ਹੈ।",
-  "lockedAction": "ਪਲਾਨ ਦੇਖੋ"
+  "lockedAction": "ਪਲਾਨ ਦੇਖੋ",
+  "payeeEntriesTitle_one": "{name}: {count} ਭੁਗਤਾਨ",
+  "payeeEntriesTitle_other": "{name}: {count} ਭੁਗਤਾਨ",
+  "payeeClear": "ਸਭ ਵਿਖਾਓ"
 }

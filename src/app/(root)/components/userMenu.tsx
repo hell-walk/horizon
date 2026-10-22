@@ -112,6 +112,9 @@ const UserMenu = ({ user, planLine, accounts, activeId }: { user: User; planLine
           <Link href="/terms" onClick={() => setOpen(false)} className="btn-ghost justify-start">
             {t("nav.terms")}
           </Link>
+          <Link href="/support" onClick={() => setOpen(false)} className="btn-ghost justify-start">
+            {t("common.footerSupport")}
+          </Link>
         </div>
 
         <button type="button" onClick={handleLogOut} disabled={loggingOut} className="btn-primary mt-auto w-full">

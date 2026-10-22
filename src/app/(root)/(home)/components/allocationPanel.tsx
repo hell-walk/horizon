@@ -8,10 +8,10 @@ import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { DoughnutChart } from "./doughnutChartLazy";
 import HealthRing from "./healthRing";
-import ReportNumbers from "./reportNumbers";
+import WelcomeHero from "./welcomeHero";
 
 // Solid doughnut of balances in the primary currency, every account listed beside it, and
-// on the right the health score as a ring and the latest month's three numbers (both open the report).
+// on the right the health score as a ring (it opens the report).
 const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { accounts: Account[]; primaryCurrency: string; ownerId: string }) => {
   const t = await getT();
   const charted = accounts.filter((a) => (a.currency || "USD") === primaryCurrency && a.currentBalance > 0);
@@ -28,12 +28,12 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
   return (
     <section className="panel">
       <header className="panel-head">
-        <div className="flex items-center gap-2">
-          <span className="eyebrow">{t("home.allocationTitle")}</span>
-          <span className="eyebrow">{t("home.accountCount", { count: accounts.length })}</span>
-        </div>
-        <span className="eyebrow">{t("home.shareIn", { currency: primaryCurrency })}</span>
+        <span className="eyebrow">{t("home.allocationTitle")}</span>
+        <span className="eyebrow">{t("home.accountCount", { count: accounts.length })}</span>
       </header>
+
+      {/* What Horizon is and what to do next, before the accounts themselves. */}
+      <WelcomeHero />
 
       <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center lg:grid-cols-[200px_1fr_auto]">
         <div className="relative mx-auto size-[180px] md:size-[200px]">
@@ -70,14 +70,11 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
           )}
         </ul>
 
-        {/* Streamed: the accounts show at once, the score and the month follow. */}
+        {/* Streamed: the accounts show at once, the score follows. */}
         {accounts.length > 0 && (
-          <div className="flex flex-col gap-3 border-t border-line pt-4 md:col-span-2 md:flex-row md:items-center md:justify-around lg:col-span-1 lg:min-w-52 lg:flex-col lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div className="flex justify-center border-t border-line pt-4 md:col-span-2 lg:col-span-1 lg:min-w-48 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <Suspense fallback={<div className="h-44 w-32 animate-pulse rounded-md bg-surface-low" />}>
               <HealthRing ownerId={ownerId} />
-            </Suspense>
-            <Suspense fallback={<div className="h-24 w-44 animate-pulse rounded-md bg-surface-low" />}>
-              <ReportNumbers ownerId={ownerId} />
             </Suspense>
           </div>
         )}

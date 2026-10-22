@@ -31,5 +31,8 @@
   "entriesTitle_other": "All {count} payments",
   "lockedTitle": "See the full picture of {name}",
   "lockedText": "Subscribers see who the money went to, month by month, the days it goes out, the biggest payments, and how this month compares with usual.",
-  "lockedAction": "See plans"
+  "lockedAction": "See plans",
+  "payeeEntriesTitle_one": "{name}: {count} payment",
+  "payeeEntriesTitle_other": "{name}: {count} payments",
+  "payeeClear": "Show all"
 }

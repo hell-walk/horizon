@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count} खाती, {providers} ने जोडलेली",
   "noAccountsTitle": "अजून एकही खाते नाही",
   "noAccountsBody": "इथे तुमची शिल्लक पाहण्यासाठी बँक जोडा किंवा स्टेटमेंट अपलोड करा.",
-  "allocationTitle": "तुमचे पैसे कुठे आहेत",
+  "allocationTitle": "जोडलेल्या बँका",
   "accountCount_one": "{count} खाते",
   "accountCount_other": "{count} खाती",
   "shareIn": "{currency} मधील वाटा",

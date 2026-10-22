@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count} खाते, {providers} से जुड़े",
   "noAccountsTitle": "अभी कोई खाता नहीं",
   "noAccountsBody": "अपना बैलेंस यहाँ देखने के लिए कोई बैंक जोड़ें या स्टेटमेंट अपलोड करें।",
-  "allocationTitle": "पैसा कहाँ है",
+  "allocationTitle": "जुड़े बैंक",
   "accountCount_one": "{count} खाता",
   "accountCount_other": "{count} खाते",
   "shareIn": "{currency} में हिस्सा",

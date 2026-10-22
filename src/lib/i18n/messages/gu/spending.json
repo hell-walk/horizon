@@ -31,5 +31,8 @@
   "entriesTitle_other": "બધી {count} ચુકવણીઓ",
   "lockedTitle": "{name} નું પૂરું ચિત્ર જુઓ",
   "lockedText": "સબ્સ્ક્રાઇબર જુએ છે કે પૈસા કોને ગયા, મહિના પ્રમાણે, કયા દિવસોમાં જાય છે, સૌથી મોટી ચુકવણીઓ, અને આ મહિનો સામાન્ય કરતાં કેવો છે.",
-  "lockedAction": "પ્લાન જુઓ"
+  "lockedAction": "પ્લાન જુઓ",
+  "payeeEntriesTitle_one": "{name}: {count} ચુકવણી",
+  "payeeEntriesTitle_other": "{name}: {count} ચુકવણીઓ",
+  "payeeClear": "બધું બતાવો"
 }

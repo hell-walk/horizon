@@ -32,5 +32,7 @@
   "calendar": "Cash-flow calendar",
   "calendarShort": "Calendar",
   "report": "Monthly report",
-  "reportShort": "Report"
+  "reportShort": "Report",
+  "about": "About Horizon",
+  "aboutShort": "About"
 }

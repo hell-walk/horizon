@@ -31,5 +31,8 @@
   "entriesTitle_other": "మొత్తం {count} చెల్లింపులు",
   "lockedTitle": "{name} పూర్తి చిత్రం చూడండి",
   "lockedText": "సబ్‌స్క్రైబర్లు డబ్బు ఎవరికి వెళ్ళిందో, నెలవారీగా, ఏ రోజుల్లో వెళ్తుందో, అతిపెద్ద చెల్లింపులు, ఈ నెల సాధారణంతో పోలిస్తే ఎలా ఉందో చూస్తారు.",
-  "lockedAction": "ప్లాన్‌లు చూడండి"
+  "lockedAction": "ప్లాన్‌లు చూడండి",
+  "payeeEntriesTitle_one": "{name}: {count} చెల్లింపు",
+  "payeeEntriesTitle_other": "{name}: {count} చెల్లింపులు",
+  "payeeClear": "అన్నీ చూపించు"
 }

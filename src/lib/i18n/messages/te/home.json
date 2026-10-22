@@ -23,7 +23,7 @@
   "balanceAccountsVia_other": "{count} ఖాతాలు, {providers} ద్వారా జోడించినవి",
   "noAccountsTitle": "ఇంకా ఖాతాలు లేవు",
   "noAccountsBody": "మీ బ్యాలెన్స్ ఇక్కడ చూడటానికి బ్యాంకు జోడించండి లేదా స్టేట్‌మెంట్ అప్‌లోడ్ చేయండి.",
-  "allocationTitle": "మీ డబ్బు ఎక్కడ ఉంది",
+  "allocationTitle": "అనుసంధానించిన బ్యాంకులు",
   "accountCount_one": "{count} ఖాతా",
   "accountCount_other": "{count} ఖాతాలు",
   "shareIn": "{currency}లో వాటా",

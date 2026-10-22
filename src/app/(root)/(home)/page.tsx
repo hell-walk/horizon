@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import AllocationPanel from "./components/allocationPanel";
 import IncomePanel from "./components/incomePanel";
 import ProfileCard from "./components/profileCard";
+import ReportNumbers from "./components/reportNumbers";
 import CategoryPanel from "./components/categoryPanel";
 import CombinedTotal from "./components/combinedTotal";
 import BeReady from "./components/beReady";
@@ -78,26 +79,31 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
           />
 
-          {/* Connected banks first: where the money is, the health score and the latest month, in one glance. */}
+          {/* Connected banks: what Horizon is and what to do next, where the money is, and the health score. */}
           <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} ownerId={ownerIdOf(loggedIn)} />
 
           <QuickActions />
 
-          <TotalBalanceBox
-            accounts={accountsData}
-            totalBanks={accounts.totalBanks}
-            totalCurrentBalance={accounts.totalCurrentBalance}
-            totalsByCurrency={accounts.totalsByCurrency}
-            primaryCurrency={accounts.primaryCurrency}
-          />
+          {/* One row: the balance as it stands, money in each month, and the latest month's three numbers. */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <TotalBalanceBox
+              accounts={accountsData}
+              totalBanks={accounts.totalBanks}
+              totalCurrentBalance={accounts.totalCurrentBalance}
+              totalsByCurrency={accounts.totalsByCurrency}
+              primaryCurrency={accounts.primaryCurrency}
+              className="contents"
+            />
+            <Suspense fallback={<PanelPlaceholder className="min-h-28" />}>
+              <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
+            </Suspense>
+            <Suspense fallback={<PanelPlaceholder className="min-h-28" />}>
+              <ReportNumbers ownerId={ownerIdOf(loggedIn)} />
+            </Suspense>
+          </div>
 
           <Suspense fallback={null}>
             <CombinedTotal totals={accounts.totalsByCurrency} base={"INR" in accounts.totalsByCurrency ? "INR" : accounts.primaryCurrency} />
-          </Suspense>
-
-          {/* Money in each month, read the way the person said they earn; asks once when it does not know. */}
-          <Suspense fallback={<PanelPlaceholder className="min-h-28" />}>
-            <IncomePanel ownerId={ownerIdOf(loggedIn)} currency={accounts.primaryCurrency} />
           </Suspense>
 
           {/* Phones and tablets: the profile, then the bank cards, here rather than at the end of the page. */}
