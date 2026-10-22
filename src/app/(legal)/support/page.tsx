@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import CopyEmail from "@/components/copyEmail";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { publicPage } from "@/lib/seo";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -22,8 +23,8 @@ export default async function SupportPage() {
 
       <div lang="en">
         <p>
-          Most questions are answered below. For anything else, write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and you will hear back within
-          two working days. Signed in, you can also use the <Link href="/feedback">feedback page</Link>.
+          Most questions are answered below. For anything else, write to <CopyEmail address={CONTACT_EMAIL} /> (one click copies it) and you will hear back
+          within two working days. Signed in, you can also use the <Link href="/feedback">feedback page</Link>.
         </p>
 
         <h2>Statements</h2>

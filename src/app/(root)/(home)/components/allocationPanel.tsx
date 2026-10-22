@@ -8,7 +8,6 @@ import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import { DoughnutChart } from "./doughnutChartLazy";
 import HealthRing from "./healthRing";
-import WelcomeHero from "./welcomeHero";
 
 // Solid doughnut of balances in the primary currency, every account listed beside it, and
 // on the right the health score as a ring (it opens the report).
@@ -76,9 +75,6 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
           </div>
         )}
       </div>
-
-      {/* After the accounts: what Horizon is and what to do next. */}
-      <WelcomeHero />
     </section>
   );
 };

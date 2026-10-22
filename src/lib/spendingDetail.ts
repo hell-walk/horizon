@@ -106,7 +106,11 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
   const repeating = sorted.filter((p) => p.count > 1 || lenders.has(p.name));
   const head = (repeating.length ? repeating : sorted).slice(0, PAYEES_SHOWN);
   const rest = [...byPayee.values()].filter((p) => !head.includes(p));
-  if (rest.length) head.push({ name: MISC, amount: rest.reduce((s, p) => s + p.amount, 0), count: rest.reduce((s, p) => s + p.count, 0), share: 0 });
+  if (rest.length) {
+    head.push({ name: MISC, amount: rest.reduce((s, p) => s + p.amount, 0), count: rest.reduce((s, p) => s + p.count, 0), share: 0 });
+    // "Miscellaneous" opens like any payee: every payment folded into it, newest first.
+    payeeEntries[MISC] = rest.flatMap((p) => payeeEntries[p.name] ?? []).sort((a, b) => b.date.localeCompare(a.date));
+  }
   const payees = head.map((p) => ({ ...p, amount: round2(p.amount), share: total ? p.amount / total : 0 }));
   const allPayees = [...byPayee.values()]
     .sort((a, b) => b.amount - a.amount)

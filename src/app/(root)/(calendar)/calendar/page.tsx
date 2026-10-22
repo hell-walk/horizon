@@ -52,9 +52,9 @@ const CalendarPage = async ({ searchParams }: { searchParams: Promise<{ month?: 
 async function CalendarContent({ ownerId, month: wanted }: { ownerId: string; month?: string }) {
   const [t, locale, accounts, plan] = await Promise.all([getT(), getLocale(), getAccounts({ userId: ownerId }), currentPlan()]);
   const today = new Date();
-  const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId, today, WINDOW_DAYS)))).filter(
-    (f): f is AccountForecast => f !== null,
-  );
+  const forecasts = (
+    await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId, { today, days: WINDOW_DAYS })))
+  ).filter((f): f is AccountForecast => f !== null);
   const calendar = buildCalendar(forecasts);
   const subscribed = plan?.kind === "subscribed";
   const day = dateFormat(locale, { weekday: "short", day: "numeric", month: "short" });

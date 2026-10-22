@@ -6,6 +6,8 @@ import type { Forecast, ForecastEvent } from "@/lib/forecast";
 const account = (id: string, currency = "INR") => ({ id, name: `Bank ${id}`, mask: "1234", currency });
 const ok = (start: number, points: { date: string; balance: number }[], events: ForecastEvent[], belowZero?: string): Forecast => ({
   ok: true,
+  view: "rolling",
+  history: [],
   start: { date: "2026-10-01", balance: start },
   end: points.at(-1)!,
   lowest: points.reduce((l, p) => (p.balance < l.balance ? p : l), { date: "2026-10-01", balance: start }),
