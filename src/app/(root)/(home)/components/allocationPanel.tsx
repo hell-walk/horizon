@@ -32,9 +32,6 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
         <span className="eyebrow">{t("home.accountCount", { count: accounts.length })}</span>
       </header>
 
-      {/* What Horizon is and what to do next, before the accounts themselves. */}
-      <WelcomeHero />
-
       <div className="panel-body grid gap-6 md:grid-cols-[200px_1fr] md:items-center lg:grid-cols-[200px_1fr_auto]">
         <div className="relative mx-auto size-[180px] md:size-[200px]">
           {charted.length > 0 ? (
@@ -79,6 +76,9 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
           </div>
         )}
       </div>
+
+      {/* After the accounts: what Horizon is and what to do next. */}
+      <WelcomeHero />
     </section>
   );
 };
