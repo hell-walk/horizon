@@ -8,7 +8,7 @@ import ChartCentre from "@/components/chartCentre";
 import { useT } from "@/components/i18nProvider";
 import { spendTypeLabel } from "@/constants";
 import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
-import { MISC, type DetailSlice } from "@/lib/spendingDetail";
+import type { DetailSlice } from "@/lib/spendingDetail";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);
@@ -43,14 +43,14 @@ const PayeePie = ({ payees, currency, total, linkBase }: { payees: DetailSlice[]
           cutout: "58%",
           maintainAspectRatio: false,
           animation: ENTRANCE,
-          // A slice shows that payee's payments on this page ("Miscellaneous" has no one behind it).
+          // A slice shows that payee's payments on this page ("Miscellaneous": the one-off payments folded into it).
           onClick: (_event, elements) => {
             const p = elements[0] ? payees[elements[0].index] : undefined;
-            if (p && p.name !== MISC) router.push(`${linkBase}${encodeURIComponent(p.name)}`, { scroll: false });
+            if (p) router.push(`${linkBase}${encodeURIComponent(p.name)}`, { scroll: false });
           },
           onHover: (event, elements) => {
             const target = event.native?.target as HTMLElement | null;
-            if (target) target.style.cursor = elements[0] && payees[elements[0].index]?.name !== MISC ? "pointer" : "default";
+            if (target) target.style.cursor = elements[0] ? "pointer" : "default";
           },
           plugins: {
             legend: { display: false },

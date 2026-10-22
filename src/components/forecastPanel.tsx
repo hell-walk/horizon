@@ -51,8 +51,12 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
   }
 
   const upcoming = f.events.filter((e) => e.date >= today).slice(0, EVENTS_SHOWN);
-  // Where today falls along the chart, in percent (the start can be before today for uploaded statements).
-  const todayAt = f.start.date < today ? ((f.points.findIndex((p) => p.date >= today) + 1) / f.points.length) * 100 : 0;
+  // Every day drawn: the month so far (month view), the known balance, then the estimate.
+  const drawn = [...f.history, f.start, ...f.points];
+  const from = drawn[0].date;
+  // Where today falls along the chart, in percent (the known balance can be before today for uploaded statements).
+  const todayIndex = drawn.findIndex((p) => p.date >= today);
+  const todayAt = todayIndex > 0 ? (todayIndex / (drawn.length - 1)) * 100 : 0;
 
   return (
     <section className="panel">
@@ -75,9 +79,9 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
         )}
 
         <div>
-          <Chart points={f.points} start={f.start} events={f.events} today={today} />
+          <Chart drawn={drawn} known={f.history.length} events={f.events} today={today} />
           <div className="relative flex justify-between font-mono text-[11px] text-ink-muted" aria-hidden>
-            <span>{day(f.start.date)}</span>
+            <span>{day(from)}</span>
             {todayAt > 15 && todayAt < 85 && (
               <span className="absolute -translate-x-1/2" style={{ left: `${todayAt}%` }}>
                 {t("bills.fcToday")}
@@ -112,6 +116,8 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
         <details className="text-13 text-ink-muted">
           <summary className="cursor-pointer underline underline-offset-2">{t("bills.fcHow")}</summary>
           <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
+            {f.view === "month" && <li>{t("bills.fcHowMonth", { from: day(from), to: day(f.end.date) })}</li>}
+            {f.view === "payday" && <li>{t("bills.fcHowPayDay", { from: day(from), to: day(f.end.date) })}</li>}
             <li>
               {t("bills.fcHowStart", { amount: signed(f.start.balance), date: day(f.start.date) })}
               {f.start.date < today ? ` ${t("bills.fcHowStatementEnd")}` : ""}
@@ -135,19 +141,23 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
   );
 };
 
-/** The balance line: start to the end of the forecast, zero marked, today marked, payments as dots. */
+/**
+ * The balance line: what has already happened (solid) up to the known balance,
+ * then the estimate (dashed when there is a past to tell it from); zero marked,
+ * today marked, payments as dots.
+ */
 const Chart = ({
-  points,
-  start,
+  drawn: all,
+  known,
   events,
   today,
 }: {
-  points: { date: string; balance: number }[];
-  start: { date: string; balance: number };
+  drawn: { date: string; balance: number }[];
+  /** How many of the days drawn have already happened (the index of the known balance). */
+  known: number;
   events: { date: string; amount: number }[];
   today: string;
 }) => {
-  const all = [start, ...points];
   if (all.length < 2) return null;
   const W = 600;
   const H = 140;
@@ -158,8 +168,17 @@ const Chart = ({
   const span = top - bottom || 1;
   const x = (i: number) => pad + (i / (all.length - 1)) * (W - pad * 2);
   const y = (v: number) => pad + ((top - v) / span) * (H - pad * 2);
-  const line = all.map((p, i) => `${x(i).toFixed(1)},${y(p.balance).toFixed(1)}`).join(" ");
+  const at = (p: { balance: number }, i: number) => `${x(i).toFixed(1)},${y(p.balance).toFixed(1)}`;
+  const line = all.map(at).join(" ");
   const area = `${x(0)},${y(0)} ${line} ${x(all.length - 1)},${y(0)}`;
+  const past = all
+    .slice(0, known + 1)
+    .map(at)
+    .join(" ");
+  const ahead = all
+    .slice(known)
+    .map((p, i) => at(p, i + known))
+    .join(" ");
   const todayIndex = all.findIndex((p) => p.date >= today);
   const index = new Map(all.map((p, i) => [p.date, i]));
 
@@ -181,11 +200,25 @@ const Chart = ({
           vectorEffect="non-scaling-stroke"
         />
       )}
-      <polyline points={line} fill="none" className="stroke-ink" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <polyline
+        points={ahead}
+        fill="none"
+        className="stroke-ink"
+        strokeWidth={2}
+        strokeDasharray={known > 0 ? "6 4" : undefined}
+        vectorEffect="non-scaling-stroke"
+        strokeLinejoin="round"
+      />
+      {known > 0 && (
+        <>
+          <polyline points={past} fill="none" className="stroke-ink" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+          <circle cx={x(known)} cy={y(all[known].balance)} r={3.5} className="fill-ink" />
+        </>
+      )}
       {events.map((e, i) => {
-        const at = index.get(e.date);
-        if (at === undefined) return null;
-        return <circle key={i} cx={x(at)} cy={y(all[at].balance)} r={3.5} className={e.amount < 0 ? "fill-danger" : "fill-success"} />;
+        const i2 = index.get(e.date);
+        if (i2 === undefined) return null;
+        return <circle key={i} cx={x(i2)} cy={y(all[i2].balance)} r={3.5} className={e.amount < 0 ? "fill-danger" : "fill-success"} />;
       })}
     </svg>
   );

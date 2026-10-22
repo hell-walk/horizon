@@ -6,7 +6,16 @@ import { findRegular } from "@/lib/recurring";
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;
 const tx = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
-  ({ id: `t${++n}`, date, name, amount: Math.abs(amount), type: amount < 0 ? "debit" : "credit", category: "Transfer", paymentChannel: "other", ...extra }) as Transaction;
+  ({
+    id: `t${++n}`,
+    date,
+    name,
+    amount: Math.abs(amount),
+    type: amount < 0 ? "debit" : "credit",
+    category: "Transfer",
+    paymentChannel: "other",
+    ...extra,
+  }) as Transaction;
 
 /** 90 days (12 Jul to 9 Oct) of ₹100 a day of everyday spending, plus whatever else is passed. */
 const history = (...extra: Transaction[]) => {
@@ -76,8 +85,50 @@ describe("forecast", () => {
     expect(f.dailySpend).toBe(100);
   });
 
+  it("month view: the month so far from the statements, then the estimate to its end", () => {
+    const month = (today: Date) => forecast({ balance: 10000, balanceDate: "2026-10-09", transactions: history(), regulars: [], today, view: "month" });
+    const f = month(TODAY);
+    if (!f.ok) throw new Error(f.reason);
+    expect(f.view).toBe("month");
+    // ₹100 went out each day, so the balance was higher earlier in the month.
+    expect(f.history[0]).toEqual({ date: "2026-10-01", balance: 10800 });
+    expect(f.history[f.history.length - 1]).toEqual({ date: "2026-10-08", balance: 10100 });
+    expect(f.start).toEqual({ date: "2026-10-09", balance: 10000 });
+    expect(f.end).toEqual({ date: "2026-10-31", balance: 7800 });
+    // Less than a week of the month left: next month is shown too.
+    const late = month(new Date("2026-10-26T12:00:00Z"));
+    if (!late.ok) throw new Error(late.reason);
+    expect(late.end.date).toBe("2026-11-30");
+    // The rolling view has no past.
+    expect(run(history(), 10000, "2026-10-09")).toMatchObject({ view: "rolling", history: [] });
+  });
+
+  it("pay-day view: from the last pay day to the next, and on to the one after when the next is close", () => {
+    const paid = (payDay: number) =>
+      forecast({ balance: 10000, balanceDate: "2026-10-09", transactions: history(), regulars: [], today: TODAY, view: "payday", payDay });
+    const f = paid(5);
+    if (!f.ok) throw new Error(f.reason);
+    expect(f.view).toBe("payday");
+    expect(f.history[0]).toEqual({ date: "2026-10-05", balance: 10400 });
+    expect(f.end).toEqual({ date: "2026-11-05", balance: 7300 });
+    // Paid on the 12th, two days away: September's pay day to November's.
+    const soon = paid(12);
+    if (!soon.ok) throw new Error(soon.reason);
+    expect(soon.history[0].date).toBe("2026-09-12");
+    expect(soon.end.date).toBe("2026-11-12");
+    // The 31st means the month's last day in a shorter month.
+    const monthEnd = paid(31);
+    if (!monthEnd.ok) throw new Error(monthEnd.reason);
+    expect(monthEnd.history[0].date).toBe("2026-09-30");
+    expect(monthEnd.end.date).toBe("2026-10-31");
+  });
+
   it("refuses with too little history, or statements that end too long ago", () => {
-    expect(run([tx("2026-10-01", "A", -100), tx("2026-10-08", "B", -100)], 1000, "2026-10-08")).toEqual({ ok: false, reason: "noHistory", lastDate: "2026-10-08" });
+    expect(run([tx("2026-10-01", "A", -100), tx("2026-10-08", "B", -100)], 1000, "2026-10-08")).toEqual({
+      ok: false,
+      reason: "noHistory",
+      lastDate: "2026-10-08",
+    });
     expect(run([], 1000)).toEqual({ ok: false, reason: "noHistory" });
     const old = history().filter((t) => t.date <= "2026-08-01");
     expect(run(old, 1000, "2026-08-01")).toMatchObject({ ok: false, reason: "oldStatements" });

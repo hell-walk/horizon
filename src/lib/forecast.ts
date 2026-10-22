@@ -12,13 +12,23 @@ import { addMonths, regularKeyOf, type Regular } from "./recurring";
 // Money that comes in irregularly is not counted, so the estimate errs on the
 // careful side. Everything the screen says about "how we worked this out"
 // comes from the numbers returned here.
+//
+// Three views. "rolling": the next `days` days from today, for anyone.
+// "month": the calendar month, for freelancers. "payday": pay day to pay day,
+// for salaried people. The last two draw what has already happened since the
+// period began, then the estimate to its end (or to the end of the period
+// after, when this one has less than a week left).
 
 /** `confidence`: "high" is a rhythm seen three or more times; "low" is seen twice so far (lib/recurring). */
 export type ForecastEvent = { date: string; name: string; amount: number; kind: Regular["kind"]; confidence: Regular["confidence"] };
+export type ForecastView = "rolling" | "month" | "payday";
 
 export type Forecast =
   | {
       ok: true;
+      view: ForecastView;
+      /** Month and pay-day views: the balance at the end of each day from the period's start up to the day before `start` (what has already happened). */
+      history: { date: string; balance: number }[];
       start: { date: string; balance: number };
       end: { date: string; balance: number };
       lowest: { date: string; balance: number };
@@ -42,6 +52,11 @@ const MIN_HISTORY = 21; // fewer days than this is too little to average
 const MAX_GAP = 45; // statements ending longer ago than this are too old to project from
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+/** Money in positive, money out negative, going by the entry's type when it has one. */
+const signedAmount = (t: Transaction) => {
+  const amount = Math.abs(Number(t.amount) || 0);
+  return t.type === "debit" ? -amount : t.type === "credit" ? amount : Number(t.amount) || 0;
+};
 const dayOf = (date: string) => Math.round(Date.parse(`${date.slice(0, 10)}T00:00:00Z`) / DAY);
 const iso = (day: number) => new Date(day * DAY).toISOString().slice(0, 10);
 const step = (date: string, cadence: Regular["cadence"]) =>
@@ -54,6 +69,8 @@ export function forecast({
   regulars,
   today = new Date(),
   days = 30,
+  view = "rolling",
+  payDay = 1,
 }: {
   balance: number;
   /** The day the balance is known for; for imported statements, the last entry's date. */
@@ -62,6 +79,9 @@ export function forecast({
   regulars: Regular[];
   today?: Date;
   days?: number;
+  view?: ForecastView;
+  /** Pay-day view: the day of the month the salary arrives (31 means the month's last day). */
+  payDay?: number;
 }): Forecast {
   const todayDay = Math.floor(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) / DAY);
   const dated = transactions.filter((t) => Number.isFinite(dayOf(String(t.date ?? ""))));
@@ -88,8 +108,40 @@ export function forecast({
   const kept = everyday.filter((a) => a <= cut);
   const dailySpend = round2(kept.reduce((s, a) => s + a, 0) / historyDays);
 
+  // Where the picture ends and, for a period, where it begins (never before the first entry).
+  let endDay = todayDay + days;
+  let fromDay = startDay;
+  if (view !== "rolling") {
+    const year = today.getUTCFullYear();
+    const month = today.getUTCMonth();
+    const onPayDay = Math.min(31, Math.max(1, Math.round(payDay) || 1));
+    const lastOf = (m: number) => Math.floor(Date.UTC(year, m + 1, 0) / DAY);
+    // The period starting in month m: the 1st, or the pay day (clamped to a short month's last day).
+    const startOf = (m: number) =>
+      view === "payday" ? Math.min(lastOf(m), Math.floor(Date.UTC(year, m, onPayDay) / DAY)) : Math.floor(Date.UTC(year, m, 1) / DAY);
+    const endOf = (m: number) => (view === "payday" ? startOf(m + 1) : lastOf(m));
+    const begin = startOf(month) <= todayDay ? month : month - 1;
+    // Less than a week of the period left: the next one is shown too.
+    endDay = endOf(begin) - todayDay < 7 ? endOf(begin + 1) : endOf(begin);
+    fromDay = Math.max(startOf(begin), firstDay);
+  }
+
+  // The period so far: walking back from the known balance, each day undoes the entries after it.
+  const history: { date: string; balance: number }[] = [];
+  if (fromDay < startDay) {
+    const netByDay = new Map<number, number>();
+    for (const t of dated) {
+      const d = dayOf(t.date);
+      if (d > fromDay && d <= startDay) netByDay.set(d, (netByDay.get(d) ?? 0) + signedAmount(t));
+    }
+    let back = balance;
+    for (let d = startDay - 1; d >= fromDay; d--) {
+      back -= netByDay.get(d + 1) ?? 0;
+      history.unshift({ date: iso(d), balance: round2(back) });
+    }
+  }
+
   // Regular payments and income from the start to the end, each repeat on its date.
-  const endDay = todayDay + days;
   const events: ForecastEvent[] = [];
   for (const r of regulars) {
     if (r.status === "stopped" || r.status === "missed") continue;
@@ -118,6 +170,8 @@ export function forecast({
 
   return {
     ok: true,
+    view,
+    history,
     start: { date: iso(startDay), balance: round2(balance) },
     end: points[points.length - 1] ?? { date: iso(startDay), balance: round2(balance) },
     lowest,

@@ -262,7 +262,7 @@ const Payees = ({
         {detail.payees.map((p, i) => (
           <li key={p.name}>
             <PayeeRow
-              href={p.name === MISC ? null : `${linkBase}${encodeURIComponent(p.name)}`}
+              href={`${linkBase}${encodeURIComponent(p.name)}`}
               current={p.name === picked}
               left={
                 <span className="flex min-w-0 items-center gap-3">
@@ -323,7 +323,7 @@ const Payees = ({
   </section>
 );
 
-/** One payee line: a link that shows their payments on this page when there is a payee behind it, plain text for "Miscellaneous". */
+/** One payee line: a link that shows their payments on this page ("Miscellaneous" opens the one-off payments folded into it). */
 const PayeeRow = ({ href, left, right, current = false }: { href: string | null; left: React.ReactNode; right: React.ReactNode; current?: boolean }) =>
   href ? (
     <Link

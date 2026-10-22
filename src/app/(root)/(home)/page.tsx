@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
 import IncomePanel from "./components/incomePanel";
+import FeatureTour from "./components/featureTour";
 import ProfileCard from "./components/profileCard";
 import ReportNumbers from "./components/reportNumbers";
 import CategoryPanel from "./components/categoryPanel";
@@ -18,6 +19,7 @@ import { findInsights } from "@/lib/insights";
 import { weeklyRecap } from "@/lib/recap";
 import { findRegular } from "@/lib/recurring";
 import { accountForecast } from "@/lib/server/forecast";
+import { forecastView } from "@/lib/server/income";
 import QuickActions from "./components/quickActions";
 import RecentTransaction from "./components/recentTransaction";
 import RightSideBar from "./components/rightSideBar";
@@ -79,8 +81,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
           />
 
-          {/* Connected banks: what Horizon is and what to do next, where the money is, and the health score. */}
-          <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} ownerId={ownerIdOf(loggedIn)} />
+          {/* What Horizon can do, one feature at a time, under the greeting; each slide opens its page. */}
+          <Suspense fallback={null}>
+            <FeatureTour />
+          </Suspense>
 
           <QuickActions />
 
@@ -123,6 +127,9 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
           {/* Transactions need the provider's feed, the slowest call. Stream them in
               so the header, balances and allocation appear first. */}
+          {/* Connected banks: where the money is, and the health score; just above the spending chart. */}
+          <AllocationPanel accounts={accountsData} primaryCurrency={accounts.primaryCurrency} ownerId={ownerIdOf(loggedIn)} />
+
           {/* Keyed by account: when the switch lands, this part is built afresh and arrives with its entrance animations (charts grow, amounts count up). */}
           <div key={`category-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
             <Suspense fallback={<ChartPanelSkeleton />}>
@@ -140,7 +147,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
           {/* Keyed by account, as above. */}
           <div key={`forecast-${appwriteItemId}`} className="section-arrive flex flex-col empty:hidden">
             <Suspense fallback={null}>
-              <ForecastSection appwriteItemId={appwriteItemId} />
+              <ForecastSection appwriteItemId={appwriteItemId} ownerId={ownerIdOf(loggedIn)} />
             </Suspense>
           </div>
 
@@ -218,9 +225,9 @@ async function RecentTransactionsSection({ accounts, appwriteItemId, page }: { a
 export default Home;
 
 /** "Will I have enough money?" for the account chosen on Home, short version. Nothing for a new user. */
-const ForecastSection = async ({ appwriteItemId }: { appwriteItemId?: string }) => {
+const ForecastSection = async ({ appwriteItemId, ownerId }: { appwriteItemId?: string; ownerId: string }) => {
   if (!appwriteItemId) return null;
-  const result = await accountForecast(appwriteItemId);
+  const result = await accountForecast(appwriteItemId, await forecastView(ownerId));
   return result ? <ForecastPanel result={result} compact /> : null;
 };
 

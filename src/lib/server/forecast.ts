@@ -1,6 +1,6 @@
 import "server-only";
 
-import { forecast, type Forecast } from "../forecast";
+import { forecast, type Forecast, type ForecastView } from "../forecast";
 import { findRegular } from "../recurring";
 import { getAccount } from "./accounts";
 
@@ -12,9 +12,14 @@ export type AccountForecast = {
 /**
  * The forecast for one of the signed-in user's accounts (getAccount only
  * returns the user's own). Imported statements are projected from the day
- * they end; linked banks from today.
+ * they end; linked banks from today. `view` "month" draws the calendar month
+ * and "payday" the pay month from `payDay` (see lib/forecast); `days` is the
+ * rolling view's length.
  */
-export async function accountForecast(appwriteItemId: string, today = new Date(), days?: number): Promise<AccountForecast | null> {
+export async function accountForecast(
+  appwriteItemId: string,
+  { today = new Date(), days, view, payDay }: { today?: Date; days?: number; view?: ForecastView; payDay?: number } = {},
+): Promise<AccountForecast | null> {
   const loaded = await getAccount({ appwriteItemId });
   if (!loaded) return null;
   const data = loaded.data as Account;
@@ -33,6 +38,8 @@ export async function accountForecast(appwriteItemId: string, today = new Date()
       regulars: findRegular(transactions, today),
       today,
       ...(days ? { days } : {}),
+      ...(view ? { view } : {}),
+      ...(payDay ? { payDay } : {}),
     }),
   };
 }

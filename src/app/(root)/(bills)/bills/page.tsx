@@ -12,6 +12,7 @@ import type { Translate } from "@/lib/i18n/translate";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { accountForecast, type AccountForecast } from "@/lib/server/forecast";
+import { forecastView } from "@/lib/server/income";
 import { regularPayments, type RegularWithAccount } from "@/lib/server/regular";
 import { formatAmount } from "@/lib/utils";
 
@@ -72,8 +73,8 @@ const Bills = async () => {
 async function BillsContent({ ownerId }: { ownerId: string }) {
   const t = await getT();
   const locale = await getLocale();
-  const [all, accounts] = await Promise.all([regularPayments(ownerId), getAccounts({ userId: ownerId })]);
-  const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId)))).filter(
+  const [all, accounts, view] = await Promise.all([regularPayments(ownerId), getAccounts({ userId: ownerId }), forecastView(ownerId)]);
+  const forecasts = (await Promise.all(((accounts?.data as Account[]) ?? []).map((a) => accountForecast(a.appwriteItemId, view)))).filter(
     (f): f is AccountForecast => f !== null,
   );
   const withForecast = forecasts.filter((f) => f.forecast.ok);

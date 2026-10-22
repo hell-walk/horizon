@@ -67,7 +67,7 @@ const IncomePanel = async ({ ownerId, currency }: { ownerId: string; currency: s
         ) : (
           <p className="text-14 text-ink-muted">{t("home.incomeAsk")}</p>
         )}
-        <IncomeChooser current={setting?.kind ?? null} declared={setting?.declared} side={setting?.side} />
+        <IncomeChooser current={setting?.kind ?? null} declared={setting?.declared} side={setting?.side} payDay={setting?.payDay} currency={currency} />
       </div>
     </section>
   );
