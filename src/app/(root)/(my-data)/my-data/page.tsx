@@ -33,10 +33,10 @@ const MyData = async () => {
 
   return (
     <section className="page">
-      {/* The landing page's top beside the page, level with the heading and pinned there while the rest scrolls. */}
+      <HeaderBox eyebrow={t("data.eyebrow")} title={t("data.title")} subtext={t("data.intro")} />
+      {/* The landing page's top beside the page, level with the first panel and pinned there while the rest scrolls. */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,560px)] xl:items-start">
         <div className="flex min-w-0 max-w-3xl flex-col gap-6">
-          <HeaderBox eyebrow={t("data.eyebrow")} title={t("data.title")} subtext={t("data.intro")} />
           <Reminders
             vapidKey={pushConfigured() ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY! : ""}
             emailReady={emailConfigured()}
