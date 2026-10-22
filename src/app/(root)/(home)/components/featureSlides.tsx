@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap, X } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -8,21 +8,19 @@ import { cn } from "@/lib/utils";
 
 /** A slide opens one page (`href`), or, the welcome slide, offers the two things to do first (`actions`). */
 export type FeatureSlide = { n: string; title: string; body: string; href?: string; actions?: { href: string; label: string; kind: "connect" | "upload" }[] };
-export const TOUR_HIDDEN_COOKIE = "horizon-tour-hidden";
 
 const EVERY_MS = 6000;
 
 /**
  * A small slideshow under the greeting: what Horizon is (the landing page's
  * top, made small, with "connect a bank" and "upload a statement"), then what
- * it can do, one feature at a time, each opening its page. Moves on by itself every few seconds, waits
- * while the pointer or focus is on it, and can be stepped by hand. The X
- * hides it for a month (a cookie the server reads).
+ * it can do, one feature at a time, each opening its page. Moves on by itself
+ * every few seconds, waits while the pointer or focus is on it, and can be
+ * stepped by hand. It is always there: nothing to close.
  */
-const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { heading: string; open: string; hide: string; prev: string; next: string } }) => {
+const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { heading: string; open: string; prev: string; next: string } }) => {
   const [at, setAt] = useState(0);
   const [held, setHeld] = useState(false);
-  const [gone, setGone] = useState(false);
   const count = slides.length;
 
   useEffect(() => {
@@ -31,7 +29,7 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
     return () => window.clearInterval(timer);
   }, [held, count]);
 
-  if (gone || count === 0) return null;
+  if (count === 0) return null;
   const step = (dir: 1 | -1) => setAt((i) => (i + dir + count) % count);
 
   return (
@@ -53,17 +51,6 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
           </button>
           <button type="button" onClick={() => step(1)} aria-label={labels.next} className="btn-ghost btn-sm rounded-full">
             <ChevronRight className="size-4" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              document.cookie = `${TOUR_HIDDEN_COOKIE}=1; path=/; max-age=${30 * 86400}; samesite=lax`;
-              setGone(true);
-            }}
-            aria-label={labels.hide}
-            className="btn-ghost btn-sm rounded-full"
-          >
-            <X className="size-4" aria-hidden />
           </button>
         </span>
       </header>
