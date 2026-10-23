@@ -73,6 +73,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
       <RememberAccount id={appwriteItemId} />
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-6">
+          {/* What Horizon is and can do, one slide at a time, above the greeting; each slide opens its page. */}
+          <Suspense fallback={null}>
+            <FeatureTour />
+          </Suspense>
+
           <HeaderBox
             type="greeting"
             eyebrow={t("home.eyebrow")}
@@ -80,11 +85,6 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             user={loggedIn.firstName || loggedIn.name || t("home.greetingFallbackName")}
             subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
           />
-
-          {/* What Horizon can do, one feature at a time, under the greeting; each slide opens its page. */}
-          <Suspense fallback={null}>
-            <FeatureTour />
-          </Suspense>
 
           <QuickActions />
 
