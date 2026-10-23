@@ -1,5 +1,5 @@
 import { OWN_TRANSFER } from "./corrections";
-import { addMonths, regularKeyOf, type Regular } from "./recurring";
+import { addMonths, baseKey, regularKeyOf, type Regular } from "./recurring";
 
 // "Will I have enough money?" for one account over the next weeks. Plain and
 // explainable rather than clever:
@@ -96,7 +96,7 @@ export function forecast({
   const windowStart = Math.max(firstDay, lastDay - WINDOW + 1);
   const historyDays = lastDay - windowStart + 1;
   if (historyDays < MIN_HISTORY) return { ok: false, reason: "noHistory", lastDate: iso(lastDay) };
-  const regularKeys = new Set(regulars.filter((r) => r.status !== "stopped").map((r) => r.key));
+  const regularKeys = new Set(regulars.filter((r) => r.status !== "stopped").map((r) => baseKey(r.key)));
   const everyday = dated
     .filter((t) => dayOf(t.date) >= windowStart && (t.type === "debit" || Number(t.amount) < 0))
     .filter((t) => t.userCategory !== OWN_TRANSFER && !regularKeys.has(regularKeyOf(t) ?? ""))

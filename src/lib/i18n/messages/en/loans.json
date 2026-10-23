@@ -1,9 +1,9 @@
 {
-  "metaTitle": "EMIs and loans",
+  "metaTitle": "EMIs, loans and subscriptions",
   "metaDescription": "Every lender in your statements by name, what each takes a month, how much of your income goes to EMIs, and which loan to close first.",
   "eyebrow": "Who you owe",
-  "title": "EMIs and loans",
-  "intro": "Every lender in your statements, by name: banks, NBFCs, loan apps and pay-later services. What each takes a month, what kind of loan it looks like, and which usually costs the most to keep.",
+  "title": "EMIs, loans and subscriptions",
+  "intro": "Every lender in your statements, by name: banks, NBFCs, loan apps and pay-later services. What each takes a month, what kind of loan it looks like, and which usually costs the most to keep. Your subscriptions, running and stopped, are here too.",
   "none": "No EMIs, loans or pay-later payments in your statements. Upload more months if you think something is missing.",
   "emptyAction": "Upload a statement",
   "tileMonthly": "EMIs a month",

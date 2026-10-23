@@ -127,16 +127,18 @@ const PayeePanel = ({ groups, currency, arrive = false, accountId }: { groups: P
           ) : (
             <div className="size-full rounded-full border-14 border-surface-container" />
           )}
-          <ChartCentre className="pointer-events-none absolute inset-0 flex-center flex-col px-10 text-center">
-            <span translate={active ? "no" : undefined} className="eyebrow">
+          <ChartCentre className="pointer-events-none absolute inset-0 flex-center flex-col gap-0.5 px-10 text-center">
+            <span translate={active ? "no" : undefined} className="eyebrow text-[10px] tracking-wider">
               {active ? bucketLabel(t, active.name) : showAll ? t("history.allPayments") : t("history.spent")}
             </span>
-            <span translate="no" className="amount text-16 font-semibold text-ink">
+            <span translate="no" className="amount text-15 font-semibold text-ink">
               {formatAmount(active ? active.amount : total, currency)}
             </span>
-            {active && <span className="eyebrow">{t("history.shareOfSpending", { percent: Math.round(active.share * 100) })}</span>}
+            {active && <span className="eyebrow text-[10px] tracking-wider">{t("history.shareOfSpending", { percent: Math.round(active.share * 100) })}</span>}
             {!active && groups.length > 0 && (
-              <span className="eyebrow">{showAll ? t("history.payments", { count }) : t(accountId ? "history.tapForAnalysis" : "history.tapSlice")}</span>
+              <span className="eyebrow text-[10px] tracking-wider">
+                {showAll ? t("history.payments", { count }) : t(accountId ? "history.tapForAnalysis" : "history.tapSlice")}
+              </span>
             )}
           </ChartCentre>
         </div>

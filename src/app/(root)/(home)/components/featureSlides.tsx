@@ -25,6 +25,8 @@ export type FeatureSlide = {
 };
 
 const EVERY_MS = 6000;
+const ARROW =
+  "absolute top-1/2 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-lime bg-lime text-lime-foreground shadow-md transition-colors hover:bg-lime/85 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * A slideshow under the greeting: what Horizon is (the landing page's top,
@@ -52,7 +54,8 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
   return (
     <section
       // Softer than the other panels: round corners, pill buttons (a welcome, not a ledger).
-      className="relative overflow-hidden rounded-2xl border border-line bg-card"
+      // shrink-0: a direct child of the page's flex column; clipped, it would otherwise shrink to nothing.
+      className="relative shrink-0 overflow-hidden rounded-2xl border border-line bg-card"
       aria-roledescription="carousel"
       aria-label={labels.heading}
       onMouseEnter={() => setHeld(true)}
@@ -60,17 +63,13 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
       onFocus={() => setHeld(true)}
       onBlur={() => setHeld(false)}
     >
-      <header className="panel-head">
-        <span className="eyebrow">{labels.heading}</span>
-        <span className="flex items-center gap-1">
-          <button type="button" onClick={() => step(-1)} aria-label={labels.prev} className="btn-ghost btn-sm rounded-full">
-            <ChevronLeft className="size-4" aria-hidden />
-          </button>
-          <button type="button" onClick={() => step(1)} aria-label={labels.next} className="btn-ghost btn-sm rounded-full">
-            <ChevronRight className="size-4" aria-hidden />
-          </button>
-        </span>
-      </header>
+      {/* The arrows: halfway down each edge, 5px in, lime so they are seen. */}
+      <button type="button" onClick={() => step(-1)} aria-label={labels.prev} className={ARROW + " left-[5px]"}>
+        <ChevronLeft className="size-5" aria-hidden />
+      </button>
+      <button type="button" onClick={() => step(1)} aria-label={labels.next} className={ARROW + " right-[5px]"}>
+        <ChevronRight className="size-5" aria-hidden />
+      </button>
 
       {/* The slides side by side on one track; the track slides to the current one. */}
       <div className="overflow-hidden">
@@ -82,46 +81,46 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
           {slides.map((s, i) => (
             <li
               key={s.n}
-              className="flex w-full shrink-0 flex-col justify-center px-4 py-3 sm:px-6 sm:py-5"
+              className="flex w-full shrink-0 flex-col justify-center px-12 py-4 sm:px-14 sm:py-5"
               aria-hidden={i !== at}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} / ${count}`}
             >
-              <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-2.5 sm:text-center">
+              <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-1.5 sm:text-center">
                 <span className={cn("chip w-fit rounded-full", s.wordmark ? "h-auto max-w-full whitespace-normal py-1 sm:text-center" : "chip-lime")}>
                   {s.wordmark && <span className="dot shrink-0 bg-lime" />}
                   {s.chip}
                 </span>
                 {s.wordmark && (
-                  <p className="hidden font-display text-[clamp(36px,6vw,64px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
+                  <p className="hidden font-display text-[clamp(32px,4.5vw,44px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
                     {s.wordmark}
                   </p>
                 )}
                 <p
                   className={cn(
                     "font-display font-semibold uppercase tracking-tight text-ink",
-                    s.wordmark ? "text-18 sm:text-20" : "text-18 sm:text-28 sm:leading-none",
+                    s.wordmark ? "text-18 sm:text-16" : "text-18 sm:text-24 sm:leading-none",
                   )}
                 >
                   {s.title}
                 </p>
-                <p className="max-w-xl text-13 text-ink-muted sm:text-14">{s.body}</p>
+                <p className="max-w-2xl text-13 text-ink-muted">{s.body}</p>
                 {s.actions ? (
-                  <span className="flex flex-wrap gap-2 sm:justify-center sm:gap-3 sm:pt-1">
+                  <span className="flex flex-wrap gap-2 sm:justify-center sm:gap-3 sm:pt-0.5">
                     {s.actions.map((a) => (
                       <Link
                         key={a.href}
                         href={a.href}
                         tabIndex={i === at ? 0 : -1}
-                        className={cn("btn-sm w-fit shrink-0 rounded-full sm:px-5", a.kind === "connect" ? "btn-accent" : "btn-secondary")}
+                        className={cn("btn-sm w-fit shrink-0 rounded-full sm:px-4", a.kind === "connect" ? "btn-accent" : "btn-secondary")}
                       >
                         {a.kind === "connect" ? <PlugZap className="size-4" aria-hidden /> : <FileUp className="size-4" aria-hidden />} {a.label}
                       </Link>
                     ))}
                   </span>
                 ) : (
-                  <Link href={s.href ?? "/"} tabIndex={i === at ? 0 : -1} className="btn-secondary btn-sm w-fit shrink-0 rounded-full sm:mt-1 sm:px-5">
+                  <Link href={s.href ?? "/"} tabIndex={i === at ? 0 : -1} className="btn-secondary btn-sm w-fit shrink-0 rounded-full sm:mt-0.5 sm:px-4">
                     {labels.open} <ArrowUpRight className="size-4" aria-hidden />
                   </Link>
                 )}
@@ -137,7 +136,7 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
         </ul>
       </div>
 
-      <div className="flex items-center justify-center gap-1 pb-2" role="tablist">
+      <div className="flex items-center justify-center gap-1 pb-1.5" role="tablist">
         {slides.map((s, i) => (
           <button
             key={s.n}
