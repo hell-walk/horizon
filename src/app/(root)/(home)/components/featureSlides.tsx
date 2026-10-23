@@ -1,22 +1,39 @@
 "use client";
 
-import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, Lock, PlugZap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** A slide opens one page (`href`), or, the welcome slide, offers the two things to do first (`actions`). */
-export type FeatureSlide = { n: string; title: string; body: string; href?: string; actions?: { href: string; label: string; kind: "connect" | "upload" }[] };
+/**
+ * A slide opens one page (`href`), or, the welcome slide, offers the two
+ * things to do first (`actions`). `chip` is the small label above the title
+ * (the number, or the welcome slide's eyebrow); `wordmark` puts the big
+ * "Horizon" above the title and `note` the trust line beneath the buttons,
+ * both only on wide screens.
+ */
+export type FeatureSlide = {
+  n: string;
+  chip: string;
+  title: string;
+  body: string;
+  href?: string;
+  actions?: { href: string; label: string; kind: "connect" | "upload" }[];
+  wordmark?: string;
+  note?: string;
+};
 
 const EVERY_MS = 6000;
 
 /**
- * A small slideshow under the greeting: what Horizon is (the landing page's
- * top, made small, with "connect a bank" and "upload a statement"), then what
- * it can do, one feature at a time, each opening its page. Moves on by itself
- * every few seconds, waits while the pointer or focus is on it, and can be
- * stepped by hand. It is always there: nothing to close.
+ * A slideshow under the greeting: what Horizon is (the landing page's top,
+ * with "connect a bank" and "upload a statement"), then what it can do, one
+ * feature at a time, each opening its page. On a laptop each slide is laid
+ * out like the landing hero, centred and large; on a phone it is a compact
+ * left-aligned card. Moves on by itself every few seconds, waits while the
+ * pointer or focus is on it, and can be stepped by hand. It is always
+ * there: nothing to close.
  */
 const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { heading: string; open: string; prev: string; next: string } }) => {
   const [at, setAt] = useState(0);
@@ -65,35 +82,58 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
           {slides.map((s, i) => (
             <li
               key={s.n}
-              className="w-full shrink-0 px-4 py-4"
+              className="flex w-full shrink-0 flex-col justify-center px-4 py-4 sm:px-6 sm:py-10"
               aria-hidden={i !== at}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} / ${count}`}
             >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <span className="chip chip-lime w-fit rounded-full">{s.n}</span>
-                  <p className="font-display text-18 font-semibold uppercase tracking-tight text-ink">{s.title}</p>
-                  <p className="text-13 text-ink-muted">{s.body}</p>
-                </div>
+              <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-4 sm:text-center">
+                <span className={cn("chip w-fit rounded-full", s.wordmark ? "h-auto max-w-full whitespace-normal py-1 sm:text-center" : "chip-lime")}>
+                  {s.wordmark && <span className="dot shrink-0 bg-lime" />}
+                  {s.chip}
+                </span>
+                {s.wordmark && (
+                  <p className="hidden font-display text-[clamp(44px,8vw,96px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
+                    {s.wordmark}
+                  </p>
+                )}
+                <p
+                  className={cn(
+                    "font-display font-semibold uppercase tracking-tight text-ink",
+                    s.wordmark ? "text-18 sm:text-24" : "text-18 sm:text-32 sm:leading-none lg:text-[40px]",
+                  )}
+                >
+                  {s.title}
+                </p>
+                <p className="max-w-xl text-13 text-ink-muted sm:text-16">{s.body}</p>
                 {s.actions ? (
-                  <span className="flex flex-wrap gap-2">
+                  <span className="flex flex-wrap gap-2 sm:justify-center sm:gap-3 sm:pt-2">
                     {s.actions.map((a) => (
                       <Link
                         key={a.href}
                         href={a.href}
                         tabIndex={i === at ? 0 : -1}
-                        className={cn("btn-sm w-fit shrink-0 rounded-full", a.kind === "connect" ? "btn-accent" : "btn-secondary")}
+                        className={cn("btn-sm w-fit shrink-0 rounded-full sm:h-10 sm:px-5 sm:text-13", a.kind === "connect" ? "btn-accent" : "btn-secondary")}
                       >
-                        {a.kind === "connect" ? <PlugZap className="size-3.5" aria-hidden /> : <FileUp className="size-3.5" aria-hidden />} {a.label}
+                        {a.kind === "connect" ? <PlugZap className="size-4" aria-hidden /> : <FileUp className="size-4" aria-hidden />} {a.label}
                       </Link>
                     ))}
                   </span>
                 ) : (
-                  <Link href={s.href ?? "/"} tabIndex={i === at ? 0 : -1} className="btn-secondary btn-sm w-fit shrink-0 rounded-full">
-                    {labels.open} <ArrowUpRight className="size-3.5" aria-hidden />
+                  <Link
+                    href={s.href ?? "/"}
+                    tabIndex={i === at ? 0 : -1}
+                    className="btn-secondary btn-sm w-fit shrink-0 rounded-full sm:mt-2 sm:h-10 sm:px-5 sm:text-13"
+                  >
+                    {labels.open} <ArrowUpRight className="size-4" aria-hidden />
                   </Link>
+                )}
+                {s.note && (
+                  <p className="hidden items-center gap-2 font-mono text-[12px] uppercase tracking-wider text-ink-faint sm:flex">
+                    <Lock className="size-3.5 shrink-0" aria-hidden />
+                    {s.note}
+                  </p>
                 )}
               </div>
             </li>
