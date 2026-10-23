@@ -7,8 +7,10 @@ import { cn } from "@/lib/utils";
 // for the other theme is display:none and, being lazy, is never fetched.
 // `tilt` and `drift` feed the scroll-driven motion in globals.css.
 
+export type ShotName = "home" | "history" | "bills" | "goals" | "connect" | "charges" | "loans" | "calendar" | "report" | "spending" | "checks" | "home-phone";
+
 type Props = {
-  name: "home" | "history" | "bills" | "goals" | "connect" | "charges" | "loans" | "calendar" | "report" | "home-phone";
+  name: ShotName;
   alt: string;
   /** Above the fold: fetched at once (the light one) instead of lazily. */
   priority?: boolean;
