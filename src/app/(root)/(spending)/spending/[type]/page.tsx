@@ -20,6 +20,7 @@ import { MISC, spendingDetail, type DetailEntry, type SpendingDetail } from "@/l
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import PayeePie from "../../components/payeePie";
+import ScrollHere from "../../components/scrollHere";
 
 type Props = { params: Promise<{ type: string }>; searchParams: Promise<{ [key: string]: string | string[] | undefined }> };
 
@@ -123,23 +124,25 @@ async function SpendingContent({ slug, account, payee }: { slug: string; account
 
       {detail.compare && <Compare t={t} locale={locale} compare={detail.compare} money={money} />}
 
-      {/* One payee's payments, picked from the pie or the list: here, on the same page. */}
-      {payee && detail.payeeEntries[payee] && (
-        <section className="panel" aria-labelledby="spending-payee">
-          <header className="panel-head">
-            <h2 id="spending-payee" className="eyebrow">
-              {t("spending.payeeEntriesTitle", { name: payee, count: detail.payeeEntries[payee].length })}
-            </h2>
-            <Link href={`/spending/${slug}?id=${account.appwriteItemId}`} scroll={false} className="btn-ghost btn-sm">
-              <X className="size-3.5" aria-hidden /> {t("spending.payeeClear")}
-            </Link>
-          </header>
-          <EntryRows entries={detail.payeeEntries[payee]} money={money} day={day} />
-        </section>
-      )}
-
       <div className="grid gap-4 lg:grid-cols-2">
-        <Payees t={t} detail={detail} money={money} currency={currency} linkBase={`/spending/${slug}?id=${account.appwriteItemId}&payee=`} picked={payee} />
+        <div className="flex flex-col gap-4">
+          <Payees t={t} detail={detail} money={money} currency={currency} linkBase={`/spending/${slug}?id=${account.appwriteItemId}&payee=`} picked={payee} />
+          {/* The picked payee's payments, right under the list they were picked from; the page scrolls to them as they arrive. */}
+          {payee && detail.payeeEntries[payee] && (
+            <section className="panel scroll-mt-4" aria-labelledby="spending-payee">
+              <ScrollHere to={payee} />
+              <header className="panel-head">
+                <h2 id="spending-payee" className="eyebrow">
+                  {t("spending.payeeEntriesTitle", { name: payee, count: detail.payeeEntries[payee].length })}
+                </h2>
+                <Link href={`/spending/${slug}?id=${account.appwriteItemId}`} scroll={false} className="btn-ghost btn-sm">
+                  <X className="size-3.5" aria-hidden /> {t("spending.payeeClear")}
+                </Link>
+              </header>
+              <EntryRows entries={detail.payeeEntries[payee]} money={money} day={day} />
+            </section>
+          )}
+        </div>
         <div className="flex flex-col gap-4">
           <Months t={t} locale={locale} detail={detail} money={money} />
           <Weekdays t={t} locale={locale} detail={detail} money={money} />
