@@ -41,6 +41,8 @@ const SHOTS = [
   ["loans", "/loans", 1280, 820],
   ["calendar", "/calendar", 1280, 820],
   ["report", "/report", 1280, 820],
+  ["spending", "/spending/upi-payments", 1280, 820],
+  ["checks", "/checks", 1280, 820],
   ["home-phone", "/", 390, 844],
 ];
 

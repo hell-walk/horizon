@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ABOUT_FEATURES } from "@/lib/aboutFeatures";
 import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
@@ -10,22 +11,12 @@ import Shot from "./shot";
  * middle of the landing page, also shown to a signed-in person on the About
  * page (without the sign-up buttons).
  */
-/** The pages each capability lives on (for the signed-in About page, where the cards open them). */
-export const CAPABILITY_ROUTES = [
-  "/my-banks",
-  "/transaction-history",
-  "/bills",
-  "/charges",
-  "/loans",
-  "/transaction-history#payees",
-  "/calendar",
-  "/report",
-  "/checks",
-];
-const ROUTES = CAPABILITY_ROUTES;
+/** The pages each capability lives on (Home's slideshow opens them). */
+export const CAPABILITY_ROUTES = ABOUT_FEATURES.map((f) => f.route);
 
 /**
- * `linked`: the capability cards open their pages (signed in). `motion`: the
+ * `linked`: each capability card opens its own About page, with the closer
+ * look and the screens (signed in). `motion`: the
  * scroll-driven rise, which needs the page itself to be the scroller (the
  * landing page); inside the app the page scrolls in its own box, so it is off.
  */
@@ -73,7 +64,7 @@ export default async function LandingStory({ linked = false, motion = true }: { 
                 </div>
               );
               return linked ? (
-                <Link key={n} href={ROUTES[i]} className={cn("panel transition-colors hover:bg-surface-low", rise)}>
+                <Link key={n} href={`/about-horizon/${ABOUT_FEATURES[i].slug}`} className={cn("panel transition-colors hover:bg-surface-low", rise)}>
                   {inner}
                 </Link>
               ) : (
