@@ -105,5 +105,9 @@
   "subsPaid_one": "{date} पासून {count} पेमेंटमध्ये {amount}",
   "subsPaid_other": "{date} पासून {count} पेमेंटमध्ये {amount}",
   "subsNext": "पुढील {date}",
-  "subsLast": "शेवटचे {date}"
+  "subsLast": "शेवटचे {date}",
+  "subsName": "नाव द्या",
+  "subsNameLabel": "हे कोणते सबस्क्रिप्शन आहे?",
+  "subsNameHint": "किमतीवरून Horizon चा अंदाज निवडा, किंवा योग्य नाव लिहा. मग हे पेमेंट जिथे दिसेल तिथे तेच नाव दिसेल, पुढच्या स्टेटमेंटमध्येही.",
+  "subsNameClear": "बँकेचे नाव ठेवा"
 }

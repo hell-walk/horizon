@@ -9,6 +9,7 @@ import { jsonLd, publicPage } from "@/lib/seo";
 import { currentPricing } from "@/lib/server/pricing";
 
 import LandingStory from "@/components/landingStory";
+import LogoMark from "@/components/logoMark";
 import Shot from "@/components/shot";
 
 // What a visitor sees at the site's root before signing in (the proxy
@@ -51,7 +52,10 @@ export default async function Landing() {
           "Every EMI and loan by lender: banks, NBFCs, loan apps, pay later",
           "Each kind of spending in detail, with charts",
           "Bills and subscriptions found, with what is due next",
-          "Savings goals and a cash-flow forecast",
+          "Savings goals",
+          "A cash-flow forecast from pay day to pay day, with a calendar of salary, EMI and bill days",
+          "A health score and a monthly report, with reminders",
+          "Quick checks that learn from your answers",
           "Eleven Indian languages",
         ],
         offers: [
@@ -80,11 +84,11 @@ export default async function Landing() {
       {/* Hero: the name, the line, the two ways in; the app itself drifting beneath. */}
       <section className="relative overflow-hidden px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-          <p className="chip h-auto max-w-full whitespace-normal py-1 text-center">
-            <span className="dot bg-lime shrink-0" />
-            {t("landing.heroEyebrow")}
-          </p>
-          <h1 className="font-display text-[clamp(56px,15vw,176px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink">Horizon</h1>
+          {/* The mark sits just before the H, scaled with the name. */}
+          <h1 className="flex items-center gap-[0.12em] font-display text-[clamp(56px,15vw,176px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink">
+            <LogoMark className="size-[0.62em] rounded-[0.08em]" />
+            Horizon
+          </h1>
           <p className="font-display text-24 font-semibold tracking-tight sm:text-32">{t("landing.tagline")}</p>
           <p className="max-w-xl text-16 text-ink-muted">{t("landing.heroBody")}</p>
           {ctas}

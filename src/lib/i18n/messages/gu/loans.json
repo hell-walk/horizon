@@ -105,5 +105,9 @@
   "subsPaid_one": "{date}થી {count} ચુકવણીમાં {amount}",
   "subsPaid_other": "{date}થી {count} ચુકવણીઓમાં {amount}",
   "subsNext": "આગલું {date}",
-  "subsLast": "છેલ્લું {date}"
+  "subsLast": "છેલ્લું {date}",
+  "subsName": "નામ આપો",
+  "subsNameLabel": "આ કયું સબ્સ્ક્રિપ્શન છે?",
+  "subsNameHint": "કિંમત પરથી Horizonનું અનુમાન પસંદ કરો, અથવા સાચું નામ લખો. પછી આ ચુકવણી જ્યાં પણ દેખાય, તે નામ દેખાશે, આગલા સ્ટેટમેન્ટમાં પણ.",
+  "subsNameClear": "બેંકનું નામ રાખો"
 }

@@ -11,10 +11,14 @@
 //   salary      - a company pays much the same each month: the salary?
 //   regularKind - a payment comes back on a rhythm but nothing says what it
 //                 is: a subscription, an EMI, rent, a bill, or a person?
+//   plan        - an app store (Google Play, Apple) takes the same amount on
+//                 a rhythm: which subscription is it? The price suggests the
+//                 answer; the person picks or names it.
 
 import { OWN_TRANSFER, payeeKey } from "./corrections";
 import { findSalary, type IncomeKind } from "./income";
 import { payeeWords } from "./payees";
+import { isStore, planGuesses } from "./planNames";
 import type { Cadence, Regular } from "./recurring";
 import { spendType } from "./spending";
 
@@ -46,6 +50,18 @@ export type Check =
       cadence: Cadence;
       count: number;
       currency: string;
+    }
+  | {
+      key: string;
+      kind: "plan";
+      accountId: string;
+      txId: string;
+      payeeKey: string;
+      payee: string;
+      amount: number;
+      cadence: Cadence;
+      currency: string;
+      guesses: string[];
     };
 
 /** What a regular payment of unknown kind can be called. */
@@ -160,6 +176,29 @@ export function findChecks(input: CheckInput, limit = 8): Check[] {
         cadence: r.cadence,
         count: r.count,
         currency: a.currency,
+      });
+    }
+  }
+
+  // A store's subscription that the person has not named yet: which one is it?
+  for (const a of accounts) {
+    for (const r of a.regular) {
+      if (r.direction !== "out" || r.kind !== "subscription" || r.status === "stopped") continue;
+      const tx = a.transactions.find((t) => t.id === r.seen[0]?.id);
+      if (!tx || tx.shownName || tx.userCategory) continue;
+      const key = payeeKey(tx.name);
+      if (!key || !isStore(key)) continue;
+      add({
+        key: `plan:${key}|${Math.round(r.amount)}`,
+        kind: "plan",
+        accountId: a.id,
+        txId: tx.id,
+        payeeKey: key,
+        payee: payeeWords(tx.name),
+        amount: r.amount,
+        cadence: r.cadence,
+        currency: a.currency,
+        guesses: planGuesses(key, r.amount, a.currency),
       });
     }
   }

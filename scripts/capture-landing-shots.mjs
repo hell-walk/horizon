@@ -20,7 +20,11 @@ if (!email || !password) {
   console.error("Set HORIZON_SHOT_EMAIL and HORIZON_SHOT_PASSWORD (a demo login).");
   process.exit(1);
 }
-const chrome = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "/usr/bin/google-chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"].find((p) => existsSync(p));
+const chrome = [
+  "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "/usr/bin/google-chrome",
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+].find((p) => existsSync(p));
 if (!chrome) {
   console.error("Chrome not found.");
   process.exit(1);
@@ -33,6 +37,10 @@ const SHOTS = [
   ["bills", "/bills", 1280, 820],
   ["goals", "/goals", 1280, 820],
   ["connect", "/connect-bank", 1280, 820],
+  ["charges", "/charges", 1280, 820],
+  ["loans", "/loans", 1280, 820],
+  ["calendar", "/calendar", 1280, 820],
+  ["report", "/report", 1280, 820],
   ["home-phone", "/", 390, 844],
 ];
 

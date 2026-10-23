@@ -105,5 +105,9 @@
   "subsPaid_one": "{date}ରୁ {count} ଦେୟରେ {amount}",
   "subsPaid_other": "{date}ରୁ {count} ଦେୟରେ {amount}",
   "subsNext": "ପରବର୍ତ୍ତୀ {date}",
-  "subsLast": "ଶେଷ {date}"
+  "subsLast": "ଶେଷ {date}",
+  "subsName": "ନାମ ଦିଅନ୍ତୁ",
+  "subsNameLabel": "ଏହା କେଉଁ ସବସ୍କ୍ରିପସନ?",
+  "subsNameHint": "ଦାମରୁ Horizon ର ଅନୁମାନ ବାଛନ୍ତୁ, କିମ୍ବା ଠିକ୍ ନାମ ଲେଖନ୍ତୁ। ତା'ପରେ ଏହି ପେମେଣ୍ଟ ଯେଉଁଠି ଦେଖାଯିବ, ସେହି ନାମ ଦେଖାଯିବ, ପରବର୍ତ୍ତୀ ଷ୍ଟେଟମେଣ୍ଟରେ ମଧ୍ୟ।",
+  "subsNameClear": "ବ୍ୟାଙ୍କର ନାମ ରଖନ୍ତୁ"
 }

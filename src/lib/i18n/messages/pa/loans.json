@@ -105,5 +105,9 @@
   "subsPaid_one": "{date} ਤੋਂ {count} ਭੁਗਤਾਨ ਵਿੱਚ {amount}",
   "subsPaid_other": "{date} ਤੋਂ {count} ਭੁਗਤਾਨਾਂ ਵਿੱਚ {amount}",
   "subsNext": "ਅਗਲਾ {date}",
-  "subsLast": "ਆਖ਼ਰੀ {date}"
+  "subsLast": "ਆਖ਼ਰੀ {date}",
+  "subsName": "ਨਾਮ ਦਿਓ",
+  "subsNameLabel": "ਇਹ ਕਿਹੜੀ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਹੈ?",
+  "subsNameHint": "ਕੀਮਤ ਤੋਂ Horizon ਦਾ ਅੰਦਾਜ਼ਾ ਚੁਣੋ, ਜਾਂ ਸਹੀ ਨਾਮ ਲਿਖੋ। ਫਿਰ ਇਹ ਭੁਗਤਾਨ ਜਿੱਥੇ ਵੀ ਦਿਖੇ, ਉਹੀ ਨਾਮ ਦਿਖੇਗਾ, ਅਗਲੀ ਸਟੇਟਮੈਂਟ ਵਿੱਚ ਵੀ।",
+  "subsNameClear": "ਬੈਂਕ ਵਾਲਾ ਨਾਮ ਰੱਖੋ"
 }

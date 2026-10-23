@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
 
-import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_ROW_CHANGES, payeeKey, type Correction } from "../corrections";
+import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, payeeKey, planKey, type Correction } from "../corrections";
 import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { getAccountUncached } from "../server/accounts";
@@ -85,7 +85,46 @@ export async function correctTransaction(input: Target & { name?: string; catego
   }
 }
 
-/** Removes the user's changes to this entry and to its payee: it shows as the bank sent it again. */
+/**
+ * Names a plan: this payee at this price, wherever it appears ("Google Play,
+ * ₹149" is "YouTube Premium"). An empty name takes the name away again.
+ */
+export async function namePlan(input: Target & { name: string }): Promise<CorrectionResult> {
+  const t = await getT();
+  const user = await getLoggedInUser();
+  if (!user) return { ok: false, error: t("history.editErrSignIn") };
+  if (!isTarget(input) || typeof input.name !== "string") return { ok: false, error: t("history.editErrNotFound") };
+  if (!(await allow(`corrections:${ownerIdOf(user)}`, 60, 10 * MINUTE))) return { ok: false, error: t("history.editErrTooMany") };
+  const name = input.name === "" ? null : cleanName(input.name);
+  if (input.name !== "" && !name) return { ok: false, error: t("history.editErrNothing") };
+  const blocked = await changeBlocked(t);
+  if (blocked) return { ok: false, error: blocked };
+
+  try {
+    const entry = await findEntry(input);
+    const key = entry ? payeeKey(entry.name) : null;
+    if (!entry || !key) return { ok: false, error: t("history.editErrNotFound") };
+    const corrections = await loadCorrections(ownerIdOf(user));
+    const plan = planKey(key, Number(entry.amount) || 0);
+    if (name) {
+      if (!(plan in corrections.plans) && Object.keys(corrections.plans).length >= MAX_PLAN_RULES) {
+        return { ok: false, error: t("history.editErrFull", { max: MAX_PLAN_RULES }) };
+      }
+      corrections.plans[plan] = { ...corrections.plans[plan], name };
+    } else delete corrections.plans[plan];
+    await storeCorrections(ownerIdOf(user), corrections);
+    await countChange();
+    invalidate("banks:leftover:");
+    await forgetLeftOver(ownerIdOf(user));
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (error) {
+    logError("corrections: could not name the plan", error);
+    return { ok: false, error: t("history.editErrFailed") };
+  }
+}
+
+/** Removes the user's changes to this entry, to its plan and to its payee: it shows as the bank sent it again. */
 export async function undoCorrection(input: Target): Promise<CorrectionResult> {
   const t = await getT();
   const user = await getLoggedInUser();
@@ -100,7 +139,10 @@ export async function undoCorrection(input: Target): Promise<CorrectionResult> {
     const corrections = await loadCorrections(ownerIdOf(user));
     delete corrections.rows[entry.id];
     const key = payeeKey(entry.name);
-    if (key) delete corrections.payees[key];
+    if (key) {
+      delete corrections.payees[key];
+      delete corrections.plans[planKey(key, Number(entry.amount) || 0)];
+    }
     await storeCorrections(ownerIdOf(user), corrections);
     invalidate("banks:leftover:");
     await forgetLeftOver(ownerIdOf(user));

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // `tilt` and `drift` feed the scroll-driven motion in globals.css.
 
 type Props = {
-  name: "home" | "history" | "bills" | "goals" | "connect" | "home-phone";
+  name: "home" | "history" | "bills" | "goals" | "connect" | "charges" | "loans" | "calendar" | "report" | "home-phone";
   alt: string;
   /** Above the fold: fetched at once (the light one) instead of lazily. */
   priority?: boolean;

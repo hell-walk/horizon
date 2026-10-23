@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
 import { REGULAR_CHOICES } from "../checks";
-import { MAX_PAYEE_RULES, MAX_ROW_CHANGES, OWN_TRANSFER, type Corrections } from "../corrections";
+import { MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, OWN_TRANSFER, planKey, type Corrections } from "../corrections";
 import { getT } from "../i18n/server";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { checksForOwner, FREE_CHECKS, loadChecksState, withAnswer } from "../server/checks";
@@ -18,6 +18,8 @@ import { allow, MINUTE } from "../server/rateLimit";
 import { claim, release } from "../server/shared";
 
 const ANSWERS = new Set<string>(["yes", "no", "skip", ...REGULAR_CHOICES]);
+// A plan question is answered with one of its own guesses (checked against the question itself below).
+const MAX_ANSWER = 60;
 const MAX_EXCLUDED = 20;
 
 /**
@@ -29,8 +31,9 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
   const t = await getT();
   const user = await getLoggedInUser();
   if (!user) return { ok: false as const, error: t("connect.errSignIn") };
-  if (typeof key !== "string" || key.length > 200 || typeof answer !== "string" || !ANSWERS.has(answer))
+  if (typeof key !== "string" || key.length > 200 || typeof answer !== "string" || answer.length > MAX_ANSWER)
     return { ok: false as const, error: t("home.checksErrGone") };
+  if (!key.startsWith("plan:") && !ANSWERS.has(answer)) return { ok: false as const, error: t("home.checksErrGone") };
   const owner = ownerIdOf(user);
   if (!(await allow(`checks:${owner}`, 60, 10 * MINUTE))) return { ok: false as const, error: t("connect.cardTooMany") };
   // One answer at a time per person: parallel calls would each see the same "used" count and all pass the free limit.
@@ -66,6 +69,14 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
     } else if (check.kind === "salary" && answer === "no") {
       const current = await loadIncome(owner);
       income = { excluded: [...(current?.excluded ?? []).filter((p) => p !== check.payee), check.payee].slice(-MAX_EXCLUDED) };
+    } else if (check.kind === "plan" && answer !== "skip") {
+      const isGuess = check.guesses.includes(answer);
+      if (!isGuess && answer !== "notsub") return { ok: false as const, error: t("home.checksErrGone") };
+      const plan = planKey(check.payeeKey, check.amount);
+      if (!(plan in corrections.plans) && Object.keys(corrections.plans).length >= MAX_PLAN_RULES) throw new Error("plan rules full");
+      // Not a subscription: shopping at the store, so it leaves the subscriptions and the bills.
+      corrections.plans[plan] = isGuess ? { name: answer } : { category: "Shopping" };
+      changed = true;
     } else if (check.kind === "regularKind" && (REGULAR_CHOICES as readonly string[]).includes(answer)) {
       setPayee(check.payeeKey, answer);
     }

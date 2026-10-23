@@ -33,11 +33,18 @@ export const OWN_TRANSFER = "Between my accounts";
 export const MAX_NAME_LENGTH = 60;
 export const MAX_PAYEE_RULES = 150;
 export const MAX_ROW_CHANGES = 150;
+export const MAX_PLAN_RULES = 100;
 
 export type Correction = { name?: string; category?: string };
-export type Corrections = { payees: Record<string, Correction>; rows: Record<string, Correction> };
+/**
+ * `payees`: for everyone with the same payee. `rows`: for one entry. `plans`:
+ * for a payee at one price (see planKey): a store like Google Play bills for
+ * many apps under one name, and only the price tells them apart.
+ */
+export type Corrections = { payees: Record<string, Correction>; rows: Record<string, Correction>; plans: Record<string, Correction> };
 
-export const isCategory = (value: unknown): value is (typeof CATEGORIES)[number] => typeof value === "string" && (CATEGORIES as readonly string[]).includes(value);
+export const isCategory = (value: unknown): value is (typeof CATEGORIES)[number] =>
+  typeof value === "string" && (CATEGORIES as readonly string[]).includes(value);
 
 /**
  * The key a payee-wide change is stored under: the payee's own words, lower
@@ -48,6 +55,22 @@ export const payeeKey = (raw: string): string | null => {
   const words = payeeWords(raw || "");
   return words === "Other" ? null : words.toLowerCase();
 };
+
+/** The key a plan rule is stored under: the payee's key and the price, to the rupee. */
+export const planKey = (payee: string, amount: number) => `${payee}|${Math.round(Math.abs(amount))}`;
+
+/** The plan rules for one payee, with the price each applies to. */
+function plansFor(plans: Record<string, Correction>): Map<string, { amount: number; fix: Correction }[]> {
+  const out = new Map<string, { amount: number; fix: Correction }[]>();
+  for (const [key, fix] of Object.entries(plans)) {
+    const at = key.lastIndexOf("|");
+    const amount = Number(key.slice(at + 1));
+    if (at < 1 || !Number.isFinite(amount)) continue;
+    const payee = key.slice(0, at);
+    out.set(payee, [...(out.get(payee) ?? []), { amount, fix }]);
+  }
+  return out;
+}
 
 /** A name the user typed, made safe to store and show; null when nothing usable is left. */
 export function cleanName(value: unknown): string | null {
@@ -85,25 +108,33 @@ const readMap = (value: unknown, max: number): Record<string, Correction> => {
 /** Reads stored corrections defensively: anything malformed is dropped, never trusted. */
 export function readCorrections(value: unknown): Corrections {
   const v = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-  return { payees: readMap(v.payees, MAX_PAYEE_RULES), rows: readMap(v.rows, MAX_ROW_CHANGES) };
+  return { payees: readMap(v.payees, MAX_PAYEE_RULES), rows: readMap(v.rows, MAX_ROW_CHANGES), plans: readMap(v.plans, MAX_PLAN_RULES) };
 }
 
 /**
  * The transactions with the user's changes applied. A change to one entry
- * wins over a change for the whole payee. The bank's text stays in `name`.
+ * wins over one for the payee at this price, which wins over one for the
+ * whole payee. The bank's text stays in `name`. A plan rule matches a
+ * price within 5%, so a small price rise keeps its name.
  */
-export function applyCorrections<T extends Pick<Transaction, "id" | "name">>(transactions: T[], corrections: Corrections): (T & Pick<Transaction, "shownName" | "userCategory" | "changedBy">)[] {
+export function applyCorrections<T extends Pick<Transaction, "id" | "name" | "amount">>(
+  transactions: T[],
+  corrections: Corrections,
+): (T & Pick<Transaction, "shownName" | "userCategory" | "changedBy">)[] {
   const hasPayees = Object.keys(corrections.payees).length > 0;
   const hasRows = Object.keys(corrections.rows).length > 0;
-  if (!hasPayees && !hasRows) return transactions;
+  const plans = plansFor(corrections.plans ?? {});
+  if (!hasPayees && !hasRows && plans.size === 0) return transactions;
 
   return transactions.map((tx) => {
     const row = hasRows ? corrections.rows[tx.id] : undefined;
-    const key = hasPayees ? payeeKey(tx.name) : null;
-    const payee = key ? corrections.payees[key] : undefined;
-    if (!row && !payee) return tx;
-    const name = row?.name ?? payee?.name;
-    const category = row?.category ?? payee?.category;
+    const key = hasPayees || plans.size > 0 ? payeeKey(tx.name) : null;
+    const paid = Math.abs(Number(tx.amount) || 0);
+    const plan = key ? plans.get(key)?.find((p) => Math.abs(paid - p.amount) <= p.amount * 0.05)?.fix : undefined;
+    const payee = key && hasPayees ? corrections.payees[key] : undefined;
+    if (!row && !plan && !payee) return tx;
+    const name = row?.name ?? plan?.name ?? payee?.name;
+    const category = row?.category ?? plan?.category ?? payee?.category;
     return {
       ...tx,
       ...(name ? { shownName: name } : {}),
