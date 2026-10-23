@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, Lock, PlugZap } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
  * A slide opens one page (`href`), or, the welcome slide, offers the two
  * things to do first (`actions`). `chip` is the small label above the title
  * (the number, or the welcome slide's eyebrow); `wordmark` puts the big
- * "Horizon" above the title and `note` the trust line beneath the buttons,
- * both only on wide screens.
+ * "Horizon" above the title, only on wide screens.
  */
 export type FeatureSlide = {
   n: string;
@@ -21,7 +20,6 @@ export type FeatureSlide = {
   href?: string;
   actions?: { href: string; label: string; kind: "connect" | "upload" }[];
   wordmark?: string;
-  note?: string;
 };
 
 const EVERY_MS = 6000;
@@ -81,19 +79,19 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
           {slides.map((s, i) => (
             <li
               key={s.n}
-              className="flex w-full shrink-0 flex-col justify-center px-12 py-4 sm:px-14 sm:py-5"
+              className="flex w-full shrink-0 flex-col justify-center px-12 py-3 sm:px-14"
               aria-hidden={i !== at}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} / ${count}`}
             >
-              <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-1.5 sm:text-center">
+              <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-1 sm:text-center">
                 <span className={cn("chip w-fit rounded-full", s.wordmark ? "h-auto max-w-full whitespace-normal py-1 sm:text-center" : "chip-lime")}>
                   {s.wordmark && <span className="dot shrink-0 bg-lime" />}
                   {s.chip}
                 </span>
                 {s.wordmark && (
-                  <p className="hidden font-display text-[clamp(32px,4.5vw,44px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
+                  <p className="hidden font-display text-[clamp(28px,3.5vw,36px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
                     {s.wordmark}
                   </p>
                 )}
@@ -124,19 +122,13 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
                     {labels.open} <ArrowUpRight className="size-4" aria-hidden />
                   </Link>
                 )}
-                {s.note && (
-                  <p className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-faint sm:flex">
-                    <Lock className="size-3.5 shrink-0" aria-hidden />
-                    {s.note}
-                  </p>
-                )}
               </div>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="flex items-center justify-center gap-1 pb-1.5" role="tablist">
+      <div className="flex items-center justify-center gap-1 pb-1" role="tablist">
         {slides.map((s, i) => (
           <button
             key={s.n}
