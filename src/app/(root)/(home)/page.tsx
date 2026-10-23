@@ -71,9 +71,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   return (
     <section className="page">
       <RememberAccount id={appwriteItemId} />
-      {/* What Horizon is and can do, one slide at a time: a band across the top, before the greeting and the profile column. */}
+      {/* What Horizon is and can do, one slide at a time: a band at the top, before the greeting and the profile column, three quarters of the width on wide screens. */}
       <Suspense fallback={null}>
-        <FeatureTour />
+        <div className="w-full shrink-0 self-center xl:w-3/4">
+          <FeatureTour />
+        </div>
       </Suspense>
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-6">

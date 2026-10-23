@@ -8,14 +8,13 @@ const ROUTES = ["/my-banks", "/transaction-history", "/bills", "/charges", "/loa
 /** What Horizon is and can do, as a slideshow under the greeting. */
 const FeatureTour = async () => {
   const t = await getT();
-  // First the landing page's top: the eyebrow, the name, the line, the two things to do next, the trust line.
+  // First the landing page's top: the eyebrow, the name, the line, the two things to do next.
   const welcome: FeatureSlide = {
     n: "welcome",
     chip: t("landing.heroEyebrow"),
     wordmark: "Horizon",
     title: t("landing.tagline"),
     body: t("landing.heroBody"),
-    note: t("landing.trust"),
     actions: [
       { href: "/connect-bank", label: t("nav.connect"), kind: "connect" },
       { href: "/upload-statement", label: t("home.actionUpload"), kind: "upload" },
