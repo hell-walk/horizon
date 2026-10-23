@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyCorrections, cleanName, MAX_NAME_LENGTH, MAX_PAYEE_RULES, payeeKey, readCorrections } from "@/lib/corrections";
+import { applyCorrections, cleanName, MAX_NAME_LENGTH, MAX_PAYEE_RULES, payeeKey, planKey, readCorrections } from "@/lib/corrections";
 import { groupByPayee } from "@/lib/payees";
 import { groupBySpendType, spendType } from "@/lib/spending";
 
@@ -26,10 +26,10 @@ describe("readCorrections", () => {
       rows: { r1: { category: "Rent" }, r2: { name: "  " } },
       extra: { anything: true },
     });
-    expect(read).toEqual({ payees: { zomato: { name: "Food delivery", category: "Food" } }, rows: { r1: { category: "Rent" } } });
+    expect(read).toEqual({ payees: { zomato: { name: "Food delivery", category: "Food" } }, rows: { r1: { category: "Rent" } }, plans: {} });
   });
   it("survives junk", () => {
-    for (const junk of [undefined, null, "x", 1, [], { payees: "x", rows: 5 }]) expect(readCorrections(junk)).toEqual({ payees: {}, rows: {} });
+    for (const junk of [undefined, null, "x", 1, [], { payees: "x", rows: 5 }]) expect(readCorrections(junk)).toEqual({ payees: {}, rows: {}, plans: {} });
   });
   it("never holds more than the caps", () => {
     const payees = Object.fromEntries(Array.from({ length: MAX_PAYEE_RULES + 50 }, (_, i) => [`p${i}`, { category: "Food" }]));
@@ -38,10 +38,14 @@ describe("readCorrections", () => {
 });
 
 describe("applyCorrections", () => {
-  const rows = [tx("a", "UPI/DR/531/RAHUL SHARMA/SBIN/rahul@ybl", -15000), tx("b", "UPI/DR/777/RAHUL SHARMA/SBIN/rahul@ybl", -15000), tx("c", "UPI/DR/1/ZOMATO", -300)];
+  const rows = [
+    tx("a", "UPI/DR/531/RAHUL SHARMA/SBIN/rahul@ybl", -15000),
+    tx("b", "UPI/DR/777/RAHUL SHARMA/SBIN/rahul@ybl", -15000),
+    tx("c", "UPI/DR/1/ZOMATO", -300),
+  ];
 
   it("a payee-wide change reaches every entry from that payee, and keeps the bank's text", () => {
-    const out = applyCorrections(rows, { payees: { [payeeKey(rows[0].name)!]: { name: "Rent", category: "Rent" } }, rows: {} });
+    const out = applyCorrections(rows, { payees: { [payeeKey(rows[0].name)!]: { name: "Rent", category: "Rent" } }, rows: {}, plans: {} });
     expect(out.map((t) => [t.shownName, t.userCategory, t.changedBy])).toEqual([
       ["Rent", "Rent", "payee"],
       ["Rent", "Rent", "payee"],
@@ -54,6 +58,7 @@ describe("applyCorrections", () => {
     const out = applyCorrections(rows, {
       payees: { [payeeKey(rows[0].name)!]: { name: "Rent", category: "Rent" } },
       rows: { b: { category: "Between my accounts" } },
+      plans: {},
     });
     expect(out[1]).toMatchObject({ shownName: "Rent", userCategory: "Between my accounts", changedBy: "row" });
   });
@@ -62,7 +67,7 @@ describe("applyCorrections", () => {
     expect(payeeKey("Mutual fund SIP")).toBe("mutual fund sip");
     expect(payeeKey("ZERODHA BROKING")).toBe("zerodha broking");
     const list = [tx("s", "Mutual fund SIP", -1000), tx("z", "ZERODHA BROKING", -2000)];
-    const out = applyCorrections(list, { payees: { "mutual fund sip": { name: "Monthly SIP" } }, rows: {} });
+    const out = applyCorrections(list, { payees: { "mutual fund sip": { name: "Monthly SIP" } }, rows: {}, plans: {} });
     expect(out.map((t) => t.shownName)).toEqual(["Monthly SIP", undefined]);
   });
 
@@ -71,7 +76,7 @@ describe("applyCorrections", () => {
   });
 
   it("returns the same list when there is nothing to apply", () => {
-    expect(applyCorrections(rows, { payees: {}, rows: {} })).toBe(rows);
+    expect(applyCorrections(rows, { payees: {}, rows: {}, plans: {} })).toBe(rows);
   });
 });
 
@@ -93,5 +98,36 @@ describe("spending with the user's changes", () => {
       { ...tx("b", "UPI/DR/2/RAHUL SHARMA", -15000), shownName: "Landlord" },
     ];
     expect(groupByPayee(list).map((g) => [g.name, g.count])).toEqual([["Landlord", 2]]);
+  });
+});
+
+describe("plan rules: one payee at one price", () => {
+  const play = (id: string, amount: number) => tx(id, "UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE/", -amount);
+  it("names the payments at that price, within 5%, and leaves the payee's other prices alone", () => {
+    const key = payeeKey("UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE/")!;
+    const rows = [play("a", 149), play("b", 152), play("c", 649), play("d", 1200)];
+    const out = applyCorrections(rows, {
+      payees: {},
+      rows: {},
+      plans: { [planKey(key, 149)]: { name: "YouTube Premium" }, [planKey(key, 649)]: { name: "Google One" } },
+    });
+    expect(out.map((r) => r.shownName)).toEqual(["YouTube Premium", "YouTube Premium", "Google One", undefined]);
+  });
+  it("sits between a change to one entry and a change for the whole payee", () => {
+    const key = payeeKey("UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE/")!;
+    const rows = [play("a", 149), play("b", 149), play("c", 649)];
+    const out = applyCorrections(rows, {
+      payees: { [key]: { name: "Google" } },
+      rows: { a: { name: "Mine" } },
+      plans: { [planKey(key, 149)]: { name: "YouTube Premium" } },
+    });
+    expect(out.map((r) => r.shownName)).toEqual(["Mine", "YouTube Premium", "Google"]);
+  });
+  it("reads plan rules defensively, like the others", () => {
+    expect(readCorrections({ plans: { "google p|149": { name: "YouTube Premium" }, bad: 3 } })).toEqual({
+      payees: {},
+      rows: {},
+      plans: { "google p|149": { name: "YouTube Premium" } },
+    });
   });
 });

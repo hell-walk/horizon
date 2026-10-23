@@ -105,6 +105,15 @@ function wordsFor(check: Check, t: Translate, day: (d: string) => string): { que
           { value: "skip", label: t("home.checksNotRegular"), tone: "ghost" as const },
         ],
       };
+    case "plan":
+      return {
+        question: t("home.qPlan", { payee: check.payee, amount: money(check.amount), cadence: t(`home.cadence_${check.cadence}`) }),
+        options: [
+          ...check.guesses.map((g, i) => ({ value: g, label: g, tone: i === 0 ? ("primary" as const) : ("secondary" as const) })),
+          { value: "notsub", label: t("home.qPlanNot") },
+          { value: "skip", label: t("home.qPlanLater"), tone: "ghost" as const },
+        ],
+      };
   }
 }
 

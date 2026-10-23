@@ -6,12 +6,23 @@ import { cn } from "@/lib/utils";
 import Shot from "./shot";
 
 /**
- * What Horizon does, in six, and the pages themselves with their screens: the
+ * What Horizon does, in nine, and the pages themselves with their screens: the
  * middle of the landing page, also shown to a signed-in person on the About
  * page (without the sign-up buttons).
  */
 /** The pages each capability lives on (for the signed-in About page, where the cards open them). */
-const ROUTES = ["/my-banks", "/transaction-history", "/bills", "/charges", "/loans", "/transaction-history#payees"];
+export const CAPABILITY_ROUTES = [
+  "/my-banks",
+  "/transaction-history",
+  "/bills",
+  "/charges",
+  "/loans",
+  "/transaction-history#payees",
+  "/calendar",
+  "/report",
+  "/checks",
+];
+const ROUTES = CAPABILITY_ROUTES;
 
 /**
  * `linked`: the capability cards open their pages (signed in). `motion`: the
@@ -28,6 +39,9 @@ export default async function LandingStory({ linked = false, motion = true }: { 
     ["04", t("landing.cap4Title"), t("landing.cap4Body")],
     ["05", t("landing.cap5Title"), t("landing.cap5Body")],
     ["06", t("landing.cap6Title"), t("landing.cap6Body")],
+    ["07", t("landing.cap7Title"), t("landing.cap7Body")],
+    ["08", t("landing.cap8Title"), t("landing.cap8Body")],
+    ["09", t("landing.cap9Title"), t("landing.cap9Body")],
   ] as const;
 
   const features = [
@@ -35,6 +49,10 @@ export default async function LandingStory({ linked = false, motion = true }: { 
     { shot: "connect", label: t("landing.f2Label"), title: t("landing.f2Title"), body: t("landing.f2Body"), alt: t("landing.shotConnect") },
     { shot: "bills", label: t("landing.f3Label"), title: t("landing.f3Title"), body: t("landing.f3Body"), alt: t("landing.shotBills") },
     { shot: "goals", label: t("landing.f4Label"), title: t("landing.f4Title"), body: t("landing.f4Body"), alt: t("landing.shotGoals") },
+    { shot: "charges", label: t("landing.f5Label"), title: t("landing.f5Title"), body: t("landing.f5Body"), alt: t("landing.shotCharges") },
+    { shot: "loans", label: t("landing.f6Label"), title: t("landing.f6Title"), body: t("landing.f6Body"), alt: t("landing.shotLoans") },
+    { shot: "calendar", label: t("landing.f7Label"), title: t("landing.f7Title"), body: t("landing.f7Body"), alt: t("landing.shotCalendar") },
+    { shot: "report", label: t("landing.f8Label"), title: t("landing.f8Title"), body: t("landing.f8Body"), alt: t("landing.shotReport") },
   ] as const;
 
   return (

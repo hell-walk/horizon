@@ -103,3 +103,26 @@ describe("findChecks: the questions worth asking", () => {
     expect(findChecks({ ...base, accounts: [account("a", "A", rows)], answered: ["regular:ravi stores"] })).toEqual([]);
   });
 });
+
+describe("findChecks: which subscription is this?", () => {
+  const play = (id: string, date: string, amount: number) => tx(id, date, "UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE/", amount);
+  it("asks about an app store's steady charge, with the plans that cost that much", () => {
+    const a = account("pnb", "PNB", [play("g1", "2026-07-20", 149), play("g2", "2026-08-20", 149), play("g3", "2026-09-20", 149)]);
+    const [check] = findChecks({ ...base, accounts: [a] });
+    expect(check).toMatchObject({ kind: "plan", key: "plan:google p|149", accountId: "pnb", amount: 149, cadence: "monthly", guesses: ["YouTube Premium"] });
+  });
+  it("not once it has a name, and not for a merchant whose name already says what it is", () => {
+    const named = account(
+      "pnb",
+      "PNB",
+      [play("g1", "2026-07-20", 149), play("g2", "2026-08-20", 149), play("g3", "2026-09-20", 149)].map((t) => ({ ...t, shownName: "YouTube Premium" })),
+    );
+    expect(findChecks({ ...base, accounts: [named] })).toEqual([]);
+    const netflix = account("pnb", "PNB", [
+      tx("n1", "2026-07-05", "NETFLIX.COM", 649),
+      tx("n2", "2026-08-05", "NETFLIX.COM", 649),
+      tx("n3", "2026-09-05", "NETFLIX.COM", 649),
+    ]);
+    expect(findChecks({ ...base, accounts: [netflix] })).toEqual([]);
+  });
+});

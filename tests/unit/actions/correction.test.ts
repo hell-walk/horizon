@@ -75,21 +75,23 @@ describe("correctTransaction", () => {
   });
 
   it("remembers a change for every entry from the payee, keyed by the server's own reading", async () => {
-    expect(await correctTransaction({ accountId: "acct-mine", transactionId: "t1", name: " Rent ", category: "Rent", everyPayment: true })).toEqual({ ok: true });
+    expect(await correctTransaction({ accountId: "acct-mine", transactionId: "t1", name: " Rent ", category: "Rent", everyPayment: true })).toEqual({
+      ok: true,
+    });
     expect(state.prefs).toEqual({
       statementLayouts: { sig: { date: 0 } }, // other preferences are kept
-      corrections: { payees: { "rahul sharma": { name: "Rent", category: "Rent" } }, rows: {} },
+      corrections: { payees: { "rahul sharma": { name: "Rent", category: "Rent" } }, rows: {}, plans: {} },
     });
   });
 
   it("an entry with no readable payee can only be changed on its own", async () => {
     expect(await correctTransaction({ accountId: "acct-mine", transactionId: "t3", category: "Food", everyPayment: true })).toEqual({ ok: true });
-    expect(state.prefs.corrections).toEqual({ payees: {}, rows: { t3: { category: "Food" } } });
+    expect(state.prefs.corrections).toEqual({ payees: {}, rows: { t3: { category: "Food" } }, plans: {} });
   });
 
   it("can change one entry only", async () => {
     expect(await correctTransaction({ accountId: "acct-mine", transactionId: "t2", category: "Health" })).toEqual({ ok: true });
-    expect(state.prefs.corrections).toEqual({ payees: {}, rows: { t2: { category: "Health" } } });
+    expect(state.prefs.corrections).toEqual({ payees: {}, rows: { t2: { category: "Health" } }, plans: {} });
   });
 
   it("stops at the cap instead of growing without end", async () => {
@@ -113,7 +115,7 @@ describe("undoCorrection", () => {
   it("removes the entry's change and its payee's change", async () => {
     state.prefs = { corrections: { payees: { "rahul sharma": { category: "Rent" }, zomato: { category: "Food" } }, rows: { t1: { name: "x" } } } };
     expect(await undoCorrection({ accountId: "acct-mine", transactionId: "t1" })).toEqual({ ok: true });
-    expect(state.prefs.corrections).toEqual({ payees: { zomato: { category: "Food" } }, rows: {} });
+    expect(state.prefs.corrections).toEqual({ payees: { zomato: { category: "Food" } }, rows: {}, plans: {} });
   });
 
   it("refuses someone else's account", async () => {

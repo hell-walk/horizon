@@ -4,18 +4,21 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap } from "lucide
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import LogoMark from "@/components/logoMark";
 import { cn } from "@/lib/utils";
 
 /**
  * A slide opens one page (`href`), or, the welcome slide, offers the two
  * things to do first (`actions`). `chip` is the small label above the title
- * (the number, or the welcome slide's eyebrow); `wordmark` puts the big
+ * (the number, or "Horizon"); `wordmark` puts the big
  * "Horizon" above the title, only on wide screens.
  */
 export type FeatureSlide = {
   n: string;
-  chip: string;
-  title: string;
+  /** The small label above the title (the number, or "Horizon" on the welcome slide); none above the wordmark. */
+  chip?: string;
+  /** The heading; the second welcome slide has none, its body is the message. */
+  title?: string;
   body: string;
   href?: string;
   actions?: { href: string; label: string; kind: "connect" | "upload" }[];
@@ -86,24 +89,24 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
               aria-label={`${i + 1} / ${count}`}
             >
               <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:items-center sm:gap-1 sm:text-center">
-                <span className={cn("chip w-fit rounded-full", s.wordmark ? "h-auto max-w-full whitespace-normal py-1 sm:text-center" : "chip-lime")}>
-                  {s.wordmark && <span className="dot shrink-0 bg-lime" />}
-                  {s.chip}
-                </span>
+                {s.chip && <span className="chip chip-lime w-fit rounded-full">{s.chip}</span>}
                 {s.wordmark && (
-                  <p className="hidden font-display text-[clamp(28px,3.5vw,36px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:block">
+                  <p className="hidden items-center gap-[0.15em] font-display text-[clamp(28px,3.5vw,36px)] font-bold uppercase leading-[0.9] tracking-tighter text-ink sm:flex">
+                    <LogoMark className="size-[0.7em] rounded-[0.1em]" />
                     {s.wordmark}
                   </p>
                 )}
-                <p
-                  className={cn(
-                    "font-display font-semibold uppercase tracking-tight text-ink",
-                    s.wordmark ? "text-18 sm:text-16" : "text-18 sm:text-24 sm:leading-none",
-                  )}
-                >
-                  {s.title}
-                </p>
-                <p className="max-w-2xl text-13 text-ink-muted">{s.body}</p>
+                {s.title && (
+                  <p
+                    className={cn(
+                      "font-display font-semibold uppercase tracking-tight text-ink",
+                      s.wordmark ? "text-18 sm:text-16" : "text-18 sm:text-24 sm:leading-none",
+                    )}
+                  >
+                    {s.title}
+                  </p>
+                )}
+                {s.body && <p className={cn("max-w-2xl text-13 text-ink-muted", !s.title && "text-14 text-ink sm:text-15")}>{s.body}</p>}
                 {s.actions ? (
                   <span className="flex flex-wrap gap-2 sm:justify-center sm:gap-3 sm:pt-0.5">
                     {s.actions.map((a) => (
@@ -117,11 +120,11 @@ const FeatureSlides = ({ slides, labels }: { slides: FeatureSlide[]; labels: { h
                       </Link>
                     ))}
                   </span>
-                ) : (
-                  <Link href={s.href ?? "/"} tabIndex={i === at ? 0 : -1} className="btn-secondary btn-sm w-fit shrink-0 rounded-full sm:mt-0.5 sm:px-4">
+                ) : s.href ? (
+                  <Link href={s.href} tabIndex={i === at ? 0 : -1} className="btn-secondary btn-sm w-fit shrink-0 rounded-full sm:mt-0.5 sm:px-4">
                     {labels.open} <ArrowUpRight className="size-4" aria-hidden />
                   </Link>
-                )}
+                ) : null}
               </div>
             </li>
           ))}

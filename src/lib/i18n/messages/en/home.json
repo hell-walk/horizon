@@ -130,5 +130,8 @@
   "incomeEmployerFound_one": "Found it: {payee} pays you {amount} a month, seen in {count} month. Horizon will read that as your salary.",
   "incomeEmployerFound_other": "Found it: {payee} pays you {amount} a month, seen in {count} months. Horizon will read that as your salary.",
   "incomeEmployerNone": "Horizon has not found a company paying you the same amount each month yet, so it cannot tell which credit is your salary. Upload a statement that includes a pay day, then pick this option again.",
-  "incomePayDayLabel": "Which day of the month does your salary arrive? (1 to 31)"
+  "incomePayDayLabel": "Which day of the month does your salary arrive? (1 to 31)",
+  "qPlan": "{payee} takes {amount} {cadence}. What is it for?",
+  "qPlanNot": "Not a subscription",
+  "qPlanLater": "Later"
 }

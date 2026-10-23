@@ -105,5 +105,9 @@
   "subsPaid_one": "{date} ಇಂದ {count} ಪಾವತಿಯಲ್ಲಿ {amount}",
   "subsPaid_other": "{date} ಇಂದ {count} ಪಾವತಿಗಳಲ್ಲಿ {amount}",
   "subsNext": "ಮುಂದಿನದು {date}",
-  "subsLast": "ಕೊನೆಯದು {date}"
+  "subsLast": "ಕೊನೆಯದು {date}",
+  "subsName": "ಹೆಸರಿಸಿ",
+  "subsNameLabel": "ಇದು ಯಾವ ಚಂದಾದಾರಿಕೆ?",
+  "subsNameHint": "ಬೆಲೆಯಿಂದ Horizon ನ ಊಹೆಯನ್ನು ಆರಿಸಿ, ಅಥವಾ ಸರಿಯಾದ ಹೆಸರನ್ನು ಬರೆಯಿರಿ. ನಂತರ ಈ ಪಾವತಿ ಎಲ್ಲಿ ಕಂಡರೂ ಆ ಹೆಸರೇ ಕಾಣುತ್ತದೆ, ಮುಂದಿನ ಸ್ಟೇಟ್‌ಮೆಂಟ್‌ನಲ್ಲೂ.",
+  "subsNameClear": "ಬ್ಯಾಂಕ್‌ನ ಹೆಸರನ್ನೇ ಬಳಸಿ"
 }

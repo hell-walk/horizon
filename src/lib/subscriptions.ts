@@ -23,6 +23,13 @@ export type Subscription = {
   count: number;
   /** Everything paid to it in the statements. */
   paid: number;
+  /** The account and the newest payment it was found from (to name the plan). */
+  accountId: string;
+  txId: string;
+  /** The bank's own words for the payee, for guessing the plan from the price (set by the server). */
+  payee?: string;
+  /** The person has named this plan (set by the server). */
+  named?: boolean;
 };
 
 export type SubscriptionPicture = {
@@ -39,9 +46,9 @@ export type SubscriptionPicture = {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Every subscription across the accounts, running ones first and costliest first. */
-export function subscriptionPicture(accounts: { currency: string; regular: Regular[] }[]): SubscriptionPicture {
+export function subscriptionPicture(accounts: { id?: string; currency: string; regular: Regular[] }[]): SubscriptionPicture {
   const all: Subscription[] = [];
-  for (const { currency, regular } of accounts) {
+  for (const { id = "", currency, regular } of accounts) {
     for (const r of regular) {
       if (r.kind !== "subscription" || r.direction !== "out") continue;
       const dates = r.seen.map((s) => s.date).sort();
@@ -59,6 +66,8 @@ export function subscriptionPicture(accounts: { currency: string; regular: Regul
         next: stopped ? undefined : r.next,
         count: r.count,
         paid: round2(r.seen.reduce((sum, s) => sum + Math.abs(s.amount), 0)),
+        accountId: id,
+        txId: r.seen[0]?.id ?? r.last.date,
       });
     }
   }

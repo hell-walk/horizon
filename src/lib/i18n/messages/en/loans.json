@@ -105,5 +105,9 @@
   "subsPaid_one": "{amount} in {count} payment since {date}",
   "subsPaid_other": "{amount} in {count} payments since {date}",
   "subsNext": "next {date}",
-  "subsLast": "last {date}"
+  "subsLast": "last {date}",
+  "subsName": "Name this",
+  "subsNameLabel": "What is this subscription?",
+  "subsNameHint": "Pick Horizon's guess from the price, or type the right name. It then shows everywhere this payment appears, and holds for your next statement.",
+  "subsNameClear": "Use the bank's name"
 }

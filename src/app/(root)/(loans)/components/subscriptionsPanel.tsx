@@ -4,10 +4,13 @@ import Link from "next/link";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
 import { dateFormat } from "@/lib/regularText";
+import { planGuesses } from "@/lib/planNames";
 import { currentPlan } from "@/lib/server/plan";
 import { subscriptionsForOwner } from "@/lib/server/subscriptions";
 import type { Subscription } from "@/lib/subscriptions";
 import { cn, formatAmount } from "@/lib/utils";
+
+import PlanName from "./planName";
 
 /**
  * Subscriptions, beside the loans: what the running ones cost a month and a
@@ -96,11 +99,14 @@ const Row = ({ s, t, day }: { s: Subscription; t: Translate; day: (d: string) =>
           {amount(s.amount)}
         </span>
       </div>
-      <p className="text-13 text-ink-muted">
-        {t("loans.subsPaid", { amount: amount(s.paid), count: s.count, date: day(s.since) })}
-        {s.status === "active" && s.next ? ` · ${t("loans.subsNext", { date: day(s.next) })}` : ""}
-        {s.status === "stopped" ? ` · ${t("loans.subsLast", { date: day(s.last) })}` : ""}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-13 text-ink-muted">
+          {t("loans.subsPaid", { amount: amount(s.paid), count: s.count, date: day(s.since) })}
+          {s.status === "active" && s.next ? ` · ${t("loans.subsNext", { date: day(s.next) })}` : ""}
+          {s.status === "stopped" ? ` · ${t("loans.subsLast", { date: day(s.last) })}` : ""}
+        </p>
+        {s.accountId && <PlanName accountId={s.accountId} txId={s.txId} named={!!s.named} guesses={planGuesses(s.payee ?? "", s.amount, s.currency)} />}
+      </div>
     </li>
   );
 };

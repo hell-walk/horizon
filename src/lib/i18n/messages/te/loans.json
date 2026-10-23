@@ -105,5 +105,9 @@
   "subsPaid_one": "{date} నుండి {count} చెల్లింపులో {amount}",
   "subsPaid_other": "{date} నుండి {count} చెల్లింపుల్లో {amount}",
   "subsNext": "తదుపరి {date}",
-  "subsLast": "చివరిది {date}"
+  "subsLast": "చివరిది {date}",
+  "subsName": "పేరు పెట్టండి",
+  "subsNameLabel": "ఇది ఏ సబ్‌స్క్రిప్షన్?",
+  "subsNameHint": "ధర నుండి Horizon ఊహను ఎంచుకోండి, లేదా సరైన పేరు రాయండి. ఆ తర్వాత ఈ చెల్లింపు ఎక్కడ కనిపించినా అదే పేరు కనిపిస్తుంది, తదుపరి స్టేట్‌మెంట్‌లో కూడా.",
+  "subsNameClear": "బ్యాంక్ పేరునే ఉంచండి"
 }
