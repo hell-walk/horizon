@@ -70,16 +70,59 @@ export function addMonths(date: string, n: number): string {
 
 const nextAfter = (date: string, cadence: Cadence) => (cadence === "weekly" ? iso(dayOf(date) + 7) : addMonths(date, MONTHS[cadence]));
 
-/** Which rhythm the gaps follow, if any: most gaps inside one band (a gap of two periods counts as a missing one). */
+/**
+ * Which rhythm the gaps follow, if any: at least half the gaps inside one
+ * band, and nearly all of them either in it, a little late (a payment that
+ * went through some days after its day) or two periods long (one missing).
+ */
 function cadenceOf(gaps: number[]): Cadence | null {
   for (const cadence of ["monthly", "weekly", "quarterly", "yearly"] as Cadence[]) {
     const [lo, hi] = BANDS[cadence];
     const inBand = gaps.filter((g) => g >= lo && g <= hi).length;
+    const late = gaps.filter((g) => g > hi && g <= hi * 1.25).length;
     const doubled = gaps.filter((g) => g >= lo * 2 && g <= hi * 2).length;
-    if (inBand >= Math.ceil(gaps.length / 2) && inBand + doubled >= Math.ceil(gaps.length * 0.75)) return cadence;
+    if (inBand >= Math.ceil(gaps.length / 2) && inBand + late + doubled >= Math.ceil(gaps.length * 0.75)) return cadence;
   }
   return null;
 }
+
+type Row = { tx: Transaction; day: number; amount: number };
+
+/**
+ * One subscription merchant, several subscriptions: everything billed through
+ * Google Play or Apple arrives under one name, each plan at its own steady
+ * amount. Such a payee's payments are split by amount (within 5% of each
+ * other), each tier its own regular payment, keyed "<payee>#2", "#3"...
+ * A lone payment at some other amount is a one-off purchase and is dropped,
+ * unless it is the newest one (a price change). A payee with one plan, or
+ * whose amounts never repeat, is left as it was.
+ */
+function splitByAmount(rows: Row[]): Row[][] {
+  const sorted = rows.slice().sort((a, b) => a.amount - b.amount);
+  const tiers: Row[][] = [];
+  for (const row of sorted) {
+    const tier = tiers[tiers.length - 1];
+    if (tier && within(row.amount, median(tier.map((r) => r.amount)), 0.05)) tier.push(row);
+    else tiers.push([row]);
+  }
+  const repeated = tiers.filter((t) => t.length >= 2);
+  // One plan (with or without a one-off): as before, so a price change is still noticed.
+  if (repeated.length < 2) return [rows];
+  const newest = Math.max(...rows.map((r) => r.day));
+  for (const tier of tiers) {
+    if (tier.length >= 2) continue;
+    // The newest payment at a new amount is a price change of the nearest plan, not a one-off.
+    const [lone] = tier;
+    if (lone.day !== newest) continue;
+    const nearest = repeated.reduce((best, t) => (Math.abs(t[0].amount - lone.amount) < Math.abs(best[0].amount - lone.amount) ? t : best));
+    nearest.push(lone);
+    nearest.sort((x, y) => x.day - y.day);
+  }
+  return repeated.sort((a, b) => b.length - a.length || b[0].amount - a[0].amount);
+}
+
+/** The key a regular payment's entries answer to (a "#2" tier shares its payee's key). */
+export const baseKey = (key: string) => key.split("#")[0];
 
 function kindOf(t: Transaction, direction: "in" | "out"): RegularKind {
   if (t.userCategory === OWN_TRANSFER) return "own";
@@ -102,7 +145,7 @@ export function regularKeyOf(tx: Pick<Transaction, "type" | "amount" | "name" | 
 
 /** Regular payments in one account's entries, the soonest expected first. */
 export function findRegular(transactions: Transaction[] = [], today = new Date()): Regular[] {
-  const groups = new Map<string, { direction: "in" | "out"; rows: { tx: Transaction; day: number; amount: number }[] }>();
+  const groups = new Map<string, { direction: "in" | "out"; rows: Row[] }>();
   let lastCovered = -Infinity;
 
   for (const tx of transactions) {
@@ -119,10 +162,18 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     groups.set(key, group);
   }
 
+  // A subscription merchant's payments, split by amount tier (see splitByAmount).
+  const tiered: [string, { direction: "in" | "out"; rows: Row[] }][] = [];
+  for (const [key, { direction, rows }] of groups) {
+    if (direction === "out" && rows.length >= 2 && kindOf(rows[0].tx, direction) === "subscription") {
+      splitByAmount(rows).forEach((tier, i) => tiered.push([i === 0 ? key : `${key}#${i + 1}`, { direction, rows: tier }]));
+    } else tiered.push([key, { direction, rows }]);
+  }
+
   const todayDay = Math.floor(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) / DAY);
   const found: Regular[] = [];
 
-  for (const [key, { direction, rows }] of groups) {
+  for (const [key, { direction, rows }] of tiered) {
     // Seen once: only worth showing when it is a known subscription service
     // (statements often cover a single month). Its cadence is a guess: monthly.
     const knownSubscription = direction === "out" && rows.length === 1 && spendType(rows[0].tx) === "Subscriptions";

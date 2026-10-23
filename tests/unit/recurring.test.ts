@@ -5,7 +5,16 @@ import { addMonths, findRegular } from "@/lib/recurring";
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;
 const tx = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
-  ({ id: `t${++n}`, date, name, amount: Math.abs(amount), type: amount < 0 ? "debit" : "credit", category: "Transfer", paymentChannel: "other", ...extra }) as Transaction;
+  ({
+    id: `t${++n}`,
+    date,
+    name,
+    amount: Math.abs(amount),
+    type: amount < 0 ? "debit" : "credit",
+    category: "Transfer",
+    paymentChannel: "other",
+    ...extra,
+  }) as Transaction;
 
 // Monthly on the given day, for the given months of 2026.
 const monthly = (name: string, amount: number, day: number, months: number[], extra: Partial<Transaction> = {}) =>
@@ -46,7 +55,7 @@ describe("findRegular", () => {
         ...monthly("BESCOM ELECTRICITY", -1200, 20, [7, 8, 9]).map((t, i) => ({ ...t, amount: [1100, 1450, 990][i] })),
         ...monthly("NEFT CR INFOSYS SALARY", 85000, 1, [7, 8, 9, 10]),
       ],
-      TODAY
+      TODAY,
     );
     const byKind = Object.fromEntries(found.map((r) => [r.kind, r]));
     expect(Object.keys(byKind).sort()).toEqual(["bill", "emi", "income", "subscription"]);
@@ -71,6 +80,24 @@ describe("findRegular", () => {
     expect(findRegular(weekly, TODAY)[0]).toMatchObject({ cadence: "weekly", next: "2026-10-09", perMonth: 4333.33 });
     const yearly = [tx("2024-03-01", "LIC PREMIUM", -24000), tx("2025-03-01", "LIC PREMIUM", -24000), tx("2026-03-02", "LIC PREMIUM", -24000)];
     expect(findRegular(yearly, TODAY)[0]).toMatchObject({ cadence: "yearly", next: "2027-03-02", perMonth: 2000 });
+  });
+
+  it("still calls it monthly when one payment went through a few days late", () => {
+    // 30, 31 and 37 days apart: the last one was late, not a different rhythm.
+    const rows = ["2026-06-10", "2026-07-10", "2026-08-10", "2026-09-16"].map((d) => tx(d, "CRUNCHYROLL", -799));
+    expect(findRegular(rows, TODAY)).toMatchObject([{ kind: "subscription", cadence: "monthly", amount: 799, confidence: "high" }]);
+  });
+
+  it("splits one subscription merchant into its plans, by amount, and drops a one-off purchase", () => {
+    const rows = [...monthly("GOOGLE PLAY", -149, 3, [6, 7, 8, 9, 10]), ...monthly("GOOGLE PLAY", -649, 20, [7, 8, 9]), tx("2026-08-25", "GOOGLE PLAY", -1200)];
+    const found = findRegular(rows, TODAY).sort((a, b) => a.amount - b.amount);
+    expect(found.map((r) => [r.name, r.amount, r.count, r.cadence])).toEqual([
+      ["Google", 149, 5, "monthly"],
+      ["Google", 649, 3, "monthly"],
+    ]);
+    expect(new Set(found.map((r) => r.key)).size).toBe(2);
+    // Both tiers answer to the merchant's key, so the forecast leaves every payment out of everyday spending.
+    expect(new Set(found.map((r) => r.key.split("#")[0])).size).toBe(1);
   });
 
   it("tolerates one month with no payment in between", () => {
@@ -99,7 +126,11 @@ describe("findRegular", () => {
     const named = monthly("UPI/DR/9/R SHARMA", -15000, 5, [7, 8, 9], { shownName: "Landlord" });
     expect(findRegular(named, TODAY)[0].name).toBe("Landlord");
     const both = [...monthly("RAHUL", -500, 2, [7, 8, 9]), ...monthly("RAHUL", 500, 20, [7, 8, 9])];
-    expect(findRegular(both, TODAY).map((r) => r.direction).sort()).toEqual(["in", "out"]);
+    expect(
+      findRegular(both, TODAY)
+        .map((r) => r.direction)
+        .sort(),
+    ).toEqual(["in", "out"]);
   });
 
   it("marks money moved between your own accounts", () => {
