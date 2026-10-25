@@ -22,8 +22,8 @@ const AboutHorizon = async () => {
       <HeaderBox eyebrow={t("nav.about")} title={t("landing.tagline")} subtext={t("landing.heroBody")} />
       {/* shrink-0: inside the page's flex column a clipped box would otherwise shrink to the viewport and nothing would scroll. */}
       <div className="-mx-4 shrink-0 overflow-hidden rounded-lg border border-line bg-card sm:-mx-6 lg:-mx-8">
-        <LandingStory linked motion={false} />
-        <section className="border-t border-line px-4 py-14 sm:px-6 lg:px-8">
+        <LandingStory linked motion={false} looks={false} />
+        <section className="border-t border-line px-4 py-8 sm:px-6 sm:py-14 lg:px-8">
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
             <p className="eyebrow">{t("landing.closingEyebrow")}</p>
             <h2 className="font-display text-32 font-bold uppercase leading-none tracking-tighter sm:text-[48px]">{t("landing.closingTitle")}</h2>

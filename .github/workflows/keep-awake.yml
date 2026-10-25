@@ -1,16 +1,19 @@
-# Free Supabase projects pause after a week without use, and free Appwrite
-# projects pause after a stretch of inactivity too. A paused project means
-# nobody can sign in (Supabase) or see their accounts (Appwrite). This touches
-# both every three days, for free.
+# Free Supabase projects pause after a week without use, and Appwrite pauses a
+# free project's database after a stretch without queries. A paused project
+# means nobody can sign in (Supabase) or see their accounts (Appwrite). This
+# touches both every day, for free. Listing Appwrite's databases turned out
+# not to count (October 2026: the database paused anyway), so the Appwrite
+# step now reads one document, which is a real database query.
 # Needs these repository secrets (Settings -> Secrets and variables -> Actions):
 #   SUPABASE_URL, SUPABASE_ANON_KEY            (never the service role key)
 #   APPWRITE_ENDPOINT, APPWRITE_PROJECT, APPWRITE_KEY
-#   (APPWRITE_KEY: a separate API key with only the "databases.read" scope)
+#   (APPWRITE_KEY: a separate API key with only the "databases.read",
+#    "collections.read" and "documents.read" scopes)
 name: Keep the databases awake
 
 on:
   schedule:
-    - cron: "17 6 */3 * *"
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions: {}
@@ -47,8 +50,17 @@ jobs:
           if [ -z "$APPWRITE_ENDPOINT" ] || [ -z "$APPWRITE_PROJECT" ] || [ -z "$APPWRITE_KEY" ]; then
             echo "Add APPWRITE_ENDPOINT (e.g. https://fra.cloud.appwrite.io/v1), APPWRITE_PROJECT and APPWRITE_KEY as repository secrets."; exit 1
           fi
-          # Listing the databases is a real, counted request; a paused project answers 403 "project_paused".
-          code=$(curl -s -o /tmp/appwrite.json -w "%{http_code}" "$APPWRITE_ENDPOINT/databases" \
-            -H "X-Appwrite-Project: $APPWRITE_PROJECT" -H "X-Appwrite-Key: $APPWRITE_KEY")
+          H1="X-Appwrite-Project: $APPWRITE_PROJECT"; H2="X-Appwrite-Key: $APPWRITE_KEY"
+          # The databases list: a paused project answers 403 "project_paused".
+          code=$(curl -s -o /tmp/dbs.json -w "%{http_code}" "$APPWRITE_ENDPOINT/databases" -H "$H1" -H "$H2")
           echo "databases $code"
-          if [ "$code" != "200" ]; then grep -o '"type":"[a-z_]*"' /tmp/appwrite.json || true; exit 1; fi
+          if [ "$code" != "200" ]; then grep -o '"type":"[a-z_]*"' /tmp/dbs.json || true; exit 1; fi
+          # Then one real query: a document from the first collection of the first database.
+          db=$(grep -o '"[$]id":"[^"]*"' /tmp/dbs.json | head -1 | cut -d'"' -f4)
+          code=$(curl -s -o /tmp/cols.json -w "%{http_code}" "$APPWRITE_ENDPOINT/databases/$db/collections" -H "$H1" -H "$H2")
+          echo "collections $code"
+          if [ "$code" != "200" ]; then grep -o '"type":"[a-z_]*"' /tmp/cols.json || true; exit 1; fi
+          col=$(grep -o '"[$]id":"[^"]*"' /tmp/cols.json | head -1 | cut -d'"' -f4)
+          code=$(curl -s -o /tmp/docs.json -w "%{http_code}" -G "$APPWRITE_ENDPOINT/databases/$db/collections/$col/documents" --data-urlencode 'queries[]={"method":"limit","values":[1]}' -H "$H1" -H "$H2")
+          echo "documents $code"
+          if [ "$code" != "200" ]; then grep -o '"type":"[a-z_]*"' /tmp/docs.json || true; exit 1; fi

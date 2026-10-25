@@ -16,11 +16,12 @@ export const CAPABILITY_ROUTES = ABOUT_FEATURES.map((f) => f.route);
 
 /**
  * `linked`: each capability card opens its own About page, with the closer
- * look and the screens (signed in). `motion`: the
+ * look and the screens (signed in). `looks`: the closer looks with their
+ * screens (off on the About page, where each box's own page has them). `motion`: the
  * scroll-driven rise, which needs the page itself to be the scroller (the
  * landing page); inside the app the page scrolls in its own box, so it is off.
  */
-export default async function LandingStory({ linked = false, motion = true }: { linked?: boolean; motion?: boolean } = {}) {
+export default async function LandingStory({ linked = false, motion = true, looks = true }: { linked?: boolean; motion?: boolean; looks?: boolean } = {}) {
   const t = await getT();
   const rise = motion ? "landing-rise" : "";
   const capabilities = [
@@ -49,18 +50,18 @@ export default async function LandingStory({ linked = false, motion = true }: { 
   return (
     <>
       {/* What it does, in six. */}
-      <section className="border-t border-line bg-surface-low px-4 py-14 sm:px-6 lg:px-8">
+      <section className={cn("border-t border-line bg-surface-low px-4 sm:px-6 lg:px-8", linked ? "py-6 sm:py-14" : "py-14")}>
         <div className="mx-auto max-w-6xl">
-          <p className="eyebrow mb-6">{t("landing.overviewEyebrow")}</p>
-          <div className="grid gap-4 md:grid-cols-3">
+          <p className={cn("eyebrow", linked ? "mb-3 sm:mb-6" : "mb-6")}>{t("landing.overviewEyebrow")}</p>
+          <div className={cn("grid md:grid-cols-3", linked ? "gap-2 sm:gap-4" : "gap-4")}>
             {capabilities.map(([n, title, body], i) => {
               const inner = (
-                <div className="panel-body flex flex-col gap-3">
+                <div className={cn("panel-body flex flex-col", linked ? "gap-1.5 sm:gap-3" : "gap-3")}>
                   <span className="font-mono text-[12px] tracking-wider text-lime-foreground">
                     <span className="chip chip-lime">{n}</span>
                   </span>
                   <h2 className="font-display text-20 font-semibold uppercase tracking-tight">{title}</h2>
-                  <p className="text-14 text-ink-muted">{body}</p>
+                  <p className={cn("text-14 text-ink-muted", linked && "line-clamp-2 sm:line-clamp-none")}>{body}</p>
                 </div>
               );
               return linked ? (
@@ -78,23 +79,25 @@ export default async function LandingStory({ linked = false, motion = true }: { 
       </section>
 
       {/* The pages themselves. */}
-      <section id="features" className="scroll-mt-16 px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-16">
-          <p className="eyebrow">{t("landing.featuresEyebrow")}</p>
-          {features.map((f, i) => (
-            <article key={f.shot} className={cn("grid items-center gap-8 md:grid-cols-2 md:gap-12", rise)}>
-              <div className={i % 2 === 1 ? "md:order-2" : ""}>
-                <Shot name={f.shot} alt={f.alt} sizes="(min-width: 768px) 50vw, 100vw" />
-              </div>
-              <div className="flex flex-col gap-3">
-                <p className="font-mono text-[12px] uppercase tracking-wider text-ink-faint">{f.label}</p>
-                <h2 className="font-display text-28 font-semibold uppercase leading-tight tracking-tight sm:text-32">{f.title}</h2>
-                <p className="max-w-md text-16 text-ink-muted">{f.body}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      {looks && (
+        <section id="features" className="scroll-mt-16 px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col gap-16">
+            <p className="eyebrow">{t("landing.featuresEyebrow")}</p>
+            {features.map((f, i) => (
+              <article key={f.shot} className={cn("grid items-center gap-8 md:grid-cols-2 md:gap-12", rise)}>
+                <div className={i % 2 === 1 ? "md:order-2" : ""}>
+                  <Shot name={f.shot} alt={f.alt} sizes="(min-width: 768px) 50vw, 100vw" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <p className="font-mono text-[12px] uppercase tracking-wider text-ink-faint">{f.label}</p>
+                  <h2 className="font-display text-28 font-semibold uppercase leading-tight tracking-tight sm:text-32">{f.title}</h2>
+                  <p className="max-w-md text-16 text-ink-muted">{f.body}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }
