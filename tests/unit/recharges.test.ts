@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { OWN_TRANSFER } from "@/lib/corrections";
-import { planDays, rechargeOperator, rechargePicture } from "@/lib/recharges";
+import { parsePlanTerm, planDays, rechargeOperator, rechargePicture, setExtraPlans } from "@/lib/recharges";
 
 let n = 0;
 const debit = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
@@ -35,6 +35,23 @@ describe("recharges: prepaid and DTH top-ups by operator", () => {
     expect(p.items[1]).toMatchObject({ count: 1, total: 400, basis: "none" });
     expect(p.items[1].everyDays).toBeUndefined();
     expect(p.count).toBe(4);
+  });
+
+  it("plans added from the portal win over the built-in table, and bad rows are ignored", () => {
+    expect(parsePlanTerm("Jio|1029|84")).toEqual({ operator: "Jio", price: 1029, days: 84 });
+    expect(parsePlanTerm(" Airtel | 349 | 30 ")).toEqual({ operator: "Airtel", price: 349, days: 30 });
+    for (const bad of ["Jio|349", "Jio|abc|28", "Jio|349|0", "Jio|349|9999", "|349|28", ""]) expect(parsePlanTerm(bad)).toBeNull();
+    setExtraPlans([
+      { operator: "Jio", price: 1029, days: 84 },
+      { operator: "jio", price: 349, days: 30 },
+    ]);
+    try {
+      expect(planDays("Jio", 1029)).toBe(84);
+      expect(planDays("Jio", 349)).toBe(30); // the portal's row corrects the built-in 28
+    } finally {
+      setExtraPlans([]);
+    }
+    expect(planDays("Jio", 349)).toBe(28);
   });
 
   it("a plan's own length beats late recharges, and the person's word beats both", () => {

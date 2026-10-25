@@ -60,11 +60,36 @@ const PLAN_DAYS: Record<string, Record<number, number>> = {
   BSNL: { 2399: 395 },
 };
 
-/** The length of a known plan at this price (within 2%), if any. */
+export type PlanRow = { operator: string; price: number; days: number };
+
+// Plans the team adds from the admin portal (the shared "terms" table, group
+// "recharge", one row per plan written "Operator|price|days", for example
+// "Jio|349|28"). Filled by server/terms.ts at the start of a request; they
+// win over the built-in table, so a price change is fixed without a deploy.
+let extraPlans: PlanRow[] = [];
+export const setExtraPlans = (rows: PlanRow[]) => {
+  extraPlans = rows;
+};
+
+/** One portal row into a plan, or null when it is not "Operator|price|days" with sane numbers. */
+export function parsePlanTerm(term: string): PlanRow | null {
+  const [operator, price, days] = String(term)
+    .split("|")
+    .map((s) => s.trim());
+  const p = Number(price);
+  const d = Number(days);
+  if (!operator || operator.length > 40 || !Number.isFinite(p) || p <= 0 || p > 100_000 || !Number.isInteger(d) || d < 1 || d > 400) return null;
+  return { operator, price: p, days: d };
+}
+
+/** The length of a known plan at this price (within 2%), if any: the portal's rows first, then the built-in table. */
 export function planDays(operator: string, amount: number): number | undefined {
+  const close = (price: number) => Math.abs(amount - price) <= price * 0.02;
+  const extra = extraPlans.find((p) => p.operator.toLowerCase() === operator.toLowerCase() && close(p.price));
+  if (extra) return extra.days;
   const plans = PLAN_DAYS[operator];
   if (!plans) return undefined;
-  const hit = Object.entries(plans).find(([price]) => Math.abs(amount - Number(price)) <= Number(price) * 0.02);
+  const hit = Object.entries(plans).find(([price]) => close(Number(price)));
   return hit ? hit[1] : undefined;
 }
 
