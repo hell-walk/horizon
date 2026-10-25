@@ -25,7 +25,7 @@ const AllocationPanel = async ({ accounts, primaryCurrency, ownerId }: { account
   );
 
   return (
-    <section className="panel">
+    <section className="panel" data-tour="banks">
       <header className="panel-head">
         <span className="eyebrow">{t("home.allocationTitle")}</span>
         <span className="eyebrow">{t("home.accountCount", { count: accounts.length })}</span>

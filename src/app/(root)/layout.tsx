@@ -15,6 +15,9 @@ import { activeAccountId } from "@/lib/server/selectedAccount";
 import { loadExtraTerms } from "@/lib/server/terms";
 import { planLine } from "@/lib/server/planLine";
 import DataUnavailable from "@/components/dataUnavailable";
+import TourGuide from "@/components/tour/tourGuide";
+import { getT } from "@/lib/i18n/server";
+import { TOUR_WORD_KEYS } from "@/lib/tour";
 
 // Every page in this group depends on the session cookie, so never prerender them.
 export const dynamic = "force-dynamic";
@@ -36,11 +39,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // own call. The accounts feed the switcher in the profile panel. The team's
   // added lender and subscription names (cached minutes) are loaded here so
   // every page's sorting sees them.
-  const [accounts, plan] = await Promise.all([
+  const [accounts, plan, , t] = await Promise.all([
     getAccounts({ userId: ownerIdOf(loggedIn) }).then((a): Account[] => a?.data ?? []),
     currentPlan(),
     loadExtraTerms(),
+    getT(),
   ]);
+  // The guided tour's words, translated once here; the guide itself runs in the browser.
+  const tourWords = Object.fromEntries(TOUR_WORD_KEYS.map((k) => [k, t(`tour.${k}`)]));
   // Only what the switcher shows leaves the server.
   const switchAccounts = accounts.map(({ appwriteItemId, name, mask, currentBalance, currency }) => ({ appwriteItemId, name, mask, currentBalance, currency }));
 
@@ -58,6 +64,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         {children}
       </main>
       <BottomNav />
+      <TourGuide words={tourWords} />
       <ScrollCalm />
       <HomeLanguageSync saved={(await loadSession())?.homeLocale ?? null} />
     </div>

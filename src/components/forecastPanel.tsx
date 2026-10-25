@@ -43,7 +43,7 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
           ? t("bills.fcOld", { date: dateFormat(locale, { day: "numeric", month: "short", year: "numeric" })(f.lastDate!) })
           : t("bills.fcNoHistory");
     return (
-      <section className="panel">
+      <section className="panel" data-tour="forecast">
         {header}
         <p className="px-4 py-3 text-14 text-ink-muted">{message}</p>
       </section>
@@ -59,7 +59,7 @@ const ForecastPanel = async ({ result, compact = false }: { result: AccountForec
   const todayAt = todayIndex > 0 ? (todayIndex / (drawn.length - 1)) * 100 : 0;
 
   return (
-    <section className="panel">
+    <section className="panel" data-tour="forecast">
       {header}
       <div className="flex flex-col gap-3 px-4 py-4">
         <p className="text-14 text-ink">

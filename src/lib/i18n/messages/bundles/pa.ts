@@ -23,6 +23,7 @@ import ready from "../pa/ready.json";
 import remind from "../pa/remind.json";
 import report from "../pa/report.json";
 import spending from "../pa/spending.json";
+import tour from "../pa/tour.json";
 import transfer from "../pa/transfer.json";
 
-export default flatten({ auth: auth, banks: banks, bills: bills, calendar: calendar, charges: charges, common: common, connect: connect, data: data, feedback: feedback, goals: goals, history: history, home: home, insights: insights, landing: landing, legal: legal, loans: loans, nav: nav, plan: plan, ready: ready, remind: remind, report: report, spending: spending, transfer: transfer });
+export default flatten({ auth: auth, banks: banks, bills: bills, calendar: calendar, charges: charges, common: common, connect: connect, data: data, feedback: feedback, goals: goals, history: history, home: home, insights: insights, landing: landing, legal: legal, loans: loans, nav: nav, plan: plan, ready: ready, remind: remind, report: report, spending: spending, tour: tour, transfer: transfer });

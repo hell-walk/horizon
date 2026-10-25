@@ -82,7 +82,7 @@ const CardStack = ({ accounts, selected, userName, mode = "local", onChange }: P
   };
 
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="flex w-full flex-col gap-3" data-tour="cards">
       <div
         ref={deckRef}
         className="relative w-full touch-pan-y"

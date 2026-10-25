@@ -1147,3 +1147,34 @@
     }
   }
 }
+
+/* The guided tour's first card on a phone: two hands, one showing a scroll, one a swipe. */
+.tour-hands {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 0.25rem 0;
+}
+.tour-hand {
+  animation-duration: 1.6s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+.tour-hand-scroll {
+  animation-name: tour-scroll;
+}
+.tour-hand-swipe {
+  animation-name: tour-swipe;
+}
+@keyframes tour-scroll {
+  0%, 100% { transform: translateY(8px); opacity: 0.5; }
+  50% { transform: translateY(-8px); opacity: 1; }
+}
+@keyframes tour-swipe {
+  0%, 100% { transform: translateX(-12px); opacity: 0.5; }
+  50% { transform: translateX(12px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-hand { animation: none; }
+  .tour-spot { transition: none; }
+}

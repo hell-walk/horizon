@@ -1,6 +1,9 @@
+import { Play } from "lucide-react";
 import Link from "next/link";
 
+import TourStart from "@/components/tour/tourStart";
 import { ABOUT_FEATURES } from "@/lib/aboutFeatures";
+import { isTourId } from "@/lib/tour";
 import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
@@ -64,10 +67,20 @@ export default async function LandingStory({ linked = false, motion = true, look
                   <p className={cn("text-14 text-ink-muted", linked && "line-clamp-2 sm:line-clamp-none")}>{body}</p>
                 </div>
               );
+              const slug = ABOUT_FEATURES[i].slug;
               return linked ? (
-                <Link key={n} href={`/about-horizon/${ABOUT_FEATURES[i].slug}`} className={cn("panel transition-colors hover:bg-surface-low", rise)}>
-                  {inner}
-                </Link>
+                <article key={n} className={cn("panel flex flex-col", rise)}>
+                  <Link href={`/about-horizon/${slug}`} className="flex-1 rounded-lg transition-colors hover:bg-surface-low">
+                    {inner}
+                  </Link>
+                  {isTourId(slug) && (
+                    <div className="border-t border-line px-3 py-1.5">
+                      <TourStart id={slug} className="btn-ghost btn-sm">
+                        <Play className="size-3.5" aria-hidden /> {t("tour.demo")}
+                      </TourStart>
+                    </div>
+                  )}
+                </article>
               ) : (
                 <article key={n} className={cn("panel", rise)}>
                   {inner}

@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 
 import AllocationPanel from "./components/allocationPanel";
 import IncomePanel from "./components/incomePanel";
+import { cookies } from "next/headers";
+
 import FeatureTour from "./components/featureTour";
+import TourAutoStart from "@/components/tour/tourAutoStart";
+import { TOUR_DONE_COOKIE } from "@/lib/tour";
 import ProfileCard from "./components/profileCard";
 import ReportNumbers from "./components/reportNumbers";
 import CategoryPanel from "./components/categoryPanel";
@@ -71,6 +75,8 @@ const Home = async ({ searchParams }: SearchParamProps) => {
   return (
     <section className="page">
       <RememberAccount id={appwriteItemId} />
+      {/* New here, with a statement in: the guided tour, once. */}
+      {accountsData.length > 0 && !(await cookies()).get(TOUR_DONE_COOKIE) && <TourAutoStart />}
       {/* What Horizon is and can do, one slide at a time: a band at the top, before the greeting and the profile column, three quarters of the width on wide screens. */}
       <Suspense fallback={null}>
         <div className="w-full shrink-0 self-center xl:w-3/4">

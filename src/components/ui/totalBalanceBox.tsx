@@ -20,7 +20,7 @@ const TotalBalanceBox = async ({ accounts = [], totalsByCurrency, totalCurrentBa
         const currencyName = NAMED_CURRENCIES.has(currency) ? t(`home.currency_${currency}`) : currency;
 
         return (
-          <article key={currency} className="panel flex flex-col gap-4 p-5">
+          <article key={currency} data-tour="balance" className="panel flex flex-col gap-4 p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-col gap-1">
                 <p className="eyebrow">{t("home.currencyBalance", { currency: currencyName })}</p>

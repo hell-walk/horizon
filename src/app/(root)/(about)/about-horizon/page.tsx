@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { Play } from "lucide-react";
+
 import LandingStory from "@/components/landingStory";
+import TourStart from "@/components/tour/tourStart";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser } from "@/lib/server/auth";
@@ -19,7 +22,16 @@ const AboutHorizon = async () => {
 
   return (
     <section className="page">
-      <HeaderBox eyebrow={t("nav.about")} title={t("landing.tagline")} subtext={t("landing.heroBody")} />
+      <HeaderBox
+        eyebrow={t("nav.about")}
+        title={t("landing.tagline")}
+        subtext={t("landing.heroBody")}
+        actions={
+          <TourStart id="home" className="btn-accent">
+            <Play className="size-4" aria-hidden /> {t("tour.takeTour")}
+          </TourStart>
+        }
+      />
       {/* shrink-0: inside the page's flex column a clipped box would otherwise shrink to the viewport and nothing would scroll. */}
       <div className="-mx-4 shrink-0 overflow-hidden rounded-lg border border-line bg-card sm:-mx-6 lg:-mx-8">
         <LandingStory linked motion={false} looks={false} />

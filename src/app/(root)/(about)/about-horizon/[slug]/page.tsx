@@ -1,13 +1,15 @@
-import { ArrowUpRight, ChevronLeft } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, Play } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Shot from "@/components/shot";
+import TourStart from "@/components/tour/tourStart";
 import HeaderBox from "@/components/ui/headerBox";
 import { aboutFeature, SHOT_ALT } from "@/lib/aboutFeatures";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser } from "@/lib/server/auth";
+import { isTourId } from "@/lib/tour";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -43,6 +45,11 @@ const AboutFeaturePage = async ({ params }: Props) => {
             <Link href="/about-horizon" className="btn-ghost">
               <ChevronLeft className="size-4" aria-hidden /> {t("nav.about")}
             </Link>
+            {isTourId(feature.slug) && (
+              <TourStart id={feature.slug} className="btn-secondary">
+                <Play className="size-4" aria-hidden /> {t("tour.demo")}
+              </TourStart>
+            )}
             {open}
           </>
         }

@@ -17,7 +17,7 @@ const QuickActions = async () => {
   const t = await getT();
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-tour="actions">
       {ACTIONS.map((action) => {
         const Icon = action.icon;
         return (
