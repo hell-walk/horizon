@@ -5,6 +5,7 @@
 import { Query } from "node-appwrite";
 
 import { createAdminClient } from "../server/appwrite";
+import { timed } from "../server/timing";
 import { cached, TTL } from "../cache";
 import { categorize } from "../categories";
 import { loadExtraTerms } from "../server/terms";
@@ -44,9 +45,14 @@ const MAX_ENTRIES = 50_000;
 // Rows kept in this server copy's memory across requests, each with the stamp
 // it was read under: ten minutes at most, a few dozen banks at most.
 const MEMORY_MS = 10 * 60_000;
+// Younger than this, the copy is served without the stamp check (one trip saved on most pages).
+const FRESH_MS = process.env.NODE_ENV === "test" ? 0 : 30_000;
 const MEMORY_MAX = 40;
 type StatementRows = { transactions: Transaction[]; gapRows: (GapRow & { createdAt?: string })[] };
 const memory = new Map<string, { stamp: string; rows: StatementRows; at: number }>();
+
+/** After an upload or a deletion: the next read must ask the database again. */
+export const forgetRows = (bankId: string) => memory.delete(bankId);
 
 /**
  * Every saved entry of one imported bank: once per request, and across
@@ -61,12 +67,16 @@ const memory = new Map<string, { stamp: string; rows: StatementRows; at: number 
 const loadStatementRows = (bank: Pick<Bank, "$id" | "accountId" | "currency">) =>
   cached(`statement:${bank.$id}`, TTL.short, async (): Promise<StatementRows> => {
     const { database } = await createAdminClient();
-    const latest = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
-      Query.equal("bankId", [bank.$id]),
-      Query.orderDesc("$createdAt"),
-      Query.limit(1),
-      Query.select(["$id", "$createdAt"]),
-    ]);
+    const young = memory.get(bank.$id);
+    if (young && Date.now() - young.at < FRESH_MS) return young.rows;
+    const latest = await timed("statement stamp", () =>
+      database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
+        Query.equal("bankId", [bank.$id]),
+        Query.orderDesc("$createdAt"),
+        Query.limit(1),
+        Query.select(["$id", "$createdAt"]),
+      ]),
+    );
     const stamp = `${latest.total}:${latest.documents[0]?.$id ?? ""}`;
     const kept = memory.get(bank.$id);
     if (kept && kept.stamp === stamp && Date.now() - kept.at < MEMORY_MS) return kept.rows;

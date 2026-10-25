@@ -8,16 +8,13 @@ import { createAdminClient } from "./appwrite";
 import { openSecret, sealSecret } from "./crypto";
 import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
+import { timed } from "./timing";
 
 // Data access for users and banks. Server-only on purpose: none of these check
 // who is asking, so they must never be exported from a "use server" file (that
 // would make each one a public endpoint). Actions check the session first.
 
-const {
-  APPWRITE_DATABASE_ID: DATABASE_ID,
-  APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
-  APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
-} = process.env;
+const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID, APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID } = process.env;
 
 /** Bank rows come back with their access token opened. */
 const withOpenToken = (bank: Bank): Bank => ({ ...bank, accessToken: openSecret(bank.accessToken) });
@@ -51,7 +48,7 @@ export async function getBanks({ userId }: getBanksProps): Promise<Bank[]> {
   try {
     const banks = await cached(`banks:${userId}`, TTL.short, async () => {
       const { database } = await createAdminClient();
-      const result = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [Query.equal("userId", [userId])]);
+      const result = await timed("banks", () => database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [Query.equal("userId", [userId])]));
       return result.documents;
     });
     return (parseStringify(banks) as Bank[]).map(withOpenToken);
@@ -143,9 +140,7 @@ export async function saveSetuSessionId({ consentId, sessionId }: { consentId: s
   try {
     const { database } = await createAdminClient();
     const banks = await database.listDocuments(DATABASE_ID!, BANK_COLLECTION_ID!, [Query.equal("bankId", [consentId])]);
-    await Promise.all(
-      banks.documents.map((bank) => database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bank.$id, { dataSessionId: sessionId }))
-    );
+    await Promise.all(banks.documents.map((bank) => database.updateDocument(DATABASE_ID!, BANK_COLLECTION_ID!, bank.$id, { dataSessionId: sessionId })));
     invalidate("banks:");
   } catch (error) {
     logError("setu: could not persist the data session id", error);

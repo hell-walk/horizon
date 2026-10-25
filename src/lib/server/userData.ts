@@ -15,6 +15,7 @@ import { forgetLeftOver } from "./leftover";
 import { logError } from "./log";
 import { readPrefs } from "./prefs";
 import { createSupabaseAdmin } from "./supabase";
+import { forgetRows } from "../providers/manual";
 
 // What the privacy page offers: a copy of your data, removing a bank, and
 // deleting the account. Server-only; the actions in actions/privacy.action.ts
@@ -79,6 +80,7 @@ export async function removeBank(bank: Bank): Promise<{ statements: number }> {
   invalidate("banks:");
   await forgetLeftOver(bank.userId);
   invalidate(`statement:${bank.$id}`);
+  forgetRows(bank.$id);
   return { statements };
 }
 

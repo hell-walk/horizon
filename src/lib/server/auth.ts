@@ -1,5 +1,7 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
+
 import { after } from "next/server";
 import { cache } from "react";
 
@@ -7,6 +9,8 @@ import { isLocale, type Locale } from "../i18n/config";
 import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../plans";
 import { parseStringify } from "../utils";
 import { getBanks, getUserInfo } from "./banks";
+import { seedPrefs } from "./prefs";
+import { timed } from "./timing";
 import { logError } from "./log";
 import { readPending, type ProfileInput } from "./profile";
 import { createSupabaseAdmin, createSupabaseServerClient } from "./supabase";
@@ -39,11 +43,42 @@ export type SessionUser = {
   homeLocale: Locale | null;
 };
 
-// Asks Supabase on every request (getUser, not the cookie alone), so a deleted
-// or banned account is signed out at once. React cache() makes it once per request.
+// Asks Supabase (getUser, not the cookie alone), so a deleted or banned account
+// is signed out within a minute: the answer is kept for that long, per access
+// token, in this server copy's memory, because the trip to Supabase was the
+// slowest step of every page. React cache() makes it once per request.
+// Nothing is remembered under test: each test is its own world.
+const MEMO_MS = process.env.NODE_ENV === "test" ? 0 : 60_000;
+const SESSION_MS = MEMO_MS;
+const sessions = new Map<string, { value: SessionUser | null; expires: number }>();
+const tokenKey = (token: string) => createHash("sha256").update(token).digest("base64url");
+
 export const loadSession = cache(async (): Promise<SessionUser | null> => {
   try {
     const supabase = await createSupabaseServerClient();
+    // The token itself comes from the cookie (no trip); it is the key to the remembered answer.
+    const token = typeof supabase.auth.getSession === "function" ? (await supabase.auth.getSession()).data.session?.access_token : undefined;
+    // No token to key on (no cookie, or a test's bare client): ask directly, remember nothing.
+    if (!token) return readSession(supabase);
+    const key = tokenKey(token);
+    const kept = sessions.get(key);
+    if (kept && kept.expires > Date.now()) return kept.value;
+    if (sessions.size > 5000) sessions.clear();
+    const value = await timed("session", () => readSession(supabase));
+    sessions.set(key, { value, expires: Date.now() + SESSION_MS });
+    return value;
+  } catch {
+    return null;
+  }
+});
+
+/** Drops the remembered session for a token: after a sign-out, or a change the next page must see. */
+export function forgetSession(token: string | undefined) {
+  if (token) sessions.delete(tokenKey(token));
+}
+
+async function readSession(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>): Promise<SessionUser | null> {
+  try {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user?.email) return null;
     const meta = data.user.user_metadata ?? {};
@@ -65,7 +100,24 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
   } catch {
     return null;
   }
-});
+}
+
+// The profile row, remembered for a minute per login across requests (its
+// names and ids change rarely; a change calls forgetProfile). `fresh` says it
+// was read just now, so its prefs are current and can serve this request too.
+const PROFILE_MS = MEMO_MS;
+const profiles = new Map<string, { value: Awaited<ReturnType<typeof getUserInfo>>; expires: number }>();
+async function loadProfile(authId: string): Promise<{ profile: Awaited<ReturnType<typeof getUserInfo>>; fresh: boolean }> {
+  const kept = profiles.get(authId);
+  if (kept && kept.expires > Date.now()) return { profile: kept.value, fresh: false };
+  if (profiles.size > 5000) profiles.clear();
+  const profile = await timed("profile", () => getUserInfo({ userId: authId }));
+  if (profile) profiles.set(authId, { value: profile, expires: Date.now() + PROFILE_MS });
+  return { profile, fresh: true };
+}
+
+/** Drops the remembered profile for a login: after a change to it. */
+export const forgetProfile = (authId: string) => profiles.delete(authId);
 
 // React cache() dedupes this within one request: the layout and the page both call it.
 export const loadLoggedInUser = cache(async (): Promise<User | null> => {
@@ -81,10 +133,16 @@ export const loadLoggedInUser = cache(async (): Promise<User | null> => {
   // profile; the page's own getBanks call picks up this same request. Only a warm-up:
   // what the page shows still comes from the profile read here.
   if (session.profileId) void getBanks({ userId: session.profileId });
-  const profile = await getUserInfo({ userId: session.id });
+  const { profile, fresh } = await loadProfile(session.id);
   if (!profile) return null;
+  if (fresh) seedPrefs(profile.$id, (profile as Record<string, unknown>).prefs);
   if (session.profileId !== profile.$id) rememberProfileId(session.id, profile.$id);
-  const user = parseStringify({ ...profile, email: profile.email ?? session.email, name: `${profile.firstName} ${profile.lastName}`, userId: session.id }) as Record<string, unknown>;
+  const user = parseStringify({
+    ...profile,
+    email: profile.email ?? session.email,
+    name: `${profile.firstName} ${profile.lastName}`,
+    userId: session.id,
+  }) as Record<string, unknown>;
   for (const field of PRIVATE_FIELDS) delete user[field];
   return user as unknown as User;
 });

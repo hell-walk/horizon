@@ -56,6 +56,11 @@ async function readPrefsNow(ownerId: string): Promise<Prefs> {
  */
 export const readPrefs = (ownerId: string): Promise<Prefs> => cached(key(ownerId), TTL.short, () => readPrefsNow(ownerId));
 
+/** The profile row was just read for another reason (the session): its prefs serve this request too, saving the trip. */
+export function seedPrefs(ownerId: string, raw: unknown) {
+  remember(key(ownerId), parse(raw), TTL.short);
+}
+
 /** Changes some settings and keeps the rest. Refuses (throws) rather than cut stored JSON short. */
 export async function updatePrefs(ownerId: string, change: Partial<Prefs>): Promise<Prefs> {
   // Read fresh: a change must build on what is stored now, not on a copy from earlier in the request.

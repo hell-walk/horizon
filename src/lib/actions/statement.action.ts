@@ -7,7 +7,7 @@ import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { invalidate } from "../cache";
-import { MANUAL_PROVIDER } from "../providers/manual";
+import { MANUAL_PROVIDER, forgetRows } from "../providers/manual";
 import {
   buildStatement,
   categorize,
@@ -113,7 +113,12 @@ const currencyFrom = (formData: FormData, parsed: ParsedStatement) => {
 
 const accountFrom = (formData: FormData, parsed: ParsedStatement) => ({
   institution: String(formData.get("institution") || "").trim() || parsed.institutionName || "My Bank",
-  mask: String(formData.get("mask") || "").replace(/\D/g, "").slice(-4) || parsed.accountMask || "0000",
+  mask:
+    String(formData.get("mask") || "")
+      .replace(/\D/g, "")
+      .slice(-4) ||
+    parsed.accountMask ||
+    "0000",
 });
 
 /**
@@ -244,7 +249,12 @@ async function readStatementNow(formData: FormData, userId: string): Promise<Rea
 
     const saved = (await savedLayouts(userId))[found.signature];
     if (saved && !mappingProblem(saved, found.width)) {
-      const parsed = buildStatement(rows.map((r) => [...r]), file.name, cleanMapping(saved), { dateOrder: dateOrderFrom(formData) });
+      const parsed = buildStatement(
+        rows.map((r) => [...r]),
+        file.name,
+        cleanMapping(saved),
+        { dateOrder: dateOrderFrom(formData) },
+      );
       if (parsed.transactions.length) return { ok: true, parsed, sample: found, source: "saved" };
     }
 
@@ -354,7 +364,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
             if (code === 409) skipped++;
             else throw error;
           }
-        })
+        }),
       );
     }
 
@@ -369,6 +379,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
 
     invalidate("banks:");
     invalidate(`statement:${bankId}`);
+    forgetRows(bankId);
     await forgetLeftOver(ownerIdOf(user));
     await countChange();
     revalidatePath("/");
