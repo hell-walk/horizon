@@ -109,7 +109,7 @@ describe("findChecks: which subscription is this?", () => {
   it("asks about an app store's steady charge, with the plans that cost that much", () => {
     const a = account("pnb", "PNB", [play("g1", "2026-07-20", 149), play("g2", "2026-08-20", 149), play("g3", "2026-09-20", 149)]);
     const [check] = findChecks({ ...base, accounts: [a] });
-    expect(check).toMatchObject({ kind: "plan", key: "plan:google p|149", accountId: "pnb", amount: 149, cadence: "monthly", guesses: ["YouTube Premium"] });
+    expect(check).toMatchObject({ kind: "plan", key: "plan:google|149", accountId: "pnb", amount: 149, cadence: "monthly", guesses: ["YouTube Premium"] });
   });
   it("not once it has a name, and not for a merchant whose name already says what it is", () => {
     const named = account(

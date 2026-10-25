@@ -7,10 +7,15 @@ const tx = (name: string, amount: number, type = "debit", category = "") =>
   ({ id: `${name}-${amount}`, name, amount, type, date: "2025-11-01", category, paymentChannel: "other" }) as unknown as Transaction;
 
 describe("spendType: SBI's cut-short words", () => {
+  it("MyJio is Jio, not a person", () => {
+    expect(isPersonPayment("WDL TFR UPI/DR/1/MYJIO/HDFC/MYJIO1.EAS/PAY 1 AT 2 UTRETHIA , LUCKNOW")).toBe(false);
+    expect(spendType({ name: "UPI/DR/1/MYJIO/HDFC/MYJIO1.EAS/", category: "Transfer", paymentChannel: "other" })).toBe("Bills & recharges");
+  });
+
   it("a Google Pay recharge is a bill, not money sent to someone", () => {
-    expect(spendType({ name: "UPI/DR/1/GOOGLE I/UTIB/GPAYRECHAR/UPI 2 AT 3 SOUTH CITY DEP TFR", category: "Bills", paymentChannel: "online" } as Transaction)).toBe(
-      "Bills & recharges",
-    );
+    expect(
+      spendType({ name: "UPI/DR/1/GOOGLE I/UTIB/GPAYRECHAR/UPI 2 AT 3 SOUTH CITY DEP TFR", category: "Bills", paymentChannel: "online" } as Transaction),
+    ).toBe("Bills & recharges");
   });
 });
 

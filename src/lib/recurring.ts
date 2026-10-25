@@ -1,5 +1,6 @@
 import { isPayLater } from "./categories";
 import { OWN_TRANSFER, payeeKey } from "./corrections";
+import { isStore } from "./planNames";
 import { payeeName } from "./payees";
 import { spendType } from "./spending";
 
@@ -118,7 +119,16 @@ function splitByAmount(rows: Row[]): Row[][] {
     nearest.push(lone);
     nearest.sort((x, y) => x.day - y.day);
   }
-  return repeated.sort((a, b) => b.length - a.length || b[0].amount - a[0].amount);
+  // One tier ending and another starting about a month later is one plan at a new price: joined back together.
+  const byStart = repeated.map((t) => t.slice().sort((x, y) => x.day - y.day)).sort((a, b) => a[0].day - b[0].day);
+  const joined: Row[][] = [];
+  for (const tier of byStart) {
+    const prev = joined[joined.length - 1];
+    const gap = prev ? tier[0].day - prev[prev.length - 1].day : 0;
+    if (prev && gap >= BANDS.monthly[0] - 5 && gap <= BANDS.monthly[1] * 1.5) prev.push(...tier);
+    else joined.push(tier);
+  }
+  return joined.sort((a, b) => b.length - a.length || b[0].amount - a[0].amount);
 }
 
 /** The key a regular payment's entries answer to (a "#2" tier shares its payee's key). */
@@ -176,7 +186,8 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
   for (const [key, { direction, rows }] of tiered) {
     // Seen once: only worth showing when it is a known subscription service
     // (statements often cover a single month). Its cadence is a guess: monthly.
-    const knownSubscription = direction === "out" && rows.length === 1 && spendType(rows[0].tx) === "Subscriptions";
+    const knownSubscription =
+      direction === "out" && rows.length === 1 && spendType(rows[0].tx) === "Subscriptions" && !isStore(payeeKey(rows[0].tx.name) ?? "");
     if (rows.length < 2 && !knownSubscription) continue;
     rows.sort((a, b) => a.day - b.day);
     const gaps = rows.slice(1).map((r, i) => r.day - rows[i].day);
@@ -201,12 +212,18 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     }
 
     // A steady amount, or a steady amount that just changed.
-    const before = amounts.slice(0, -1);
     const lastAmount = amounts[amounts.length - 1];
-    const usualBefore = median(before);
-    const steadyBefore = before.length >= 2 && before.every((a) => within(a, usualBefore, 0.05));
-    const changed = steadyBefore && !within(lastAmount, usualBefore, 0.05) ? { from: round2(usualBefore), to: round2(lastAmount) } : undefined;
-    const usual = changed ? lastAmount : median(amounts);
+    // Two steady runs at different amounts (the first at least two long): the price changed where they meet.
+    let splitAt = -1;
+    for (let k = amounts.length - 1; k >= 2 && splitAt < 0; k--) {
+      const first = amounts.slice(0, k);
+      const rest = amounts.slice(k);
+      const a = median(first);
+      const b = median(rest);
+      if (!within(b, a, 0.05) && first.every((x) => within(x, a, 0.05)) && rest.every((x) => within(x, b, 0.05))) splitAt = k;
+    }
+    const changed = splitAt > 0 ? { from: round2(median(amounts.slice(0, splitAt))), to: round2(median(amounts.slice(splitAt))) } : undefined;
+    const usual = changed ? median(amounts.slice(splitAt)) : median(amounts);
     const fixedAmount = changed ? true : amounts.every((a) => within(a, usual, 0.05));
 
     const last = rows[rows.length - 1];

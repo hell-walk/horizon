@@ -109,5 +109,18 @@
   "subsName": "Name this",
   "subsNameLabel": "What is this subscription?",
   "subsNameHint": "Pick Horizon's guess from the price, or type the right name. It then shows everywhere this payment appears, and holds for your next statement.",
-  "subsNameClear": "Use the bank's name"
+  "subsNameClear": "Use the bank's name",
+  "rechargeTitle": "Recharges",
+  "rechargeIntro": "Prepaid mobile and DTH top-ups, by operator: what each costs, how often it comes back, and about how much a month that is.",
+  "rechargeNone": "No recharges found in your statements.",
+  "rechargeTileMonthlyNote": "At the usual gap between recharges",
+  "rechargeTileCount_one": "{count} recharge",
+  "rechargeTileCount_other": "{count} recharges",
+  "rechargeEvery": "about every {days} days",
+  "rechargeOnce": "seen once",
+  "rechargeLine_one": "{count} recharge, {total} in all",
+  "rechargeLine_other": "{count} recharges, {total} in all",
+  "rechargePerMonth": "about {amount} a month",
+  "rechargeLast": "last {date}",
+  "rechargeNext": "next around {date}"
 }

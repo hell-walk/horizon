@@ -109,5 +109,18 @@
   "subsName": "പേര് നൽകുക",
   "subsNameLabel": "ഇത് ഏത് സബ്സ്ക്രിപ്ഷൻ ആണ്?",
   "subsNameHint": "വിലയിൽ നിന്നുള്ള Horizon-ന്റെ ഊഹം തിരഞ്ഞെടുക്കുക, അല്ലെങ്കിൽ ശരിയായ പേര് എഴുതുക. പിന്നെ ഈ പേയ്മെന്റ് എവിടെ കണ്ടാലും ആ പേര് കാണാം, അടുത്ത സ്റ്റേറ്റ്‌മെന്റിലും.",
-  "subsNameClear": "ബാങ്കിന്റെ പേര് ഉപയോഗിക്കുക"
+  "subsNameClear": "ബാങ്കിന്റെ പേര് ഉപയോഗിക്കുക",
+  "rechargeTitle": "റീചാർജുകൾ",
+  "rechargeIntro": "പ്രീപെയ്ഡ് മൊബൈൽ, DTH റീചാർജുകൾ, ഓപ്പറേറ്റർ അനുസരിച്ച്: ഓരോന്നിന്റെയും വില, എത്ര തവണ വരുന്നു, മാസം ഏകദേശം എത്ര.",
+  "rechargeNone": "നിങ്ങളുടെ സ്റ്റേറ്റ്‌മെന്റുകളിൽ റീചാർജുകൾ കണ്ടെത്തിയില്ല.",
+  "rechargeTileMonthlyNote": "റീചാർജുകൾക്കിടയിലെ സാധാരണ ഇടവേളയിൽ",
+  "rechargeTileCount_one": "{count} റീചാർജ്",
+  "rechargeTileCount_other": "{count} റീചാർജുകൾ",
+  "rechargeEvery": "ഏകദേശം ഓരോ {days} ദിവസത്തിലും",
+  "rechargeOnce": "ഒരിക്കൽ കണ്ടു",
+  "rechargeLine_one": "{count} റീചാർജ്, ആകെ {total}",
+  "rechargeLine_other": "{count} റീചാർജുകൾ, ആകെ {total}",
+  "rechargePerMonth": "മാസം ഏകദേശം {amount}",
+  "rechargeLast": "അവസാനത്തേത് {date}",
+  "rechargeNext": "അടുത്തത് ഏകദേശം {date}"
 }

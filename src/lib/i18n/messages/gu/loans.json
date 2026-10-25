@@ -109,5 +109,18 @@
   "subsName": "નામ આપો",
   "subsNameLabel": "આ કયું સબ્સ્ક્રિપ્શન છે?",
   "subsNameHint": "કિંમત પરથી Horizonનું અનુમાન પસંદ કરો, અથવા સાચું નામ લખો. પછી આ ચુકવણી જ્યાં પણ દેખાય, તે નામ દેખાશે, આગલા સ્ટેટમેન્ટમાં પણ.",
-  "subsNameClear": "બેંકનું નામ રાખો"
+  "subsNameClear": "બેંકનું નામ રાખો",
+  "rechargeTitle": "રિચાર્જ",
+  "rechargeIntro": "પ્રીપેડ મોબાઇલ અને DTH રિચાર્જ, ઓપરેટર પ્રમાણે: દરેકની કિંમત, કેટલી વાર આવે છે, અને મહિને આશરે કેટલું થાય છે.",
+  "rechargeNone": "તમારા સ્ટેટમેન્ટમાં કોઈ રિચાર્જ મળ્યું નથી.",
+  "rechargeTileMonthlyNote": "રિચાર્જ વચ્ચેના સામાન્ય અંતરે",
+  "rechargeTileCount_one": "{count} રિચાર્જ",
+  "rechargeTileCount_other": "{count} રિચાર્જ",
+  "rechargeEvery": "લગભગ દર {days} દિવસે",
+  "rechargeOnce": "એક વાર જોવા મળ્યું",
+  "rechargeLine_one": "{count} રિચાર્જ, કુલ {total}",
+  "rechargeLine_other": "{count} રિચાર્જ, કુલ {total}",
+  "rechargePerMonth": "મહિને આશરે {amount}",
+  "rechargeLast": "છેલ્લું {date}",
+  "rechargeNext": "આગલું આશરે {date}"
 }

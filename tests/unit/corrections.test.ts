@@ -71,6 +71,14 @@ describe("applyCorrections", () => {
     expect(out.map((t) => t.shownName)).toEqual(["Monthly SIP", undefined]);
   });
 
+  it("an app store is one payee however the bank cuts its name", () => {
+    expect(payeeKey("UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE1@okaxis/")).toBe("google");
+    expect(payeeKey("UPI/DR/2/GOOGLE A/UTIB/PLAYSTORE2@okaxis/")).toBe("google");
+    expect(payeeKey("UPI/DR/3/GOOGLE I/UTIB/GOOG-1@okaxis/")).toBe("google");
+    expect(payeeKey("APPLE.COM/BILL")).toBe("apple");
+    expect(payeeKey("UPI/DR/4/ZOMATO/")).not.toBe("google");
+  });
+
   it("text with no readable payee has no payee key", () => {
     expect(payeeKey("UPI/DR/123456789/0001")).toBeNull();
   });

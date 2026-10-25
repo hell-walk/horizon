@@ -109,5 +109,18 @@
   "subsName": "పేరు పెట్టండి",
   "subsNameLabel": "ఇది ఏ సబ్‌స్క్రిప్షన్?",
   "subsNameHint": "ధర నుండి Horizon ఊహను ఎంచుకోండి, లేదా సరైన పేరు రాయండి. ఆ తర్వాత ఈ చెల్లింపు ఎక్కడ కనిపించినా అదే పేరు కనిపిస్తుంది, తదుపరి స్టేట్‌మెంట్‌లో కూడా.",
-  "subsNameClear": "బ్యాంక్ పేరునే ఉంచండి"
+  "subsNameClear": "బ్యాంక్ పేరునే ఉంచండి",
+  "rechargeTitle": "రీఛార్జ్‌లు",
+  "rechargeIntro": "ప్రీపెయిడ్ మొబైల్, DTH రీఛార్జ్‌లు, ఆపరేటర్ వారీగా: ఒక్కొక్కటి ఎంత, ఎంత తరచుగా వస్తుంది, నెలకు సుమారు ఎంత.",
+  "rechargeNone": "మీ స్టేట్‌మెంట్లలో రీఛార్జ్‌లు కనిపించలేదు.",
+  "rechargeTileMonthlyNote": "రీఛార్జ్‌ల మధ్య సాధారణ విరామంలో",
+  "rechargeTileCount_one": "{count} రీఛార్జ్",
+  "rechargeTileCount_other": "{count} రీఛార్జ్‌లు",
+  "rechargeEvery": "సుమారు ప్రతి {days} రోజులకు",
+  "rechargeOnce": "ఒకసారి కనిపించింది",
+  "rechargeLine_one": "{count} రీఛార్జ్, మొత్తం {total}",
+  "rechargeLine_other": "{count} రీఛార్జ్‌లు, మొత్తం {total}",
+  "rechargePerMonth": "నెలకు సుమారు {amount}",
+  "rechargeLast": "చివరిది {date}",
+  "rechargeNext": "తదుపరిది సుమారు {date}"
 }

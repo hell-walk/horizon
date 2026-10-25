@@ -51,7 +51,7 @@ const PURPOSE: Rule[] = [
   ],
   [
     "Bills & recharges",
-    /airtel|air\s*fib|\bjio\b|vodafone|(?<!paid\s)\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|rechar|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
+    /airtel|air\s*fib|myjio|\bjio\b|vodafone|(?<!paid\s)\bvi\b|bsnl|electricity|bescom|msedcl|tata\s*power|\bbses\b|adani\s*elec|broadband|\bdth\b|tata\s*play|\bgas\b|water\s*bill|rechar|postpaid|prepaid|fastag|utilit|comcast|xfinity|verizon|at\s*&\s*t|t-?mobile|spectrum|pg\s*&\s*e|con\s*ed|british\s*gas|octopus\s*energy|thames\s*water|virgin\s*media|council\s*tax|etisalat|\bdewa\b|singtel|optus|telstra/i,
   ],
   [
     "Travel",

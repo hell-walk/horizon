@@ -109,5 +109,18 @@
   "subsName": "பெயரிடு",
   "subsNameLabel": "இது எந்தச் சந்தா?",
   "subsNameHint": "விலையிலிருந்து Horizon-இன் யூகத்தைத் தேர்வுசெய்யவும், அல்லது சரியான பெயரை எழுதவும். பிறகு இந்தப் பணம் எங்கு தோன்றினாலும் அந்தப் பெயரே தோன்றும், அடுத்த ஸ்டேட்மென்ட்டிலும்.",
-  "subsNameClear": "வங்கியின் பெயரையே வைக்கவும்"
+  "subsNameClear": "வங்கியின் பெயரையே வைக்கவும்",
+  "rechargeTitle": "ரீசார்ஜ்கள்",
+  "rechargeIntro": "ப்ரீபெய்டு மொபைல் மற்றும் DTH ரீசார்ஜ்கள், ஆபரேட்டர் வாரியாக: ஒவ்வொன்றின் விலை, எத்தனை முறை வருகிறது, மாதம் ஏறக்குறைய எவ்வளவு.",
+  "rechargeNone": "உங்கள் ஸ்டேட்மென்ட்களில் ரீசார்ஜ் எதுவும் இல்லை.",
+  "rechargeTileMonthlyNote": "ரீசார்ஜ்களுக்கு இடையிலான வழக்கமான இடைவெளியில்",
+  "rechargeTileCount_one": "{count} ரீசார்ஜ்",
+  "rechargeTileCount_other": "{count} ரீசார்ஜ்கள்",
+  "rechargeEvery": "ஏறக்குறைய ஒவ்வொரு {days} நாட்களுக்கும்",
+  "rechargeOnce": "ஒருமுறை காணப்பட்டது",
+  "rechargeLine_one": "{count} ரீசார்ஜ், மொத்தம் {total}",
+  "rechargeLine_other": "{count} ரீசார்ஜ்கள், மொத்தம் {total}",
+  "rechargePerMonth": "மாதம் ஏறக்குறைய {amount}",
+  "rechargeLast": "கடைசி {date}",
+  "rechargeNext": "அடுத்தது ஏறக்குறைய {date}"
 }

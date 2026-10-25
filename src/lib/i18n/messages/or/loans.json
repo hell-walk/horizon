@@ -109,5 +109,18 @@
   "subsName": "ନାମ ଦିଅନ୍ତୁ",
   "subsNameLabel": "ଏହା କେଉଁ ସବସ୍କ୍ରିପସନ?",
   "subsNameHint": "ଦାମରୁ Horizon ର ଅନୁମାନ ବାଛନ୍ତୁ, କିମ୍ବା ଠିକ୍ ନାମ ଲେଖନ୍ତୁ। ତା'ପରେ ଏହି ପେମେଣ୍ଟ ଯେଉଁଠି ଦେଖାଯିବ, ସେହି ନାମ ଦେଖାଯିବ, ପରବର୍ତ୍ତୀ ଷ୍ଟେଟମେଣ୍ଟରେ ମଧ୍ୟ।",
-  "subsNameClear": "ବ୍ୟାଙ୍କର ନାମ ରଖନ୍ତୁ"
+  "subsNameClear": "ବ୍ୟାଙ୍କର ନାମ ରଖନ୍ତୁ",
+  "rechargeTitle": "ରିଚାର୍ଜ",
+  "rechargeIntro": "ପ୍ରିପେଡ୍ ମୋବାଇଲ୍ ଓ DTH ରିଚାର୍ଜ, ଅପରେଟର ଅନୁସାରେ: ପ୍ରତ୍ୟେକର ଦାମ, କେତେ ଥର ଆସେ, ଏବଂ ମାସକୁ ପ୍ରାୟ କେତେ।",
+  "rechargeNone": "ଆପଣଙ୍କ ଷ୍ଟେଟମେଣ୍ଟରେ କୌଣସି ରିଚାର୍ଜ ମିଳିଲା ନାହିଁ।",
+  "rechargeTileMonthlyNote": "ରିଚାର୍ଜ ମଧ୍ୟରେ ସାଧାରଣ ବ୍ୟବଧାନରେ",
+  "rechargeTileCount_one": "{count} ରିଚାର୍ଜ",
+  "rechargeTileCount_other": "{count} ରିଚାର୍ଜ",
+  "rechargeEvery": "ପ୍ରାୟ ପ୍ରତି {days} ଦିନରେ",
+  "rechargeOnce": "ଥରେ ଦେଖାଯାଇଛି",
+  "rechargeLine_one": "{count} ରିଚାର୍ଜ, ମୋଟ {total}",
+  "rechargeLine_other": "{count} ରିଚାର୍ଜ, ମୋଟ {total}",
+  "rechargePerMonth": "ମାସକୁ ପ୍ରାୟ {amount}",
+  "rechargeLast": "ଶେଷ {date}",
+  "rechargeNext": "ପରବର୍ତ୍ତୀ ପ୍ରାୟ {date}"
 }

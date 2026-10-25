@@ -109,5 +109,18 @@
   "subsName": "ಹೆಸರಿಸಿ",
   "subsNameLabel": "ಇದು ಯಾವ ಚಂದಾದಾರಿಕೆ?",
   "subsNameHint": "ಬೆಲೆಯಿಂದ Horizon ನ ಊಹೆಯನ್ನು ಆರಿಸಿ, ಅಥವಾ ಸರಿಯಾದ ಹೆಸರನ್ನು ಬರೆಯಿರಿ. ನಂತರ ಈ ಪಾವತಿ ಎಲ್ಲಿ ಕಂಡರೂ ಆ ಹೆಸರೇ ಕಾಣುತ್ತದೆ, ಮುಂದಿನ ಸ್ಟೇಟ್‌ಮೆಂಟ್‌ನಲ್ಲೂ.",
-  "subsNameClear": "ಬ್ಯಾಂಕ್‌ನ ಹೆಸರನ್ನೇ ಬಳಸಿ"
+  "subsNameClear": "ಬ್ಯಾಂಕ್‌ನ ಹೆಸರನ್ನೇ ಬಳಸಿ",
+  "rechargeTitle": "ರೀಚಾರ್ಜ್‌ಗಳು",
+  "rechargeIntro": "ಪ್ರಿಪೇಯ್ಡ್ ಮೊಬೈಲ್ ಮತ್ತು DTH ರೀಚಾರ್ಜ್‌ಗಳು, ಆಪರೇಟರ್ ಪ್ರಕಾರ: ಪ್ರತಿಯೊಂದರ ಬೆಲೆ, ಎಷ್ಟು ಬಾರಿ ಬರುತ್ತದೆ, ತಿಂಗಳಿಗೆ ಸುಮಾರು ಎಷ್ಟು.",
+  "rechargeNone": "ನಿಮ್ಮ ಸ್ಟೇಟ್‌ಮೆಂಟ್‌ಗಳಲ್ಲಿ ರೀಚಾರ್ಜ್ ಕಂಡುಬಂದಿಲ್ಲ.",
+  "rechargeTileMonthlyNote": "ರೀಚಾರ್ಜ್‌ಗಳ ನಡುವಿನ ಸಾಮಾನ್ಯ ಅಂತರದಲ್ಲಿ",
+  "rechargeTileCount_one": "{count} ರೀಚಾರ್ಜ್",
+  "rechargeTileCount_other": "{count} ರೀಚಾರ್ಜ್‌ಗಳು",
+  "rechargeEvery": "ಸುಮಾರು ಪ್ರತಿ {days} ದಿನಗಳಿಗೆ",
+  "rechargeOnce": "ಒಮ್ಮೆ ಕಂಡಿದೆ",
+  "rechargeLine_one": "{count} ರೀಚಾರ್ಜ್, ಒಟ್ಟು {total}",
+  "rechargeLine_other": "{count} ರೀಚಾರ್ಜ್‌ಗಳು, ಒಟ್ಟು {total}",
+  "rechargePerMonth": "ತಿಂಗಳಿಗೆ ಸುಮಾರು {amount}",
+  "rechargeLast": "ಕೊನೆಯದು {date}",
+  "rechargeNext": "ಮುಂದಿನದು ಸುಮಾರು {date}"
 }

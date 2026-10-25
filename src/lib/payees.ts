@@ -135,7 +135,7 @@ const ALIASES: [RegExp, string][] = [
   [/irctc/i, "IRCTC"],
   [/indigo|air\s*india|vistara|akasa/i, "Airlines"],
   [/airtel/i, "Airtel"],
-  [/\bjio\b/i, "Jio"],
+  [/myjio|\bjio\b/i, "Jio"],
   // Not "Paid vi": banks cut "Paid via" short, which is not the phone company (categories.ts does the same).
   [/(?<!paid\s)\bvi\b|vodafone/i, "Vi"],
   [/zepto/i, "Zepto"],

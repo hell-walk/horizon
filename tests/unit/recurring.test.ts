@@ -100,6 +100,19 @@ describe("findRegular", () => {
     expect(new Set(found.map((r) => r.key.split("#")[0])).size).toBe(1);
   });
 
+  it("a lone app-store charge is not called a subscription; a lone Netflix charge is", () => {
+    expect(findRegular([tx("2026-09-20", "UPI/DR/1/GOOGLE P/UTIB/PLAYSTORE/", -1200)], TODAY)).toEqual([]);
+    expect(findRegular([tx("2026-09-20", "NETFLIX.COM", -649)], TODAY)).toMatchObject([{ kind: "subscription", confidence: "low" }]);
+  });
+
+  it("a plan whose price changed is one subscription with the change, not one stopped and one new", () => {
+    const rows = [...monthly("GOOGLE PLAY", -129, 3, [4, 5, 6]), ...monthly("GOOGLE PLAY", -149, 3, [7, 8, 9])];
+    const found = findRegular(rows, TODAY);
+    expect(found).toHaveLength(1);
+    // The statements end on 3 Sep and today is 10 Oct: the next one (3 Oct) is due but not visible yet.
+    expect(found[0]).toMatchObject({ kind: "subscription", amount: 149, count: 6, confidence: "high", changed: { from: 129, to: 149 }, status: "unseen" });
+  });
+
   it("tolerates one month with no payment in between", () => {
     expect(findRegular(monthly("NETFLIX", -199, 12, [5, 6, 8, 9]), TODAY)[0]).toMatchObject({ cadence: "monthly" });
   });

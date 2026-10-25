@@ -46,12 +46,23 @@ export type Corrections = { payees: Record<string, Correction>; rows: Record<str
 export const isCategory = (value: unknown): value is (typeof CATEGORIES)[number] =>
   typeof value === "string" && (CATEGORIES as readonly string[]).includes(value);
 
+// An app store's charges arrive under several spellings, cut short by the bank
+// ("GOOGLE P", "GOOGLE A", "GOOGLE I"): one payee, or its plans could never be
+// told apart by price.
+const STORE_KEYS: [RegExp, string][] = [
+  [/\bgoogle\b/i, "google"],
+  [/apple\.com|itunes|app\s*store|apple\s*(services|media)/i, "apple"],
+];
+
 /**
  * The key a payee-wide change is stored under: the payee's own words, lower
  * case. Not the alias ("Investments" covers many companies), so renaming one
- * payee never renames others. Null when the text has no readable payee.
+ * payee never renames others; the app stores are the exception (see above).
+ * Null when the text has no readable payee.
  */
 export const payeeKey = (raw: string): string | null => {
+  const store = STORE_KEYS.find(([re]) => re.test(raw || ""));
+  if (store) return store[1];
   const words = payeeWords(raw || "");
   return words === "Other" ? null : words.toLowerCase();
 };

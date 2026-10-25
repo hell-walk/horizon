@@ -109,5 +109,18 @@
   "subsName": "नाव द्या",
   "subsNameLabel": "हे कोणते सबस्क्रिप्शन आहे?",
   "subsNameHint": "किमतीवरून Horizon चा अंदाज निवडा, किंवा योग्य नाव लिहा. मग हे पेमेंट जिथे दिसेल तिथे तेच नाव दिसेल, पुढच्या स्टेटमेंटमध्येही.",
-  "subsNameClear": "बँकेचे नाव ठेवा"
+  "subsNameClear": "बँकेचे नाव ठेवा",
+  "rechargeTitle": "रिचार्ज",
+  "rechargeIntro": "प्रीपेड मोबाइल आणि DTH रिचार्ज, ऑपरेटरनुसार: प्रत्येकाची किंमत, किती वेळा येते, आणि महिन्याला अंदाजे किती होते.",
+  "rechargeNone": "तुमच्या स्टेटमेंटमध्ये रिचार्ज सापडले नाही.",
+  "rechargeTileMonthlyNote": "रिचार्जमधील नेहमीच्या अंतराने",
+  "rechargeTileCount_one": "{count} रिचार्ज",
+  "rechargeTileCount_other": "{count} रिचार्ज",
+  "rechargeEvery": "सुमारे दर {days} दिवसांनी",
+  "rechargeOnce": "एकदा दिसले",
+  "rechargeLine_one": "{count} रिचार्ज, एकूण {total}",
+  "rechargeLine_other": "{count} रिचार्ज, एकूण {total}",
+  "rechargePerMonth": "महिन्याला सुमारे {amount}",
+  "rechargeLast": "शेवटचे {date}",
+  "rechargeNext": "पुढचे सुमारे {date}"
 }
