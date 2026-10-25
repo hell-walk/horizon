@@ -53,7 +53,9 @@ type Credit = { name: string; amount: number; month: string; date: string };
 function creditsIn(transactions: Transaction[]): Credit[] {
   const out: Credit[] = [];
   for (const t of transactions) {
-    const isCredit = t.type === "credit" || Number(t.amount) > 0;
+    // Statements store every amount as a positive number and say the direction in
+    // `type`: the type decides. Only a row with no type falls back to the sign.
+    const isCredit = t.type === "credit" || (t.type !== "debit" && Number(t.amount) > 0);
     const amount = Math.abs(Number(t.amount) || 0);
     if (!isCredit || amount === 0) continue;
     if (t.userCategory === OWN_TRANSFER) continue;

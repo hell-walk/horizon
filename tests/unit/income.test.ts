@@ -4,7 +4,8 @@ import { OWN_TRANSFER } from "@/lib/corrections";
 import { creditsPerMonth, estimateIncome, findSalary } from "@/lib/income";
 
 const credit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount, type: "credit" }) as Transaction;
-const debit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount: -amount, type: "debit" }) as Transaction;
+// Shaped the way statement rows are stored: every amount positive, the direction in `type`.
+const debit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount, type: "debit" }) as Transaction;
 
 // Four months of statements, 20 May to 10 Sept: June, July and August are the full months.
 const salaried = [
@@ -98,5 +99,41 @@ describe("estimateIncome: read the way the person earns", () => {
 
   it("nothing to go on: no figure", () => {
     expect(estimateIncome([], "none")).toMatchObject({ monthly: null, source: "none", months: 0 });
+  });
+});
+
+describe("money going out is never money in (rows as statements store them: positive amounts, direction in type)", () => {
+  const months = ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
+  const every = (name: string, amount: number, day: number, make: typeof credit) =>
+    months.map((m) => make(`${m}-${String(day).padStart(2, "0")}`, name, amount));
+  const spendingOnly = [
+    ...every("NETFLIX.COM", 649, 6, debit),
+    ...every("ACH/DR/BAJAJ FINANCE LTD/EMI", 4800, 5, debit),
+    ...every("UPI/DR/3/SURESH GUPTA/SBIN/rent", 12000, 2, debit),
+    ...every("UPI/DR/4/JIO PREP/YESB/", 349, 12, debit),
+  ];
+
+  it("a steady subscription, EMI or rent paid out is never taken for a salary", () => {
+    expect(findSalary(spendingOnly)).toBeUndefined();
+  });
+
+  it("the real salary is found among steady payments out, not the biggest of them", () => {
+    const rows = [...spendingOnly, ...every("NEFT/CR/ACME TECHNOLOGIES PVT LTD", 9000, 28, credit)];
+    expect(findSalary(rows)).toMatchObject({ payee: expect.stringMatching(/acme/i), monthly: 9000, months: 5 });
+  });
+
+  it("money in counts credits only", () => {
+    const pocket = every("UPI/CR/1/RAJESH SHARMA/SBIN/r@oksbi", 8000, 1, credit);
+    // Five months: June, July and August are the full ones; 8,000 a month in, whatever went out.
+    expect(creditsPerMonth([...spendingOnly, ...pocket])).toEqual({ monthly: 8000, months: 3 });
+    expect(estimateIncome([...spendingOnly, ...pocket], "student")).toMatchObject({ monthly: 8000, source: "credits" });
+  });
+
+  it("a row with no type still goes by its sign", () => {
+    const untyped = [
+      { id: "u1", date: "2026-06-30", name: "NEFT/CR/ACME TECHNOLOGIES PVT LTD", amount: 9000 },
+      { id: "u2", date: "2026-07-31", name: "NEFT/CR/ACME TECHNOLOGIES PVT LTD", amount: 9000 },
+    ] as Transaction[];
+    expect(findSalary(untyped)).toMatchObject({ monthly: 9000 });
   });
 });
