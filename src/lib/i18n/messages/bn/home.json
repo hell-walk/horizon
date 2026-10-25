@@ -133,5 +133,18 @@
   "incomePayDayLabel": "আপনার বেতন মাসের কোন তারিখে আসে? (1 থেকে 31)",
   "qPlan": "{payee} {cadence} {amount} নেয়। এটি কিসের জন্য?",
   "qPlanNot": "সাবস্ক্রিপশন নয়",
-  "qPlanLater": "পরে"
+  "qPlanLater": "পরে",
+  "incomeEmployerSeen_one": "{payee} আপনাকে মাসে {amount} দেয়, {count} মাসে দেখা গেছে।",
+  "incomeEmployerSeen_other": "{payee} আপনাকে মাসে {amount} দেয়, {count} মাসে দেখা গেছে।",
+  "incomeNoWording": "ব্যাংকের বিবরণে বেতন লেখা নেই, তাই Horizon আপনার কাছে জানতে চাইছে।",
+  "incomeEmployerAsk": "এটি কি আপনার বেতন?",
+  "incomeYes": "হ্যাঁ, এটাই",
+  "incomeNo": "না",
+  "incomePickTitle": "এর মধ্যে কোনটি আপনার বেতন?",
+  "incomePickLine_one": "মোট {total}, {count} মাস",
+  "incomePickLine_other": "মোট {total}, {count} মাস",
+  "incomePickNone": "এর কোনোটিই নয়",
+  "incomeChosen": "আপনার বেতন: {payee}।",
+  "qSalaryKind_one": "{payee} আপনাকে মাসে প্রায় {amount} দেয়, বেতন হিসেবে ({count} মাস)। আপনি কি তাদের থেকে বেতন পান?",
+  "qSalaryKind_other": "{payee} আপনাকে মাসে প্রায় {amount} দেয়, বেতন হিসেবে ({count} মাস)। আপনি কি তাদের থেকে বেতন পান?"
 }

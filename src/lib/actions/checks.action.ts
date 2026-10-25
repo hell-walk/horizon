@@ -66,9 +66,12 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
       setPayee(check.payeeKey, OWN_TRANSFER);
     } else if (check.kind === "salary" && answer === "yes") {
       income = { salaryPayee: check.payee };
-    } else if (check.kind === "salary" && answer === "no") {
+    } else if ((check.kind === "salary" || check.kind === "salaryKind") && answer === "no") {
       const current = await loadIncome(owner);
       income = { excluded: [...(current?.excluded ?? []).filter((p) => p !== check.payee), check.payee].slice(-MAX_EXCLUDED) };
+    } else if (check.kind === "salaryKind" && answer === "yes") {
+      // They are salaried after all, and this is the salary: both at once.
+      income = { kind: "salaried", salaryPayee: check.payee, ...(check.payDay ? { payDay: check.payDay } : {}) };
     } else if (check.kind === "plan" && answer !== "skip") {
       const isGuess = check.guesses.includes(answer);
       if (!isGuess && answer !== "notsub") return { ok: false as const, error: t("home.checksErrGone") };
@@ -88,7 +91,9 @@ export async function answerCheck({ key, answer }: { key: string; answer: string
     }
     if (income) {
       const current = await loadIncome(owner);
+      // Never asked how they earn (older profiles): a "salaried" answer starts the setting; anything else needs one already.
       if (current) await updatePrefs(owner, { income: { ...current, ...income } });
+      else if (income.kind) await updatePrefs(owner, { income: { ...income, kind: income.kind } });
     }
     await updatePrefs(owner, { checks: withAnswer(state, key) });
     revalidatePath("/", "layout");

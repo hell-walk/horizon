@@ -200,10 +200,21 @@ const BANK_CODES = new Set([
 
 const DATE_LIKE = /^\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?$|^\d{6,}$/;
 const CODE_LIKE = /^(?=.*\d)(?=.*[a-z])[a-z0-9]{2,5}$/i; // P2A, A1, X12: short mixed codes
+const IFSC = /^[a-z]{4}0[a-z0-9]{6}$/i; // a bank branch code: HDFC0000240, CITI0100000
+const REFERENCE = /^[a-z]{1,4}\d{5,}$/i; // a transfer's reference number: N123456, UTR1234567
 
 const isNoise = (t: string) => {
   const lower = t.toLowerCase();
-  return NOISE.has(lower) || BANK_CODES.has(lower) || DATE_LIKE.test(t) || CODE_LIKE.test(t) || !/\p{L}/u.test(t) || /^\d+[a-z]{0,2}$/i.test(t);
+  return (
+    NOISE.has(lower) ||
+    BANK_CODES.has(lower) ||
+    DATE_LIKE.test(t) ||
+    CODE_LIKE.test(t) ||
+    IFSC.test(t) ||
+    REFERENCE.test(t) ||
+    !/\p{L}/u.test(t) ||
+    /^\d+[a-z]{0,2}$/i.test(t)
+  );
 };
 
 // Alias labels that name a kind of shop, not one business.

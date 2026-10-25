@@ -133,5 +133,18 @@
   "incomePayDayLabel": "మీ జీతం నెలలో ఏ తేదీన వస్తుంది? (1 నుండి 31)",
   "qPlan": "{payee} {cadence} {amount} తీసుకుంటుంది. ఇది దేనికోసం?",
   "qPlanNot": "సబ్‌స్క్రిప్షన్ కాదు",
-  "qPlanLater": "తర్వాత"
+  "qPlanLater": "తర్వాత",
+  "incomeEmployerSeen_one": "{payee} మీకు నెలకు {amount} ఇస్తుంది, {count} నెలలో కనిపించింది.",
+  "incomeEmployerSeen_other": "{payee} మీకు నెలకు {amount} ఇస్తుంది, {count} నెలల్లో కనిపించింది.",
+  "incomeNoWording": "బ్యాంక్ వివరణలో జీతం అని లేదు, అందుకే Horizon మిమ్మల్ని అడుగుతోంది.",
+  "incomeEmployerAsk": "ఇది మీ జీతమేనా?",
+  "incomeYes": "అవును, ఇదే",
+  "incomeNo": "కాదు",
+  "incomePickTitle": "వీటిలో మీ జీతం ఏది?",
+  "incomePickLine_one": "మొత్తం {total}, {count} నెల",
+  "incomePickLine_other": "మొత్తం {total}, {count} నెలలు",
+  "incomePickNone": "వీటిలో ఏదీ కాదు",
+  "incomeChosen": "మీ జీతం: {payee}.",
+  "qSalaryKind_one": "{payee} మీకు నెలకు సుమారు {amount} ఇస్తుంది, జీతంగా ({count} నెల). మీకు వారి నుండి జీతం వస్తుందా?",
+  "qSalaryKind_other": "{payee} మీకు నెలకు సుమారు {amount} ఇస్తుంది, జీతంగా ({count} నెలలు). మీకు వారి నుండి జీతం వస్తుందా?"
 }

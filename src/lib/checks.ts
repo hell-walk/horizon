@@ -16,7 +16,7 @@
 //                 answer; the person picks or names it.
 
 import { OWN_TRANSFER, payeeKey } from "./corrections";
-import { findSalary, type IncomeKind } from "./income";
+import { findSalary, salaryCandidates, type IncomeKind } from "./income";
 import { payeeWords } from "./payees";
 import { isStore, planGuesses } from "./planNames";
 import type { Cadence, Regular } from "./recurring";
@@ -39,6 +39,8 @@ export type Check =
   | { key: string; kind: "ownPair"; amount: number; currency: string; date: string; from: Side; to: Side }
   | { key: string; kind: "ownCredit"; accountId: string; txId: string; payeeKey: string; payee: string; amount: number; currency: string; date: string }
   | { key: string; kind: "salary"; payee: string; monthly: number; months: number; currency: string }
+  /** Said "no income" or "student", but a payer the statements call salary pays them every month. */
+  | { key: string; kind: "salaryKind"; payee: string; monthly: number; months: number; currency: string; payDay?: number }
   | {
       key: string;
       kind: "regularKind";
@@ -111,13 +113,35 @@ export function findChecks(input: CheckInput, limit = 8): Check[] {
   }
 
   // The salary, once, when the person is salaried and has not confirmed a payer yet.
+  const ownNames = [input.person.firstName, input.person.lastName].filter((n): n is string => !!n);
   if (input.incomeKind === "salaried" && !input.salaryPrefer) {
     const salary = findSalary(
       accounts.flatMap((a) => a.transactions),
-      { exclude: input.salaryExclude },
+      { exclude: input.salaryExclude, ownNames },
     );
     if (salary)
       add({ key: `salary:${salary.payee.toLowerCase()}`, kind: "salary", payee: salary.payee, monthly: salary.monthly, months: salary.months, currency });
+  }
+
+  // The other way round: they said no income or student (or never said), but a payer
+  // the statements call salary pays them every month. Asked once; only when Horizon is sure.
+  if (input.incomeKind !== "salaried" && input.incomeKind !== "freelancer") {
+    const sure = salaryCandidates(
+      accounts.flatMap((a) => a.transactions),
+      { exclude: input.salaryExclude, ownNames },
+    ).find((c) => c.confidence === "high" && c.months >= 2);
+    if (sure) {
+      const day = Number(sure.last.slice(8, 10));
+      add({
+        key: `salarykind:${sure.payee.toLowerCase()}`,
+        kind: "salaryKind",
+        payee: sure.payee,
+        monthly: sure.monthly,
+        months: sure.months,
+        currency,
+        ...(day >= 1 && day <= 31 ? { payDay: day } : {}),
+      });
+    }
   }
 
   // Money in from the person themselves: their first name in the payee's name, or

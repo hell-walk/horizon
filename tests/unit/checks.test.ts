@@ -72,7 +72,27 @@ describe("findChecks: the questions worth asking", () => {
     ]);
     expect(findChecks({ ...base, accounts: [a], incomeKind: "salaried", salaryPrefer: "Infosys" })).toEqual([]);
     expect(findChecks({ ...base, accounts: [a], incomeKind: "salaried", salaryExclude: ["Infosys"] })).toEqual([]);
-    expect(findChecks({ ...base, accounts: [a], incomeKind: "student" })).toEqual([]);
+    // Said "student" but a SALARY credit arrives every month: asked the other way round, once.
+    expect(findChecks({ ...base, accounts: [a], incomeKind: "student" })).toMatchObject([
+      { kind: "salaryKind", key: "salarykind:infosys", payee: "Infosys", monthly: 62000, payDay: 31 },
+    ]);
+  });
+
+  it("asks someone who said no income only when Horizon is sure it is a salary, and never again after a no", () => {
+    const salary = [
+      tx("s1", "2026-07-31", "NEFT/CR/INFOSYS LTD/SALARY", 62000, "credit"),
+      tx("s2", "2026-08-31", "NEFT/CR/INFOSYS LTD/SALARY", 62000, "credit"),
+    ];
+    const steadyNoWord = [
+      tx("g1", "2026-07-28", "NEFT CR GLOBEX SOLUTIONS PVT LTD", 35000, "credit"),
+      tx("g2", "2026-08-28", "NEFT CR GLOBEX SOLUTIONS PVT LTD", 35000, "credit"),
+      tx("g3", "2026-09-28", "NEFT CR GLOBEX SOLUTIONS PVT LTD", 35000, "credit"),
+    ];
+    expect(findChecks({ ...base, accounts: [account("a", "A", salary)], incomeKind: "none" })).toMatchObject([{ kind: "salaryKind" }]);
+    expect(findChecks({ ...base, accounts: [account("a", "A", salary)], incomeKind: "none", salaryExclude: ["Infosys"] })).toEqual([]);
+    expect(findChecks({ ...base, accounts: [account("a", "A", salary)], incomeKind: "freelancer" })).toEqual([]);
+    // No "salary" in the narration: not sure enough to question what they said.
+    expect(findChecks({ ...base, accounts: [account("a", "A", steadyNoWord)], incomeKind: "none" })).toEqual([]);
   });
 
   it("a payment on a rhythm that nothing explains", () => {

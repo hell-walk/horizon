@@ -22,7 +22,8 @@ const salaried = [
 
 describe("findSalary: a company paying much the same each month", () => {
   it("finds the employer and its usual amount", () => {
-    expect(findSalary(salaried)).toEqual({ payee: "Infosys", monthly: 62000, months: 4, last: "2026-08-31" });
+    // The narration says SALARY, from a company, by NEFT, every month: Horizon can be sure.
+    expect(findSalary(salaried)).toEqual({ payee: "Infosys", monthly: 62000, months: 4, last: "2026-08-31", confidence: "high" });
   });
 
   it("takes the person's word: a confirmed payer is the salary, a denied one never is", () => {

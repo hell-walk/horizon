@@ -97,6 +97,8 @@ function wordsFor(check: Check, t: Translate, day: (d: string) => string): { que
       return { question: t("home.qOwnCredit", { amount: money(check.amount), payee: check.payee, date: day(check.date) }), options: yesNo };
     case "salary":
       return { question: t("home.qSalary", { amount: money(check.monthly), payee: check.payee, count: check.months }), options: yesNo };
+    case "salaryKind":
+      return { question: t("home.qSalaryKind", { amount: money(check.monthly), payee: check.payee, count: check.months }), options: yesNo };
     case "regularKind":
       return {
         question: t("home.qRegular", { payee: check.payee, amount: money(check.amount), cadence: t(`home.cadence_${check.cadence}`), count: check.count }),

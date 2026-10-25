@@ -133,5 +133,18 @@
   "incomePayDayLabel": "നിങ്ങളുടെ ശമ്പളം മാസത്തിലെ ഏത് തീയതിയിലാണ് വരുന്നത്? (1 മുതൽ 31 വരെ)",
   "qPlan": "{payee} {cadence} {amount} എടുക്കുന്നു. ഇത് എന്തിനാണ്?",
   "qPlanNot": "സബ്സ്ക്രിപ്ഷൻ അല്ല",
-  "qPlanLater": "പിന്നീട്"
+  "qPlanLater": "പിന്നീട്",
+  "incomeEmployerSeen_one": "{payee} നിങ്ങൾക്ക് മാസം {amount} നൽകുന്നു, {count} മാസത്തിൽ കണ്ടു.",
+  "incomeEmployerSeen_other": "{payee} നിങ്ങൾക്ക് മാസം {amount} നൽകുന്നു, {count} മാസങ്ങളിൽ കണ്ടു.",
+  "incomeNoWording": "ബാങ്കിന്റെ വിവരണത്തിൽ ശമ്പളം എന്നില്ല, അതിനാൽ Horizon നിങ്ങളോട് ചോദിക്കുന്നു.",
+  "incomeEmployerAsk": "ഇത് നിങ്ങളുടെ ശമ്പളമാണോ?",
+  "incomeYes": "അതെ, ഇതുതന്നെ",
+  "incomeNo": "അല്ല",
+  "incomePickTitle": "ഇവയിൽ ഏതാണ് നിങ്ങളുടെ ശമ്പളം?",
+  "incomePickLine_one": "ആകെ {total}, {count} മാസം",
+  "incomePickLine_other": "ആകെ {total}, {count} മാസം",
+  "incomePickNone": "ഇവയിലൊന്നുമല്ല",
+  "incomeChosen": "നിങ്ങളുടെ ശമ്പളം: {payee}.",
+  "qSalaryKind_one": "{payee} നിങ്ങൾക്ക് മാസം ഏകദേശം {amount} നൽകുന്നു, ശമ്പളമായി ({count} മാസം). നിങ്ങൾക്ക് അവരിൽ നിന്ന് ശമ്പളം ലഭിക്കുന്നുണ്ടോ?",
+  "qSalaryKind_other": "{payee} നിങ്ങൾക്ക് മാസം ഏകദേശം {amount} നൽകുന്നു, ശമ്പളമായി ({count} മാസം). നിങ്ങൾക്ക് അവരിൽ നിന്ന് ശമ്പളം ലഭിക്കുന്നുണ്ടോ?"
 }

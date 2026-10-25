@@ -133,5 +133,18 @@
   "incomePayDayLabel": "तुमचा पगार महिन्याच्या कोणत्या तारखेला येतो? (1 ते 31)",
   "qPlan": "{payee} {cadence} {amount} घेते. हे कशासाठी आहे?",
   "qPlanNot": "सबस्क्रिप्शन नाही",
-  "qPlanLater": "नंतर"
+  "qPlanLater": "नंतर",
+  "incomeEmployerSeen_one": "{payee} तुम्हाला दर महिन्याला {amount} देते, {count} महिन्यात दिसले.",
+  "incomeEmployerSeen_other": "{payee} तुम्हाला दर महिन्याला {amount} देते, {count} महिन्यांत दिसले.",
+  "incomeNoWording": "बँकेच्या वर्णनात पगार लिहिलेले नाही, म्हणून Horizon तुम्हाला विचारत आहे.",
+  "incomeEmployerAsk": "हा तुमचा पगार आहे का?",
+  "incomeYes": "होय, हाच",
+  "incomeNo": "नाही",
+  "incomePickTitle": "यापैकी तुमचा पगार कोणता?",
+  "incomePickLine_one": "एकूण {total}, {count} महिना",
+  "incomePickLine_other": "एकूण {total}, {count} महिने",
+  "incomePickNone": "यापैकी कोणताही नाही",
+  "incomeChosen": "तुमचा पगार: {payee}.",
+  "qSalaryKind_one": "{payee} तुम्हाला दर महिन्याला सुमारे {amount} देते, पगार म्हणून ({count} महिना). तुम्हाला त्यांच्याकडून पगार मिळतो का?",
+  "qSalaryKind_other": "{payee} तुम्हाला दर महिन्याला सुमारे {amount} देते, पगार म्हणून ({count} महिने). तुम्हाला त्यांच्याकडून पगार मिळतो का?"
 }

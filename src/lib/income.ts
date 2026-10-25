@@ -1,7 +1,7 @@
 // What comes in each month, from the statements, read according to how the
 // person said they earn:
-//   salaried   - the salary credit: a company (never a person) paying much the
-//                same amount month after month; the biggest such payer wins.
+//   salaried   - the salary credit, scored (see salaryCandidates): Horizon is
+//                sure, asks, or lets the person pick it from what came in.
 //   freelancer - the figure they gave, checked against what the statements
 //                show coming in; a big difference is pointed out, not hidden.
 //   student    - no salary. Money in (pocket money, transfers) is counted as
@@ -36,9 +36,6 @@ export type IncomeEstimate = {
 };
 
 const SALARY_WORDS = /salary|\bsal\b|payroll|wages|stipend|remuneration/i;
-// A narration with one of these is from a business, however short the name it leaves ("INFOSYS" alone looks like a username).
-const COMPANY_WORDS =
-  /\b(ltd|limited|pvt|llp|inc|corp|co|technologies|tech|solutions|services|systems|consult\w*|industries|enterprises?|associates|labs|group|global|international|india|salary|sal|payroll|wages|stipend)\b/i;
 const NOT_INCOME = /refund|reversal|\brev\b|cashback|interest|\bint\b|dividend/i;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const median = (values: number[]) => {
@@ -79,42 +76,134 @@ function fullMonths(transactions: Transaction[]): string[] {
 }
 
 /**
- * The salary credit, if the statements hold one: a payer that is not a person,
- * seen in at least two different months, paying within a quarter of its usual
- * amount each time. The largest such payer is taken; a payer whose narration
- * says "salary" wins over one that does not.
+ * Is this credit a salary? Each payer that sends money in is scored on what a
+ * careful person would look at, rather than passed or failed on one rule:
+ *
+ *   wording    - "salary", "sal", "payroll", "wages", "stipend", or a
+ *                government pay office ("PAO", "treasury", "pay and accounts")
+ *   who pays   - a company (Ltd, Pvt, LLP, Technologies...), not a person
+ *   how        - a bank transfer (NEFT, RTGS, "BY TRANSFER", ACH or NACH credit)
+ *   how often  - the number of months it arrived in
+ *   steadiness - most months near the usual amount (not every month: a half
+ *                salary in the joining month or an incentive month is normal)
+ *   timing     - arriving in the same few days of each month
+ *
+ * Some credits are never a salary however steady they are: fund and broker
+ * payouts, rent, pension, refunds and interest, and money from the person's
+ * own name or own other bank. A person-named payer counts only when the
+ * narration says salary (a shop owner paying by UPI); otherwise the person
+ * picks that credit themselves (see the income chooser).
+ *
+ * Confidence: "high" needs the wording (or the person's own confirmation);
+ * a steady company transfer without the wording is "medium", because rent,
+ * a family firm and a retainer look exactly the same: Horizon asks. "low" is
+ * not a salary without the person saying so.
  */
-export type SalaryHints = { prefer?: string; exclude?: string[] };
+export type SalaryConfidence = "high" | "medium" | "low";
+export type SalaryCandidate = SalaryCredit & { score: number; confidence: SalaryConfidence; said: boolean };
+export type SalaryHints = { prefer?: string; exclude?: string[]; ownNames?: string[] };
 
-export function findSalary(transactions: Transaction[], hints: SalaryHints = {}): SalaryCredit | undefined {
+const GOV_PAY = /\b(pao|cpao|pay\s*(and|&)\s*accounts?|treasury|govt\s*pay|government\s*pay|ddo|dto)\b/i;
+const NOT_SALARY =
+  /mutual\s*fund|\bmf\b|\bswp\b|redempt|redeem|zerodha|groww|upstox|kuvera|paytm\s*money|broking|securities|demat|\bamc\b|pension|\brent\b|rental|tenant|\blease\b|maintenance|insurance\s*claim|claim\s*settle|loan\s*disburs|disbursal|self\s*transfer|\bself\b|own\s*account/i;
+const BANK_ONLY =
+  /^(state\s*bank(\s*of)?(\s*india)?|sbi|hdfc(\s*bank)?|icici(\s*bank)?|axis(\s*bank)?|kotak(\s*mahindra)?(\s*bank)?|bank\s*of\s*(baroda|india|maharashtra)|punjab\s*national(\s*bank)?|pnb|canara(\s*bank)?|union\s*bank(\s*of\s*india)?|yes\s*bank|idfc(\s*first)?(\s*bank)?|indusind(\s*bank)?|bank)(\s+of)?$/i;
+const BANK_RAIL = /\bneft\b|\brtgs\b|by\s*transfer|\bach\b|\bnach\b|\bimps\b|bulk\s*credit|\bbcr\b/i;
+const COMPANY =
+  /\b(ltd|limited|pvt|private|llp|inc|corp|corporation|technologies|tech|solutions|services|systems|consult\w*|industries|enterprises?|associates|labs|group|global|international|finserv|finance|bank|payroll|infotech|software|motors|pharma)\b/i;
+
+// The distance between two days of the month on a 30-day circle: the 30th and the 1st are one day apart.
+const dayGap = (a: number, b: number) => {
+  const d = Math.abs(a - b) % 30;
+  return Math.min(d, 30 - d);
+};
+
+/** Every payer that might be the salary, scored, best first. */
+export function salaryCandidates(transactions: Transaction[], hints: SalaryHints = {}): SalaryCandidate[] {
   const excluded = new Set((hints.exclude ?? []).map((p) => p.toLowerCase()));
   const preferred = hints.prefer?.toLowerCase();
+  const own = (hints.ownNames ?? []).map((n) => n.trim().toLowerCase()).filter((n) => n.length >= 3);
   const byPayee = new Map<string, Credit[]>();
   for (const c of creditsIn(transactions)) {
-    // Pocket money from a parent arrives on the same date each month too: a person is never an employer.
-    if (!COMPANY_WORDS.test(c.name) && isPersonPayment(c.name)) continue;
     const payee = payeeName(c.name);
     if (payee === "Other" || excluded.has(payee.toLowerCase())) continue;
+    const isPreferred = payee.toLowerCase() === preferred;
+    if (!isPreferred) {
+      if (NOT_SALARY.test(c.name) || GROUP_PAYEE.has(payee) || BANK_ONLY.test(payee.trim())) continue;
+      const lower = c.name.toLowerCase();
+      if (own.length && own.every((n) => lower.includes(n))) continue; // their own name: their own money
+      // A person is never an employer unless the narration says salary.
+      if (!SALARY_WORDS.test(c.name) && !GOV_PAY.test(c.name) && !COMPANY.test(c.name) && isPersonPayment(c.name)) continue;
+    }
     byPayee.set(payee, [...(byPayee.get(payee) ?? []), c]);
   }
-  let best: (SalaryCredit & { said: boolean }) | undefined;
+
+  const out: SalaryCandidate[] = [];
   for (const [payee, credits] of byPayee) {
-    const months = new Set(credits.map((c) => c.month));
-    // The person said this payer is the salary: it is, however uneven its months look.
+    const monthsSeen = [...new Set(credits.map((c) => c.month))].sort();
     const confirmed = payee.toLowerCase() === preferred;
-    if (months.size < 2 && !confirmed) continue;
     // One credit per month: a bonus paid alongside the salary would otherwise double it.
-    const perMonth = [...months].map((m) => Math.max(...credits.filter((c) => c.month === m).map((c) => c.amount)));
+    const perMonth = monthsSeen.map((m) => Math.max(...credits.filter((c) => c.month === m).map((c) => c.amount)));
     const usual = median(perMonth);
-    if (!confirmed && !perMonth.every((a) => Math.abs(a - usual) <= usual * 0.25)) continue;
-    const said = confirmed || credits.some((c) => SALARY_WORDS.test(c.name));
-    const candidate = { payee, monthly: round2(usual), months: months.size, last: credits.reduce((l, c) => (c.date > l ? c.date : l), ""), said };
-    if (confirmed) return { payee, monthly: candidate.monthly, months: candidate.months, last: candidate.last };
-    if (!best || (candidate.said && !best.said) || (candidate.said === best.said && candidate.monthly > best.monthly)) best = candidate;
+    // The salary as it is now: the middle of the last three months.
+    const current = median(perMonth.slice(-3));
+    const said = credits.some((c) => SALARY_WORDS.test(c.name) || GOV_PAY.test(c.name));
+    const company = credits.some((c) => COMPANY.test(c.name));
+    const rail = credits.some((c) => BANK_RAIL.test(c.name));
+    const n = perMonth.length;
+    const near = (band: number) => perMonth.filter((a) => Math.abs(a - usual) <= usual * band).length;
+    const steady = n < 2 ? 0 : near(0.15) >= Math.ceil(n * 0.6) ? 2 : near(0.4) >= Math.ceil(n * 0.8) ? 1 : 0;
+    const days = credits.map((c) => Number(c.date.slice(8, 10)));
+    const midDay = median(days);
+    const onTime = n >= 2 && days.filter((d) => dayGap(d, midDay) <= 5).length >= Math.ceil(days.length * 0.75) ? 1 : 0;
+
+    let score = (said ? 3 : 0) + (company ? 1 : 0) + (rail ? 1 : 0) + (n >= 3 ? 2 : n === 2 ? 1 : 0) + steady + onTime;
+    if (current < 1000) score -= 3; // cashback-sized credits are not a wage
+    let confidence: SalaryConfidence;
+    if (confirmed) confidence = "high";
+    else if (said && score >= 6) confidence = "high";
+    else if ((said && score >= 4) || (!said && steady >= 1 && n >= 2 && score >= 5)) confidence = "medium";
+    else confidence = "low";
+    out.push({
+      payee,
+      monthly: round2(current),
+      months: n,
+      last: credits.reduce((l, c) => (c.date > l ? c.date : l), ""),
+      score: confirmed ? 99 : score,
+      confidence,
+      said,
+    });
   }
+  return out.sort((a, b) => b.score - a.score || b.monthly - a.monthly);
+}
+
+// Payee labels that name a kind of payment rather than a payer (payees.ts aliases).
+const GROUP_PAYEE = new Set(["Investments", "Rent", "Loan EMI", "ATM cash"]);
+
+/**
+ * The salary credit, if the statements hold one with at least medium
+ * confidence (or the payer the person confirmed). `confidence` says whether
+ * Horizon is sure ("high") or should ask ("medium").
+ */
+export function findSalary(transactions: Transaction[], hints: SalaryHints = {}): (SalaryCredit & { confidence: SalaryConfidence }) | undefined {
+  const best = salaryCandidates(transactions, hints).find((c) => c.confidence !== "low");
   if (!best) return undefined;
-  const { said: _said, ...salary } = best;
-  return salary;
+  return { payee: best.payee, monthly: best.monthly, months: best.months, last: best.last, confidence: best.confidence };
+}
+
+/** Everyone who sent money in, biggest total first: the list a person picks their salary from when Horizon cannot tell. */
+export function incomingPayers(transactions: Transaction[], limit = 8): { payee: string; total: number; count: number; months: number }[] {
+  const by = new Map<string, Credit[]>();
+  for (const c of creditsIn(transactions)) {
+    const payee = payeeName(c.name);
+    // What can never be a salary stays off the list: own transfers, fund payouts, rent, pension, a bare bank name.
+    if (payee === "Other" || NOT_SALARY.test(c.name) || GROUP_PAYEE.has(payee) || BANK_ONLY.test(payee.trim())) continue;
+    by.set(payee, [...(by.get(payee) ?? []), c]);
+  }
+  return [...by]
+    .map(([payee, cs]) => ({ payee, total: round2(cs.reduce((s, c) => s + c.amount, 0)), count: cs.length, months: new Set(cs.map((c) => c.month)).size }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
 }
 
 /** Money in per full month, on average. */

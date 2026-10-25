@@ -133,5 +133,18 @@
   "incomePayDayLabel": "ਤੁਹਾਡੀ ਤਨਖ਼ਾਹ ਮਹੀਨੇ ਦੀ ਕਿਹੜੀ ਤਾਰੀਖ਼ ਨੂੰ ਆਉਂਦੀ ਹੈ? (1 ਤੋਂ 31)",
   "qPlan": "{payee} {cadence} {amount} ਲੈਂਦਾ ਹੈ। ਇਹ ਕਿਸ ਲਈ ਹੈ?",
   "qPlanNot": "ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਨਹੀਂ",
-  "qPlanLater": "ਬਾਅਦ ਵਿੱਚ"
+  "qPlanLater": "ਬਾਅਦ ਵਿੱਚ",
+  "incomeEmployerSeen_one": "{payee} ਤੁਹਾਨੂੰ ਹਰ ਮਹੀਨੇ {amount} ਦਿੰਦੀ ਹੈ, {count} ਮਹੀਨੇ ਵਿੱਚ ਦੇਖਿਆ ਗਿਆ।",
+  "incomeEmployerSeen_other": "{payee} ਤੁਹਾਨੂੰ ਹਰ ਮਹੀਨੇ {amount} ਦਿੰਦੀ ਹੈ, {count} ਮਹੀਨਿਆਂ ਵਿੱਚ ਦੇਖਿਆ ਗਿਆ।",
+  "incomeNoWording": "ਬੈਂਕ ਦੇ ਵੇਰਵੇ ਵਿੱਚ ਤਨਖ਼ਾਹ ਨਹੀਂ ਲਿਖਿਆ, ਇਸ ਲਈ Horizon ਤੁਹਾਡੇ ਤੋਂ ਪੁੱਛ ਰਿਹਾ ਹੈ।",
+  "incomeEmployerAsk": "ਕੀ ਇਹ ਤੁਹਾਡੀ ਤਨਖ਼ਾਹ ਹੈ?",
+  "incomeYes": "ਹਾਂ, ਇਹੀ ਹੈ",
+  "incomeNo": "ਨਹੀਂ",
+  "incomePickTitle": "ਇਹਨਾਂ ਵਿੱਚੋਂ ਤੁਹਾਡੀ ਤਨਖ਼ਾਹ ਕਿਹੜੀ ਹੈ?",
+  "incomePickLine_one": "ਕੁੱਲ {total}, {count} ਮਹੀਨਾ",
+  "incomePickLine_other": "ਕੁੱਲ {total}, {count} ਮਹੀਨੇ",
+  "incomePickNone": "ਇਹਨਾਂ ਵਿੱਚੋਂ ਕੋਈ ਨਹੀਂ",
+  "incomeChosen": "ਤੁਹਾਡੀ ਤਨਖ਼ਾਹ: {payee}।",
+  "qSalaryKind_one": "{payee} ਤੁਹਾਨੂੰ ਹਰ ਮਹੀਨੇ ਲਗਭਗ {amount} ਦਿੰਦੀ ਹੈ, ਤਨਖ਼ਾਹ ਵਜੋਂ ({count} ਮਹੀਨਾ)। ਕੀ ਤੁਹਾਨੂੰ ਉਹਨਾਂ ਤੋਂ ਤਨਖ਼ਾਹ ਮਿਲਦੀ ਹੈ?",
+  "qSalaryKind_other": "{payee} ਤੁਹਾਨੂੰ ਹਰ ਮਹੀਨੇ ਲਗਭਗ {amount} ਦਿੰਦੀ ਹੈ, ਤਨਖ਼ਾਹ ਵਜੋਂ ({count} ਮਹੀਨੇ)। ਕੀ ਤੁਹਾਨੂੰ ਉਹਨਾਂ ਤੋਂ ਤਨਖ਼ਾਹ ਮਿਲਦੀ ਹੈ?"
 }

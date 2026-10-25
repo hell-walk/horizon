@@ -133,5 +133,18 @@
   "incomePayDayLabel": "ನಿಮ್ಮ ಸಂಬಳ ತಿಂಗಳ ಯಾವ ದಿನಾಂಕದಂದು ಬರುತ್ತದೆ? (1 ರಿಂದ 31)",
   "qPlan": "{payee} {cadence} {amount} ಪಡೆಯುತ್ತದೆ. ಇದು ಯಾವುದಕ್ಕಾಗಿ?",
   "qPlanNot": "ಚಂದಾದಾರಿಕೆ ಅಲ್ಲ",
-  "qPlanLater": "ನಂತರ"
+  "qPlanLater": "ನಂತರ",
+  "incomeEmployerSeen_one": "{payee} ನಿಮಗೆ ತಿಂಗಳಿಗೆ {amount} ನೀಡುತ್ತದೆ, {count} ತಿಂಗಳಲ್ಲಿ ಕಂಡಿದೆ.",
+  "incomeEmployerSeen_other": "{payee} ನಿಮಗೆ ತಿಂಗಳಿಗೆ {amount} ನೀಡುತ್ತದೆ, {count} ತಿಂಗಳುಗಳಲ್ಲಿ ಕಂಡಿದೆ.",
+  "incomeNoWording": "ಬ್ಯಾಂಕ್ ವಿವರಣೆಯಲ್ಲಿ ಸಂಬಳ ಎಂದು ಇಲ್ಲ, ಆದ್ದರಿಂದ Horizon ನಿಮ್ಮನ್ನು ಕೇಳುತ್ತಿದೆ.",
+  "incomeEmployerAsk": "ಇದು ನಿಮ್ಮ ಸಂಬಳವೇ?",
+  "incomeYes": "ಹೌದು, ಇದೇ",
+  "incomeNo": "ಇಲ್ಲ",
+  "incomePickTitle": "ಇವುಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಬಳ ಯಾವುದು?",
+  "incomePickLine_one": "ಒಟ್ಟು {total}, {count} ತಿಂಗಳು",
+  "incomePickLine_other": "ಒಟ್ಟು {total}, {count} ತಿಂಗಳುಗಳು",
+  "incomePickNone": "ಇವುಗಳಲ್ಲಿ ಯಾವುದೂ ಅಲ್ಲ",
+  "incomeChosen": "ನಿಮ್ಮ ಸಂಬಳ: {payee}.",
+  "qSalaryKind_one": "{payee} ನಿಮಗೆ ತಿಂಗಳಿಗೆ ಸುಮಾರು {amount} ನೀಡುತ್ತದೆ, ಸಂಬಳ ಎಂದು ({count} ತಿಂಗಳು). ನಿಮಗೆ ಅವರಿಂದ ಸಂಬಳ ಬರುತ್ತದೆಯೇ?",
+  "qSalaryKind_other": "{payee} ನಿಮಗೆ ತಿಂಗಳಿಗೆ ಸುಮಾರು {amount} ನೀಡುತ್ತದೆ, ಸಂಬಳ ಎಂದು ({count} ತಿಂಗಳುಗಳು). ನಿಮಗೆ ಅವರಿಂದ ಸಂಬಳ ಬರುತ್ತದೆಯೇ?"
 }

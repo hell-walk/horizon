@@ -133,5 +133,18 @@
   "incomePayDayLabel": "ଆପଣଙ୍କ ଦରମା ମାସର କେଉଁ ତାରିଖରେ ଆସେ? (1 ରୁ 31)",
   "qPlan": "{payee} {cadence} {amount} ନିଏ। ଏହା କାହା ପାଇଁ?",
   "qPlanNot": "ସବସ୍କ୍ରିପସନ ନୁହେଁ",
-  "qPlanLater": "ପରେ"
+  "qPlanLater": "ପରେ",
+  "incomeEmployerSeen_one": "{payee} ଆପଣଙ୍କୁ ମାସକୁ {amount} ଦିଏ, {count} ମାସରେ ଦେଖାଯାଇଛି।",
+  "incomeEmployerSeen_other": "{payee} ଆପଣଙ୍କୁ ମାସକୁ {amount} ଦିଏ, {count} ମାସରେ ଦେଖାଯାଇଛି।",
+  "incomeNoWording": "ବ୍ୟାଙ୍କ ବିବରଣୀରେ ଦରମା ଲେଖା ନାହିଁ, ତେଣୁ Horizon ଆପଣଙ୍କୁ ପଚାରୁଛି।",
+  "incomeEmployerAsk": "ଏହା କି ଆପଣଙ୍କ ଦରମା?",
+  "incomeYes": "ହଁ, ଏହା ହିଁ",
+  "incomeNo": "ନା",
+  "incomePickTitle": "ଏଥିମଧ୍ୟରୁ ଆପଣଙ୍କ ଦରମା କେଉଁଟି?",
+  "incomePickLine_one": "ମୋଟ {total}, {count} ମାସ",
+  "incomePickLine_other": "ମୋଟ {total}, {count} ମାସ",
+  "incomePickNone": "ଏଥିମଧ୍ୟରୁ କୌଣସିଟି ନୁହେଁ",
+  "incomeChosen": "ଆପଣଙ୍କ ଦରମା: {payee}।",
+  "qSalaryKind_one": "{payee} ଆପଣଙ୍କୁ ମାସକୁ ପ୍ରାୟ {amount} ଦିଏ, ଦରମା ଭାବେ ({count} ମାସ)। ଆପଣ କି ସେମାନଙ୍କଠାରୁ ଦରମା ପାଆନ୍ତି?",
+  "qSalaryKind_other": "{payee} ଆପଣଙ୍କୁ ମାସକୁ ପ୍ରାୟ {amount} ଦିଏ, ଦରମା ଭାବେ ({count} ମାସ)। ଆପଣ କି ସେମାନଙ୍କଠାରୁ ଦରମା ପାଆନ୍ତି?"
 }

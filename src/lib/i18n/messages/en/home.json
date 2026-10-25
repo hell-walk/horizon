@@ -133,5 +133,18 @@
   "incomePayDayLabel": "Which day of the month does your salary arrive? (1 to 31)",
   "qPlan": "{payee} takes {amount} {cadence}. What is it for?",
   "qPlanNot": "Not a subscription",
-  "qPlanLater": "Later"
+  "qPlanLater": "Later",
+  "incomeEmployerSeen_one": "{payee} pays you {amount} a month, seen in {count} month.",
+  "incomeEmployerSeen_other": "{payee} pays you {amount} a month, seen in {count} months.",
+  "incomeNoWording": "The bank's description does not say salary, so Horizon is checking with you.",
+  "incomeEmployerAsk": "Is this your salary?",
+  "incomeYes": "Yes, it is",
+  "incomeNo": "No",
+  "incomePickTitle": "Which of these is your salary?",
+  "incomePickLine_one": "{total} in all, {count} month",
+  "incomePickLine_other": "{total} in all, {count} months",
+  "incomePickNone": "None of these",
+  "incomeChosen": "Your salary: {payee}.",
+  "qSalaryKind_one": "{payee} pays you about {amount} a month, marked as salary ({count} month). Do you get a salary from them?",
+  "qSalaryKind_other": "{payee} pays you about {amount} a month, marked as salary ({count} months). Do you get a salary from them?"
 }

@@ -133,5 +133,18 @@
   "incomePayDayLabel": "உங்கள் சம்பளம் மாதத்தின் எந்தத் தேதியில் வருகிறது? (1 முதல் 31 வரை)",
   "qPlan": "{payee} {cadence} {amount} எடுக்கிறது. இது எதற்காக?",
   "qPlanNot": "சந்தா அல்ல",
-  "qPlanLater": "பிறகு"
+  "qPlanLater": "பிறகு",
+  "incomeEmployerSeen_one": "{payee} உங்களுக்கு மாதம் {amount} தருகிறது, {count} மாதத்தில் காணப்பட்டது.",
+  "incomeEmployerSeen_other": "{payee} உங்களுக்கு மாதம் {amount} தருகிறது, {count} மாதங்களில் காணப்பட்டது.",
+  "incomeNoWording": "வங்கியின் விவரத்தில் சம்பளம் என்று இல்லை, எனவே Horizon உங்களிடம் கேட்கிறது.",
+  "incomeEmployerAsk": "இது உங்கள் சம்பளமா?",
+  "incomeYes": "ஆம், இதுதான்",
+  "incomeNo": "இல்லை",
+  "incomePickTitle": "இவற்றில் உங்கள் சம்பளம் எது?",
+  "incomePickLine_one": "மொத்தம் {total}, {count} மாதம்",
+  "incomePickLine_other": "மொத்தம் {total}, {count} மாதங்கள்",
+  "incomePickNone": "இவற்றில் எதுவுமில்லை",
+  "incomeChosen": "உங்கள் சம்பளம்: {payee}.",
+  "qSalaryKind_one": "{payee} உங்களுக்கு மாதம் ஏறக்குறைய {amount} தருகிறது, சம்பளமாக ({count} மாதம்). அவர்களிடமிருந்து உங்களுக்குச் சம்பளம் வருகிறதா?",
+  "qSalaryKind_other": "{payee} உங்களுக்கு மாதம் ஏறக்குறைய {amount} தருகிறது, சம்பளமாக ({count} மாதங்கள்). அவர்களிடமிருந்து உங்களுக்குச் சம்பளம் வருகிறதா?"
 }

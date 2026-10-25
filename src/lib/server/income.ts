@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import type { ForecastView } from "../forecast";
-import { estimateIncome, findSalary, isIncomeKind, type IncomeEstimate, type IncomeKind, type SalaryCredit } from "../income";
+import { estimateIncome, findSalary, incomingPayers, isIncomeKind, salaryCandidates, type IncomeEstimate, type IncomeKind, type SalaryCredit } from "../income";
 import { ownerAccounts } from "./ownerAccounts";
 import { readPrefs } from "./prefs";
 
@@ -26,9 +26,35 @@ export const loadIncome = cache(async (ownerId: string): Promise<IncomeSetting |
  * each month (lib/income). "Salaried" is only accepted once there is one, so
  * Horizon knows which credit is the salary.
  */
-export async function findEmployer(ownerId: string, setting?: IncomeSetting | null): Promise<SalaryCredit | undefined> {
+export async function findEmployer(ownerId: string, setting?: IncomeSetting | null, ownNames?: string[]): Promise<SalaryCredit | undefined> {
   const transactions = (await ownerAccounts(ownerId)).flatMap((a) => a.transactions);
-  return findSalary(transactions, { prefer: setting?.salaryPayee, exclude: setting?.excluded });
+  return findSalary(transactions, { prefer: setting?.salaryPayee, exclude: setting?.excluded, ownNames });
+}
+
+export type SalaryOption = { payee: string; monthly: number; months: number; confidence: "high" | "medium"; payDay?: number };
+export type IncomingPayer = { payee: string; total: number; months: number };
+
+/**
+ * What the income chooser offers someone who says they are salaried: the
+ * likely salary credits, best first (Horizon asks about each in turn), and
+ * everyone who sent money in, to pick from when none of those is it.
+ */
+export async function salaryOptions(ownerId: string, ownNames?: string[]): Promise<{ candidates: SalaryOption[]; payers: IncomingPayer[] }> {
+  const [accounts, setting] = await Promise.all([ownerAccounts(ownerId), loadIncome(ownerId)]);
+  const transactions = accounts.flatMap((a) => a.transactions);
+  const candidates = salaryCandidates(transactions, { exclude: setting?.excluded, ownNames })
+    .filter((c) => c.confidence !== "low")
+    .slice(0, 3)
+    .map((c) => ({ payee: c.payee, monthly: c.monthly, months: c.months, confidence: c.confidence as "high" | "medium", payDay: dayOfMonth(c.last) }));
+  const payers = incomingPayers(transactions).map(({ payee, total, months }) => ({ payee, total, months }));
+  return { candidates, payers };
+}
+
+/** Whether this payer sent the person money in their statements (the server's check on a picked salary credit). */
+export async function sentMoneyIn(ownerId: string, payee: string): Promise<SalaryCredit | undefined> {
+  const transactions = (await ownerAccounts(ownerId)).flatMap((a) => a.transactions);
+  const found = incomingPayers(transactions, 500).some((p) => p.payee.toLowerCase() === payee.toLowerCase());
+  return found ? findSalary(transactions, { prefer: payee }) : undefined;
 }
 
 /**

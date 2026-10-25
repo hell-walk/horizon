@@ -133,5 +133,18 @@
   "incomePayDayLabel": "आपकी सैलरी महीने की किस तारीख को आती है? (1 से 31)",
   "qPlan": "{payee} {cadence} {amount} लेता है। यह किस लिए है?",
   "qPlanNot": "सब्सक्रिप्शन नहीं",
-  "qPlanLater": "बाद में"
+  "qPlanLater": "बाद में",
+  "incomeEmployerSeen_one": "{payee} आपको हर महीने {amount} देती है, {count} महीने में देखा गया।",
+  "incomeEmployerSeen_other": "{payee} आपको हर महीने {amount} देती है, {count} महीनों में देखा गया।",
+  "incomeNoWording": "बैंक के विवरण में सैलरी नहीं लिखा है, इसलिए Horizon आपसे पूछ रहा है।",
+  "incomeEmployerAsk": "क्या यह आपकी सैलरी है?",
+  "incomeYes": "हाँ, यही है",
+  "incomeNo": "नहीं",
+  "incomePickTitle": "इनमें से आपकी सैलरी कौन-सी है?",
+  "incomePickLine_one": "कुल {total}, {count} महीना",
+  "incomePickLine_other": "कुल {total}, {count} महीने",
+  "incomePickNone": "इनमें से कोई नहीं",
+  "incomeChosen": "आपकी सैलरी: {payee}।",
+  "qSalaryKind_one": "{payee} आपको हर महीने लगभग {amount} देती है, सैलरी के रूप में ({count} महीना)। क्या आपको उनसे सैलरी मिलती है?",
+  "qSalaryKind_other": "{payee} आपको हर महीने लगभग {amount} देती है, सैलरी के रूप में ({count} महीने)। क्या आपको उनसे सैलरी मिलती है?"
 }
