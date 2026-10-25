@@ -122,5 +122,10 @@
   "rechargeLine_other": "{count} रिचार्ज, कुल {total}",
   "rechargePerMonth": "महीने में लगभग {amount}",
   "rechargeLast": "आख़िरी {date}",
-  "rechargeNext": "अगला लगभग {date}"
+  "rechargeNext": "अगला लगभग {date}",
+  "rechargePlan": "{days} दिन का प्लान",
+  "rechargeDaysYou": "{days} दिन, आपके बताए अनुसार",
+  "rechargeDaysButton": "दिन तय करें",
+  "rechargeDaysLabel": "{operator} का एक रिचार्ज कितने दिन चलता है?",
+  "rechargeDaysHint": "Horizon कीमत से अनुमान लगाता है (Jio पर ₹349 28 दिन का प्लान है); रिचार्ज के बीच का अंतर विकल्प है। दिनों से तय होता है कि महीने में कितना लगता है और अगला कब आएगा।"
 }

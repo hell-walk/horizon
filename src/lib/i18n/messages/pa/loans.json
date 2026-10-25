@@ -122,5 +122,10 @@
   "rechargeLine_other": "{count} ਰੀਚਾਰਜ, ਕੁੱਲ {total}",
   "rechargePerMonth": "ਮਹੀਨੇ ਵਿੱਚ ਲਗਭਗ {amount}",
   "rechargeLast": "ਆਖ਼ਰੀ {date}",
-  "rechargeNext": "ਅਗਲਾ ਲਗਭਗ {date}"
+  "rechargeNext": "ਅਗਲਾ ਲਗਭਗ {date}",
+  "rechargePlan": "{days} ਦਿਨ ਦਾ ਪਲਾਨ",
+  "rechargeDaysYou": "{days} ਦਿਨ, ਤੁਹਾਡੇ ਕਹੇ ਅਨੁਸਾਰ",
+  "rechargeDaysButton": "ਦਿਨ ਤੈਅ ਕਰੋ",
+  "rechargeDaysLabel": "{operator} ਦਾ ਇੱਕ ਰੀਚਾਰਜ ਕਿੰਨੇ ਦਿਨ ਚੱਲਦਾ ਹੈ?",
+  "rechargeDaysHint": "Horizon ਕੀਮਤ ਤੋਂ ਅੰਦਾਜ਼ਾ ਲਾਉਂਦਾ ਹੈ (Jio 'ਤੇ ₹349 28 ਦਿਨ ਦਾ ਪਲਾਨ ਹੈ); ਰੀਚਾਰਜਾਂ ਵਿਚਕਾਰ ਵਕਫ਼ਾ ਬਦਲ ਹੈ। ਦਿਨਾਂ ਤੋਂ ਤੈਅ ਹੁੰਦਾ ਹੈ ਕਿ ਮਹੀਨੇ ਵਿੱਚ ਕਿੰਨਾ ਲੱਗਦਾ ਹੈ ਅਤੇ ਅਗਲਾ ਕਦੋਂ ਆਵੇਗਾ।"
 }

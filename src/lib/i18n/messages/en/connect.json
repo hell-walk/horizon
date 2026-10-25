@@ -242,5 +242,8 @@
   "gapAskAgain": "Ask me about missing weeks again",
   "gapAskAgainDone": "Done. You will be asked next time.",
   "gapSavedNote": "Saved. Some weeks are missing for this account, so figures across them may be off until you add that statement.",
-  "gapConfirmFirst": "Some weeks are missing between this statement and the saved entries. Tick \"Save anyway\" to save it, or add the missing statement first."
+  "gapConfirmFirst": "Some weeks are missing between this statement and the saved entries. Tick \"Save anyway\" to save it, or add the missing statement first.",
+  "uploadNew": "Connect a new account",
+  "uploadExisting": "Add statements to an existing account",
+  "uploadPick": "Which account?"
 }

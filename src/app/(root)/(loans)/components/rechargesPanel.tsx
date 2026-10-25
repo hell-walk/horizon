@@ -3,12 +3,15 @@ import { Smartphone } from "lucide-react";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { dateFormat } from "@/lib/regularText";
 import { rechargesForOwner } from "@/lib/server/recharges";
-import { cn, formatAmount } from "@/lib/utils";
+import { formatAmount } from "@/lib/utils";
+
+import RechargeDays from "./rechargeDays";
 
 /**
  * Recharges, under the subscriptions: prepaid mobile and DTH top-ups by
- * operator, what each costs, how often it comes back, and about how much a
- * month that is. Read by the operator's name, so a single recharge shows too.
+ * operator, what each costs, how long one lasts (the person's word, a known
+ * plan, or the gaps), and about how much a month that is. Read by the
+ * operator's name, so a single recharge shows too.
  */
 const RechargesPanel = async ({ ownerId }: { ownerId: string }) => {
   const [picture, t, locale] = await Promise.all([rechargesForOwner(ownerId), getT(), getLocale()]);
@@ -39,21 +42,29 @@ const RechargesPanel = async ({ ownerId }: { ownerId: string }) => {
                   <span translate="no" className="text-16 font-semibold text-ink">
                     {r.operator}
                   </span>
-                  {r.everyDays ? (
-                    <span className="chip">{t("loans.rechargeEvery", { days: r.everyDays })}</span>
-                  ) : (
-                    <span className="chip">{t("loans.rechargeOnce")}</span>
-                  )}
-                  <span translate="no" className={cn("amount ml-auto text-16 font-semibold text-danger")}>
+                  <span className="chip">
+                    {r.basis === "you"
+                      ? t("loans.rechargeDaysYou", { days: r.validityDays ?? 0 })
+                      : r.basis === "plan"
+                        ? t("loans.rechargePlan", { days: r.validityDays ?? 0 })
+                        : r.basis === "gaps"
+                          ? t("loans.rechargeEvery", { days: r.validityDays ?? 0 })
+                          : t("loans.rechargeOnce")}
+                  </span>
+                  <span translate="no" className="amount ml-auto text-16 font-semibold text-danger">
                     {money(r.amount)}
                   </span>
                 </div>
-                <p className="text-13 text-ink-muted">
-                  {t("loans.rechargeLine", { count: r.count, total: money(r.total) })}
-                  {r.perMonth ? ` · ${t("loans.rechargePerMonth", { amount: money(r.perMonth) })}` : ""}
-                  {` · ${t("loans.rechargeLast", { date: day(r.last) })}`}
-                  {r.next ? ` · ${t("loans.rechargeNext", { date: day(r.next) })}` : ""}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-13 text-ink-muted">
+                    {t("loans.rechargeLine", { count: r.count, total: money(r.total) })}
+                    {r.perMonth ? ` · ${t("loans.rechargePerMonth", { amount: money(r.perMonth) })}` : ""}
+                    {r.everyDays && r.basis !== "gaps" ? ` · ${t("loans.rechargeEvery", { days: r.everyDays })}` : ""}
+                    {` · ${t("loans.rechargeLast", { date: day(r.last) })}`}
+                    {r.next ? ` · ${t("loans.rechargeNext", { date: day(r.next) })}` : ""}
+                  </p>
+                  <RechargeDays operator={r.operator} days={r.basis === "you" ? r.validityDays : undefined} />
+                </div>
               </li>
             ))}
           </ul>

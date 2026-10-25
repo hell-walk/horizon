@@ -26,6 +26,8 @@ export type Prefs = {
   checks?: { answered: string[]; used: number };
   /** What the person told Horizon about each loan, by the loan's key (server/loanPlans). */
   loanPlans?: unknown;
+  /** How long one recharge lasts, by operator, as the person said (lib/recharges). */
+  rechargeDays?: Record<string, number>;
 };
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;

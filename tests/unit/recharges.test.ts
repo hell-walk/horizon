@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { OWN_TRANSFER } from "@/lib/corrections";
-import { rechargeOperator, rechargePicture } from "@/lib/recharges";
+import { planDays, rechargeOperator, rechargePicture } from "@/lib/recharges";
 
 let n = 0;
 const debit = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
@@ -29,10 +29,25 @@ describe("recharges: prepaid and DTH top-ups by operator", () => {
     const p = rechargePicture(rows);
     expect(p.items.map((i) => i.operator)).toEqual(["Jio", "Tata Play"]);
     const jio = p.items[0];
-    expect(jio).toMatchObject({ count: 3, amount: 299, total: 947, everyDays: 28, last: "2026-06-27", next: "2026-07-25" });
+    // ₹299 is a 28-day Jio plan: the plan's length is used, and the gaps agree.
+    expect(jio).toMatchObject({ count: 3, amount: 299, total: 947, everyDays: 28, validityDays: 28, basis: "plan", last: "2026-06-27", next: "2026-07-25" });
     expect(jio.perMonth).toBeCloseTo((299 * 30.44) / 28, 0);
-    expect(p.items[1]).toMatchObject({ count: 1, total: 400 });
+    expect(p.items[1]).toMatchObject({ count: 1, total: 400, basis: "none" });
     expect(p.items[1].everyDays).toBeUndefined();
     expect(p.count).toBe(4);
+  });
+
+  it("a plan's own length beats late recharges, and the person's word beats both", () => {
+    // ₹349 Jio recharged every 42 days: a 28-day plan bought late, so a month costs 349 × 30.44 / 28, not / 42.
+    const rows = ["2026-05-01", "2026-06-12", "2026-07-24", "2026-09-04"].map((d) => debit(d, "UPI/DR/1/JIO PREP/YESB/", 349));
+    const byPlan = rechargePicture(rows).items[0];
+    expect(byPlan).toMatchObject({ everyDays: 42, validityDays: 28, basis: "plan", next: "2026-10-02" });
+    expect(byPlan.perMonth).toBeCloseTo((349 * 30.44) / 28, 0);
+    expect(planDays("Jio", 349)).toBe(28);
+    const byYou = rechargePicture(rows, { Jio: 30 }).items[0];
+    expect(byYou).toMatchObject({ validityDays: 30, basis: "you" });
+    // An unknown price falls back to the gaps.
+    const odd = rechargePicture(["2026-05-01", "2026-06-12"].map((d) => debit(d, "UPI/DR/1/JIO PREP/YESB/", 123))).items[0];
+    expect(odd).toMatchObject({ validityDays: 42, basis: "gaps" });
   });
 });

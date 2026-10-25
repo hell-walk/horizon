@@ -122,5 +122,10 @@
   "rechargeLine_other": "{count} recharges, {total} in all",
   "rechargePerMonth": "about {amount} a month",
   "rechargeLast": "last {date}",
-  "rechargeNext": "next around {date}"
+  "rechargeNext": "next around {date}",
+  "rechargePlan": "{days}-day plan",
+  "rechargeDaysYou": "{days} days, as you told us",
+  "rechargeDaysButton": "Set the days",
+  "rechargeDaysLabel": "How many days does one {operator} recharge last?",
+  "rechargeDaysHint": "Horizon guesses from the price (₹349 on Jio is a 28-day plan); the gaps between your recharges are the fallback. The days set what a month costs and when the next one is due."
 }

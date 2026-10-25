@@ -8,6 +8,7 @@ import ComingSoon from "@/components/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
+import { maskLabel } from "@/lib/utils";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,6 +23,7 @@ const ConnectBank = async () => {
   const accounts = await getAccounts({ userId: ownerIdOf(loggedIn) });
   const accountsData: Account[] = accounts?.data ?? [];
   const count = (provider: string) => accountsData.filter((a) => (a.provider ?? "plaid") === provider).length;
+  const manual = accountsData.filter((a) => a.provider === "manual");
   const t = await getT();
   const linkedLabel = (linked: number) => (linked > 0 ? t("connect.linked", { count: linked }) : t("connect.notLinked"));
 
@@ -64,9 +66,32 @@ const ConnectBank = async () => {
             [t("connect.fileFactSaved"), t("connect.fileFactSavedValue")],
           ]}
         >
-          <Link href="/upload-statement" className="btn-primary w-full">
-            {t("connect.uploadStatement")}
-          </Link>
+          {/* Two doors: a statement for a new account, or more statements for one already here (the account is chosen first). */}
+          <div className="flex flex-col gap-2">
+            <Link href="/upload-statement" className="btn-primary w-full">
+              {t("connect.uploadNew")}
+            </Link>
+            {manual.length > 0 && (
+              <details className="group">
+                <summary className="btn-secondary w-full cursor-pointer list-none [&::-webkit-details-marker]:hidden">{t("connect.uploadExisting")}</summary>
+                <div className="mt-2 flex flex-col gap-1 rounded-md border border-line bg-surface-low p-2">
+                  <p className="eyebrow px-2 py-1">{t("connect.uploadPick")}</p>
+                  {manual.map((a) => (
+                    <Link
+                      key={a.appwriteItemId}
+                      href={`/upload-statement?account=${a.appwriteItemId}`}
+                      className="flex items-center justify-between gap-2 rounded-sm px-2 py-2 text-14 text-ink transition-colors hover:bg-card"
+                    >
+                      <span translate="no">{a.name}</span>
+                      <span translate="no" className="font-mono text-12 text-ink-muted">
+                        {maskLabel(a.mask)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
         </ProviderCard>
       </div>
 

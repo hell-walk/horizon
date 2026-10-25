@@ -122,5 +122,10 @@
   "rechargeLine_other": "{count} ரீசார்ஜ்கள், மொத்தம் {total}",
   "rechargePerMonth": "மாதம் ஏறக்குறைய {amount}",
   "rechargeLast": "கடைசி {date}",
-  "rechargeNext": "அடுத்தது ஏறக்குறைய {date}"
+  "rechargeNext": "அடுத்தது ஏறக்குறைய {date}",
+  "rechargePlan": "{days} நாள் திட்டம்",
+  "rechargeDaysYou": "{days} நாட்கள், நீங்கள் சொன்னபடி",
+  "rechargeDaysButton": "நாட்களை அமை",
+  "rechargeDaysLabel": "{operator} ஒரு ரீசார்ஜ் எத்தனை நாட்கள் நீடிக்கும்?",
+  "rechargeDaysHint": "Horizon விலையிலிருந்து யூகிக்கிறது (Jio-வில் ₹349 என்பது 28 நாள் திட்டம்); ரீசார்ஜ்களுக்கு இடையிலான இடைவெளி மாற்று. நாட்களே மாதச் செலவையும் அடுத்தது எப்போது என்பதையும் முடிவு செய்கின்றன."
 }
