@@ -1,7 +1,7 @@
 import "server-only";
 
-import { forecast, type Forecast, type ForecastView } from "../forecast";
-import { findRegular } from "../recurring";
+import { forecast, type Forecast, type ForecastView } from "../finance/forecast";
+import { findRegular } from "../finance/recurring";
 import { getAccount } from "./accounts";
 
 export type AccountForecast = {
@@ -13,7 +13,7 @@ export type AccountForecast = {
  * The forecast for one of the signed-in user's accounts (getAccount only
  * returns the user's own). Imported statements are projected from the day
  * they end; linked banks from today. `view` "month" draws the calendar month
- * and "payday" the pay month from `payDay` (see lib/forecast); `days` is the
+ * and "payday" the pay month from `payDay` (see lib/finance/forecast); `days` is the
  * rolling view's length.
  */
 export async function accountForecast(

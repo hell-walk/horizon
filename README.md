@@ -46,29 +46,62 @@ Deploying: `docs/deploy-vercel.md` walks through every setting and outside servi
 
 ## Project structure
 
-Each page lives in its own bracket folder (a route group: the brackets keep it
-out of the URL) with the components only it uses, in that folder's
-`components/` (and `ui/`). Anything used in two or more places is in
-`src/components`. File names are camelCase (`bankCard.tsx`). Next.js's own
-files (`page`, `layout`, `loading`, `route`...) are the only files beside a page.
-`tests/unit/structure.test.ts` checks all of this, so it stays that way.
+Two rules decide where a file goes:
+
+1. **A page owns what only it uses.** Each page is a bracket folder (a route
+   group: the brackets keep it out of the URL). Its page file sits there, and
+   every component only that page uses sits in its `components/` (or `ui/`).
+   Next.js's own files (`page`, `layout`, `loading`, `route`...) are the only
+   files beside a page.
+2. **What two or more places use is shared, and shared code is sorted by what
+   it is**, never left loose: components by their role in `src/components/*`,
+   logic by its kind in `src/lib/*`.
+
+`tests/unit/structure.test.ts` checks both rules (and that pages never reach
+into each other, that `lib/finance` stays free of I/O, that server code says
+so), so the layout cannot drift. File names are camelCase (`bankCard.tsx`).
 
 ```
 src/
-  app/
-    (marketing)/landing        / for visitors (the proxy shows it at the root)
-    (auth)/                    sign-in, sign-up, welcome, password reset, email links
-    (legal)/                   privacy, terms, refunds, pricing, contact
-    (root)/                    the signed-in app: Home, My Banks, Account history, Bills,
-                               Savings goals, Plans, Connect a bank, Feedback, Privacy and your data
-    api/razorpay/webhook       Razorpay's signed notifications
-  components/                  shared components (cards, tables, statement import, loaders)
-  lib/
-    actions/                   server actions: the only functions the browser can call
-    server/                    server-only: data access, auth, plans, codes, encryption, rate limits
-    statements/                statement parsing (PDF, Excel, CSV) and checks
-    providers/                 statement, Plaid and Setu adapters
-    i18n/                      languages: messages/<code>/*.json, one folder per language
+  app/                         pages, one bracket folder each
+    (marketing)/landing          / for visitors (the proxy shows it at the root)
+    (auth)/                      sign-in, sign-up, welcome, password reset, email links
+    (legal)/                     privacy, terms, refunds, pricing, contact, support
+    (root)/                      the signed-in app: the shell (layout, components/: top bar,
+                                 menus, guided tour) and a bracket folder per page:
+      (home)/ (my-banks)/ (transaction-history)/ (spending)/ (bills)/ (calendar)/
+      (loans)/ (charges)/ (report)/ (checks)/ (goals)/ (plans)/ (connect-bank)/ ...
+        page.tsx
+        components/              used by this page only
+    api/                         webhooks and cron endpoints
+
+  components/                  shared components, by role
+    ui/                          design-system pieces: inputs, tables, loaders, header
+    providers/                   app-wide context: language, theme, Sentry
+    brand/                       logo, footer, landing story, screenshots
+    preferences/                 language, theme and reminder-language switches
+    accounts/                    bank cards, card stack, balances, account tabs
+    statements/                  statement import: column mapping, checks, gaps
+    transactions/                transaction table and editing
+    insights/                    "what changed" and the cash-flow forecast
+    tour/                        starting the guided tour
+    connect/                     direct bank links (Plaid, Setu), not switched on yet
+
+  lib/                         shared logic, by kind
+    finance/                     the money engine, pure functions, no I/O: spending, payees,
+                                 regular payments, income and salary scoring, forecast,
+                                 loans, charges, subscriptions, recharges, health, report
+    content/                     fixed data and copy: plans and prices, card designs,
+                                 bank guides, tour steps, About pages, SEO, site details
+    server/                      server-only: data access, auth, payments, cache, rate limits
+    actions/                     server actions: the only functions the browser can call
+    statements/                  statement parsing (PDF, Excel, CSV) and its checks
+    providers/                   statement, Plaid and Setu adapters
+    i18n/                        11 languages: messages/<code>/*.json
+    auth/                        sign-up rules and the session cookie, shared by both sides
+    browser/                     browser-only helpers: the account-switch animation, Sentry
+    utils.ts cache.ts ...        a few small helpers every layer uses
+
   proxy.ts                     renews sessions; shows the landing page to visitors at /
 scripts/                       setup, admin and check scripts (each explains itself at the top)
 tests/unit, tests/security     Vitest suites

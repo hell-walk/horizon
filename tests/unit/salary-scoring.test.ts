@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { findSalary, incomingPayers, salaryCandidates } from "@/lib/income";
+import { findSalary, incomingPayers, salaryCandidates } from "@/lib/finance/income";
 
 import { PROFILES } from "./salary-profiles";
 

@@ -2,8 +2,8 @@ import { CalendarRange } from "lucide-react";
 
 import { dataLabel } from "@/lib/i18n/labels";
 import { getLocale, getT } from "@/lib/i18n/server";
-import type { WeekRecap } from "@/lib/recap";
-import { dateFormat } from "@/lib/regularText";
+import type { WeekRecap } from "@/lib/finance/recap";
+import { dateFormat } from "@/lib/finance/regularText";
 import { cn, formatAmount } from "@/lib/utils";
 
 /**

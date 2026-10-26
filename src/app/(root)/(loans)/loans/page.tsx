@@ -4,13 +4,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, FileUp, Gem, Info, Lock } from "lucide-react";
 
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { lenderDays, loadBand, nextDueAfter, type Loan, type LoanReport } from "@/lib/loans";
-import { dateFormat } from "@/lib/regularText";
+import { lenderDays, loadBand, nextDueAfter, type Loan, type LoanReport } from "@/lib/finance/loans";
+import { dateFormat } from "@/lib/finance/regularText";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { loadLoanPlans, type LoanPlan } from "@/lib/server/loanPlans";
 import { loanPicture } from "@/lib/server/loans";

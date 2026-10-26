@@ -3,7 +3,7 @@
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 
 /** The request to the bank: shown as it will be sent, with a button that copies it. */
 const RequestLetter = ({ text }: { text: string }) => {

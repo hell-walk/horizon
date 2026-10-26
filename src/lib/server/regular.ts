@@ -1,6 +1,6 @@
 import "server-only";
 
-import { findRegular, type Regular } from "../recurring";
+import { findRegular, type Regular } from "../finance/recurring";
 import { getAccount, getAccounts } from "./accounts";
 
 export type RegularWithAccount = Regular & { account: { id: string; name: string; mask: string; currency: string } };

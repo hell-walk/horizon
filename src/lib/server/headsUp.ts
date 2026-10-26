@@ -1,7 +1,7 @@
 import "server-only";
 
-import { headsUp, type HeadsUpResult } from "../headsUp";
-import { findRegular } from "../recurring";
+import { headsUp, type HeadsUpResult } from "../finance/headsUp";
+import { findRegular } from "../finance/recurring";
 import { getAccount, getAccounts } from "./accounts";
 
 /**

@@ -4,7 +4,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { deleteBank } from "@/lib/actions/privacy.action";
 
 type BankRow = { id: string; name: string; mask: string };

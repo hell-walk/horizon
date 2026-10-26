@@ -3,7 +3,7 @@
 import { Loader2, Send } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { sendFeedback } from "@/lib/actions/feedback.action";
 import { cn } from "@/lib/utils";
 

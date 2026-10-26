@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { categorize, isPayLater } from "@/lib/categories";
-import { setExtraTerms } from "@/lib/extraTerms";
-import { findRegular } from "@/lib/recurring";
-import { spendType } from "@/lib/spending";
-import { matchingTerms, normalizeTerm, termsPattern } from "@/lib/terms";
+import { categorize, isPayLater } from "@/lib/finance/categories";
+import { setExtraTerms } from "@/lib/content/extraTerms";
+import { findRegular } from "@/lib/finance/recurring";
+import { spendType } from "@/lib/finance/spending";
+import { matchingTerms, normalizeTerm, termsPattern } from "@/lib/content/terms";
 
 // The names the team adds from the admin portal, matched on top of the built-in lists.
 

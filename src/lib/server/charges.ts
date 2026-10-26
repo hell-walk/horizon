@@ -1,6 +1,6 @@
 import "server-only";
 
-import { findCharges, type ChargeReport } from "../charges";
+import { findCharges, type ChargeReport } from "../finance/charges";
 import { getAccount, getAccounts } from "./accounts";
 
 export type AccountCharges = { account: { id: string; name: string; mask: string; currency: string }; report: ChargeReport };

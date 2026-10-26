@@ -30,7 +30,7 @@ describe("server action surface", () => {
           .split(/\r?\n/)
           .filter((line) => line.startsWith("export "))
           .filter((line) => !/^export (type |interface |async function |const \w+ = async\b)/.test(line))
-          .map((line) => `${rel(p)}: ${line.slice(0, 60)}`)
+          .map((line) => `${rel(p)}: ${line.slice(0, 60)}`),
       );
     expect(offenders).toEqual([]);
   });
@@ -79,10 +79,18 @@ describe("one folder per page", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("a page reaches its own components by a short relative path, never through @/app", () => {
+    const offenders = files(src).flatMap((file) =>
+      [...readFileSync(file, "utf8").matchAll(/from ["'](@\/app\/[^"']+)["']/g)].map((m) => `${rel(file)} -> ${m[1]}`),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   // Next.js's own files (a page, its layout, loading screen, an API route, the
   // site's icons and metadata) sit where the address needs them; everything
   // else in app/ is a component, in its page's components/ or ui/ folder.
-  const NEXT_FILES = /^(page|layout|loading|error|global-error|not-found|route|template|default|manifest|robots|sitemap|opengraph-image|icon|apple-icon)\.tsx?$/;
+  const NEXT_FILES =
+    /^(page|layout|loading|error|global-error|not-found|route|template|default|manifest|robots|sitemap|opengraph-image|icon|apple-icon)\.tsx?$/;
 
   it("components sit in a components/ or ui/ folder, not loose beside a page", () => {
     const loose = files(app)
@@ -97,6 +105,68 @@ describe("one folder per page", () => {
       .map(rel)
       .filter((p) => p.startsWith("components/") || /\/(components|ui)\/[^/]+$/.test(p));
     expect(folders.filter((p) => !/^[a-z][A-Za-z0-9]*\.tsx?$/.test(p.split("/").pop()!))).toEqual([]);
+  });
+});
+
+// Shared code is sorted by what it is, never left in a heap: components by
+// their role, logic by its kind (see the README's "Project structure").
+describe("shared code is sorted", () => {
+  const COMPONENT_ROLES = ["ui", "providers", "brand", "preferences", "accounts", "statements", "transactions", "insights", "tour", "connect"];
+  const LIB_KINDS = ["finance", "content", "server", "actions", "statements", "providers", "i18n", "auth", "browser"];
+  // The few helpers every layer uses stay at the top of lib/.
+  const LIB_ROOT_FILES = ["utils.ts", "cache.ts", "parallel.ts", "scrub.ts", "uploadLimit.ts", "selectedAccount.ts"];
+  const specsOf = (file: string) => [...readFileSync(file, "utf8").matchAll(/(?:from|import\s*\()\s*["']([^"']+)["']/g)].map((m) => m[1]);
+  const targetOf = (file: string, spec: string) =>
+    spec.startsWith("@/") ? rel(join(src, spec.slice(2))) : spec.startsWith(".") ? rel(join(file, "..", spec)) : null;
+
+  it("every shared component sits in a folder named for its role", () => {
+    const misplaced = files(join(src, "components"))
+      .map(rel)
+      .filter((p) => !COMPONENT_ROLES.includes(p.split("/")[1]) || p.split("/").length !== 3);
+    expect(misplaced).toEqual([]);
+  });
+
+  it("lib/ holds its kinds of logic in folders, and only a few small helpers loose", () => {
+    const misplaced = files(join(src, "lib"))
+      .map(rel)
+      .filter((p) => {
+        const [, first, ...rest] = p.split("/");
+        return rest.length === 0 ? !LIB_ROOT_FILES.includes(first) : !LIB_KINDS.includes(first);
+      });
+    expect(misplaced).toEqual([]);
+  });
+
+  it("the money engine (lib/finance) is pure: no data access, no framework, no browser", () => {
+    const offenders: string[] = [];
+    for (const file of files(join(src, "lib/finance"))) {
+      for (const spec of specsOf(file)) {
+        const target = targetOf(file, spec) ?? "";
+        if (/^(next|react)(\/|$)/.test(spec) || /^lib\/(server|actions|providers|browser)\//.test(target)) offenders.push(`${rel(file)} -> ${spec}`);
+      }
+      // The code only: a comment may well say "the same window." in plain English.
+      const code = readFileSync(file, "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
+      if (/\b(window|document|localStorage|sessionStorage)\.|\bfetch\(/.test(code)) offenders.push(`${rel(file)}: touches the browser or the network`);
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("a shared component used by only one page lives in that page's folder", () => {
+    const pageOf = (p: string) => p.match(/^app\/\(root\)\/\(([^)]+)\)\//)?.[1] ?? p.match(/^app\/\(([^)]+)\)\//)?.[1] ?? null;
+    const importers = new Map<string, Set<string>>();
+    for (const file of files(src)) {
+      for (const spec of specsOf(file)) {
+        const target = targetOf(file, spec);
+        if (!target?.startsWith("components/")) continue;
+        const key = [".tsx", ".ts", ""].map((ext) => target + ext).find((t) => files(join(src, "components")).some((f) => rel(f) === t));
+        if (!key) continue;
+        // Anything outside a page (another shared file, the app's root layout) counts as shared use.
+        importers.set(key, (importers.get(key) ?? new Set()).add(pageOf(rel(file)) ?? "(shared)"));
+      }
+    }
+    const onePage = [...importers].filter(([, by]) => by.size === 1 && !by.has("(shared)")).map(([file, by]) => `${file} (only ${[...by][0]})`);
+    expect(onePage).toEqual([]);
   });
 });
 

@@ -14,10 +14,10 @@ import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
 import { loadExtraTerms } from "@/lib/server/terms";
 import { planLine } from "@/lib/server/planLine";
-import DataUnavailable from "@/components/dataUnavailable";
-import TourGuide from "@/components/tour/tourGuide";
+import DataUnavailable from "@/components/ui/dataUnavailable";
+import TourGuide from "./components/tourGuide";
 import { getT } from "@/lib/i18n/server";
-import { TOUR_WORD_KEYS } from "@/lib/tour";
+import { TOUR_WORD_KEYS } from "@/lib/content/tour";
 
 // Every page in this group depends on the session cookie, so never prerender them.
 export const dynamic = "force-dynamic";

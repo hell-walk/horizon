@@ -6,9 +6,9 @@ import { getT } from "@/lib/i18n/server";
 
 import BankInfo from "./bankInfo";
 import ProfileCard from "./profileCard";
-import CardStack from "@/components/cardStack";
-import { canTransfer } from "@/lib/transfers";
-import Copy from "@/components/copy";
+import CardStack from "@/components/accounts/cardStack";
+import { canTransfer } from "@/lib/finance/transfers";
+import Copy from "@/components/ui/copy";
 
 // Right column on Home. Pinned while the main column scrolls: it holds the
 // card deck, the profile and the account switcher, which are all actionable.

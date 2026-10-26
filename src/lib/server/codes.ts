@@ -3,7 +3,7 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { ID, Query } from "node-appwrite";
 
-import { type PendingOffer, planFrom, readSubscription, REFERRAL_FREE_DAYS, type Subscription } from "../plans";
+import { type PendingOffer, planFrom, readSubscription, REFERRAL_FREE_DAYS, type Subscription } from "../content/plans";
 import type { SessionUser } from "./auth";
 import { createAdminClient } from "./appwrite";
 import { saveSubscription } from "./plan";

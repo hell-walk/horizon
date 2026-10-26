@@ -3,27 +3,27 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { BankTabItem } from "@/components/bankTabItem";
+import { BankTabItem } from "@/components/accounts/bankTabItem";
 import { Search, X } from "lucide-react";
 
-import InsightsPanel from "@/components/insightsPanel";
-import { Pagination } from "@/components/pagination";
+import InsightsPanel from "@/components/insights/insightsPanel";
+import { Pagination } from "@/components/ui/pagination";
 import MonthlyFlow from "../components/monthlyFlow";
 import PayeePanel from "../components/payeePanel";
-import TransactionsTable from "@/components/transactionTable";
+import TransactionsTable from "@/components/transactions/transactionTable";
 import HeaderBox from "@/components/ui/headerBox";
 import { PROVIDER_LABELS } from "@/constants";
 import { getT } from "@/lib/i18n/server";
 import { dataLabel } from "@/lib/i18n/labels";
-import { findInsights } from "@/lib/insights";
-import type { PayeeSpend } from "@/lib/payees";
-import { groupBySpendTypeWithEntries, spendType } from "@/lib/spending";
+import { findInsights } from "@/lib/finance/insights";
+import type { PayeeSpend } from "@/lib/finance/payees";
+import { groupBySpendTypeWithEntries, spendType } from "@/lib/finance/spending";
 import { getAccount, getAccounts, getRecentEntries } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { activeAccountId } from "@/lib/server/selectedAccount";
-import RememberAccount from "@/components/rememberAccount";
-import { BarsLoader } from "@/components/loaders";
-import { ChartPanelSkeleton } from "@/components/skeletons";
+import RememberAccount from "@/components/accounts/rememberAccount";
+import { BarsLoader } from "@/components/ui/loaders";
+import { ChartPanelSkeleton } from "@/components/ui/skeletons";
 import { RECENT_ENTRIES } from "@/lib/providers/manual";
 import { cn, formatAmount, maskLabel, summarizeTransactions } from "@/lib/utils";
 

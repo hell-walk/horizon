@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import BrandPanel from "./components/brandPanel";
-import LanguageSwitch from "@/components/languageSwitch";
-import Logo from "@/components/logo";
-import SiteFooter from "@/components/siteFooter";
+import LanguageSwitch from "@/components/preferences/languageSwitch";
+import Logo from "@/components/brand/logo";
+import SiteFooter from "@/components/brand/siteFooter";
 import { getT } from "@/lib/i18n/server";
 import { isTestMode } from "@/lib/server/razorpay";
 

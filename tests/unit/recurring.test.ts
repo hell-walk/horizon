@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addMonths, findRegular } from "@/lib/recurring";
+import { addMonths, findRegular } from "@/lib/finance/recurring";
 
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;

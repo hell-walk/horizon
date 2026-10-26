@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cached, remember, TTL } from "../cache";
-import { readCorrections, type Corrections } from "../corrections";
+import { readCorrections, type Corrections } from "../finance/corrections";
 import { logError } from "./log";
 import { readPrefs, updatePrefs } from "./prefs";
 

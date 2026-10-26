@@ -1,6 +1,6 @@
-import { combineTotals } from "@/lib/currency";
+import { combineTotals } from "@/lib/finance/currency";
 import { getLocale, getT } from "@/lib/i18n/server";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { exchangeRates } from "@/lib/server/rates";
 import { formatAmount } from "@/lib/utils";
 

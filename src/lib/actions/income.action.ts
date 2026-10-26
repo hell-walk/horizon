@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { isIncomeKind } from "../income";
+import { isIncomeKind } from "../finance/income";
 import { getT } from "../i18n/server";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { dayOfMonth, loadIncome, salaryOptions, sentMoneyIn, type IncomingPayer, type SalaryOption } from "../server/income";

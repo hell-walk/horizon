@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { findChecks, type Check } from "../checks";
+import { findChecks, type Check } from "../finance/checks";
 import { loadIncome } from "./income";
 import { ownerAccounts } from "./ownerAccounts";
 import { readPrefs } from "./prefs";

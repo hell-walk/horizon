@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import type { Chart as ChartJS } from "chart.js";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
-import { spendSlug } from "@/lib/spendSlug";
+import { useT } from "@/components/providers/i18nProvider";
+import { spendSlug } from "@/lib/finance/spendSlug";
 import { formatAmount } from "@/lib/utils";
 
-import RadialBarChart from "@/components/radialBarChartLazy";
-import type { RadialBarItem } from "@/components/radialBarChart";
+import RadialBarChart from "./radialBarChartLazy";
+import type { RadialBarItem } from "./radialBarChart";
 
 const UNFOLD_MS = 560;
 

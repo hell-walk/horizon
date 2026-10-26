@@ -3,10 +3,10 @@
 import { CheckCircle2, Pencil, Plus, Trash2, XCircle } from "lucide-react";
 import { useId, useState, useTransition, type ReactNode } from "react";
 
-import { useLocale, useT } from "@/components/i18nProvider";
+import { useLocale, useT } from "@/components/providers/i18nProvider";
 import { deleteGoal } from "@/lib/actions/goal.action";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
-import { planGoal, type Goal, type UsualLeftOver } from "@/lib/goals";
+import { planGoal, type Goal, type UsualLeftOver } from "@/lib/finance/goals";
 import { cn, formatAmount } from "@/lib/utils";
 
 import GoalForm from "./goalForm";

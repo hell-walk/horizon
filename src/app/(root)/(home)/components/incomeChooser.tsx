@@ -4,9 +4,9 @@ import { Check, CircleAlert, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { salaryCandidate, setIncome } from "@/lib/actions/income.action";
-import { INCOME_KINDS, type IncomeKind } from "@/lib/income";
+import { INCOME_KINDS, type IncomeKind } from "@/lib/finance/income";
 import { cn, formatAmount } from "@/lib/utils";
 
 type Candidate = { payee: string; monthly: number; months: number; confidence: "high" | "medium"; payDay?: number };

@@ -4,15 +4,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import HealthPanel from "@/components/healthPanel";
+import HealthPanel from "../components/healthPanel";
 
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { chartColorClass, spendTypeLabel } from "@/constants";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
-import type { Report } from "@/lib/report";
+import { dateFormat } from "@/lib/finance/regularText";
+import type { Report } from "@/lib/finance/report";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { currentPlan } from "@/lib/server/plan";
 import { reportForOwner } from "@/lib/server/report";

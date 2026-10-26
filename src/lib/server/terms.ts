@@ -3,9 +3,9 @@ import "server-only";
 import { Query } from "node-appwrite";
 
 import { cached } from "../cache";
-import { setExtraTerms } from "../extraTerms";
-import { parsePlanTerm, setExtraPlans, type PlanRow } from "../recharges";
-import type { TermGroup } from "../terms";
+import { setExtraTerms } from "../content/extraTerms";
+import { parsePlanTerm, setExtraPlans, type PlanRow } from "../finance/recharges";
+import type { TermGroup } from "../content/terms";
 import { createAdminClient } from "./appwrite";
 import { logError } from "./log";
 

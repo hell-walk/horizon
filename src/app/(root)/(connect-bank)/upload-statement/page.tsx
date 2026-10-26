@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import ImportStatement from "@/components/importStatement";
+import ImportStatement from "@/components/statements/importStatement";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";

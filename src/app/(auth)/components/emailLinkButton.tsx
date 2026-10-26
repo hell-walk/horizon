@@ -4,7 +4,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { openEmailLink } from "@/lib/actions/user.action";
 
 /** The one click that opens an emailed link (see auth/confirm/page.tsx for why a click). */

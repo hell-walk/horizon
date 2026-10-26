@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { categorize } from "@/lib/categories";
-import { findRegular } from "@/lib/recurring";
-import { groupBySpendType, spendType } from "@/lib/spending";
+import { categorize } from "@/lib/finance/categories";
+import { findRegular } from "@/lib/finance/recurring";
+import { groupBySpendType, spendType } from "@/lib/finance/spending";
 
 // Narrations in the shape Indian banks print them (numbers made up).
 const SNAPMINT = "UPI/DR/512345678901/SNAPMINT/UTIB/snapmintfinanci/";

@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { cn } from "@/lib/utils";
 
 export type ToggleOption<T extends string> = { value: T; label: string };

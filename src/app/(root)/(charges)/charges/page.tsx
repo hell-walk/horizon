@@ -4,14 +4,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FileUp, Info } from "lucide-react";
 
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
-import type { ChargeGroup } from "@/lib/charges";
-import { reversalRequest } from "@/lib/chargesLetter";
+import type { ChargeGroup } from "@/lib/finance/charges";
+import { reversalRequest } from "@/lib/finance/chargesLetter";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { bankCharges, type AccountCharges } from "@/lib/server/charges";
 import { formatAmount, maskLabel } from "@/lib/utils";

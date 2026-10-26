@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 
-import ChartCentre from "@/components/chartCentre";
-import { useT } from "@/components/i18nProvider";
+import ChartCentre from "@/components/ui/chartCentre";
+import { useT } from "@/components/providers/i18nProvider";
 import { chartColorClass } from "@/constants";
-import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
-import { PEOPLE_GROUP, payeeName, type PayeeSpend } from "@/lib/payees";
-import { spendSlug } from "@/lib/spendSlug";
+import { ENTRANCE, segmentColor, useChartColors } from "@/lib/content/chartColors";
+import { PEOPLE_GROUP, payeeName, type PayeeSpend } from "@/lib/finance/payees";
+import { spendSlug } from "@/lib/finance/spendSlug";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
 
 import UpiBreakdown from "./upiBreakdown";
@@ -21,7 +21,7 @@ ChartJS.register(ArcElement, Tooltip);
 
 const ALL = "__all__";
 
-// Group and category names that lib/spending and lib/payees produce in English
+// Group and category names that lib/finance/spending and lib/finance/payees produce in English
 // ("UPI payments", "Other", "Food"...) show in the chosen language when there
 const bucketLabel = dataLabel;
 

@@ -6,7 +6,7 @@ import { after } from "next/server";
 import { cache } from "react";
 
 import { isLocale, type Locale } from "../i18n/config";
-import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../plans";
+import { readOffer, type PendingOffer, readSubscription, type Subscription } from "../content/plans";
 import { parseStringify } from "../utils";
 import { getBanks, getUserInfo } from "./banks";
 import { seedPrefs } from "./prefs";

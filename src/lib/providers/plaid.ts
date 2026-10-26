@@ -7,7 +7,7 @@ import type { CountryCode } from "plaid";
 import { cached, TTL } from "../cache";
 
 // The Plaid SDK is slow to load and only US banks need it: loaded on first use.
-const plaid = async () => (await import("../plaid")).plaidClient;
+const plaid = async () => (await import("../server/plaidClient")).plaidClient;
 
 export const PLAID_PROVIDER = "plaid" as const;
 

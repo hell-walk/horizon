@@ -3,9 +3,9 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { chartColorClass } from "@/constants";
-import { payeeName } from "@/lib/payees";
+import { payeeName } from "@/lib/finance/payees";
 import { cn, formatAmount, formatDateTime } from "@/lib/utils";
 
 type Person = { name: string; amount: number; count: number; transactions: Transaction[] };

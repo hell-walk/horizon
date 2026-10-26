@@ -2,8 +2,8 @@
 
 import { Check, Circle } from "lucide-react";
 
-import { useT } from "@/components/i18nProvider";
-import { checkPassword } from "@/lib/passwordRules";
+import { useT } from "@/components/providers/i18nProvider";
+import { checkPassword } from "@/lib/auth/passwordRules";
 import { cn } from "@/lib/utils";
 
 /** The password rules as a checklist that ticks itself while the person types. */

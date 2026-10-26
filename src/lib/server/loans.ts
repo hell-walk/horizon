@@ -1,7 +1,7 @@
 import "server-only";
 
-import { findLoans, type AccountInput, type LoanReport } from "../loans";
-import { findRegular } from "../recurring";
+import { findLoans, type AccountInput, type LoanReport } from "../finance/loans";
+import { findRegular } from "../finance/recurring";
 import { getAccount, getAccounts } from "./accounts";
 
 /**

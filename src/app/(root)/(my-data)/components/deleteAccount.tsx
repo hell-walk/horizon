@@ -4,7 +4,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { Input } from "@/components/ui/input";
 import { deleteMyAccount } from "@/lib/actions/privacy.action";
 

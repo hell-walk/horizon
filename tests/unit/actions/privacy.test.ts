@@ -52,7 +52,7 @@ vi.mock("@/lib/server/razorpay", () => ({
     return {};
   }),
 }));
-vi.mock("@/lib/plaid", () => ({ plaidClient: { itemRemove: vi.fn(async ({ access_token }: { access_token: string }) => calls.itemRemove.push(access_token)) } }));
+vi.mock("@/lib/server/plaidClient", () => ({ plaidClient: { itemRemove: vi.fn(async ({ access_token }: { access_token: string }) => calls.itemRemove.push(access_token)) } }));
 vi.mock("@/lib/server/dwolla", () => ({
   removeFundingSource: vi.fn(async (url: string) => calls.removeFundingSource.push(url)),
   deactivateCustomer: vi.fn(async (url: string) => calls.deactivate.push(url)),

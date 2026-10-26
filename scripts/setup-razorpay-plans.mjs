@@ -1,5 +1,5 @@
 // Creates Horizon's two Razorpay plans (monthly and yearly) from the prices in
-// src/lib/plans.ts, and prints the plan ids to put in .env:
+// src/lib/content/plans.ts, and prints the plan ids to put in .env:
 //   RAZORPAY_PLAN_MONTHLY=plan_...
 //   RAZORPAY_PLAN_YEARLY=plan_...
 // Razorpay plans cannot be edited: to change a price, run this again (it makes
@@ -22,10 +22,10 @@ if (existsSync(".env")) {
 for (const k of ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"]) if (!env[k]) throw new Error(`${k} is missing from .env`);
 
 // The one source of the prices.
-const source = readFileSync("src/lib/plans.ts", "utf8");
+const source = readFileSync("src/lib/content/plans.ts", "utf8");
 const price = (period) => {
   const m = source.match(new RegExp(`${period}: \\{ amount: (\\d+), currency: "INR" \\}`));
-  if (!m) throw new Error(`could not read the ${period} price from src/lib/plans.ts`);
+  if (!m) throw new Error(`could not read the ${period} price from src/lib/content/plans.ts`);
   return Number(m[1]);
 };
 const plans = [

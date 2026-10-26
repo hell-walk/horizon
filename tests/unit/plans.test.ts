@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { daysLeft, istDay, mergeSubscription, planFrom, readSubscription, TRIAL_CHANGES_PER_DAY, TRIAL_DAYS, type Subscription } from "@/lib/plans";
+import { daysLeft, istDay, mergeSubscription, planFrom, readSubscription, TRIAL_CHANGES_PER_DAY, TRIAL_DAYS, type Subscription } from "@/lib/content/plans";
 
 const DAY = 86_400_000;
 const now = Date.parse("2026-10-11T12:00:00Z");

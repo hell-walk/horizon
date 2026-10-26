@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { spendingDetail, spendSlug } from "@/lib/spendingDetail";
+import { spendingDetail, spendSlug } from "@/lib/finance/spendingDetail";
 
 const debit = (id: string, date: string, name: string, amount: number) => ({ id, date, name, amount: -amount, type: "debit" }) as Transaction;
 const credit = (id: string, date: string, name: string, amount: number) => ({ id, date, name, amount, type: "credit" }) as Transaction;
@@ -119,7 +119,7 @@ describe("one kind of spending, closely", () => {
 
 describe("Account history's chart groups", () => {
   it("are the Home chart's kinds of spending, each with its own payments", async () => {
-    const { groupBySpendTypeWithEntries, groupBySpendType } = await import("@/lib/spending");
+    const { groupBySpendTypeWithEntries, groupBySpendType } = await import("@/lib/finance/spending");
     const groups = groupBySpendTypeWithEntries(tx, 8);
     expect(groups.map((g) => [g.name, g.amount])).toEqual(groupBySpendType(tx, 8).map((b) => [b.name, b.amount]));
     const food = groups.find((g) => g.name === "Food")!;

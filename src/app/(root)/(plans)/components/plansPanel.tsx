@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { cancelMySubscription, checkSubscription, confirmSubscriptionPayment, startSubscription } from "@/lib/actions/plan.action";
-import type { Period, PlanState } from "@/lib/plans";
+import type { Period, PlanState } from "@/lib/content/plans";
 import { cn } from "@/lib/utils";
 
 type Props = {

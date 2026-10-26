@@ -4,7 +4,7 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, FileUp, PlugZap } from "lucide
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import LogoMark from "@/components/logoMark";
+import LogoMark from "@/components/brand/logoMark";
 import { cn } from "@/lib/utils";
 
 /**

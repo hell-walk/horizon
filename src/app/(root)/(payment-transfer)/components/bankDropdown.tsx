@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "../ui/select";
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { PROVIDER_LABELS } from "@/constants";
 import { rememberAccount } from "@/lib/selectedAccount";
 import { formUrlQuery, formatAmount, maskLabel } from "@/lib/utils";

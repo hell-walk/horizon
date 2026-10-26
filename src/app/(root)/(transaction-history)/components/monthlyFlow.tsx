@@ -1,6 +1,6 @@
 import { CalendarX } from "lucide-react";
 
-import { monthlyFlow, type MonthFlow } from "@/lib/cashflow";
+import { monthlyFlow, type MonthFlow } from "@/lib/finance/cashflow";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { dataLabel } from "@/lib/i18n/labels";
 import { getLocale, getT } from "@/lib/i18n/server";

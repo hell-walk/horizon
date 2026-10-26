@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getT } from "../i18n/server";
-import { mergeSubscription, planFrom, type Period } from "../plans";
+import { mergeSubscription, planFrom, type Period } from "../content/plans";
 import { loadSession } from "../server/auth";
 import { logError } from "../server/log";
 import { redeemCode } from "../server/codes";

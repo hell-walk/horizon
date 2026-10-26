@@ -1,7 +1,7 @@
 import "server-only";
 
-import { payeeKey } from "../corrections";
-import { subscriptionPicture, type Subscription, type SubscriptionPicture } from "../subscriptions";
+import { payeeKey } from "../finance/corrections";
+import { subscriptionPicture, type Subscription, type SubscriptionPicture } from "../finance/subscriptions";
 import { ownerAccounts } from "./ownerAccounts";
 
 /** Every subscription across a person's uploaded accounts (the shared per-request loader does the reading). */

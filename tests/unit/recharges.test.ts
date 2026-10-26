@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { OWN_TRANSFER } from "@/lib/corrections";
-import { parsePlanTerm, planDays, rechargeOperator, rechargePicture, setExtraPlans } from "@/lib/recharges";
+import { OWN_TRANSFER } from "@/lib/finance/corrections";
+import { parsePlanTerm, planDays, rechargeOperator, rechargePicture, setExtraPlans } from "@/lib/finance/recharges";
 
 let n = 0;
 const debit = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { OWN_TRANSFER } from "@/lib/corrections";
-import { findRegular } from "@/lib/recurring";
-import { monthlyReport, reportMonths } from "@/lib/report";
+import { OWN_TRANSFER } from "@/lib/finance/corrections";
+import { findRegular } from "@/lib/finance/recurring";
+import { monthlyReport, reportMonths } from "@/lib/finance/report";
 
 const credit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount, type: "credit" }) as Transaction;
 const debit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount: -amount, type: "debit" }) as Transaction;

@@ -7,7 +7,7 @@ import { Fragment, useMemo, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { sendTransfer } from "@/lib/actions/transfer.action";
 import type { Translate } from "@/lib/i18n/translate";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";

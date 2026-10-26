@@ -1,6 +1,6 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 
-import { mergeSubscription, readSubscription } from "@/lib/plans";
+import { mergeSubscription, readSubscription } from "@/lib/content/plans";
 import { logError } from "@/lib/server/log";
 import { saveSubscription } from "@/lib/server/plan";
 import { fetchSubscription, toSubscription, webhookIsGenuine } from "@/lib/server/razorpay";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import LandingHero from "@/components/landingHero";
+import LandingHero from "@/components/brand/landingHero";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 

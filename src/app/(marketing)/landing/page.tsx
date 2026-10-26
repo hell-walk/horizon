@@ -4,13 +4,13 @@ import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
-import { TRIAL_DAYS } from "@/lib/plans";
-import { jsonLd, publicPage } from "@/lib/seo";
+import { TRIAL_DAYS } from "@/lib/content/plans";
+import { jsonLd, publicPage } from "@/lib/content/seo";
 import { currentPricing } from "@/lib/server/pricing";
 
-import LandingStory from "@/components/landingStory";
-import LogoMark from "@/components/logoMark";
-import Shot from "@/components/shot";
+import LandingStory from "@/components/brand/landingStory";
+import LogoMark from "@/components/brand/logoMark";
+import Shot from "@/components/brand/shot";
 
 // What a visitor sees at the site's root before signing in (the proxy
 // rewrites "/" here when there is no session; signed-in people get Home).

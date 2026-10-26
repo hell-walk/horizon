@@ -4,7 +4,7 @@ import { Check, Copy, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { useLocale, useT } from "@/components/i18nProvider";
+import { useLocale, useT } from "@/components/providers/i18nProvider";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { applyCode } from "@/lib/actions/plan.action";
 

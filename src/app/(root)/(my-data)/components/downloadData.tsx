@@ -3,7 +3,7 @@
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { exportMyData } from "@/lib/actions/privacy.action";
 
 /** Builds the export on the server and hands it to the browser as a file. */

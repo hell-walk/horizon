@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import PaymentTransferForm from "../components/paymentTransferForm";
-import ComingSoon from "@/components/comingSoon";
+import ComingSoon from "@/components/ui/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";

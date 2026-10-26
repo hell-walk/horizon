@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
-import { publicPage } from "@/lib/seo";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { publicPage } from "@/lib/content/seo";
+import { CONTACT_EMAIL } from "@/lib/content/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();

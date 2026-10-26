@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { monthlyReport, reportMonths, type Report } from "../report";
+import { monthlyReport, reportMonths, type Report } from "../finance/report";
 import { ownerAccounts } from "./ownerAccounts";
 
 export type MonthlyReport = { report: Report | null; months: string[]; currency: string };

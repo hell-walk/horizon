@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { getT } from "@/lib/i18n/server";
-import { daysLeft, type PlanState } from "@/lib/plans";
+import { daysLeft, type PlanState } from "@/lib/content/plans";
 import { cn } from "@/lib/utils";
 
 /** One line under the top bar during the trial and after it; nothing for subscribers. */

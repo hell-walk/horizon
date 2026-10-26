@@ -5,8 +5,8 @@ import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 
-import { useT } from "@/components/i18nProvider";
-import { ENTRANCE, useChartColors } from "@/lib/chartColors";
+import { useT } from "@/components/providers/i18nProvider";
+import { ENTRANCE, useChartColors } from "@/lib/content/chartColors";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);

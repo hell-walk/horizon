@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import LandingHero from "@/components/landingHero";
+import LandingHero from "@/components/brand/landingHero";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession, ownerIdOf } from "@/lib/server/auth";

@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import Shot from "@/components/shot";
+import Shot from "@/components/brand/shot";
 import TourStart from "@/components/tour/tourStart";
 import HeaderBox from "@/components/ui/headerBox";
-import { aboutFeature, SHOT_ALT } from "@/lib/aboutFeatures";
+import { aboutFeature, SHOT_ALT } from "@/lib/content/aboutFeatures";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser } from "@/lib/server/auth";
-import { isTourId } from "@/lib/tour";
+import { isTourId } from "@/lib/content/tour";
 
 type Props = { params: Promise<{ slug: string }> };
 

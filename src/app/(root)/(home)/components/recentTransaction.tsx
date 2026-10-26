@@ -1,11 +1,11 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-import TransactionTable from "@/components/transactionTable";
+import TransactionTable from "@/components/transactions/transactionTable";
 import { getT } from "@/lib/i18n/server";
 
-import { BankTabItem } from "@/components/bankTabItem";
-import { Pagination } from "@/components/pagination";
+import { BankTabItem } from "@/components/accounts/bankTabItem";
+import { Pagination } from "@/components/ui/pagination";
 
 const ROWS_PER_PAGE = 10;
 

@@ -130,7 +130,7 @@ vi.mock("@/lib/server/appwrite", () => ({
   }),
 }));
 vi.mock("@/lib/server/dwolla", () => ({ createDwollaCustomer: vi.fn(async () => undefined), addFundingSource: vi.fn() }));
-vi.mock("@/lib/plaid", () => ({
+vi.mock("@/lib/server/plaidClient", () => ({
   plaidClient: {
     linkTokenCreate: vi.fn(async () => ({ data: { link_token: "link-sandbox-123" } })),
     itemPublicTokenExchange: vi.fn(),
@@ -149,7 +149,7 @@ const { completeSetuConsent, createSetuConsent } = await import("@/lib/actions/s
 const { loadLoggedInUser, loadSession } = await import("@/lib/server/auth");
 const { getOwnBank } = await import("@/lib/server/banks");
 const { sealSecret } = await import("@/lib/server/crypto");
-const { plaidClient } = await import("@/lib/plaid");
+const { plaidClient } = await import("@/lib/server/plaidClient");
 
 // A fresh profile id per call where asked, so per-user rate limits do not leak between tests.
 let fresh = 0;

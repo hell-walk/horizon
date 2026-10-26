@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { healthScore, type Health } from "../health";
+import { healthScore, type Health } from "../finance/health";
 import { incomeForOwner, loadIncome } from "./income";
 import { ownerAccounts } from "./ownerAccounts";
 

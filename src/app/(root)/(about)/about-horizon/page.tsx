@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { Play } from "lucide-react";
 
-import LandingStory from "@/components/landingStory";
+import LandingStory from "@/components/brand/landingStory";
 import TourStart from "@/components/tour/tourStart";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";

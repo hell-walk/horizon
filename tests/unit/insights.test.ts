@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { findInsights, latestFullMonth } from "@/lib/insights";
+import { findInsights, latestFullMonth } from "@/lib/finance/insights";
 
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;

@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import type { Period, Subscription } from "../plans";
+import type { Period, Subscription } from "../content/plans";
 import { currentPricing, periodOfPlan } from "./pricing";
 
 // Razorpay subscriptions, through its REST API (no SDK, no script on the page:

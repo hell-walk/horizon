@@ -2,7 +2,7 @@ import "server-only";
 
 import { ID } from "node-appwrite";
 
-import { isCountry, needsStateAndPostal } from "../countries";
+import { isCountry, needsStateAndPostal } from "../content/countries";
 import { extractCustomerIdFromUrl } from "../utils";
 import { createAdminClient } from "./appwrite";
 import { createDwollaCustomer } from "./dwolla";
@@ -16,7 +16,7 @@ import { createSupabaseAdmin } from "./supabase";
 
 const { APPWRITE_DATABASE_ID: DATABASE_ID, APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID } = process.env;
 
-import { isIncomeKind } from "../income";
+import { isIncomeKind } from "../finance/income";
 
 export const PROFILE_FIELDS = ["country", "firstName", "lastName", "address1", "city", "state", "postalCode", "dateOfBirth", "ssn"];
 export type ProfileInput = Omit<SignUpParams, "email" | "password">;

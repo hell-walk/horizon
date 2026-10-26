@@ -2,7 +2,7 @@
 
 import { isLocale } from "../i18n/config";
 import { getLocale, getT } from "../i18n/server";
-import { readPushSubscription, withDevice, isPushEndpoint } from "../notify";
+import { readPushSubscription, withDevice, isPushEndpoint } from "../finance/notify";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { logError } from "../server/log";
 import { deliver, emailConfigured, loadNotify, messageFor, pushConfigured, saveNotify } from "../server/notify";

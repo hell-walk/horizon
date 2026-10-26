@@ -9,14 +9,14 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useLocale, useT } from "@/components/i18nProvider";
+import { useLocale, useT } from "@/components/providers/i18nProvider";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { completeProfile, logoutAccount, signIn, signInWithGoogle, signUp } from "@/lib/actions/user.action";
-import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/countries";
+import { countryList, needsStateAndPostal, needsUsIdentity } from "@/lib/content/countries";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
-import { INCOME_KINDS } from "@/lib/income";
+import { INCOME_KINDS } from "@/lib/finance/income";
 import { cn } from "@/lib/utils";
-import { authFormSchema } from "@/lib/authSchema";
+import { authFormSchema } from "@/lib/auth/authSchema";
 
 import CustomInput from "./customInput";
 import DateInput from "./dateInput";
@@ -26,7 +26,7 @@ import PasswordRules from "./passwordRules";
 // Shown only after a sign-up ("add your first bank"), so their code is fetched
 // then, not with the sign-in page: the statement importer alone carries a
 // spreadsheet reader.
-const ImportStatement = dynamic(() => import("@/components/importStatement"), { ssr: false });
+const ImportStatement = dynamic(() => import("@/components/statements/importStatement"), { ssr: false });
 
 // Sign-up sections: anchor id and the message key of the title.
 const SECTIONS = [

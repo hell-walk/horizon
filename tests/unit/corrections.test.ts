@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { applyCorrections, cleanName, MAX_NAME_LENGTH, MAX_PAYEE_RULES, payeeKey, planKey, readCorrections } from "@/lib/corrections";
-import { groupByPayee } from "@/lib/payees";
-import { groupBySpendType, spendType } from "@/lib/spending";
+import { applyCorrections, cleanName, MAX_NAME_LENGTH, MAX_PAYEE_RULES, payeeKey, planKey, readCorrections } from "@/lib/finance/corrections";
+import { groupByPayee } from "@/lib/finance/payees";
+import { groupBySpendType, spendType } from "@/lib/finance/spending";
 
 const tx = (id: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
   ({ id, name, amount, type: amount < 0 ? "debit" : "credit", category: "Transfer", paymentChannel: "online", date: "2026-01-01", ...extra }) as Transaction;

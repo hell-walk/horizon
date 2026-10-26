@@ -1,0 +1,93 @@
+"use client";
+
+import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
+import type { ReactNode, RefObject } from "react";
+import { Doughnut } from "react-chartjs-2";
+
+import { useT } from "@/components/providers/i18nProvider";
+import { spendTypeLabel } from "@/constants";
+import { ENTRANCE, prefersReducedMotion, segmentColor, useChartColors } from "@/lib/content/chartColors";
+import { formatAmount } from "@/lib/utils";
+
+ChartJS.register(ArcElement, Tooltip);
+
+export type RadialBarItem = { name: string; amount: number; share: number };
+
+// Concentric arcs: one ring per item, filled to that item's share of the total.
+// Chart.js stacks datasets as rings, so each dataset is [value, remainder].
+// `chartRef`: the Chart.js chart, so a click handler around it can ask which
+// ring is under the pointer at once (Chart.js handles its own clicks a frame later).
+const RadialBarChart = ({
+  items,
+  currency,
+  unfold = false,
+  chartRef,
+  centre,
+}: {
+  items: RadialBarItem[];
+  currency?: string;
+  unfold?: boolean;
+  chartRef?: RefObject<ChartJS<"doughnut"> | null>;
+  // What sits in the middle: it arrives with the chart, never floating over the loader.
+  centre?: ReactNode;
+}) => {
+  const colors = useChartColors();
+  const t = useT();
+
+  const data = {
+    labels: ["value", "rest"],
+    datasets: items.map((item, i) => ({
+      label: spendTypeLabel(t, item.name),
+      // Unfolding sweeps every arc closed into a full ring.
+      data: unfold ? [1, 0] : [item.share, Math.max(1 - item.share, 0)],
+      backgroundColor: [segmentColor(colors, item.name, i), colors.track],
+      borderColor: colors.card,
+      borderWidth: 2,
+      borderRadius: [{ outerStart: 4, outerEnd: 4, innerStart: 4, innerEnd: 4 }, 0],
+      hoverBackgroundColor: [segmentColor(colors, item.name, i), colors.track],
+    })),
+  };
+
+  return (
+    <>
+      <Doughnut
+        ref={chartRef}
+        role="img"
+        aria-label={t("home.spendingChartLabel", {
+          list: items.map((item) => `${spendTypeLabel(t, item.name)} ${formatAmount(item.amount, currency)}, ${Math.round(item.share * 100)}%`).join("; "),
+        })}
+        data={data}
+        options={{
+          cutout: "48%",
+          rotation: -90,
+          maintainAspectRatio: false,
+          animation: unfold && !prefersReducedMotion() ? { duration: 480, easing: "easeOutCubic" } : ENTRANCE,
+          onHover: (event, elements) => {
+            const target = event.native?.target as HTMLElement | null;
+            if (target && chartRef) target.style.cursor = elements.some((e) => e.index === 0) ? "pointer" : "";
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: colors.text,
+              titleColor: colors.card,
+              bodyColor: colors.card,
+              displayColors: false,
+              filter: (item) => item.dataIndex === 0,
+              callbacks: {
+                title: (ctx) => ctx[0]?.dataset.label ?? "",
+                label: (item) => {
+                  const entry = items[item.datasetIndex];
+                  return `${formatAmount(entry.amount, currency)} (${Math.round(entry.share * 100)}%)`;
+                },
+              },
+            },
+          },
+        }}
+      />
+      {centre}
+    </>
+  );
+};
+
+export default RadialBarChart;

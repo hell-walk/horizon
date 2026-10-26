@@ -4,10 +4,10 @@ import { Calculator, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 
-import { useLocale, useT } from "@/components/i18nProvider";
+import { useLocale, useT } from "@/components/providers/i18nProvider";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { saveLoanPlan } from "@/lib/actions/loan.action";
-import { comparePayoff, outstandingFromSchedule, scheduleFrom, type LoanPlan } from "@/lib/payoff";
+import { comparePayoff, outstandingFromSchedule, scheduleFrom, type LoanPlan } from "@/lib/finance/payoff";
 import { formatAmount } from "@/lib/utils";
 
 type Props = {

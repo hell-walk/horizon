@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCalendar } from "@/lib/calendar";
-import type { Forecast, ForecastEvent } from "@/lib/forecast";
+import { buildCalendar } from "@/lib/finance/calendar";
+import type { Forecast, ForecastEvent } from "@/lib/finance/forecast";
 
 const account = (id: string, currency = "INR") => ({ id, name: `Bank ${id}`, mask: "1234", currency });
 const ok = (start: number, points: { date: string; balance: number }[], events: ForecastEvent[], belowZero?: string): Forecast => ({

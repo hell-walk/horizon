@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { monthlyFlow } from "@/lib/cashflow";
+import { monthlyFlow } from "@/lib/finance/cashflow";
 
 const tx = (date: string, name: string, amount: number, extra: Partial<Transaction> = {}) =>
   ({ id: `${date}-${name}`, date, name, amount: Math.abs(amount), type: amount < 0 ? "debit" : "credit", category: "Transfer", paymentChannel: "other", ...extra }) as Transaction;

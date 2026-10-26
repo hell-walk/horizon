@@ -4,7 +4,7 @@ import { Loader2, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { setRechargeDays } from "@/lib/actions/recharge.action";
 
 /** "Set the days": how long one recharge of this operator lasts, which fixes what a month costs and when the next is due. */

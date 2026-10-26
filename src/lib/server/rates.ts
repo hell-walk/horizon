@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cached } from "../cache";
-import type { Rates } from "../currency";
+import type { Rates } from "../finance/currency";
 import { logError } from "./log";
 
 // Exchange rates: the European Central Bank's daily reference rates, through

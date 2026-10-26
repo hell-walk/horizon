@@ -4,19 +4,19 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Gem, Lock, TrendingDown, TrendingUp, X } from "lucide-react";
 
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { CHART_COLOR_CLASSES, chartColorClass, spendTypeLabel } from "@/constants";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { currentPlan } from "@/lib/server/plan";
 import { activeAccountId } from "@/lib/server/selectedAccount";
-import RememberAccount from "@/components/rememberAccount";
-import { MISC, spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/spendingDetail";
+import RememberAccount from "@/components/accounts/rememberAccount";
+import { MISC, spendingDetail, type DetailEntry, type SpendingDetail } from "@/lib/finance/spendingDetail";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 
 import PayeePie from "../../components/payeePie";

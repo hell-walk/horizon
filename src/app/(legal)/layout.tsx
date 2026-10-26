@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import LanguageSwitch from "@/components/languageSwitch";
-import Logo from "@/components/logo";
-import SiteFooter from "@/components/siteFooter";
-import ThemeSwitch from "@/components/themeSwitch";
+import LanguageSwitch from "@/components/preferences/languageSwitch";
+import Logo from "@/components/brand/logo";
+import SiteFooter from "@/components/brand/siteFooter";
+import ThemeSwitch from "@/components/preferences/themeSwitch";
 import { getT } from "@/lib/i18n/server";
 
 export default async function LegalLayout({ children }: { children: ReactNode }) {

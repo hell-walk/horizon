@@ -2,9 +2,9 @@ import "server-only";
 
 import { cache } from "react";
 
-import { applyCorrections } from "../corrections";
+import { applyCorrections } from "../finance/corrections";
 import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
-import { findRegular, type Regular } from "../recurring";
+import { findRegular, type Regular } from "../finance/recurring";
 import { getBanks } from "./banks";
 import { loadCorrections } from "./corrections";
 

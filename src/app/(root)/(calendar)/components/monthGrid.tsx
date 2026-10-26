@@ -1,10 +1,10 @@
 import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import Link from "next/link";
 
-import type { CalendarDay, CalendarEvent } from "@/lib/calendar";
+import type { CalendarDay, CalendarEvent } from "@/lib/finance/calendar";
 import type { Locale } from "@/lib/i18n/config";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { cn } from "@/lib/utils";
 
 const DAY = 86_400_000;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { progressAt } from "@/components/loaders";
+import { progressAt } from "@/components/ui/loaders";
 
 // The page-load ring cannot know how much is left, so it follows how long loads
 // usually take: most of the way quickly, then slower, and never 100% early.

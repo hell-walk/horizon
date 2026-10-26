@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { stepIsOn, TOUR_EVENT, TOUR_STORAGE, TOURS } from "@/lib/tour";
+import { stepIsOn, TOUR_EVENT, TOUR_STORAGE, TOURS } from "@/lib/content/tour";
 
 /** Starts a tour: "Take the tour" on About, "Demo" on each of its boxes. Goes to the first step's page when it is elsewhere. */
 const TourStart = ({ id, className, children }: { id: keyof typeof TOURS; className?: string; children: ReactNode }) => {

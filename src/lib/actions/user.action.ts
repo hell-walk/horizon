@@ -12,10 +12,10 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid";
 
-import { passwordProblemKey } from "../passwordRules";
-import { istDay } from "../plans";
+import { passwordProblemKey } from "../auth/passwordRules";
+import { istDay } from "../content/plans";
 import { getT } from "../i18n/server";
-import { SiteConfigError, siteUrl } from "../site";
+import { SiteConfigError, siteUrl } from "../content/site";
 import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
@@ -26,7 +26,7 @@ import { addFundingSource } from "../server/dwolla";
 import { allow, clientIp, isBlocked, MINUTE, record } from "../server/rateLimit";
 import { clearSessionCookies, createSupabaseServerClient } from "../server/supabase";
 // The Plaid SDK is slow to load and only US banks need it: loaded on first use.
-const plaid = async () => (await import("../plaid")).plaidClient;
+const plaid = async () => (await import("../server/plaidClient")).plaidClient;
 import { logError } from "../server/log";
 
 export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string };
@@ -57,7 +57,7 @@ const strings = (value: unknown, keys: string[], max = 200): value is Record<str
 const badInput = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorCheckDetails") });
 const tooMany = (t: Translate): AuthResult => ({ ok: false, error: t("auth.errorTooMany") });
 
-// The rules the forms show (lib/passwordRules.ts), enforced where they cannot
+// The rules the forms show (lib/auth/passwordRules.ts), enforced where they cannot
 // be skipped. Not exported: every export of this file is a public endpoint.
 const passwordProblem = (password: string, email: string, t: Translate): string | null => {
   const key = passwordProblemKey(password, email);

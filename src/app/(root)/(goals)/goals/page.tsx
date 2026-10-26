@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
-import CardStack from "@/components/cardStack";
-import { BarsLoader } from "@/components/loaders";
-import SpendingStrip from "@/components/spendingStrip";
+import CardStack from "@/components/accounts/cardStack";
+import { BarsLoader } from "@/components/ui/loaders";
+import SpendingStrip from "@/components/accounts/spendingStrip";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccount, getAccounts } from "@/lib/server/accounts";

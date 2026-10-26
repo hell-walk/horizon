@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { brandName, groupByPayee, isPersonPayment, payeeName, PEOPLE_GROUP } from "@/lib/payees";
-import { groupBySpendType, spendType, splitUpi } from "@/lib/spending";
+import { brandName, groupByPayee, isPersonPayment, payeeName, PEOPLE_GROUP } from "@/lib/finance/payees";
+import { groupBySpendType, spendType, splitUpi } from "@/lib/finance/spending";
 
 const tx = (name: string, amount: number, type = "debit", category = "") =>
   ({ id: `${name}-${amount}`, name, amount, type, date: "2025-11-01", category, paymentChannel: "other" }) as unknown as Transaction;
@@ -164,7 +164,7 @@ describe("groupByPayee", () => {
 
 describe('"Paid vi" (a cut-short "Paid via")', () => {
   it("is not the phone company Vi", async () => {
-    const { payeeName } = await import("@/lib/payees");
+    const { payeeName } = await import("@/lib/finance/payees");
     const zepto = "WDL TFR UPI/DR/659214884656/Zepto/YESB/zeptoonlin /Paid vi 0097694162092 AT 16727 UTRETHIA , LUCKNOW";
     expect(payeeName(zepto)).not.toBe("Vi");
     expect(payeeName(zepto)).toBe("Zepto");

@@ -1,4 +1,4 @@
-import { ProgressDoughnut } from "@/components/loaders";
+import { ProgressDoughnut } from "@/components/ui/loaders";
 
 // Shown at once, on the first visit and on every move between pages, while the
 // page's data is fetched: the segmented ring fills until the page arrives.

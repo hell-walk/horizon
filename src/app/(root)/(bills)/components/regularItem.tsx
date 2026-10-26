@@ -2,7 +2,7 @@ import { CalendarClock, TrendingDown, TrendingUp } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n/config";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat, whenText } from "@/lib/regularText";
+import { dateFormat, whenText } from "@/lib/finance/regularText";
 import type { RegularWithAccount } from "@/lib/server/regular";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";
 

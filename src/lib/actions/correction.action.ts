@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
 
-import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, payeeKey, planKey, type Correction } from "../corrections";
+import { cleanName, isCategory, MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, payeeKey, planKey, type Correction } from "../finance/corrections";
 import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { getAccountUncached } from "../server/accounts";

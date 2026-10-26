@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { findLoans, lenderOf, loadBand, loanTypeOf } from "@/lib/loans";
-import { findRegular } from "@/lib/recurring";
+import { findLoans, lenderOf, loadBand, loanTypeOf } from "@/lib/finance/loans";
+import { findRegular } from "@/lib/finance/recurring";
 
 describe("lenders by name", () => {
   it.each([
@@ -80,7 +80,7 @@ describe("the loan picture", () => {
 
 describe('"ACH D-" auto-debits', () => {
   it("each keep their own payee, so two EMIs are two regular payments", async () => {
-    const { payeeKey } = await import("@/lib/corrections");
+    const { payeeKey } = await import("@/lib/finance/corrections");
     expect(payeeKey("ACH D- HDFC BANK CAR LOAN EMI")).not.toBe(payeeKey("ACH D- TVS CREDIT SERVICES"));
     expect(payeeKey("ACH D- TVS CREDIT SERVICES")).toBe("tvs services");
     expect(payeeKey("UPI/DR/1/R KUMAR/YESB/rk@ybl/")).toBe("r kumar"); // initials in a name stay

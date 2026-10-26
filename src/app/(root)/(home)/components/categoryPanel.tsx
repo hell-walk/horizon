@@ -3,9 +3,9 @@ import { ChevronRight } from "lucide-react";
 
 import { chartColorClass, spendTypeLabel } from "@/constants";
 import { getT } from "@/lib/i18n/server";
-import { PEOPLE_GROUP } from "@/lib/payees";
-import { groupBySpendType, splitUpi } from "@/lib/spending";
-import { spendSlug } from "@/lib/spendingDetail";
+import { PEOPLE_GROUP } from "@/lib/finance/payees";
+import { groupBySpendType, splitUpi } from "@/lib/finance/spending";
+import { spendSlug } from "@/lib/finance/spendingDetail";
 import { cn, formatAmount } from "@/lib/utils";
 
 import CategoryChartLink from "./categoryChartLink";

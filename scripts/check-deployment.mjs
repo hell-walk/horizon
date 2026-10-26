@@ -139,7 +139,7 @@ if (existsSync(".env")) {
     }
   }
 
-  // Razorpay: keys work, both plans exist, and their prices match src/lib/plans.ts.
+  // Razorpay: keys work, both plans exist, and their prices match src/lib/content/plans.ts.
   if (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) {
     const auth = { Authorization: `Basic ${Buffer.from(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`).toString("base64")}` };
     const payments = await fetch("https://api.razorpay.com/v1/payments?count=1", { headers: auth }).catch(() => null);
@@ -147,13 +147,13 @@ if (existsSync(".env")) {
     const keys = await fetch("https://api.razorpay.com/v1/plans?count=1", { headers: auth }).catch(() => null);
     ok("Razorpay Subscriptions is switched on", keys?.status === 200, keys?.status === 401 ? "enable Subscriptions in the Razorpay dashboard" : String(keys?.status ?? "no answer"));
     if (!local) ok("Razorpay keys are live (not test)", env.RAZORPAY_KEY_ID.startsWith("rzp_live_"), "test keys: no real payments");
-    const source = readFileSync("src/lib/plans.ts", "utf8");
+    const source = readFileSync("src/lib/content/plans.ts", "utf8");
     for (const period of ["monthly", "yearly"]) {
       const id = env[`RAZORPAY_PLAN_${period.toUpperCase()}`];
       if (!id || keys?.status !== 200) continue;
       const plan = await fetch(`https://api.razorpay.com/v1/plans/${encodeURIComponent(id)}`, { headers: auth }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       const price = Number(source.match(new RegExp(`${period}: \\{ amount: (\\d+)`))?.[1]);
-      ok(`Razorpay ${period} plan matches src/lib/plans.ts`, plan?.period === period && plan?.item?.amount === price * 100, plan ? `Razorpay says ${plan.item.amount / 100} every ${plan.period}` : "plan not found");
+      ok(`Razorpay ${period} plan matches src/lib/content/plans.ts`, plan?.period === period && plan?.item?.amount === price * 100, plan ? `Razorpay says ${plan.item.amount / 100} every ${plan.period}` : "plan not found");
     }
   }
 

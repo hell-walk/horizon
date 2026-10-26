@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bankDesignFor, cardBackground, CLASSIC, designChoices, isKnownDesign, resolveCardDesign } from "@/lib/cardDesigns";
+import { bankDesignFor, cardBackground, CLASSIC, designChoices, isKnownDesign, resolveCardDesign } from "@/lib/content/cardDesigns";
 import { pageFollowsAccount, resolveAccountId } from "@/lib/selectedAccount";
 import { extractCustomerIdFromUrl, formatAmount, maskLabel } from "@/lib/utils";
 

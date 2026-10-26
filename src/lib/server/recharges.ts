@@ -1,6 +1,6 @@
 import "server-only";
 
-import { rechargePicture, type RechargePicture } from "../recharges";
+import { rechargePicture, type RechargePicture } from "../finance/recharges";
 import { ownerAccounts } from "./ownerAccounts";
 import { readPrefs } from "./prefs";
 

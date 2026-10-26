@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { LoanPlan } from "../payoff";
+import type { LoanPlan } from "../finance/payoff";
 import { readPrefs } from "./prefs";
 
 export type { LoanPlan };
@@ -32,7 +32,7 @@ export function readLoanPlan(value: unknown): LoanPlan | null {
   return usable ? plan : null;
 }
 
-/** The saved plans, by the loan's key (lib/loans). */
+/** The saved plans, by the loan's key (lib/finance/loans). */
 export const loadLoanPlans = cache(async (ownerId: string): Promise<Record<string, LoanPlan>> => {
   const raw = (await readPrefs(ownerId)).loanPlans;
   if (!raw || typeof raw !== "object") return {};

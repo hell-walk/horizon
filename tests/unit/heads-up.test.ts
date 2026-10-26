@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { headsUp } from "@/lib/headsUp";
-import { findRegular } from "@/lib/recurring";
+import { headsUp } from "@/lib/finance/headsUp";
+import { findRegular } from "@/lib/finance/recurring";
 
 const debit = (id: string, date: string, name: string, amount: number) => ({ id, date, name, amount: -amount, type: "debit" }) as Transaction;
 const account = { id: "a1", name: "HDFC Bank", mask: "4821", currency: "INR" };

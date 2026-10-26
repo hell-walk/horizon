@@ -2,7 +2,7 @@ import { CircleAlert, CircleCheck, FileUp } from "lucide-react";
 import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { accountCoverage, STALE_DAYS } from "@/lib/server/coverage";
 import { maskKnown, maskLabel } from "@/lib/utils";
 

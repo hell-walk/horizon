@@ -1,7 +1,7 @@
 import { Smartphone } from "lucide-react";
 
 import { getLocale, getT } from "@/lib/i18n/server";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { rechargesForOwner } from "@/lib/server/recharges";
 import { formatAmount } from "@/lib/utils";
 

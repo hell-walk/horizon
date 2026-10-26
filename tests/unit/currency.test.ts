@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { combineTotals } from "@/lib/currency";
+import { combineTotals } from "@/lib/finance/currency";
 
 // ECB-style rates: 1 INR buys this much of each.
 const rates = { base: "INR", date: "2026-10-09", rates: { USD: 0.01034, EUR: 0.00923 } };

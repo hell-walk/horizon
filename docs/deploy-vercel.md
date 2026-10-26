@@ -92,7 +92,7 @@ below and change it later.
    the site: `/pricing`, `/refunds`, `/contact`, `/terms`, `/privacy`. Set the
    `NEXT_PUBLIC_CONTACT_*` / `BUSINESS_*` settings first.
 2. Create the plans: `node scripts/setup-razorpay-plans.mjs --apply` (prices
-   come from `src/lib/plans.ts`), put the two ids in Vercel.
+   come from `src/lib/content/plans.ts`), put the two ids in Vercel.
 3. The webhook. Choose a long random secret, put it in `RAZORPAY_WEBHOOK_SECRET`
    locally and in Vercel (Production and Preview), redeploy, then make the
    webhook through Razorpay's API, with the live address as the site URL:
@@ -107,7 +107,7 @@ below and change it later.
    here). The script makes the one matching the keys in `.env`: run it with
    the test keys while testing and again with the live keys after activation.
    Checkout stays disabled until the secret is configured.
-4. Changing prices later: edit `src/lib/plans.ts`, run the plans script again
+4. Changing prices later: edit `src/lib/content/plans.ts`, run the plans script again
    (Razorpay plans cannot be edited), swap the ids. Existing subscribers keep
    their old price.
 

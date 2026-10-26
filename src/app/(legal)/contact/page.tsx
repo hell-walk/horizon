@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
-import { publicPage } from "@/lib/seo";
-import { BUSINESS_ADDRESS, BUSINESS_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site";
+import { publicPage } from "@/lib/content/seo";
+import { BUSINESS_ADDRESS, BUSINESS_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/content/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // How to reach the people behind Horizon (Razorpay checks this page). The
-// details come from environment variables, see src/lib/site.ts.
+// details come from environment variables, see src/lib/content/site.ts.
 export default async function ContactPage() {
   const t = await getT();
   const locale = await getLocale();

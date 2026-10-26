@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCalendar } from "@/lib/calendar";
-import { findChecks } from "@/lib/checks";
-import { OWN_TRANSFER } from "@/lib/corrections";
-import { forecast } from "@/lib/forecast";
-import { healthScore } from "@/lib/health";
-import { estimateIncome } from "@/lib/income";
-import { findLoans } from "@/lib/loans";
-import { findRegular } from "@/lib/recurring";
-import { monthlyReport, reportMonths } from "@/lib/report";
+import { buildCalendar } from "@/lib/finance/calendar";
+import { findChecks } from "@/lib/finance/checks";
+import { OWN_TRANSFER } from "@/lib/finance/corrections";
+import { forecast } from "@/lib/finance/forecast";
+import { healthScore } from "@/lib/finance/health";
+import { estimateIncome } from "@/lib/finance/income";
+import { findLoans } from "@/lib/finance/loans";
+import { findRegular } from "@/lib/finance/recurring";
+import { monthlyReport, reportMonths } from "@/lib/finance/report";
 import { coverageOf } from "@/lib/statements/gaps";
 
 // One household's statements, May to mid-September 2026, every figure chosen by

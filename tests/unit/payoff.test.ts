@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { comparePayoff, monthsFrom, outstandingFromSchedule, payoff, scheduleFrom } from "@/lib/payoff";
+import { comparePayoff, monthsFrom, outstandingFromSchedule, payoff, scheduleFrom } from "@/lib/finance/payoff";
 
 const today = new Date("2026-10-20T00:00:00Z");
 

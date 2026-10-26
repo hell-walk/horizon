@@ -2,7 +2,7 @@ import "server-only";
 
 import { LOCALE_TAGS } from "../i18n/config";
 import { getLocale, getT } from "../i18n/server";
-import { daysLeft, type PlanState } from "../plans";
+import { daysLeft, type PlanState } from "../content/plans";
 
 /** "Free trial: 5 days left", "Subscribed · renews 13 November 2026 · 23 days left", "Free week ended": under the name, everywhere. */
 export async function planLine(plan: PlanState): Promise<string> {

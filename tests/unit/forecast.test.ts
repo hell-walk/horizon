@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { forecast } from "@/lib/forecast";
-import { findRegular } from "@/lib/recurring";
+import { forecast } from "@/lib/finance/forecast";
+import { findRegular } from "@/lib/finance/recurring";
 
 const TODAY = new Date("2026-10-10T12:00:00Z");
 let n = 0;

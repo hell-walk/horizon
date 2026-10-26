@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { setAccountDigits } from "@/lib/actions/card.action";
 
 /** For an imported account whose statement did not show its number: add the last 4 digits once. */

@@ -18,7 +18,7 @@ declare type SignUpParams = {
   postalCode: string;
   dateOfBirth: string;
   ssn: string;
-  /** How the person earns: "salaried", "student", "freelancer" or "none" (lib/income). Asked at sign-up; older profiles answer on Home. */
+  /** How the person earns: "salaried", "student", "freelancer" or "none" (lib/finance/income). Asked at sign-up; older profiles answer on Home. */
   incomeKind?: string;
   email: string;
   password: string;
@@ -94,9 +94,9 @@ declare type Transaction = {
   senderBankId: string;
   receiverBankId: string;
   currency?: string;
-  /** The user's own name for this entry (lib/corrections); the bank's text stays in name. */
+  /** The user's own name for this entry (lib/finance/corrections); the bank's text stays in name. */
   shownName?: string;
-  /** The category the user chose, one of CATEGORIES in lib/corrections. */
+  /** The category the user chose, one of CATEGORIES in lib/finance/corrections. */
   userCategory?: string;
   /** Whether the change was made for this entry only or for everyone with the same payee. */
   changedBy?: "row" | "payee";

@@ -1,7 +1,7 @@
 import type { Translate } from "./translate";
 
-// Names that data code produces in English: spending buckets (lib/spending),
-// generic payee groups (lib/payees), bank and statement categories, payment
+// Names that data code produces in English: spending buckets (lib/finance/spending),
+// generic payee groups (lib/finance/payees), bank and statement categories, payment
 // channels. They stay English as data (colours, sorting and grouping depend on
 // them) and are translated only where shown. One key per name, in common.json:
 // common.label_<name in snake case>. A name with no key (a merchant, a person)

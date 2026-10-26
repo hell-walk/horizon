@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { HeadsUpResult } from "@/lib/headsUp";
-import { isPushEndpoint, markSent, readNotify, readPushSubscription, reminderFor, withDevice, isoWeek, uploadReminder } from "@/lib/notify";
+import type { HeadsUpResult } from "@/lib/finance/headsUp";
+import { isPushEndpoint, markSent, readNotify, readPushSubscription, reminderFor, withDevice, isoWeek, uploadReminder } from "@/lib/finance/notify";
 
 const account = { id: "a1", name: "HDFC Bank", mask: "4821", currency: "INR" };
 const emi = (date: string, days: number) => ({ kind: "emi" as const, account, lender: "HDFC Bank", amount: 12000, fixed: true, date, days });

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import en from "@/lib/i18n/messages/en/tour.json";
-import { ABOUT_FEATURES } from "@/lib/aboutFeatures";
-import { stepIsOn, TOUR_WORD_KEYS, TOURS } from "@/lib/tour";
+import { ABOUT_FEATURES } from "@/lib/content/aboutFeatures";
+import { stepIsOn, TOUR_WORD_KEYS, TOURS } from "@/lib/content/tour";
 
 describe("the guided tours", () => {
   it("have words for every step and button", () => {

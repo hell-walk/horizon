@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 
-import { MAX_GOALS, readGoal } from "../goals";
+import { MAX_GOALS, readGoal } from "../finance/goals";
 import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { healthScore } from "@/lib/health";
-import { findRegular } from "@/lib/recurring";
+import { healthScore } from "@/lib/finance/health";
+import { findRegular } from "@/lib/finance/recurring";
 
 const credit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount, type: "credit" }) as Transaction;
 const debit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount: -amount, type: "debit" }) as Transaction;

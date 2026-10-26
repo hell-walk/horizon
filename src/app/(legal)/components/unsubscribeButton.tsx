@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { unsubscribeEmail } from "@/lib/actions/notify.action";
 
 /** Turns email reminders off for the person the signed link names. */

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
 import { regularPayments } from "@/lib/server/regular";
-import { dateFormat, daysUntil, whenText } from "@/lib/regularText";
+import { dateFormat, daysUntil, whenText } from "@/lib/finance/regularText";
 import { cn, formatAmount } from "@/lib/utils";
 
 const DAYS = 14;

@@ -7,9 +7,9 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { logoutAccount } from "@/lib/actions/user.action";
 
-import { useT } from "@/components/i18nProvider";
-import LanguageSwitch from "@/components/languageSwitch";
-import ThemeSwitch from "@/components/themeSwitch";
+import { useT } from "@/components/providers/i18nProvider";
+import LanguageSwitch from "@/components/preferences/languageSwitch";
+import ThemeSwitch from "@/components/preferences/themeSwitch";
 
 import BankSwitch, { type SwitchAccount } from "./bankSwitch";
 

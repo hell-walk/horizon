@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
-import { REGULAR_CHOICES } from "../checks";
-import { MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, OWN_TRANSFER, planKey, type Corrections } from "../corrections";
+import { REGULAR_CHOICES } from "../finance/checks";
+import { MAX_PAYEE_RULES, MAX_PLAN_RULES, MAX_ROW_CHANGES, OWN_TRANSFER, planKey, type Corrections } from "../finance/corrections";
 import { getT } from "../i18n/server";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { checksForOwner, FREE_CHECKS, loadChecksState, withAnswer } from "../server/checks";

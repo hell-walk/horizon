@@ -4,8 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, FileUp } from "lucide-react";
 
-import ForecastPanel from "@/components/forecastPanel";
-import { BarsLoader } from "@/components/loaders";
+import ForecastPanel from "@/components/insights/forecastPanel";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
@@ -16,7 +16,7 @@ import { forecastView } from "@/lib/server/income";
 import { regularPayments, type RegularWithAccount } from "@/lib/server/regular";
 import { formatAmount } from "@/lib/utils";
 
-import { dateFormat, daysUntil } from "@/lib/regularText";
+import { dateFormat, daysUntil } from "@/lib/finance/regularText";
 
 import RegularItem from "../components/regularItem";
 

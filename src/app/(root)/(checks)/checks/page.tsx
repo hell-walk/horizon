@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import ChecksPanel from "@/components/checksPanel";
-import { BarsLoader } from "@/components/loaders";
+import ChecksPanel from "../components/checksPanel";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";

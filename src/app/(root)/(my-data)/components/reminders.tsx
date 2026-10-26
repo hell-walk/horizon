@@ -3,8 +3,8 @@
 import { BadgeIndianRupee, BellRing, CalendarClock, FileText, HandCoins, Loader2, Mail, Send, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
-import ReminderLanguage from "@/components/reminderLanguage";
+import { useT } from "@/components/providers/i18nProvider";
+import ReminderLanguage from "@/components/preferences/reminderLanguage";
 import type { Locale } from "@/lib/i18n/config";
 import {
   removePushDevice,

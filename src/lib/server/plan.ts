@@ -1,6 +1,6 @@
 import "server-only";
 
-import { istDay, mergeSubscription, planFrom, type PlanState, type Subscription } from "../plans";
+import { istDay, mergeSubscription, planFrom, type PlanState, type Subscription } from "../content/plans";
 import type { Translate } from "../i18n/translate";
 import { loadSession, type SessionUser } from "./auth";
 import { logError } from "./log";

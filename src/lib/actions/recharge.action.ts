@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getT } from "../i18n/server";
-import { OPERATOR_NAMES } from "../recharges";
+import { OPERATOR_NAMES } from "../finance/recharges";
 import { getLoggedInUser, ownerIdOf } from "../server/auth";
 import { logError } from "../server/log";
 import { updatePrefs } from "../server/prefs";

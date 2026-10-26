@@ -4,11 +4,11 @@ import { ArcElement, Chart as ChartJS, Tooltip } from "chart.js";
 import { useRouter } from "next/navigation";
 import { Doughnut } from "react-chartjs-2";
 
-import ChartCentre from "@/components/chartCentre";
-import { useT } from "@/components/i18nProvider";
+import ChartCentre from "@/components/ui/chartCentre";
+import { useT } from "@/components/providers/i18nProvider";
 import { spendTypeLabel } from "@/constants";
-import { ENTRANCE, segmentColor, useChartColors } from "@/lib/chartColors";
-import type { DetailSlice } from "@/lib/spendingDetail";
+import { ENTRANCE, segmentColor, useChartColors } from "@/lib/content/chartColors";
+import type { DetailSlice } from "@/lib/finance/spendingDetail";
 import { formatAmount } from "@/lib/utils";
 
 ChartJS.register(ArcElement, Tooltip);

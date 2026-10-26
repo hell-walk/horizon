@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { parseStringify } from "../utils";
-import { applyCorrections } from "../corrections";
+import { applyCorrections } from "../finance/corrections";
 import { loadLoggedInUser, ownerIdOf } from "./auth";
 import { loadCorrections } from "./corrections";
 import { findOwnBank, getBanks, saveSetuSessionId } from "./banks";

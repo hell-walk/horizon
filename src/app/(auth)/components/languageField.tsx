@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import { useHomeLocale, useLocale, useT } from "@/components/i18nProvider";
+import { useHomeLocale, useLocale, useT } from "@/components/providers/i18nProvider";
 import { rememberHomeLocale, rememberLocale } from "@/lib/i18n/client";
 import { isLocale, LOCALE_ENGLISH_NAMES, LOCALE_NAMES, LOCALES } from "@/lib/i18n/config";
 

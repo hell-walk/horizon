@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
 
 import { getT } from "../i18n/server";
-import { siteUrl } from "../site";
+import { siteUrl } from "../content/site";
 import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";
 import { ownerIdOf, requireUser } from "../server/auth";

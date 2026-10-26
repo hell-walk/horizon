@@ -1,0 +1,350 @@
+// Groups spending by who was paid. Statement narrations carry the merchant in
+// a predictable place ("UPI/DR/531/ZOMATO", "NEFT/CR/INFOSYS LTD/SALARY",
+// "Swiggy order"), so the name is cleaned of rails, codes and reference
+// numbers and repeats fall into one bracket.
+
+export type PayeeSpend = {
+  key: string;
+  name: string;
+  amount: number;
+  count: number;
+  share: number;
+  transactions: Transaction[];
+};
+
+// Tokens that describe the rail or the direction, never the payee.
+const NOISE = new Set([
+  "upi",
+  "neft",
+  "imps",
+  "rtgs",
+  "ach",
+  "nach",
+  "ecs",
+  "pos",
+  "atm",
+  "dr",
+  "cr",
+  "txn",
+  "ref",
+  "id",
+  "no",
+  "chq",
+  "cheque",
+  "payment",
+  "paid",
+  "purchase",
+  "transfer",
+  "trf",
+  "tfr",
+  "dep",
+  "to",
+  "from",
+  "by",
+  "via",
+  "the",
+  "and",
+  "ltd",
+  "limited",
+  "pvt",
+  "private",
+  "india",
+  "ind",
+  "in",
+  "order",
+  "bill",
+  "online",
+  "card",
+  "debit",
+  "credit",
+  "autopay",
+  "mandate",
+  "emi",
+  "settlement",
+  "wdl",
+  "withdrawal",
+  "cash",
+  // Rails and words from other countries' statements.
+  "zelle",
+  "venmo",
+  "paypal",
+  "sepa",
+  "wire",
+  "bacs",
+  "fps",
+  "interac",
+  "contactless",
+  "visa",
+  "mastercard",
+  "dd",
+  "so",
+  "lastschrift",
+  "kartenzahlung",
+  "uberweisung",
+  "virement",
+  "carte",
+  "prlv",
+  "inc",
+  "llc",
+  "gmbh",
+  "co",
+]);
+
+// Well-known merchants: any narration containing the key gets the label.
+// More specific names first ("Uber Eats" before "Uber", "Whole Foods" before "food").
+const ALIASES: [RegExp, string][] = [
+  [/uber\s*eats/i, "Uber Eats"],
+  [/doordash/i, "DoorDash"],
+  [/deliveroo/i, "Deliveroo"],
+  [/talabat/i, "Talabat"],
+  [/whole\s*foods/i, "Whole Foods"],
+  [/walmart/i, "Walmart"],
+  [/\btarget\b/i, "Target"],
+  [/costco/i, "Costco"],
+  [/tesco/i, "Tesco"],
+  [/sainsbury/i, "Sainsbury's"],
+  [/\blidl\b/i, "Lidl"],
+  [/\baldi\b/i, "Aldi"],
+  [/carrefour/i, "Carrefour"],
+  [/\blyft\b/i, "Lyft"],
+  [/airbnb/i, "Airbnb"],
+  [/klarna/i, "Klarna"],
+  [/afterpay|clearpay/i, "Afterpay"],
+  [/comcast|xfinity/i, "Comcast"],
+  [/verizon/i, "Verizon"],
+  [/crunchyroll|ellation/i, "Crunchyroll"],
+  [/snapmint/i, "Snapmint"],
+  [/\bslice\b|sliceit/i, "Slice"],
+  [/lazypay/i, "LazyPay"],
+  [/\bsimpl\b/i, "Simpl"],
+  [/zestmoney/i, "ZestMoney"],
+  [/kreditbee/i, "KreditBee"],
+  [/\bcred\b/i, "CRED"],
+  [/bajaj\s*fin/i, "Bajaj Finserv"],
+  [/swiggy/i, "Swiggy"],
+  [/zomato/i, "Zomato"],
+  [/amazon|amzn/i, "Amazon"],
+  [/flipkart/i, "Flipkart"],
+  [/netflix/i, "Netflix"],
+  [/spotify/i, "Spotify"],
+  [/youtube|google\s*play|google\b/i, "Google"],
+  [/apple/i, "Apple"],
+  [/uber/i, "Uber"],
+  [/\bola\b/i, "Ola"],
+  [/rapido/i, "Rapido"],
+  [/irctc/i, "IRCTC"],
+  [/indigo|air\s*india|vistara|akasa/i, "Airlines"],
+  [/airtel/i, "Airtel"],
+  [/myjio|\bjio\b/i, "Jio"],
+  // Not "Paid vi": banks cut "Paid via" short, which is not the phone company (categories.ts does the same).
+  [/(?<!paid\s)\bvi\b|vodafone/i, "Vi"],
+  [/zepto/i, "Zepto"],
+  [/blinkit/i, "Blinkit"],
+  [/bigbasket/i, "BigBasket"],
+  [/instamart/i, "Instamart"],
+  [/jiomart/i, "JioMart"],
+  [/dmart|reliance\s*fresh|grofers/i, "Groceries"],
+  [/starbucks|cafe|coffee/i, "Cafe"],
+  [/mcdonald|kfc|domino|pizza|burger/i, "Fast food"],
+  [/petrol|hpcl|bpcl|indian\s*oil|iocl|shell/i, "Fuel"],
+  [/\batm\b|cash\s*wdl|cash\s*withdrawal/i, "ATM cash"],
+  [/\brent\b/i, "Rent"],
+  [/\bsip\b|mutual\s*fund|zerodha|groww|upstox|kuvera/i, "Investments"],
+  [/\bemi\b|loan/i, "Loan EMI"],
+  [/electricity|bescom|tata\s*power|adani\s*elec|msedcl|bses/i, "Electricity"],
+  [/pharmacy|apollo|medplus|1mg|pharmeasy|hospital|clinic/i, "Healthcare"],
+  [/aws|amazon\s*web|digitalocean|vercel|github|microsoft|azure/i, "Cloud and software"],
+];
+
+// Bank short codes that ride along in UPI/IMPS narrations (IFSC prefixes).
+const BANK_CODES = new Set([
+  "sbin",
+  "hdfc",
+  "icic",
+  "utib",
+  "punb",
+  "kkbk",
+  "idib",
+  "bkid",
+  "cnrb",
+  "ubin",
+  "barb",
+  "yesb",
+  "indb",
+  "fdrl",
+  "ioba",
+  "mahb",
+  "cbin",
+  "psib",
+  "ucba",
+  "ibkl",
+  "ratn",
+  "karb",
+  "sibl",
+  "cius",
+  "dlxb",
+  "tmbl",
+  "jaka",
+  "aubm",
+  "paytm",
+  "pytm",
+  "ybl",
+  "okaxis",
+  "oksbi",
+  "okhdfcbank",
+  "okicici",
+  "ibl",
+  "axl",
+  "apl",
+]);
+
+const DATE_LIKE = /^\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?$|^\d{6,}$/;
+const CODE_LIKE = /^(?=.*\d)(?=.*[a-z])[a-z0-9]{2,5}$/i; // P2A, A1, X12: short mixed codes
+const IFSC = /^[a-z]{4}0[a-z0-9]{6}$/i; // a bank branch code: HDFC0000240, CITI0100000
+const REFERENCE = /^[a-z]{1,4}\d{5,}$/i; // a transfer's reference number: N123456, UTR1234567
+
+const isNoise = (t: string) => {
+  const lower = t.toLowerCase();
+  return (
+    NOISE.has(lower) ||
+    BANK_CODES.has(lower) ||
+    DATE_LIKE.test(t) ||
+    CODE_LIKE.test(t) ||
+    IFSC.test(t) ||
+    REFERENCE.test(t) ||
+    !/\p{L}/u.test(t) ||
+    /^\d+[a-z]{0,2}$/i.test(t)
+  );
+};
+
+// Alias labels that name a kind of shop, not one business.
+const GROUP_ALIASES = new Set([
+  "Groceries",
+  "Cafe",
+  "Fast food",
+  "Fuel",
+  "ATM cash",
+  "Rent",
+  "Investments",
+  "Loan EMI",
+  "Electricity",
+  "Healthcare",
+  "Cloud and software",
+  "Airlines",
+]);
+
+/** A stable, readable label for whoever a transaction went to. */
+export function payeeName(raw: string): string {
+  const alias = ALIASES.find(([pattern]) => pattern.test(raw));
+  return alias ? alias[1] : payeeWords(raw);
+}
+
+/**
+ * The business a narration names, when it is a known brand: "Zomato" for
+ * SBI's cut-short "ZOMATO L". Nothing for a kind of shop ("Groceries") or an
+ * unknown name, so the caller can show the words as the bank wrote them.
+ */
+export function brandName(raw: string): string | undefined {
+  const alias = ALIASES.find(([pattern]) => pattern.test(raw));
+  return alias && !GROUP_ALIASES.has(alias[1]) ? alias[1] : undefined;
+}
+
+/**
+ * The payee as the bank wrote it, cleaned, without the brand and group
+ * aliases: "Mutual fund SIP" stays itself instead of becoming "Investments".
+ * "Other" when nothing readable is left.
+ */
+export function payeeWords(raw: string): string {
+  // Narrations are segmented by the rail: "UPI/DR/531/ZOMATO/SBIN/zomato@ybl".
+  // The payee is the first segment with real words left after the noise goes.
+  const segments = raw
+    .replace(/[^\p{L}\p{N}\s/|\-_@.:]/gu, " ")
+    .split(/[/|\-_:]+|\s{2,}/)
+    .map((segment) =>
+      segment
+        .split("@")[0] // drop UPI handles
+        .trim()
+        .split(/\s+/)
+        .map((t) => t.replace(/^[.\s]+|[.\s]+$/g, ""))
+        .filter((t) => t.length > 0 && !isNoise(t)),
+    )
+    // A segment left with single letters only is a rail marker, not a payee: the
+    // "D" of "ACH D- HDFC BANK LOAN" (D for debit). Without this every such line
+    // was payee "D", and two different EMIs looked like one regular payment.
+    .filter((tokens) => tokens.length > 0 && tokens.some((t) => t.length > 1));
+
+  if (segments.length === 0) return "Other";
+
+  const words = segments[0].slice(0, 3);
+  return words.map((w) => (w.length <= 3 && w === w.toUpperCase() ? w : w[0].toUpperCase() + w.slice(1).toLowerCase())).join(" ");
+}
+
+// Words that mark a business, a bank line or a purpose, never a person's name.
+const NOT_PERSON =
+  /\b(stores?|mart|traders?|trading|enterprises?|services?|solutions?|pvt|ltd|limited|llp|inc|corp|company|shops?|centre|center|hotel|restaurant|cafe|foods?|medical|medicos?|pharma|clinic|hospital|bank|finance|finserv|motors|electronics|agency|industries|distributors|merchant|retail|technologies|tech|labs|studio|bazaar|kirana|general|supermarket|hardware|textiles|jewell?ers|travels|tours|petroleum|fuels?|station|school|college|academy|institute|university|insurance|securities|capital|payments?|wallet|recharge|bill|deposit|interest|salary|refund|charges?|fees?|gst|tax|credit|debit|cash|atm|emi|loan|dividend|order|purchase|subscription|trip|ticket|postpaid|prepaid|groceries|savings|account|transfer|rent|investment|fund|sip|trust|foundation|society|club|gym|fitness|salon|parlour|boutique|enterprise|associates|consultants?|builders?|developers?|properties|realty|logistics|couriers?|express|digital|online|software|systems|network|media|games?|movies?|cinemas?|chgs?|chrgs?|penal\w*|gst|amc|sms|alert)\b/i;
+
+/**
+ * True when a payment looks like money sent to a person (a friend, a
+ * relative) rather than a shop: the payee is one to three plain words with
+ * no business or bank words in them and no known brand.
+ */
+export function isPersonPayment(raw: string): boolean {
+  if (ALIASES.some(([pattern]) => pattern.test(raw))) return false;
+  const name = payeeName(raw);
+  if (name === "Other" || NOT_PERSON.test(name)) return false;
+  // Usernames carry numbers and separators ("aaditya02", "aaditya.02"); judge the letters.
+  const words = name
+    .split(" ")
+    .map((w) => w.replace(/[\d._]+$/g, "").replace(/[._]/g, ""))
+    .filter(Boolean);
+  // SBI cuts names short, leaving an initial at the end ("RANI S", "MAHENDR A"): one letter is fine there.
+  return (
+    words.length >= 1 &&
+    words.length <= 3 &&
+    words.every((w, i) => /^[A-Za-z][A-Za-z']*$/.test(w) && (w.length >= 2 || (i === words.length - 1 && words.length >= 2)))
+  );
+}
+
+export const PEOPLE_GROUP = "UPI payments";
+
+/** Debits grouped by payee, largest first, with the tail folded into "Other". */
+export function groupByPayee(transactions: Transaction[] = [], limit = 8): PayeeSpend[] {
+  const groups = new Map<string, PayeeSpend>();
+  let total = 0;
+
+  for (const t of transactions) {
+    const amount = Math.abs(Number(t.amount) || 0);
+    const isDebit = t.type === "debit" || Number(t.amount) < 0;
+    if (!isDebit || amount === 0) continue;
+
+    if (t.userCategory === "Between my accounts") continue; // not spending (lib/finance/corrections OWN_TRANSFER)
+
+    // A name the user chose wins. Otherwise money sent to people goes into one
+    // bracket; the rows keep each name.
+    const name = t.shownName || (isPersonPayment(t.name || "") ? PEOPLE_GROUP : payeeName(t.name || ""));
+    const key = name.toLowerCase();
+    const group = groups.get(key) ?? { key, name, amount: 0, count: 0, share: 0, transactions: [] };
+    group.amount += amount;
+    group.count += 1;
+    group.transactions.push(t);
+    groups.set(key, group);
+    total += amount;
+  }
+
+  const sorted = [...groups.values()].sort((a, b) => b.amount - a.amount);
+  for (const g of sorted) g.share = total ? g.amount / total : 0;
+
+  if (sorted.length <= limit) return sorted;
+
+  const head = sorted.slice(0, limit - 1);
+  const rest = sorted.slice(limit - 1);
+  const other: PayeeSpend = {
+    key: "other",
+    name: "Other",
+    amount: rest.reduce((s, g) => s + g.amount, 0),
+    count: rest.reduce((s, g) => s + g.count, 0),
+    share: rest.reduce((s, g) => s + g.share, 0),
+    transactions: rest.flatMap((g) => g.transactions),
+  };
+  return [...head, other];
+}

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useHomeLocale } from "@/components/i18nProvider";
+import { useHomeLocale } from "@/components/providers/i18nProvider";
 import { rememberHomeLocale, rememberLocale } from "@/lib/i18n/client";
 import { LOCALE_COOKIE, type Locale } from "@/lib/i18n/config";
 import { saveHomeLanguage } from "@/lib/actions/language.action";

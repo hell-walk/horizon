@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { findChecks, type CheckAccount } from "@/lib/checks";
-import { OWN_TRANSFER } from "@/lib/corrections";
-import { findRegular } from "@/lib/recurring";
+import { findChecks, type CheckAccount } from "@/lib/finance/checks";
+import { OWN_TRANSFER } from "@/lib/finance/corrections";
+import { findRegular } from "@/lib/finance/recurring";
 
 const tx = (id: string, date: string, name: string, amount: number, type: "debit" | "credit" = "debit") =>
   ({ id, date, name, amount: type === "debit" ? -amount : amount, type }) as Transaction;

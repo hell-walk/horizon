@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { STATEMENT_BANKS } from "@/lib/bankGuides";
+import { STATEMENT_BANKS } from "@/lib/content/bankGuides";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { loadMessages, type Messages } from "@/lib/i18n/messages";
 import { makeTranslator } from "@/lib/i18n/translate";

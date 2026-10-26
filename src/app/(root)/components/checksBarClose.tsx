@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 
 export const CHECKS_SEEN_COOKIE = "horizon-checks-seen";
 

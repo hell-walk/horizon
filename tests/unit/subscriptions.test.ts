@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { Regular } from "@/lib/recurring";
-import { subscriptionPicture } from "@/lib/subscriptions";
+import type { Regular } from "@/lib/finance/recurring";
+import { subscriptionPicture } from "@/lib/finance/subscriptions";
 
 const regular = (over: Partial<Regular>): Regular => ({
   key: over.name ?? "x",

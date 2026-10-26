@@ -3,7 +3,7 @@ import "server-only";
 import { Query } from "node-appwrite";
 
 import { cached } from "../cache";
-import { PRICES, type Period } from "../plans";
+import { PRICES, type Period } from "../content/plans";
 import { createAdminClient } from "./appwrite";
 import { logError } from "./log";
 

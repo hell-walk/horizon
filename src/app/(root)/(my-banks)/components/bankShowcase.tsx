@@ -4,7 +4,7 @@ import { ArrowLeftRight, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { PROVIDER_LABELS } from "@/constants";
 import type { Translate } from "@/lib/i18n/translate";
 import { formatAmount, maskKnown, maskLabel } from "@/lib/utils";
@@ -12,9 +12,9 @@ import { formatAmount, maskKnown, maskLabel } from "@/lib/utils";
 import AddDigits from "./addDigits";
 import RenameAccount from "./renameAccount";
 import CardDesignPicker from "./cardDesignPicker";
-import CardStack from "@/components/cardStack";
-import Copy from "@/components/copy";
-import { canTransfer } from "@/lib/transfers";
+import CardStack from "@/components/accounts/cardStack";
+import Copy from "@/components/ui/copy";
+import { canTransfer } from "@/lib/finance/transfers";
 import SpendingThin, { SpendingThinSkeleton, type SpendingByAccount } from "./spendingThin";
 
 // A translated label for a value that comes from data, or the value itself when there is no key for it.

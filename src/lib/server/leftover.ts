@@ -2,8 +2,8 @@ import "server-only";
 
 import { cached, TTL } from "../cache";
 import { forget, get, put } from "./shared";
-import { monthlyFlow } from "../cashflow";
-import type { UsualLeftOver } from "../goals";
+import { monthlyFlow } from "../finance/cashflow";
+import type { UsualLeftOver } from "../finance/goals";
 import { mapWithLimit } from "../parallel";
 import { getAccount, getAccounts } from "./accounts";
 

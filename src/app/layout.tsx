@@ -15,9 +15,9 @@ import {
   Space_Grotesk,
 } from "next/font/google";
 
-import { I18nProvider } from "@/components/i18nProvider";
-import SentryLater from "@/components/sentryLater";
-import { ThemeProvider } from "@/components/themeProvider";
+import { I18nProvider } from "@/components/providers/i18nProvider";
+import SentryLater from "@/components/providers/sentryLater";
+import { ThemeProvider } from "@/components/providers/themeProvider";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getHomeLocale, getLocale, getT } from "@/lib/i18n/server";
 import { messagesFor } from "@/lib/i18n/translate";

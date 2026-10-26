@@ -4,8 +4,8 @@ import type { PrefetchKind } from "next/dist/client/components/router-reducer/ro
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { useT } from "@/components/i18nProvider";
-import { flipToAccount } from "@/lib/accountFlip";
+import { useT } from "@/components/providers/i18nProvider";
+import { flipToAccount } from "@/lib/browser/accountFlip";
 import { pageFollowsAccount, rememberAccount } from "@/lib/selectedAccount";
 import { cn, formatAmount, formUrlQuery, maskLabel } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ const SLIDE: React.CSSProperties = { transitionDuration: "600ms", transitionTimi
 /**
  * The accounts as a list in the profile panel, with a highlight that slides to
  * the chosen one. Picking an account remembers it for the whole app and, at
- * once, the page grows out of the tapped row (lib/accountFlip) with the panel
+ * once, the page grows out of the tapped row (lib/browser/accountFlip) with the panel
  * gone; the page then follows: a new ?id= where the page shows one account, a
  * refresh elsewhere.
  */

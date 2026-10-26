@@ -1,4 +1,4 @@
-import { CAPABILITY_ROUTES as ROUTES } from "@/components/landingStory";
+import { CAPABILITY_ROUTES as ROUTES } from "@/components/brand/landingStory";
 import { getT } from "@/lib/i18n/server";
 
 import FeatureSlides, { type FeatureSlide } from "./featureSlides";

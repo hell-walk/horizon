@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { categorize } from "@/lib/categories";
-import { chargeKind, findCharges } from "@/lib/charges";
+import { categorize } from "@/lib/finance/categories";
+import { chargeKind, findCharges } from "@/lib/finance/charges";
 
 // Narrations in the shapes Indian banks print their own charges (numbers made up).
 describe("bank charges", () => {
@@ -91,7 +91,7 @@ describe("money sent with a note is not a charge", () => {
 
 describe("the request to the bank", () => {
   it("lists every charge with the total, and adds the RBI minimum-balance rule only when it applies", async () => {
-    const { reversalRequest } = await import("@/lib/chargesLetter");
+    const { reversalRequest } = await import("@/lib/finance/chargesLetter");
     const tx = (id: string, date: string, name: string, amount: number) => ({ id, date, name, amount: -amount, type: "debit" });
     const report = findCharges([tx("1", "2026-09-30", "SMS CHARGES", 17.7), tx("2", "2026-08-05", "MIN BAL CHGS", 590)])!;
     const letter = reversalRequest({ bank: "HDFC Bank", mask: "4521", currency: "INR", report, holder: "Aarav Mehta" });
@@ -108,7 +108,7 @@ describe("the request to the bank", () => {
 
 describe("charges already given back", () => {
   it("are left out of the request, and a partial reversal is mentioned", async () => {
-    const { reversalRequest } = await import("@/lib/chargesLetter");
+    const { reversalRequest } = await import("@/lib/finance/chargesLetter");
     const tx = (id: string, date: string, name: string, amount: number, type = "debit") => ({
       id,
       date,
@@ -132,7 +132,7 @@ describe("charges already given back", () => {
 
 describe("investment fees", () => {
   it("a demat or broking fee is an investment cost, not a bank charge", async () => {
-    const { spendType } = await import("@/lib/spending");
+    const { spendType } = await import("@/lib/finance/spending");
     const demat = "WDL TFR CMP SBI CAPS DEMAT CHARGESDEMAT CHARGES 1 1 OF SBICAP SECURITI";
     expect(chargeKind(demat)).toBeNull();
     expect(chargeKind("CDSL AMC CHARGES")).toBeNull();

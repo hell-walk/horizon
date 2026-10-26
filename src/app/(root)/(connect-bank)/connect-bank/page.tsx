@@ -3,8 +3,8 @@ import { FileSpreadsheet, Landmark } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import AccountsTable from "@/components/accountsTable";
-import ComingSoon from "@/components/comingSoon";
+import AccountsTable from "@/components/accounts/accountsTable";
+import ComingSoon from "@/components/ui/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";

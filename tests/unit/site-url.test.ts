@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { siteUrl } from "@/lib/site";
+import { siteUrl } from "@/lib/content/site";
 
 // Links that leave the site and come back (Google, emails, bank consent) use this address.
 describe("siteUrl", () => {

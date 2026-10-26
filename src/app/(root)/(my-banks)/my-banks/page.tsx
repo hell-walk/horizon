@@ -4,18 +4,18 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import AccountsTable from "@/components/accountsTable";
+import AccountsTable from "@/components/accounts/accountsTable";
 import BankShowcase from "../components/bankShowcase";
 import CoveragePanel from "../components/coveragePanel";
 import HeaderBox from "@/components/ui/headerBox";
-import TotalBalanceBox from "@/components/ui/totalBalanceBox";
+import TotalBalanceBox from "@/components/accounts/totalBalanceBox";
 import type { SpendingByAccount } from "../components/spendingThin";
 import { getT } from "@/lib/i18n/server";
 import { getAccount, getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { withCoverage } from "@/lib/server/coverage";
 import { activeAccountId } from "@/lib/server/selectedAccount";
-import { groupBySpendType } from "@/lib/spending";
+import { groupBySpendType } from "@/lib/finance/spending";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();

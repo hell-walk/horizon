@@ -3,9 +3,9 @@
 import { Check, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { setCardDesign } from "@/lib/actions/card.action";
-import { cardBackground, designChoices } from "@/lib/cardDesigns";
+import { cardBackground, designChoices } from "@/lib/content/cardDesigns";
 import { cn } from "@/lib/utils";
 
 /**

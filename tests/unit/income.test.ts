@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { OWN_TRANSFER } from "@/lib/corrections";
-import { creditsPerMonth, estimateIncome, findSalary } from "@/lib/income";
+import { OWN_TRANSFER } from "@/lib/finance/corrections";
+import { creditsPerMonth, estimateIncome, findSalary } from "@/lib/finance/income";
 
 const credit = (date: string, name: string, amount: number) => ({ id: `${date}-${name}`, date, name, amount, type: "credit" }) as Transaction;
 // Shaped the way statement rows are stored: every amount positive, the direction in `type`.

@@ -1,11 +1,11 @@
 import { AlertTriangle, BellRing, CalendarClock, Info, Landmark } from "lucide-react";
 import Link from "next/link";
 
-import type { HeadsUp } from "@/lib/headsUp";
+import type { HeadsUp } from "@/lib/finance/headsUp";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
-import ReminderLanguage from "@/components/reminderLanguage";
+import { dateFormat } from "@/lib/finance/regularText";
+import ReminderLanguage from "@/components/preferences/reminderLanguage";
 import { headsUpFor } from "@/lib/server/headsUp";
 import { loadNotify } from "@/lib/server/notify";
 import { cn, formatAmount, maskLabel } from "@/lib/utils";

@@ -4,11 +4,11 @@ import { Query, type Models } from "node-appwrite";
 
 import { invalidate } from "../cache";
 // The Plaid SDK is slow to load and only US banks need it: loaded on first use.
-const plaid = async () => (await import("../plaid")).plaidClient;
+const plaid = async () => (await import("./plaidClient")).plaidClient;
 import { createAdminClient } from "./appwrite";
 import { authIdOf, ownerIdOf } from "./auth";
-import { readCorrections } from "../corrections";
-import { readGoals } from "../goals";
+import { readCorrections } from "../finance/corrections";
+import { readGoals } from "../finance/goals";
 import { getBanks, getUserInfo } from "./banks";
 import { deactivateCustomer, removeFundingSource } from "./dwolla";
 import { forgetLeftOver } from "./leftover";

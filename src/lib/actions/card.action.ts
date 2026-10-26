@@ -4,7 +4,7 @@ import { Query } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 
 import { invalidate } from "../cache";
-import { isKnownDesign } from "../cardDesigns";
+import { isKnownDesign } from "../content/cardDesigns";
 import { getT } from "../i18n/server";
 import { changeBlocked, countChange } from "../server/plan";
 import { createAdminClient } from "../server/appwrite";

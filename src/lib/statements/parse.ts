@@ -920,4 +920,4 @@ function detectMetadata(rows: Cell[][], fileName: string) {
 /* ------------------------------------------------------------------ */
 
 // The rules live in ../categories.ts (light, shared with the rest of the app).
-export { categorize } from "../categories";
+export { categorize } from "../finance/categories";

@@ -7,7 +7,7 @@ import { Query } from "node-appwrite";
 import { createAdminClient } from "../server/appwrite";
 import { timed } from "../server/timing";
 import { cached, TTL } from "../cache";
-import { categorize } from "../categories";
+import { categorize } from "../finance/categories";
 import { loadExtraTerms } from "../server/terms";
 import type { GapRow } from "../statements/gaps";
 

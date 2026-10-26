@@ -4,12 +4,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 import HeaderBox from "@/components/ui/headerBox";
-import { buildCalendar, type CalendarDay } from "@/lib/calendar";
+import { buildCalendar, type CalendarDay } from "@/lib/finance/calendar";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
+import { dateFormat } from "@/lib/finance/regularText";
 import { getAccounts } from "@/lib/server/accounts";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
 import { accountForecast, type AccountForecast } from "@/lib/server/forecast";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { getT } from "@/lib/i18n/server";
-import { publicPage } from "@/lib/seo";
+import { publicPage } from "@/lib/content/seo";
 
 import AuthForm from "../components/authForm";
 

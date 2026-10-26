@@ -2,12 +2,12 @@
 
 import { use } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { chartColorClass } from "@/constants";
-import type { SpendBucket } from "@/lib/spending";
+import type { SpendBucket } from "@/lib/finance/spending";
 import { cn, formatAmount } from "@/lib/utils";
 import { dataLabel } from "@/lib/i18n/labels";
-import { BarsLoader } from "@/components/loaders";
+import { BarsLoader } from "@/components/ui/loaders";
 
 export type AccountSpending = { buckets: SpendBucket[]; total: number; currency: string; period: "month" | "all" };
 export type SpendingByAccount = Record<string, AccountSpending>;

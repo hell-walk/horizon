@@ -3,11 +3,11 @@ import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Translate } from "@/lib/i18n/translate";
-import { dateFormat } from "@/lib/regularText";
-import { planGuesses } from "@/lib/planNames";
+import { dateFormat } from "@/lib/finance/regularText";
+import { planGuesses } from "@/lib/finance/planNames";
 import { currentPlan } from "@/lib/server/plan";
 import { subscriptionsForOwner } from "@/lib/server/subscriptions";
-import type { Subscription } from "@/lib/subscriptions";
+import type { Subscription } from "@/lib/finance/subscriptions";
 import { cn, formatAmount } from "@/lib/utils";
 
 import PlanName from "./planName";

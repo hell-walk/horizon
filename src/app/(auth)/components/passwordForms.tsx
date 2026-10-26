@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { requestPasswordReset, setNewPassword } from "@/lib/actions/user.action";
 
 import PasswordRules from "./passwordRules";

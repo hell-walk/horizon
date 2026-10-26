@@ -2,8 +2,8 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { ForecastView } from "../forecast";
-import { estimateIncome, findSalary, incomingPayers, isIncomeKind, salaryCandidates, type IncomeEstimate, type IncomeKind, type SalaryCredit } from "../income";
+import type { ForecastView } from "../finance/forecast";
+import { estimateIncome, findSalary, incomingPayers, isIncomeKind, salaryCandidates, type IncomeEstimate, type IncomeKind, type SalaryCredit } from "../finance/income";
 import { ownerAccounts } from "./ownerAccounts";
 import { readPrefs } from "./prefs";
 
@@ -23,7 +23,7 @@ export const loadIncome = cache(async (ownerId: string): Promise<IncomeSetting |
 
 /**
  * The employer the statements show, if any: a company paying much the same
- * each month (lib/income). "Salaried" is only accepted once there is one, so
+ * each month (lib/finance/income). "Salaried" is only accepted once there is one, so
  * Horizon knows which credit is the salary.
  */
 export async function findEmployer(ownerId: string, setting?: IncomeSetting | null, ownNames?: string[]): Promise<SalaryCredit | undefined> {

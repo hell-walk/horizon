@@ -4,9 +4,9 @@ import { Loader2, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { namePlan } from "@/lib/actions/correction.action";
-import { PLAN_NAMES } from "@/lib/planNames";
+import { PLAN_NAMES } from "@/lib/finance/planNames";
 
 /**
  * Names one subscription: a pencil, then a small form with Horizon's guesses

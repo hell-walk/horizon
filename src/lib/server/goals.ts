@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cached, remember, TTL } from "../cache";
-import { readGoals, type Goal } from "../goals";
+import { readGoals, type Goal } from "../finance/goals";
 import { logError } from "./log";
 import { readPrefs, updatePrefs } from "./prefs";
 

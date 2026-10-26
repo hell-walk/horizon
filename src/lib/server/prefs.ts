@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { IncomeKind } from "../income";
+import type { IncomeKind } from "../finance/income";
 
 import { cached, remember, TTL } from "../cache";
 import { createAdminClient } from "./appwrite";
@@ -16,17 +16,17 @@ export type Prefs = {
   corrections?: unknown;
   goals?: unknown;
   country?: string;
-  /** Reminder settings: email on or off, the devices for push, what was sent (lib/notify.ts). */
+  /** Reminder settings: email on or off, the devices for push, what was sent (lib/finance/notify.ts). */
   notify?: unknown;
   /** Missing weeks found while importing: "ask" first (the default) or "add" without asking. */
   importGaps?: "ask" | "add";
-  /** How the person earns, and a freelancer's own monthly figure (lib/income). */
+  /** How the person earns, and a freelancer's own monthly figure (lib/finance/income). */
   income?: { kind: IncomeKind; declared?: number; salaryPayee?: string; excluded?: string[]; side?: number; payDay?: number };
   /** Home's questions: what was answered (keys), and how many answers were used (free: three). */
   checks?: { answered: string[]; used: number };
   /** What the person told Horizon about each loan, by the loan's key (server/loanPlans). */
   loanPlans?: unknown;
-  /** How long one recharge lasts, by operator, as the person said (lib/recharges). */
+  /** How long one recharge lasts, by operator, as the person said (lib/finance/recharges). */
   rechargeDays?: Record<string, number>;
 };
 

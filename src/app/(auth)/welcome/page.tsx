@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { countryList } from "@/lib/countries";
+import { countryList } from "@/lib/content/countries";
 import { LOCALE_TAGS } from "@/lib/i18n/config";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { getLoggedInUser, loadSession } from "@/lib/server/auth";
@@ -11,7 +11,7 @@ import { createProfile } from "@/lib/server/profile";
 import { claim, release } from "@/lib/server/shared";
 
 import AuthForm from "../components/authForm";
-import DataUnavailable from "@/components/dataUnavailable";
+import DataUnavailable from "@/components/ui/dataUnavailable";
 
 export const dynamic = "force-dynamic";
 

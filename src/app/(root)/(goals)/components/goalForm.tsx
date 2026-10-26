@@ -3,10 +3,10 @@
 import { Loader2 } from "lucide-react";
 import { useId, useState, useTransition } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { saveGoal } from "@/lib/actions/goal.action";
-import { MAX_NAME_LENGTH } from "@/lib/corrections";
-import type { Goal } from "@/lib/goals";
+import { MAX_NAME_LENGTH } from "@/lib/finance/corrections";
+import type { Goal } from "@/lib/finance/goals";
 
 const toNumber = (text: string) => (text.trim() === "" ? undefined : Number(text.replace(/,/g, "")));
 

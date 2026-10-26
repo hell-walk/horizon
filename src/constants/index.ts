@@ -68,7 +68,7 @@ export const PROVIDER_LABELS: Record<string, { name: string; region: string; mod
   },
 };
 
-// The spending buckets from lib/spending (and "UPI payments" from lib/payees),
+// The spending buckets from lib/finance/spending (and "UPI payments" from lib/finance/payees),
 // keyed by their English name. The English name stays the data (colours and
 // sorting depend on it); only the label on screen is translated.
 /** The on-screen name of a spending bucket or payee group (see lib/i18n/labels). */

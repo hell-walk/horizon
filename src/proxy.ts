@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isSessionCookie, safeCookie, SESSION_COOKIE_OPTIONS } from "./lib/sessionCookie";
+import { isSessionCookie, safeCookie, SESSION_COOKIE_OPTIONS } from "./lib/auth/sessionCookie";
 
 // Runs before each page request. Its one job: when the sign-in has expired
 // (Supabase sessions last an hour and renew themselves), renew it here and

@@ -1,9 +1,9 @@
-import LanguageSwitch from "@/components/languageSwitch";
-import Logo from "@/components/logo";
+import LanguageSwitch from "@/components/preferences/languageSwitch";
+import Logo from "@/components/brand/logo";
 import { getT } from "@/lib/i18n/server";
 import type { SwitchAccount } from "./bankSwitch";
 import Navbar from "./navbar";
-import ThemeSwitch from "@/components/themeSwitch";
+import ThemeSwitch from "@/components/preferences/themeSwitch";
 import UserMenu from "./userMenu";
 
 // The only chrome above a signed-in page: wordmark, the floating pill

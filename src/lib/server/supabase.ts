@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-import { isSessionCookie, safeCookie, SESSION_COOKIE_OPTIONS } from "../sessionCookie";
+import { isSessionCookie, safeCookie, SESSION_COOKIE_OPTIONS } from "../auth/sessionCookie";
 
 // Supabase handles sign-in only: who you are. Everything else (profile, banks,
 // statements, settings) stays in Appwrite, found by the Supabase user id.

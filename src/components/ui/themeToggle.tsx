@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { cn } from "@/lib/utils";
 
 // Slow, soft slide for both discs. Inline so no utility class can be dropped.

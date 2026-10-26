@@ -2,7 +2,7 @@ import { CircleHelp } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
-import type { Check } from "@/lib/checks";
+import type { Check } from "@/lib/finance/checks";
 import { getT } from "@/lib/i18n/server";
 import { checksForOwner } from "@/lib/server/checks";
 

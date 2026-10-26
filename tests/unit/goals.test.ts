@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addMonth, monthsBetween, planGoal, readGoal, readGoals } from "@/lib/goals";
+import { addMonth, monthsBetween, planGoal, readGoal, readGoals } from "@/lib/finance/goals";
 
 describe("month arithmetic", () => {
   it("adds months across years and counts them", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { payeeName } from "@/lib/payees";
-import { spendType } from "@/lib/spending";
+import { payeeName } from "@/lib/finance/payees";
+import { spendType } from "@/lib/finance/spending";
 
 const kind = (name: string) => spendType({ name, category: "Transfer", paymentChannel: "other" });
 

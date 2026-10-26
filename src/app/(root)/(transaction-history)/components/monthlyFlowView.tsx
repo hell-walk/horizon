@@ -3,7 +3,7 @@
 import { BarChart3, List } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { useT } from "@/components/i18nProvider";
+import { useT } from "@/components/providers/i18nProvider";
 import { cn } from "@/lib/utils";
 
 import MonthlyChart, { type MonthBar } from "./monthlyChart";
