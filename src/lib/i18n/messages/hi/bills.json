@@ -40,6 +40,10 @@
   "about": "लगभग",
   "whenMissed": "लगभग {date} को आना था, पर आपके स्टेटमेंट में नहीं है।",
   "whenUnseen": "लगभग {date} को देना था। आपके स्टेटमेंट अभी वहाँ तक नहीं पहुँचे हैं।",
+
+  "otherAccountHint": "किसी दूसरे खाते से भरा? Horizon सिर्फ़ वही स्टेटमेंट देखता है जो आप जोड़ते हैं।",
+
+  "otherAccountLink": "वह खाता जोड़ें",
   "whenToday": "आज देना है",
   "whenTomorrow": "कल देना है",
   "whenInDays_one": "{count} दिन में, {date}",

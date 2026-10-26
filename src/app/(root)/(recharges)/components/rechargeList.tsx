@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import Link from "next/link";
 
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Recharge } from "@/lib/finance/recharges";
@@ -46,7 +47,13 @@ const RechargeList = async ({ items, currency }: { items: Recharge[]; currency: 
           </p>
           {r.lapsed && r.next && (
             <p className="flex items-start gap-1.5 text-13 text-warn-ink">
-              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden /> {t("loans.rechargeLapsed", { date: day(r.next) })}
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              <span>
+                {t("loans.rechargeLapsed", { date: day(r.next) })}{" "}
+                <Link href="/connect-bank" className="font-semibold underline underline-offset-2">
+                  {t("bills.otherAccountLink")}
+                </Link>
+              </span>
             </p>
           )}
 

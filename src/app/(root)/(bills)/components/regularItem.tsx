@@ -1,4 +1,5 @@
 import { CalendarClock, TrendingDown, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 import type { Locale } from "@/lib/i18n/config";
 import type { Translate } from "@/lib/i18n/translate";
@@ -57,6 +58,15 @@ const RegularItem = ({ r, t, locale, showDate = false }: { r: RegularWithAccount
         <p className={cn("flex items-center gap-1.5 text-13", late || r.status === "unseen" ? "text-warn-ink" : "text-ink")}>
           <CalendarClock className="size-3.5 shrink-0" aria-hidden /> {whenText(t, r, day)}
         </p>
+        {/* A payment that seems to have stopped often moved to an account Horizon has not seen. */}
+        {late && r.direction === "out" && (
+          <p className="text-13 text-ink-muted">
+            {t("bills.otherAccountHint")}{" "}
+            <Link href="/connect-bank" className="font-semibold text-ink underline underline-offset-2">
+              {t("bills.otherAccountLink")}
+            </Link>
+          </p>
+        )}
 
         {r.changed && (
           <p className="flex items-center gap-1.5 text-13 text-ink">

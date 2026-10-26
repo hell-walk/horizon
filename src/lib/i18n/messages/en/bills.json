@@ -40,6 +40,10 @@
   "about": "about",
   "whenMissed": "Expected around {date}, but it is not in your statements.",
   "whenUnseen": "Was due around {date}. Your statements do not reach that far yet.",
+
+  "otherAccountHint": "Paid from another account? Horizon only sees the statements you add.",
+
+  "otherAccountLink": "Add that account",
   "whenToday": "Due today",
   "whenTomorrow": "Due tomorrow",
   "whenInDays_one": "In {count} day, {date}",
