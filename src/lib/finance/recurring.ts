@@ -2,6 +2,7 @@ import { isPayLater } from "./categories";
 import { OWN_TRANSFER, payeeKey } from "./corrections";
 import { isStore } from "./planNames";
 import { payeeName } from "./payees";
+import { isTelecom, looksLikeBill } from "./recharges";
 import { spendType } from "./spending";
 
 // Payments that come back on a rhythm: rent, EMIs, subscriptions, bills,
@@ -21,6 +22,8 @@ export type Regular = {
   key: string;
   name: string;
   kind: RegularKind;
+  /** A telecom payee's bills (wifi or postpaid: GST on top), kept apart from its prepaid recharges. */
+  variant?: "wifiOrPostpaid";
   direction: "in" | "out";
   cadence: Cadence;
   /** The usual amount (the middle one). */
@@ -167,9 +170,13 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     const key = regularKeyOf(tx);
     if (!key) continue;
     const direction = key.startsWith("out|") ? "out" : "in";
-    const group = groups.get(key) ?? { direction, rows: [] };
+    // A telecom payee is paid for two different things: prepaid recharges
+    // (whole rupees) and wifi or postpaid bills (GST on top, so paise). Each
+    // is its own series, or the bill's rhythm drowns in the recharges.
+    const groupKey = direction === "out" && isTelecom(tx.name) && looksLikeBill(amount) ? `${key}#bill` : key;
+    const group = groups.get(groupKey) ?? { direction, rows: [] };
     group.rows.push({ tx, day, amount });
-    groups.set(key, group);
+    groups.set(groupKey, group);
   }
 
   // A subscription merchant's payments, split by amount tier (see splitByAmount).
@@ -188,7 +195,9 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     // (statements often cover a single month). Its cadence is a guess: monthly.
     const knownSubscription =
       direction === "out" && rows.length === 1 && spendType(rows[0].tx) === "Subscriptions" && !isStore(payeeKey(rows[0].tx.name) ?? "");
-    if (rows.length < 2 && !knownSubscription) continue;
+    // The same for a wifi or postpaid bill: telecom bills come every month.
+    const telecomBill = key.endsWith("#bill");
+    if (rows.length < 2 && !knownSubscription && !telecomBill) continue;
     rows.sort((a, b) => a.day - b.day);
     const gaps = rows.slice(1).map((r, i) => r.day - rows[i].day);
     if (gaps.some((g) => g === 0)) continue; // two on one day: shopping, not a bill
@@ -246,6 +255,7 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
       key,
       name: sample.shownName || payeeName(sample.name),
       kind: kindOf(sample, direction),
+      ...(telecomBill ? { variant: "wifiOrPostpaid" as const } : {}),
       direction,
       cadence,
       amount: round2(usual),

@@ -81,6 +81,13 @@ export const rechargeOperator = (name: string): string | undefined => (NOT_RECHA
 /** GST added on top, so a bill (wifi, postpaid), not a prepaid recharge: prepaid prices are whole rupees. */
 export const looksLikeBill = (amount: number) => Math.abs(amount * 100 - Math.round(amount) * 100) >= 1;
 
+// A named telecom operator or an internet provider, recharge or bill alike
+// (the generic "recharge" row is left out: a wallet or FASTag top-up is neither).
+const NAMED_OPERATORS = OPERATORS.slice(0, -1);
+const INTERNET = /broadband|fiber|fibre|postpaid|hathway|excitel|act\s*fib|you\s*broadband|tikona|spectra/i;
+/** Payments to a telecom or internet payee, whose bills (looksLikeBill) and prepaid recharges are two different things. */
+export const isTelecom = (name: string) => NAMED_OPERATORS.some(([re]) => re.test(name)) || INTERNET.test(name);
+
 /** Below this, a recharge that is no known plan is an add-on (extra data or talk time). */
 const ADD_ON_BELOW = 150;
 

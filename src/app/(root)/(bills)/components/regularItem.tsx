@@ -39,6 +39,7 @@ const RegularItem = ({ r, t, locale, showDate = false }: { r: RegularWithAccount
             {r.name}
           </span>
           <span className="chip">{t(`bills.kind_${r.kind}`)}</span>
+          {r.variant === "wifiOrPostpaid" && <span className="chip">{t("bills.variantWifi")}</span>}
           <span translate="no" className={cn("amount ml-auto text-14 font-semibold", r.direction === "out" ? "text-danger" : "text-success")}>
             {r.fixedAmount ? "" : `${t("bills.about")} `}
             {r.direction === "out" ? "-" : "+"}
@@ -70,7 +71,7 @@ const RegularItem = ({ r, t, locale, showDate = false }: { r: RegularWithAccount
 
         <details className="text-13">
           <summary className="cursor-pointer text-ink-muted underline underline-offset-2">
-            {r.count === 1 ? t("bills.whySeenOnce") : r.confidence === "low" ? t("bills.whySeenTwice") : t("bills.why", { count: r.count, since: fullDay(first.date) })}
+            {r.count === 1 ? t(r.variant ? "bills.whySeenOnceBill" : "bills.whySeenOnce") : r.confidence === "low" ? t("bills.whySeenTwice") : t("bills.why", { count: r.count, since: fullDay(first.date) })}
           </summary>
           <ul className="mt-1 flex flex-col gap-0.5 pl-1" translate="no">
             {r.seen.map((s) => (

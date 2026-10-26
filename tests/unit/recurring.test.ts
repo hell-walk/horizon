@@ -151,6 +151,24 @@ describe("findRegular", () => {
     expect(findRegular(sip, TODAY)[0].kind).toBe("own");
   });
 
+  it("keeps a telecom payee's wifi or postpaid bill apart from its prepaid recharges, and shows the bill after one payment", () => {
+    // ₹349 prepaid every month, then JioFiber ₹899 + 18% GST paid once through the same app (as in a real statement).
+    const rows = [...monthly("UPI/DR/1/Jio Prep/YESB/paytm-jiom/", -349, 10, [7, 8, 9]), tx("2026-10-08", "WDL TFR UPI/DR/4/MYJIO/HDFC/myjio4.eas/", -1060.82)];
+    const found = findRegular(rows, TODAY);
+    const bill = found.find((r) => r.variant === "wifiOrPostpaid");
+    expect(bill).toMatchObject({ kind: "bill", amount: 1060.82, count: 1, cadence: "monthly", confidence: "low", next: "2026-11-08", status: "upcoming" });
+    expect(bill!.key).toMatch(/#bill$/);
+    const recharges = found.find((r) => r.variant === undefined && r.name === "Jio");
+    expect(recharges).toMatchObject({ amount: 349, count: 3 });
+    expect(recharges!.key).not.toMatch(/#bill$/);
+    // Two bills a month apart, with recharges in between, are still one steady monthly bill.
+    const two = [...rows, tx("2026-11-08", "WDL TFR UPI/DR/5/MYJIO/HDFC/myjio4.eas/", -1060.82), tx("2026-10-20", "UPI/DR/6/Jio Prep/YESB/", -349)];
+    expect(findRegular(two, TODAY).find((r) => r.variant)).toMatchObject({ count: 2, amount: 1060.82, fixedAmount: true, cadence: "monthly" });
+    // A lone prepaid recharge is not a regular payment, and a lone paise amount to a shop is not a bill.
+    expect(findRegular([tx("2026-10-01", "UPI/DR/7/Jio Prep/YESB/", -349)], TODAY)).toEqual([]);
+    expect(findRegular([tx("2026-10-01", "ZOMATO ORDER", -1060.82)], TODAY)).toEqual([]);
+  });
+
   it("copes with nothing and with junk", () => {
     expect(findRegular()).toEqual([]);
     expect(findRegular([tx("", "X", -1), tx("2026-01-01", "X", 0)], TODAY)).toEqual([]);
