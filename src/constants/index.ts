@@ -13,6 +13,7 @@ import {
   PlugZap,
   ReceiptText,
   ShieldCheck,
+  Smartphone,
   Target,
 } from "lucide-react";
 
@@ -36,6 +37,7 @@ export const sidebarLinks = [
 // Behind "More" (the three dots) everywhere. Sending money is US-only (Dwolla);
 // in India people pay with UPI, so it does not need a place in the main bar.
 export const moreLinks = [
+  { icon: Smartphone, route: "/recharges", label: "Recharges", labelKey: "nav.recharges", shortKey: "nav.rechargesShort" },
   { icon: CalendarDays, route: "/calendar", label: "Cash-flow calendar", labelKey: "nav.calendar", shortKey: "nav.calendarShort" },
   { icon: FileText, route: "/report", label: "Monthly report", labelKey: "nav.report", shortKey: "nav.reportShort" },
   { icon: Target, route: "/goals", label: "Savings goals", labelKey: "nav.goals", shortKey: "nav.goals" },

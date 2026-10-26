@@ -7,8 +7,8 @@ import { useState, useTransition, type FormEvent } from "react";
 import { useT } from "@/components/providers/i18nProvider";
 import { setRechargeDays } from "@/lib/actions/recharge.action";
 
-/** "Set the days": how long one recharge of this operator lasts, which fixes what a month costs and when the next is due. */
-const RechargeDays = ({ operator, days }: { operator: string; days?: number }) => {
+/** "Set the days": how long the plan the person is on lasts, which fixes what a month costs and when the next is due. */
+const RechargeDays = ({ operator, price, priceLabel, days }: { operator: string; price: number; priceLabel: string; days?: number }) => {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -24,7 +24,7 @@ const RechargeDays = ({ operator, days }: { operator: string; days?: number }) =
     setBusy(true);
     setError(null);
     try {
-      const result = await setRechargeDays({ operator, days: Number(value) });
+      const result = await setRechargeDays({ operator, price, days: Number(value) });
       if (result.ok) {
         setOpen(false);
         startTransition(() => router.refresh());
@@ -46,7 +46,7 @@ const RechargeDays = ({ operator, days }: { operator: string; days?: number }) =
   return (
     <form onSubmit={save} className="flex w-full flex-col gap-2 border-t border-line pt-3">
       <label htmlFor={`recharge-days-${operator}`} className="field-label">
-        {t("loans.rechargeDaysLabel", { operator })}
+        {t("loans.rechargeDaysLabel", { operator, amount: priceLabel })}
       </label>
       <input
         id={`recharge-days-${operator}`}
