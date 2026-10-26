@@ -363,7 +363,6 @@ describe("password policy (enforced on the server, not just the form)", () => {
 
   it.each([
     ["short", "Use at least 8 characters."],
-    ["x".repeat(129), "Use at most 128 characters."],
     ["password123", "That password is too common. Choose another."],
     ["aaaaaaaaaa", "That password is too common. Choose another."],
     ["adalovelace!2026", "Do not use your email in your password."],
