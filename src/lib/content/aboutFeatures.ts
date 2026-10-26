@@ -1,6 +1,6 @@
 import type { ShotName } from "@/components/brand/shot";
 
-// The nine capabilities on the About page, each with a page of its own: what
+// The ten capabilities on the About page, each with a page of its own: what
 // it does (landing.cap*), the closer-look texts where the landing page has
 // them (landing.f*), its screenshots, and the page in the app it opens.
 
@@ -16,6 +16,7 @@ export const ABOUT_FEATURES: AboutFeature[] = [
   { slug: "forecast", n: 7, route: "/calendar", shots: ["calendar", "bills"], looks: [7] },
   { slug: "report", n: 8, route: "/report", shots: ["report"], looks: [8] },
   { slug: "checks", n: 9, route: "/checks", shots: ["checks", "home-phone"], looks: [] },
+  { slug: "subscriptions", n: 10, route: "/subscriptions", shots: ["subscriptions"], looks: [9] },
 ];
 
 export const aboutFeature = (slug: string) => ABOUT_FEATURES.find((f) => f.slug === slug);
@@ -34,4 +35,5 @@ export const SHOT_ALT: Record<ShotName, string> = {
   spending: "landing.shotSpending",
   checks: "landing.shotChecks",
   "home-phone": "landing.shotPhone",
+  subscriptions: "landing.shotSubscriptions",
 };

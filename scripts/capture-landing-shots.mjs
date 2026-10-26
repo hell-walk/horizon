@@ -14,6 +14,8 @@ const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer-core");
 
 const base = (process.argv[2] ?? "http://localhost:3100").replace(/\/$/, "");
+// Optional second argument: only these shots (comma-separated names), when one page changed.
+const only = process.argv[3] ? new Set(process.argv[3].split(",")) : null;
 const email = process.env.HORIZON_SHOT_EMAIL;
 const password = process.env.HORIZON_SHOT_PASSWORD;
 if (!email || !password) {
@@ -39,6 +41,7 @@ const SHOTS = [
   ["connect", "/connect-bank", 1280, 820],
   ["charges", "/charges", 1280, 820],
   ["loans", "/loans", 1280, 820],
+  ["subscriptions", "/subscriptions", 1280, 820],
   ["calendar", "/calendar", 1280, 820],
   ["report", "/report", 1280, 820],
   ["spending", "/spending/upi-payments", 1280, 820],
@@ -62,6 +65,7 @@ try {
     // next-themes keeps the choice in localStorage; the page reads it before paint.
     await page.evaluate((t) => localStorage.setItem("theme", t), theme);
     for (const [name, path, width, height] of SHOTS) {
+      if (only && !only.has(name)) continue;
       await page.setViewport({ width, height, deviceScaleFactor: 2 });
       await page.goto(`${base}${path}`, { waitUntil: "networkidle2" });
       await new Promise((r) => setTimeout(r, 2500)); // streamed sections and count-up animations settle

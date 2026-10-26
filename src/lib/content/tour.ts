@@ -48,7 +48,6 @@ export const TOURS: Record<string, TourStep[]> = {
   loans: [
     { page: "/loans", target: [".page .grid"], key: "loansTiles" },
     { page: "/loans", target: ['section[aria-labelledby="loans-order"]'], key: "loansOrder" },
-    { page: "/loans", target: ['section[aria-labelledby="subs-title"]'], key: "loansSubs" },
   ],
   "spending-detail": [{ page: "/transaction-history", target: ["#payees"], key: "detailPayees" }],
   forecast: [
@@ -61,6 +60,10 @@ export const TOURS: Record<string, TourStep[]> = {
     { page: "/report", target: [".page .grid ~ *"], key: "reportParts" },
   ],
   checks: [{ page: "/checks", target: ['section[aria-labelledby="checks-title"]', ".page .panel"], key: "checksList" }],
+  subscriptions: [
+    { page: "/subscriptions", target: ['section[aria-labelledby="subs-title"]'], key: "subsList" },
+    { page: "/subscriptions", target: ['section[aria-labelledby="recharges-title"]'], key: "subsRecharges" },
+  ],
 };
 
 export const isTourId = (value: unknown): value is keyof typeof TOURS => typeof value === "string" && value in TOURS;

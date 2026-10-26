@@ -27,17 +27,8 @@ export const CAPABILITY_ROUTES = ABOUT_FEATURES.map((f) => f.route);
 export default async function LandingStory({ linked = false, motion = true, looks = true }: { linked?: boolean; motion?: boolean; looks?: boolean } = {}) {
   const t = await getT();
   const rise = motion ? "landing-rise" : "";
-  const capabilities = [
-    ["01", t("landing.cap1Title"), t("landing.cap1Body")],
-    ["02", t("landing.cap2Title"), t("landing.cap2Body")],
-    ["03", t("landing.cap3Title"), t("landing.cap3Body")],
-    ["04", t("landing.cap4Title"), t("landing.cap4Body")],
-    ["05", t("landing.cap5Title"), t("landing.cap5Body")],
-    ["06", t("landing.cap6Title"), t("landing.cap6Body")],
-    ["07", t("landing.cap7Title"), t("landing.cap7Body")],
-    ["08", t("landing.cap8Title"), t("landing.cap8Body")],
-    ["09", t("landing.cap9Title"), t("landing.cap9Body")],
-  ] as const;
+  // One card per capability, numbered as on the About page (landing.cap<n>Title / Body).
+  const capabilities = ABOUT_FEATURES.map((f) => [String(f.n).padStart(2, "0"), t(`landing.cap${f.n}Title`), t(`landing.cap${f.n}Body`)] as const);
 
   const features = [
     { shot: "home", label: t("landing.f1Label"), title: t("landing.f1Title"), body: t("landing.f1Body"), alt: t("landing.shotHome") },
@@ -48,6 +39,7 @@ export default async function LandingStory({ linked = false, motion = true, look
     { shot: "loans", label: t("landing.f6Label"), title: t("landing.f6Title"), body: t("landing.f6Body"), alt: t("landing.shotLoans") },
     { shot: "calendar", label: t("landing.f7Label"), title: t("landing.f7Title"), body: t("landing.f7Body"), alt: t("landing.shotCalendar") },
     { shot: "report", label: t("landing.f8Label"), title: t("landing.f8Title"), body: t("landing.f8Body"), alt: t("landing.shotReport") },
+    { shot: "subscriptions", label: t("landing.f9Label"), title: t("landing.f9Title"), body: t("landing.f9Body"), alt: t("landing.shotSubscriptions") },
   ] as const;
 
   return (

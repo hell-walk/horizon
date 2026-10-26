@@ -18,7 +18,6 @@ import { currentPlan } from "@/lib/server/plan";
 import { cn, formatAmount } from "@/lib/utils";
 
 import PayoffPlanner from "../components/payoffPlanner";
-import SubscriptionsPanel from "../components/subscriptionsPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -84,13 +83,8 @@ async function LoansContent({ ownerId }: { ownerId: string }) {
       <Analysis t={t} locale={locale} report={report} plans={plans} />
     );
 
-  // Subscriptions sit under the loans: the same kind of money leaving on a rhythm, the same gate. Recharges have their own page (/recharges).
-  return (
-    <>
-      {loans}
-      <SubscriptionsPanel ownerId={ownerId} />
-    </>
-  );
+  // Subscriptions and recharges have a page of their own (/subscriptions).
+  return loans;
 }
 
 /** Not subscribed: the headline only, and what subscribing shows. */

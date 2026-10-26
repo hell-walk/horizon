@@ -27,7 +27,7 @@ export async function setRechargeDays({ operator, price, days }: { operator: str
     if (days > 0) next[rechargeDaysKey(operator, price)] = days;
     else delete next[rechargeDaysKey(operator, price)];
     await updatePrefs(owner, { rechargeDays: next });
-    revalidatePath("/recharges");
+    revalidatePath("/subscriptions");
     return { ok: true as const };
   } catch (error) {
     logError("recharges: could not save the plan length", error);

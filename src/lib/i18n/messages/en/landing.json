@@ -69,10 +69,16 @@
   "f8Title": "A health score for the month",
   "f8Body": "One number for how the month went, and the parts behind it: EMIs against income, what is spoken for before the month starts, what was left over. A reminder brings you back each week.",
   "shotCharges": "Horizon's bank charges page: every fee by kind and by month, with a request to the bank",
-  "shotLoans": "Horizon's EMIs and loans page: each lender, what it takes a month, and the subscriptions",
+  "shotLoans": "Horizon's EMIs and loans page: each lender and what it takes a month",
   "shotCalendar": "Horizon's cash-flow calendar: salary, EMIs and bills on their days, with the balance forecast",
   "shotReport": "Horizon's monthly report: the health score and the parts behind it",
   "openInApp": "Open it in Horizon",
   "shotSpending": "Horizon's page for one kind of spending: who the money went to, month by month, and the days it goes out",
-  "shotChecks": "Horizon's quick checks: the questions it asks when a payment is unclear"
+  "shotChecks": "Horizon's quick checks: the questions it asks when a payment is unclear",
+  "cap10Title": "Subscriptions and recharges",
+  "cap10Body": "Netflix, YouTube, the gym, and your Jio or Airtel plan: what each costs, what they add up to a month, which quietly stopped, and when the next recharge is due.",
+  "f9Label": "09 · Subscriptions",
+  "f9Title": "Subscriptions and recharges",
+  "f9Body": "Every subscription found in your statements, running or stopped, with what they cost a month and a year. Under them, your prepaid mobile and DTH plans: the plan you are on, when it runs out, and what a month really costs.",
+  "shotSubscriptions": "Horizon's subscriptions and recharges page: each subscription with its monthly cost, and each prepaid plan with its next due date"
 }
