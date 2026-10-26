@@ -28,6 +28,7 @@ const state = vi.hoisted(() => {
     linkValid: true,
     signUps: [] as { email: string; password: string; options: { emailRedirectTo: string; data: Record<string, unknown> } }[],
     notConfirmed: false,
+    emailTaken: false,
   };
 });
 
@@ -63,7 +64,8 @@ vi.mock("@supabase/ssr", () => ({
       },
       signUp: async (args: (typeof state.signUps)[number]) => {
         state.signUps.push(args);
-        return { data: { user: { id: "auth-pending" }, session: null }, error: null };
+        // As Supabase answers: an address that already has a confirmed login gets a stand-in with no identities, and no email.
+        return { data: { user: { id: "auth-pending", identities: state.emailTaken ? [] : [{ provider: "email" }] }, session: null }, error: null };
       },
       signInWithOAuth: async (args: Record<string, unknown>) => {
         state.oauth.push(args);
@@ -189,6 +191,7 @@ beforeEach(() => {
   state.passwordUpdates = [];
   state.signUps = [];
   state.notConfirmed = false;
+  state.emailTaken = false;
   state.verified = [];
   state.linkValid = true;
 });
@@ -277,6 +280,17 @@ describe("signUp", () => {
     expect(state.newLogins).toEqual([]); // never created as already confirmed
     expect(state.cookies.has("horizon-session")).toBe(false);
     expect(state.signUps.at(-1)).toMatchObject({ email, options: { emailRedirectTo: "https://horizon.test/auth/callback" } });
+  });
+
+  it("an email that already has an account is told so, with the way back in, instead of waiting for an email that never comes", async () => {
+    state.emailTaken = true;
+    expect(await userActions.signUp({ ...details, email: `taken-${Math.random()}@example.com` })).toEqual({
+      ok: false,
+      exists: true,
+      error: expect.stringMatching(/already has a Horizon account/),
+    });
+    expect(state.created).toEqual([]);
+    expect(state.cookies.has("horizon-session")).toBe(false);
   });
 
   it("keeps the typed details on the login meanwhile, but never the date of birth or SSN", async () => {

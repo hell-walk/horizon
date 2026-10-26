@@ -20,6 +20,7 @@ import type { Translate } from "../i18n/translate";
 import { changeBlocked, countChange } from "../server/plan";
 import { authIdOf, loadSession, ownerIdOf, requireUser } from "../server/auth";
 import { createBankAccount, DataUnavailableError, getUserInfo } from "../server/banks";
+import { forgetLogin } from "../server/loginMemo";
 import { createProfile, pendingFrom, PROFILE_FIELDS, profileIsValid, type ProfileInput } from "../server/profile";
 import { newSharableId } from "../server/crypto";
 import { addFundingSource } from "../server/dwolla";
@@ -29,7 +30,7 @@ import { clearSessionCookies, createSupabaseServerClient } from "../server/supab
 const plaid = async () => (await import("../server/plaidClient")).plaidClient;
 import { logError } from "../server/log";
 
-export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string };
+export type AuthResult = { ok: true; user?: User; checkEmail?: boolean } | { ok: false; error: string; exists?: boolean };
 
 // The server talks to Supabase from one address for everyone, so its per-IP
 // limits cannot tell people apart: sign-in and sign-up are limited here instead.
@@ -111,7 +112,7 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
@@ -121,8 +122,13 @@ export const signUp = async (userData: SignUpParams): Promise<AuthResult> => {
     });
     if (isRateLimited(error)) return tooMany(t);
     if (error) throw error;
-    // The same answer when the email already has an account (Supabase then
-    // sends nothing): the reply never tells whether an email is registered.
+    // An email that already has a confirmed login: Supabase makes no second
+    // account and sends nothing, and says so only by a login with no ways in.
+    // Said plainly, with the way back in, rather than "check your email" for a
+    // message that never comes. (An unconfirmed one gets its link sent again.)
+    // The per-email and per-network caps above keep this from being a lookup.
+    const identities = data?.user?.identities;
+    if (Array.isArray(identities) && identities.length === 0) return { ok: false, error: t("auth.errorEmailTaken"), exists: true };
     return { ok: true, checkEmail: true };
   } catch (error) {
     logError("sign-up failed", error);
@@ -252,8 +258,9 @@ export const setNewPassword = async (input: { password: string }): Promise<AuthR
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.updateUser({ password: input.password });
     if (error) throw error;
-    // Other devices signed in with the old password are signed out.
+    // Other devices signed in with the old password are signed out, here too.
     await supabase.auth.signOut({ scope: "others" }).catch(() => {});
+    forgetLogin(session.id);
     return { ok: true };
   } catch (error) {
     logError("setting a new password failed", error);
@@ -262,6 +269,8 @@ export const setNewPassword = async (input: { password: string }): Promise<AuthR
 };
 
 export const logoutAccount = async () => {
+  const session = await loadSession();
+  if (session) forgetLogin(session.id);
   try {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut({ scope: "local" });

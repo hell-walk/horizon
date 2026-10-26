@@ -7,6 +7,7 @@ import { extractCustomerIdFromUrl } from "../utils";
 import { createAdminClient } from "./appwrite";
 import { createDwollaCustomer } from "./dwolla";
 import { logError } from "./log";
+import { forgetLogin } from "./loginMemo";
 import { createSupabaseAdmin } from "./supabase";
 
 // The Horizon profile (Appwrite) behind a Supabase login: what sign-up and
@@ -114,6 +115,7 @@ export async function createProfile(authId: string, email: string, p: ProfileInp
   // The waiting copy on the login is not needed any more: keep one copy only.
   try {
     await createSupabaseAdmin().auth.admin.updateUserById(authId, { user_metadata: { pending_profile: null } });
+    forgetLogin(authId);
   } catch (error) {
     logError("profile: could not clear the sign-up details on the login", error);
   }

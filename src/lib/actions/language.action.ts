@@ -2,6 +2,7 @@
 
 import { isLocale } from "../i18n/config";
 import { loadSession } from "../server/auth";
+import { forgetLogin } from "../server/loginMemo";
 import { allow, MINUTE } from "../server/rateLimit";
 import { createSupabaseServerClient } from "../server/supabase";
 
@@ -16,5 +17,6 @@ export async function saveHomeLanguage(input: { locale: unknown }): Promise<{ ok
   if (!(await allow(`language:${session.id}`, 10, 10 * MINUTE))) return { ok: false };
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.updateUser({ data: { home_language: input.locale } });
+  if (!error) forgetLogin(session.id);
   return { ok: !error };
 }

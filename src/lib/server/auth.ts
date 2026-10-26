@@ -12,6 +12,7 @@ import { getBanks, getUserInfo } from "./banks";
 import { seedPrefs } from "./prefs";
 import { timed } from "./timing";
 import { logError } from "./log";
+import { forgetLogin, MEMO_MS, profiles, sessions } from "./loginMemo";
 import { readPending, type ProfileInput } from "./profile";
 import { createSupabaseAdmin, createSupabaseServerClient } from "./supabase";
 
@@ -46,11 +47,9 @@ export type SessionUser = {
 // Asks Supabase (getUser, not the cookie alone), so a deleted or banned account
 // is signed out within a minute: the answer is kept for that long, per access
 // token, in this server copy's memory, because the trip to Supabase was the
-// slowest step of every page. React cache() makes it once per request.
-// Nothing is remembered under test: each test is its own world.
-const MEMO_MS = process.env.NODE_ENV === "test" ? 0 : 60_000;
+// slowest step of every page. React cache() makes it once per request. A change
+// to the login drops it at once (forgetLogin, in loginMemo.ts).
 const SESSION_MS = MEMO_MS;
-const sessions = new Map<string, { value: SessionUser | null; expires: number }>();
 const tokenKey = (token: string) => createHash("sha256").update(token).digest("base64url");
 
 export const loadSession = cache(async (): Promise<SessionUser | null> => {
@@ -71,11 +70,6 @@ export const loadSession = cache(async (): Promise<SessionUser | null> => {
     return null;
   }
 });
-
-/** Drops the remembered session for a token: after a sign-out, or a change the next page must see. */
-export function forgetSession(token: string | undefined) {
-  if (token) sessions.delete(tokenKey(token));
-}
 
 async function readSession(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>): Promise<SessionUser | null> {
   try {
@@ -103,10 +97,9 @@ async function readSession(supabase: Awaited<ReturnType<typeof createSupabaseSer
 }
 
 // The profile row, remembered for a minute per login across requests (its
-// names and ids change rarely; a change calls forgetProfile). `fresh` says it
+// names and ids change rarely; a change calls forgetLogin). `fresh` says it
 // was read just now, so its prefs are current and can serve this request too.
 const PROFILE_MS = MEMO_MS;
-const profiles = new Map<string, { value: Awaited<ReturnType<typeof getUserInfo>>; expires: number }>();
 async function loadProfile(authId: string): Promise<{ profile: Awaited<ReturnType<typeof getUserInfo>>; fresh: boolean }> {
   const kept = profiles.get(authId);
   if (kept && kept.expires > Date.now()) return { profile: kept.value, fresh: false };
@@ -115,9 +108,6 @@ async function loadProfile(authId: string): Promise<{ profile: Awaited<ReturnTyp
   if (profile) profiles.set(authId, { value: profile, expires: Date.now() + PROFILE_MS });
   return { profile, fresh: true };
 }
-
-/** Drops the remembered profile for a login: after a change to it. */
-export const forgetProfile = (authId: string) => profiles.delete(authId);
 
 // React cache() dedupes this within one request: the layout and the page both call it.
 export const loadLoggedInUser = cache(async (): Promise<User | null> => {
@@ -152,6 +142,7 @@ function rememberProfileId(loginId: string, profileId: string) {
   const save = async () => {
     const { error } = await createSupabaseAdmin().auth.admin.updateUserById(loginId, { app_metadata: { profile_id: profileId } });
     if (error) logError("auth: could not remember the profile id", error);
+    else forgetLogin(loginId);
   };
   try {
     after(save);

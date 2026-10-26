@@ -4,6 +4,7 @@ import { istDay, mergeSubscription, planFrom, type PlanState, type Subscription 
 import type { Translate } from "../i18n/translate";
 import { loadSession, type SessionUser } from "./auth";
 import { logError } from "./log";
+import { forgetLogin } from "./loginMemo";
 import { record, used } from "./rateLimit";
 import { fetchSubscription, toSubscription } from "./razorpay";
 import { claim } from "./shared";
@@ -82,4 +83,6 @@ export async function countChange() {
 export async function saveSubscription(loginId: string, subscription: Subscription) {
   const { error } = await createSupabaseAdmin().auth.admin.updateUserById(loginId, { app_metadata: { subscription } });
   if (error) throw new Error(`could not save the subscription: ${error.message}`);
+  // Just paid (or cancelled): the next page shows it, not the remembered trial.
+  forgetLogin(loginId);
 }

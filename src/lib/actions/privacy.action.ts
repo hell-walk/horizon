@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { getLoggedInUser, loadSession, ownerIdOf } from "../server/auth";
 import { getOwnBank } from "../server/banks";
+import { forgetLogin } from "../server/loginMemo";
 import { getT } from "../i18n/server";
 import { logError } from "../server/log";
 import { allow, MINUTE } from "../server/rateLimit";
@@ -93,6 +94,8 @@ export async function deleteMyAccount(input: { password?: string; email?: string
     return { ok: false, error: t("data.errFailed") };
   }
 
+  // Gone at once on this server copy too, not a minute later.
+  forgetLogin(session.id);
   await clearSessionCookies();
   const jar = await cookies();
   for (const name of ["horizon-account", "setu-consent"]) jar.delete(name);

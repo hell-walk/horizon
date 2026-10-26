@@ -6,6 +6,7 @@ import { ID, Query } from "node-appwrite";
 import { type PendingOffer, planFrom, readSubscription, REFERRAL_FREE_DAYS, type Subscription } from "../content/plans";
 import type { SessionUser } from "./auth";
 import { createAdminClient } from "./appwrite";
+import { forgetLogin } from "./loginMemo";
 import { saveSubscription } from "./plan";
 import { createSupabaseAdmin } from "./supabase";
 
@@ -146,6 +147,7 @@ export async function redeemCode(session: SessionUser, raw: string): Promise<Red
   // other app_metadata keys). A discount waits there until they subscribe.
   const offer: PendingOffer | null = found.offerId ? { id: found.offerId, text: found.discountText, code, percent: found.percent } : null;
   await admin.auth.admin.updateUserById(session.id, { app_metadata: { redeemed_code: code, ...(offer ? { offer } : {}) } });
+  forgetLogin(session.id);
 
   if (found.kind === "referral" && found.ownerId) {
     // The referrer gets the same, unless they pay already (Razorpay bills them on its own schedule).
