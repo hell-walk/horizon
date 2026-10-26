@@ -10,20 +10,31 @@ workflow, below), never against the live site.
 
 ## Run locally
 
-```bash
-npm run build
-npx next start -p 3100
-```
-
-In another terminal, with two throwaway accounts (never real ones). Each needs a
-profile, and the trial's daily limit would get in the way, so give both free
-access first (`node scripts/grant-plan.mjs <email> 365 --apply`):
+Before every push, one command: it builds, starts a production server on port
+3101 (so a server of yours on 3100 is left alone), runs the whole suite against
+it and stops the server.
 
 ```bash
-HORIZON_TEST_EMAIL=a@example.com HORIZON_TEST_PASSWORD=... \
-HORIZON_TEST_EMAIL_2=b@example.com HORIZON_TEST_PASSWORD_2=... \
-npm run test:security
+npm run test:security:local
 ```
+
+Add `-- --no-build` when the build in `.next` is already the current code.
+
+It needs two throwaway accounts (never real ones) in a git-ignored
+`.env.security` file at the repo root:
+
+```
+HORIZON_TEST_EMAIL=a@example.com
+HORIZON_TEST_PASSWORD=...
+HORIZON_TEST_EMAIL_2=b@example.com
+HORIZON_TEST_PASSWORD_2=...
+```
+
+Each needs a profile, and the trial's daily limit would get in the way, so give
+both free access first (`node scripts/grant-plan.mjs <email> 365 --apply`).
+
+By hand instead: `npm run build`, `npx next start -p 3100`, and in another
+terminal `npm run test:security` with the four variables in the environment.
 
 - The run fails if anything is skipped or fewer tests ran than `MIN_TESTS` in
   `scripts/run-security-tests.mjs` (125 at the moment). `HORIZON_SECURITY_ALLOW_SKIP=1`

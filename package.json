@@ -16,7 +16,8 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:coverage": "vitest run --project unit --coverage",
-    "test:security": "node scripts/run-security-tests.mjs"
+    "test:security": "node scripts/run-security-tests.mjs",
+    "test:security:local": "node scripts/security-local.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

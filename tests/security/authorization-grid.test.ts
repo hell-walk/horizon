@@ -83,6 +83,12 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
       () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any" }],
       (v) => expect(v).toMatchObject({ ok: false }),
     ],
+    // Naming a plan on B's entry: not one of A's entries, so nothing to name.
+    [
+      "namePlan",
+      () => [{ ...forged(victimProfile, victimBank), accountId: victimBank, transactionId: "any", name: "Hijacked plan" }],
+      (v) => expect(v).toMatchObject({ ok: false }),
+    ],
     // B's imported account cannot be renamed by A.
     [
       "renameAccount",
@@ -117,6 +123,16 @@ describe.skipIf(!up || !haveAccounts)(`authorization grid against ${BASE}`, () =
     ["saveHomeLanguage", () => [{ locale: "hi", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
     // Settings written under A's own profile only, whatever B's ids ride along.
     ["setIncome", () => [{ kind: "student", ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    ["setRechargeDays", () => [{ operator: "Jio", price: 349, days: 28, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
+    // A's own statements are searched for a salary, never B's: nothing of B's comes back.
+    [
+      "salaryCandidate",
+      () => [forged(victimProfile, victimBank)],
+      (v) => {
+        expect(v).toMatchObject({ ok: true });
+        expect(JSON.stringify(v)).not.toMatch(new RegExp(`${MARK}|${victimBank}`));
+      },
+    ],
     ["setWeeklyReminder", () => [{ on: true, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
     ["setMonthlyReport", () => [{ on: true, ...forged(victimProfile, victimBank) }], (v) => expect(v).toMatchObject({ ok: true })],
     // A loan plan is stored under A's own settings whatever the key says: it never reaches B.
