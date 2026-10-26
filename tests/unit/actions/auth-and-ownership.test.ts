@@ -287,7 +287,7 @@ describe("signUp", () => {
     expect(await userActions.signUp({ ...details, email: `taken-${Math.random()}@example.com` })).toEqual({
       ok: false,
       exists: true,
-      error: expect.stringMatching(/already has a Horizon account/),
+      error: "This email already exists.",
     });
     expect(state.created).toEqual([]);
     expect(state.cookies.has("horizon-session")).toBe(false);

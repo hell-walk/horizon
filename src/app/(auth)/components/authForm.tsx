@@ -83,7 +83,7 @@ const AuthForm = ({
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(notice ?? null);
-  // Sign-up with an email that already has an account: the error comes with the ways back in.
+  // Sign-up with an email that already has an account: the error comes with a link to sign in.
   const [emailTaken, setEmailTaken] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const isSignUp = type === "sign-up";
@@ -525,14 +525,9 @@ const AuthForm = ({
                 <div className="flex flex-col gap-2 rounded-md border border-danger/30 bg-danger-soft px-3 py-2 text-13 text-danger" role="alert">
                   <p>{errorMessage}</p>
                   {emailTaken && (
-                    <p className="flex flex-wrap gap-x-4 gap-y-1">
-                      <Link href="/sign-in" className="font-semibold underline underline-offset-4">
-                        {t("auth.signInButton")}
-                      </Link>
-                      <Link href="/forgot-password" className="underline underline-offset-4">
-                        {t("auth.forgotPasswordLink")}
-                      </Link>
-                    </p>
+                    <Link href="/sign-in" className="w-fit font-semibold underline underline-offset-4">
+                      {t("auth.signInButton")}
+                    </Link>
                   )}
                 </div>
               )}
