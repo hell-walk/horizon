@@ -56,6 +56,8 @@ const TourGuide = ({ words }: { words: Words }) => {
   const [looking, setLooking] = useState(false);
   const targetRef = useRef<Element | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  // The page the tour itself is moving to (Next or Back across pages), so the guide can tell that apart from the person leaving.
+  const headingTo = useRef<string | null>(null);
 
   // Pick up a tour: on mount, when the page changes, and when a button starts one.
   useEffect(() => {
@@ -90,15 +92,27 @@ const TourGuide = ({ words }: { words: Words }) => {
       setRect(null);
       targetRef.current = null;
       setState(next);
-      if (!stepIsOn(steps[to], pathname)) router.push(steps[to].page);
+      if (!stepIsOn(steps[to], pathname)) {
+        headingTo.current = steps[to].page;
+        router.push(steps[to].page);
+      }
     },
     [state, steps, pathname, router, finish],
   );
 
-  // A step on another page: go there (the state is already in storage, so the guide picks it up after the move).
+  // The tour moves pages only when the person presses Next or Back. If they go
+  // somewhere else themselves (a menu, a link), the tour ends: it never pulls
+  // them back. They can take it again from About Horizon.
   useEffect(() => {
-    if (step && !onThisPage) router.push(step.page);
-  }, [step, onThisPage, router]);
+    if (!step) return;
+    if (onThisPage) {
+      headingTo.current = null;
+      return;
+    }
+    if (headingTo.current === step.page) return; // on the way there
+    const end = window.setTimeout(finish, 0);
+    return () => window.clearTimeout(end);
+  }, [step, onThisPage, finish]);
 
   // Find the thing to point at (pages stream in, so keep looking for a while), scroll it into view, measure it.
   useEffect(() => {
@@ -107,22 +121,34 @@ const TourGuide = ({ words }: { words: Words }) => {
     const started = Date.now();
     const measure = () => {
       const el = targetRef.current;
-      if (!el) return;
+      if (!el || !el.isConnected) return;
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+    };
+    const point = (el: Element) => {
+      targetRef.current = el;
+      el.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      window.setTimeout(measure, 450);
+      window.setTimeout(measure, 900);
     };
     const tick = () => {
       if (stopped) return;
       const el = findTarget(step.target);
       if (el) {
-        targetRef.current = el;
         setLooking(false);
-        el.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-        window.setTimeout(measure, 450);
-        window.setTimeout(measure, 900);
+        point(el);
       } else if (Date.now() - started < FIND_FOR_MS) window.setTimeout(tick, 200);
       else setLooking(false);
     };
+    // Pages stream in: what was found may be a loading placeholder that the real
+    // section replaces a moment later. While the page settles, follow the swap.
+    const follow = window.setInterval(() => {
+      if (stopped || Date.now() - started > FIND_FOR_MS) return window.clearInterval(follow);
+      const el = targetRef.current;
+      if (el && el.isConnected) return;
+      const again = findTarget(step.target);
+      if (again) point(again);
+    }, 300);
     // Off the effect's own tick, as React asks of state changes in effects.
     const first = window.setTimeout(() => {
       setLooking(true);
@@ -138,6 +164,7 @@ const TourGuide = ({ words }: { words: Words }) => {
     return () => {
       stopped = true;
       window.clearTimeout(first);
+      window.clearInterval(follow);
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onMove, true);
       window.removeEventListener("resize", onMove);
