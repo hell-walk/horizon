@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { FileSpreadsheet, Landmark } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import AccountsTable from "@/components/accounts/accountsTable";
@@ -8,8 +7,9 @@ import ComingSoon from "@/components/ui/comingSoon";
 import HeaderBox from "@/components/ui/headerBox";
 import { getT } from "@/lib/i18n/server";
 import { getAccounts } from "@/lib/server/accounts";
-import { maskLabel } from "@/lib/utils";
 import { getLoggedInUser, ownerIdOf } from "@/lib/server/auth";
+
+import UploadChoice from "../components/uploadChoice";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -66,32 +66,11 @@ const ConnectBank = async () => {
             [t("connect.fileFactSaved"), t("connect.fileFactSavedValue")],
           ]}
         >
-          {/* Two doors: a statement for a new account, or more statements for one already here (the account is chosen first). */}
-          <div className="flex flex-col gap-2">
-            <Link href="/upload-statement" className="btn-primary w-full">
-              {t("connect.uploadNew")}
-            </Link>
-            {manual.length > 0 && (
-              <details className="group">
-                <summary className="btn-secondary w-full cursor-pointer list-none [&::-webkit-details-marker]:hidden">{t("connect.uploadExisting")}</summary>
-                <div className="mt-2 flex flex-col gap-1 rounded-md border border-line bg-surface-low p-2">
-                  <p className="eyebrow px-2 py-1">{t("connect.uploadPick")}</p>
-                  {manual.map((a) => (
-                    <Link
-                      key={a.appwriteItemId}
-                      href={`/upload-statement?account=${a.appwriteItemId}`}
-                      className="flex items-center justify-between gap-2 rounded-sm px-2 py-2 text-14 text-ink transition-colors hover:bg-card"
-                    >
-                      <span translate="no">{a.name}</span>
-                      <span translate="no" className="font-mono text-12 text-ink-muted">
-                        {maskLabel(a.mask)}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            )}
-          </div>
+          {/* Two doors, side by side: a statement for a new account, or more statements for one already here. */}
+          <UploadChoice
+            accounts={manual.map((a) => ({ id: a.appwriteItemId, name: a.name, mask: a.mask }))}
+            labels={{ newAccount: t("connect.uploadNew"), existing: t("connect.uploadExisting"), pick: t("connect.uploadPick") }}
+          />
         </ProviderCard>
       </div>
 

@@ -28,13 +28,6 @@ import PasswordRules from "./passwordRules";
 // spreadsheet reader.
 const ImportStatement = dynamic(() => import("@/components/statements/importStatement"), { ssr: false });
 
-// Sign-up sections: anchor id and the message key of the title.
-const SECTIONS = [
-  { id: "section-01", title: "auth.sectionAbout" },
-  { id: "section-02", title: "auth.sectionAddress" },
-  { id: "section-03", title: "auth.sectionLogin" },
-];
-
 const Section = ({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) => (
   <fieldset className="flex flex-col gap-4">
     <legend className="mb-4 flex w-full items-center justify-between gap-3 border-b border-line pb-2">
@@ -302,20 +295,6 @@ const AuthForm = ({
                 <span className="h-px flex-1 bg-line" />
               </div>
             </>
-          )}
-
-          {asksProfile && (
-            <nav className={cn("grid gap-1", isWelcome ? "grid-cols-2" : "grid-cols-3")} aria-label={t("auth.formSections")}>
-              {(isWelcome ? SECTIONS.slice(0, 2) : SECTIONS).map((s) => (
-                <a
-                  key={s.id}
-                  href={`#${s.id}`}
-                  className="flex items-center justify-center gap-2 rounded-sm border border-line bg-card px-1 py-2 text-center font-mono text-[12px] uppercase tracking-wider text-ink-muted hover:bg-surface-container"
-                >
-                  {t(s.title)}
-                </a>
-              ))}
-            </nav>
           )}
 
           <Form {...form}>
