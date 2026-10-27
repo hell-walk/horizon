@@ -143,12 +143,14 @@ const UPLOAD_AFTER_DAYS = 7;
  * EMI or charge is the day's one message, and the nudge waits for next Monday.
  */
 export function uploadReminder(latest: string | null, today: Date, sent: string[]): Reminder | null {
-  if (today.getUTCDay() !== 1) return null;
+  // Any quiet day once the newest entry is a week old (the caller sends what is
+  // due first), and then not again that ISO week: a steady weekly nudge that
+  // starts the day the statements fall behind, not the next Monday after.
   const key = `upload:${isoWeek(today)}`;
   if (sent.includes(key)) return null;
   const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
   const age = latest && Number.isFinite(Date.parse(`${latest}T00:00:00Z`)) ? (todayUtc - Date.parse(`${latest}T00:00:00Z`)) / 86_400_000 : Infinity;
-  if (age <= UPLOAD_AFTER_DAYS) return null;
+  if (age < UPLOAD_AFTER_DAYS) return null;
   return { kind: "upload", count: 1, keys: [key] };
 }
 

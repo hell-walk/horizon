@@ -71,19 +71,23 @@ describe("stored settings", () => {
   });
 });
 
-describe("Monday's statement nudge", () => {
+describe("the weekly statement nudge", () => {
   const monday = new Date("2026-10-19T03:30:00Z");
   const tuesday = new Date("2026-10-20T03:30:00Z");
 
-  it("goes on a Monday when the newest entry is over a week old, once a week", () => {
+  it("goes once the newest entry is a week old, on any day, once a week", () => {
     const r = uploadReminder("2026-10-05", monday, []);
     expect(r).toEqual({ kind: "upload", count: 1, keys: ["upload:2026-W43"] });
     expect(uploadReminder("2026-10-05", monday, markSent([], r!.keys))).toBeNull();
+    // The day after, same week: already nudged. Exactly seven days old counts as a week.
+    expect(uploadReminder("2026-10-05", tuesday, markSent([], r!.keys))).toBeNull();
+    expect(uploadReminder("2026-10-05", tuesday, [])).toMatchObject({ kind: "upload" });
+    expect(uploadReminder("2026-10-12", monday, [])).toMatchObject({ kind: "upload" });
   });
 
-  it("not when the statements are fresh, and never on another day", () => {
+  it("not while the statements are fresh", () => {
     expect(uploadReminder("2026-10-14", monday, [])).toBeNull();
-    expect(uploadReminder("2026-10-05", tuesday, [])).toBeNull();
+    expect(uploadReminder("2026-10-13", monday, [])).toBeNull(); // six days
   });
 
   it("goes when nothing has been uploaded at all", () => {
