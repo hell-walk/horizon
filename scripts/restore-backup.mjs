@@ -79,7 +79,7 @@ const apply = process.argv.includes("--apply");
 if (cmd === "list") {
   for (const o of await list()) console.log(`${o.at}  ${String(o.size).padStart(9)}  ${o.key}`);
 } else if (cmd === "fetch") {
-  const key = a ?? (await list())[0]?.key;
+  const key = a || (await list())[0]?.key; // "" means the newest, so an output path can be given alone
   if (!key) throw new Error("no backups in the bucket yet");
   const backup = open(Buffer.from(await (await r2("GET", key)).arrayBuffer()));
   const out = b ?? key.split("/").pop().replace(/\.gz\.enc$/, "");
