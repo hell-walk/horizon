@@ -134,6 +134,14 @@ describe.skipIf(!up)(`anonymous attacker against ${BASE}`, () => {
     });
   });
 
+  describe("the cron routes", () => {
+    // Only Vercel Cron carries CRON_SECRET: the reminder run and the backup refuse everyone else before doing anything.
+    it.each(["/api/cron/reminders", "/api/cron/backup"])("%s refuses a call without the secret, and with a wrong one", async (path) => {
+      expect((await fetch(`${BASE}${path}`)).status).toBe(401);
+      expect((await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${"a".repeat(40)}` } })).status).toBe(401);
+    });
+  });
+
   describe("coming back from Google or a reset email (/auth/callback)", () => {
     it("a made-up code signs nobody in", async () => {
       const page = await getPage("/auth/callback?code=forged-code");

@@ -125,6 +125,9 @@ if (existsSync(".env")) {
   ];
   const missing = need.filter((k) => !env[k]);
   ok("Every required setting is in .env", missing.length === 0, `missing: ${missing.join(", ")}`);
+  const backupMissing = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "BACKUP_KEY"].filter((k) => !env[k]);
+  ok("Nightly backups are configured (deploy guide, section 9)", backupMissing.length === 0, `missing: ${backupMissing.join(", ")}`);
+  if (env.BACKUP_KEY) ok("BACKUP_KEY is 32 bytes of hex", /^[0-9a-f]{64}$/i.test(env.BACKUP_KEY));
   if (!local) ok("NEXT_PUBLIC_SITE_URL is the https address", (env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https://"), env.NEXT_PUBLIC_SITE_URL ?? "unset");
 
   // Supabase: sign-ups must confirm their email (otherwise someone could take an address that is not theirs).

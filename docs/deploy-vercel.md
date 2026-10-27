@@ -169,6 +169,31 @@ its title, description, canonical link and share picture.
 The first pages usually appear in Google within a few days to two weeks.
 Search Console's *Pages* report shows what is indexed and why anything is not.
 
+## 9. Backups (Cloudflare R2)
+
+Every night at 02:00 UTC (07:30 IST) the site copies every Appwrite table and
+every login into one encrypted file in an R2 bucket (`/api/cron/backup`,
+scheduled in `vercel.json`) and removes copies older than 30 days.
+
+1. In Cloudflare, R2 → Create bucket, named `horizon-backups` (any region).
+2. R2 → Manage R2 API tokens → Create API token: Object Read & Write, limited to
+   that bucket. Note the Access Key ID, Secret Access Key and your Account ID.
+3. Make the encryption key once: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+   **Keep a copy outside Vercel** (a password manager): without it the backups cannot be opened.
+4. Add `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`
+   and `BACKUP_KEY` to Vercel (Production) and to your local `.env`, then redeploy.
+5. Run it once by hand to see it work:
+   `curl -H "Authorization: Bearer $CRON_SECRET" https://www.lazyistudio.in/api/cron/backup`
+   It answers with the file name, how many rows and logins it holds, and what it pruned.
+6. Prove it can be read back: `node scripts/restore-backup.mjs list`, then
+   `node scripts/restore-backup.mjs fetch` (downloads and decrypts the newest one
+   into a JSON file next to you). `restore <file.json>` says which rows are
+   missing from Appwrite; `--apply` puts them back. Logins are listed in the
+   file but re-made from the admin portal (Supabase cannot take password hashes
+   back; the person resets their password).
+
+The cron's result is in Vercel → Logs each morning; a failure is logged there too.
+
 ## Free-plan limits to know
 
 - **Supabase free**: 50,000 monthly active users; pauses after 7 days idle
