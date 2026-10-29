@@ -87,6 +87,7 @@ const loadStatementRows = (bank: Pick<Bank, "$id" | "accountId" | "currency">) =
       const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
         Query.equal("bankId", [bank.$id]),
         Query.orderDesc("date"),
+        Query.orderDesc("seq"),
         Query.limit(PAGE),
         ...(cursor ? [Query.cursorAfter(cursor)] : []),
       ]);
@@ -132,6 +133,7 @@ function toTransaction(doc: Record<string, unknown> & { $id: string }, bank: Pic
     // Worked out again from the bank's wording, so better rules also fix entries imported earlier.
     category: categorize(doc.name as string, doc.type as string),
     date: doc.date as string,
+    ...(typeof doc.seq === "number" ? { seq: doc.seq } : {}),
     image: "",
     currency: bank.currency ?? "INR",
   } as unknown as Transaction;
@@ -151,6 +153,7 @@ export const getRecentStatementTransactions = (bank: Bank, limit = RECENT_ENTRIE
     const result = await database.listDocuments(DATABASE_ID!, STATEMENT_COLLECTION_ID!, [
       Query.equal("bankId", [bank.$id]),
       Query.orderDesc("date"),
+      Query.orderDesc("seq"),
       Query.limit(limit),
     ]);
     return { transactions: result.documents.map((doc) => toTransaction(doc, bank)), total: result.total };

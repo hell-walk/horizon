@@ -100,6 +100,8 @@ declare type Transaction = {
   userCategory?: string;
   /** Whether the change was made for this entry only or for everyone with the same payee. */
   changedBy?: "row" | "payee" | "pair";
+  /** The row's place in its statement, so a day's rows keep the bank's order (imported rows; older ones have none). */
+  seq?: number;
 };
 
 declare type Bank = {

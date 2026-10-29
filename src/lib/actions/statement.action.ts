@@ -336,14 +336,15 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
     await loadExtraTerms(); // the team's added lender and subscription names, for categorize below
     const hashes = transactionHashes(bankId, parsed.transactions);
     const leaveOut = new Set([...overlap.exact, ...(keepLikely ? [] : overlap.likely.map((l) => l.index))]);
-    const toSave = parsed.transactions.map((entry, i) => ({ entry, hash: hashes[i] })).filter((_, i) => !leaveOut.has(i));
+    // seq: the row's place in the statement (the parser puts rows in date order, a day's rows as the bank listed them), so reads keep that order.
+    const toSave = parsed.transactions.map((entry, i) => ({ entry, hash: hashes[i], seq: i })).filter((_, i) => !leaveOut.has(i));
 
     let imported = 0;
     let skipped = overlap.exact.length;
     for (let i = 0; i < toSave.length; i += INSERT_BATCH) {
       const batch = toSave.slice(i, i + INSERT_BATCH);
       await Promise.all(
-        batch.map(async ({ entry, hash }) => {
+        batch.map(async ({ entry, hash, seq }) => {
           try {
             await database.createDocument(DATABASE_ID!, STATEMENT_COLLECTION_ID!, ID.unique(), {
               bankId,
@@ -356,6 +357,7 @@ export const importStatement = async (formData: FormData): Promise<ImportResult>
               balance: entry.balance ?? null,
               reference: entry.reference?.slice(0, 255) ?? null,
               hash,
+              seq,
             });
             imported++;
           } catch (error) {
