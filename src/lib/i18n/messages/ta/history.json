@@ -51,6 +51,7 @@
   "pageOf": "பக்கம் {page} / {total}",
   "colChange": "மாற்று",
   "changedByYou": "நீங்கள் மாற்றியது",
+  "pairedReversal": "அதன் திரும்பலுடன் இணைக்கப்பட்டது",
   "editButtonFor": "{name}-இன் பெயரையோ வகையையோ மாற்று",
   "editTitle": "இந்தப் பதிவை மாற்று",
   "editClose": "மூடு",

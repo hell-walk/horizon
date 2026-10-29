@@ -1,5 +1,5 @@
 import { isPayLater } from "./categories";
-import { OWN_TRANSFER, payeeKey } from "./corrections";
+import { OWN_TRANSFER, payeeKey, REVERSED } from "./corrections";
 import { isStore } from "./planNames";
 import { payeeName } from "./payees";
 import { isTelecom, looksLikeBill } from "./recharges";
@@ -167,6 +167,7 @@ export function findRegular(transactions: Transaction[] = [], today = new Date()
     const amount = Math.abs(Number(tx.amount) || 0);
     if (!Number.isFinite(day) || !amount) continue;
     lastCovered = Math.max(lastCovered, day);
+    if (tx.userCategory === REVERSED) continue; // a failed payment and its reversal are not a rhythm
     const key = regularKeyOf(tx);
     if (!key) continue;
     const direction = key.startsWith("out|") ? "out" : "in";

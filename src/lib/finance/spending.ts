@@ -1,6 +1,6 @@
 import { isPayLater } from "./categories";
 import { isBankCharge } from "./charges";
-import { OWN_TRANSFER } from "./corrections";
+import { LEFT_OUT } from "./corrections";
 import { extraSubscription } from "../content/extraTerms";
 import { isPersonPayment, PEOPLE_GROUP, type PayeeSpend } from "./payees";
 
@@ -118,7 +118,7 @@ export function groupBySpendType(transactions: Transaction[] = [], limit = 5): S
     if (!isDebit || amount === 0) continue;
 
     const name = spendType(t);
-    if (name === OWN_TRANSFER) continue; // moving money between your own accounts is not spending
+    if (LEFT_OUT.has(name)) continue; // own transfers and reversed payments are not spending
     const bucket = totals.get(name) ?? { key: name.toLowerCase(), name, amount: 0, count: 0, share: 0 };
     bucket.amount += amount;
     bucket.count += 1;
@@ -162,7 +162,7 @@ export function groupBySpendTypeWithEntries(transactions: Transaction[] = [], li
     const isDebit = t.type === "debit" || Number(t.amount) < 0;
     if (!isDebit || !Math.abs(Number(t.amount) || 0)) continue;
     const name = spendType(t);
-    if (name === OWN_TRANSFER) continue;
+    if (LEFT_OUT.has(name)) continue;
     const bucket = shown.has(name) ? name : "Other";
     entries.get(bucket)?.push(t);
   }

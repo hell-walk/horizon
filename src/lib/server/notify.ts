@@ -4,6 +4,7 @@ import { Query } from "node-appwrite";
 import webpush from "web-push";
 
 import { applyCorrections } from "../finance/corrections";
+import { markReversals } from "../finance/reversals";
 import { headsUp, type HeadsUpInput, type HeadsUpResult } from "../finance/headsUp";
 import { makeTranslator } from "../i18n/translate";
 import { markSent, readNotify, reminderFor, type NotifySettings, type PushSubscription, type Reminder, type ReminderKind, uploadReminder } from "../finance/notify";
@@ -47,7 +48,7 @@ export async function headsUpForOwner(ownerId: string, today = new Date()): Prom
       .filter((bank) => bank.provider === MANUAL_PROVIDER)
       .map(async (bank) => {
         const account = toManualAccount(bank);
-        const transactions = applyCorrections((await getStatementTransactions(bank)) as Transaction[], corrections) as Transaction[];
+        const transactions = markReversals(applyCorrections((await getStatementTransactions(bank)) as Transaction[], corrections)) as Transaction[];
         return {
           account: { id: bank.$id, name: account.name, mask: account.mask, currency: account.currency },
           balance: account.balanceUnknown ? null : account.currentBalance,

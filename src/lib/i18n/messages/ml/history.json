@@ -51,6 +51,7 @@
   "pageOf": "പേജ് {page} / {total}",
   "colChange": "മാറ്റുക",
   "changedByYou": "നിങ്ങൾ മാറ്റിയത്",
+  "pairedReversal": "അതിന്റെ റിവേഴ്സലുമായി ജോടിയാക്കി",
   "editButtonFor": "{name}-ന്റെ പേരോ വിഭാഗമോ മാറ്റുക",
   "editTitle": "ഈ എൻട്രി മാറ്റുക",
   "editClose": "അടയ്ക്കുക",

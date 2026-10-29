@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { applyCorrections } from "../finance/corrections";
+import { markReversals } from "../finance/reversals";
 import { getStatementTransactions, MANUAL_PROVIDER, toManualAccount } from "../providers/manual";
 import { findRegular, type Regular } from "../finance/recurring";
 import { getBanks } from "./banks";
@@ -31,7 +32,7 @@ export const ownerAccounts = cache(async (ownerId: string): Promise<OwnerAccount
       .filter((bank) => bank.provider === MANUAL_PROVIDER)
       .map(async (bank) => {
         const account = toManualAccount(bank);
-        const transactions = applyCorrections((await getStatementTransactions(bank)) as Transaction[], corrections) as Transaction[];
+        const transactions = markReversals(applyCorrections((await getStatementTransactions(bank)) as Transaction[], corrections)) as Transaction[];
         return { id: bank.$id, account, transactions, regular: findRegular(transactions, today) };
       }),
   );

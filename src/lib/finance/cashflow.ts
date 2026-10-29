@@ -1,4 +1,4 @@
-import { OWN_TRANSFER } from "./corrections";
+import { LEFT_OUT } from "./corrections";
 import { spendType } from "./spending";
 
 // Money in, money out and what was left, month by month. Money moved between
@@ -37,7 +37,7 @@ export function monthlyFlow(transactions: Transaction[] = [], top = 3): MonthFlo
     const date = String(t.date ?? "");
     if (!MONTH.test(date)) continue;
     const category = spendType(t);
-    if (category === OWN_TRANSFER) continue;
+    if (LEFT_OUT.has(category)) continue;
     const amount = Math.abs(Number(t.amount) || 0);
     if (!amount) continue;
 

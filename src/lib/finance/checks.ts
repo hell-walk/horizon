@@ -15,7 +15,7 @@
 //                 a rhythm: which subscription is it? The price suggests the
 //                 answer; the person picks or names it.
 
-import { OWN_TRANSFER, payeeKey } from "./corrections";
+import { leftOut, payeeKey } from "./corrections";
 import { findSalary, salaryCandidates, type IncomeKind } from "./income";
 import { payeeWords } from "./payees";
 import { isStore, planGuesses } from "./planNames";
@@ -93,9 +93,9 @@ export function findChecks(input: CheckInput, limit = 8): Check[] {
   for (const from of accounts) {
     for (const to of accounts) {
       if (from === to) continue;
-      const credits = to.transactions.filter((t) => !isDebit(t) && t.userCategory !== OWN_TRANSFER && amountOf(t) >= PAIR_MIN);
+      const credits = to.transactions.filter((t) => !isDebit(t) && !leftOut(t) && amountOf(t) >= PAIR_MIN);
       for (const d of from.transactions) {
-        if (!isDebit(d) || d.userCategory === OWN_TRANSFER || amountOf(d) < PAIR_MIN) continue;
+        if (!isDebit(d) || leftOut(d) || amountOf(d) < PAIR_MIN) continue;
         const c = credits.find((x) => !matched.has(x.id) && Math.abs(amountOf(x) - amountOf(d)) < 0.5 && Math.abs(dayOf(x.date) - dayOf(d.date)) <= PAIR_DAYS);
         if (!c) continue;
         matched.add(c.id);

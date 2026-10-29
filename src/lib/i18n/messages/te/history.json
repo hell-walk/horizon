@@ -51,6 +51,7 @@
   "pageOf": "{total}లో {page}వ పేజీ",
   "colChange": "మార్చండి",
   "changedByYou": "మీరు మార్చారు",
+  "pairedReversal": "దాని రివర్సల్‌తో జత చేయబడింది",
   "editButtonFor": "{name} పేరు లేదా కేటగిరీ మార్చండి",
   "editTitle": "ఈ ఎంట్రీ మార్చండి",
   "editClose": "మూసివేయండి",

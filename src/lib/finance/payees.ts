@@ -317,7 +317,8 @@ export function groupByPayee(transactions: Transaction[] = [], limit = 8): Payee
     const isDebit = t.type === "debit" || Number(t.amount) < 0;
     if (!isDebit || amount === 0) continue;
 
-    if (t.userCategory === "Between my accounts") continue; // not spending (lib/finance/corrections OWN_TRANSFER)
+    // Not spending: own transfers and reversed payments (lib/finance/corrections LEFT_OUT; named here, not imported, to keep corrections -> payees one way).
+    if (t.userCategory === "Between my accounts" || t.userCategory === "Reversed") continue;
 
     // A name the user chose wins. Otherwise money sent to people goes into one
     // bracket; the rows keep each name.

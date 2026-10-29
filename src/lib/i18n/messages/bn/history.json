@@ -51,6 +51,7 @@
   "pageOf": "{total}-এর মধ্যে পেজ {page}",
   "colChange": "বদলান",
   "changedByYou": "আপনি বদলেছেন",
+  "pairedReversal": "এর রিভার্সালের সাথে জোড়া",
   "editButtonFor": "{name}-এর নাম বা ক্যাটাগরি বদলান",
   "editTitle": "এই এন্ট্রি বদলান",
   "editClose": "বন্ধ করুন",

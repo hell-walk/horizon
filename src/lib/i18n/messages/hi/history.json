@@ -51,6 +51,7 @@
   "pageOf": "{total} में से पेज {page}",
   "colChange": "बदलें",
   "changedByYou": "आपने बदला",
+  "pairedReversal": "इसकी वापसी से जोड़ा गया",
   "editButtonFor": "{name} का नाम या कैटेगरी बदलें",
   "editTitle": "यह एंट्री बदलें",
   "editClose": "बंद करें",

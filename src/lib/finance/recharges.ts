@@ -1,4 +1,4 @@
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 
 // Recharges: prepaid mobile and DTH top-ups, by operator. Each recharge is its
 // own plan: the latest one decides what the person is on now, how long it
@@ -158,7 +158,7 @@ const median = (values: number[]) => {
  */
 export function rechargePicture(transactions: Transaction[], days: Record<string, number> = {}): RechargePicture {
   const groups = new Map<string, { id: string; date: string; amount: number }[]>();
-  const leftOut: LeftOutBill[] = [];
+  const bills: LeftOutBill[] = [];
   let asOf: string | undefined;
   for (const t of transactions) {
     const date = String(t.date ?? "").slice(0, 10);
@@ -166,11 +166,11 @@ export function rechargePicture(transactions: Transaction[], days: Record<string
     if (!asOf || date > asOf) asOf = date;
     const isDebit = t.type === "debit" || Number(t.amount) < 0;
     const amount = Math.abs(Number(t.amount) || 0);
-    if (!isDebit || !amount || t.userCategory === OWN_TRANSFER) continue;
+    if (!isDebit || !amount || leftOut(t)) continue;
     const operator = rechargeOperator(t.shownName ? `${t.shownName} ${t.name}` : t.name);
     if (!operator) continue;
     if (looksLikeBill(amount)) {
-      leftOut.push({ id: t.id, operator, date, amount });
+      bills.push({ id: t.id, operator, date, amount });
       continue;
     }
     groups.set(operator, [...(groups.get(operator) ?? []), { id: t.id, date, amount }]);
@@ -223,7 +223,7 @@ export function rechargePicture(transactions: Transaction[], days: Record<string
     monthly: round2(items.reduce((s, i) => s + (i.lapsed ? 0 : (i.perMonth ?? 0)), 0)),
     total: round2(items.reduce((s, i) => s + i.total, 0)),
     count: items.reduce((s, i) => s + i.count, 0),
-    leftOut: leftOut.sort((a, b) => b.date.localeCompare(a.date)),
+    leftOut: bills.sort((a, b) => b.date.localeCompare(a.date)),
     ...(asOf ? { asOf } : {}),
   };
 }

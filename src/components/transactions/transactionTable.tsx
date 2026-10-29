@@ -88,10 +88,12 @@ const TransactionsTable = async ({ transactions, accountId }: TransactionTablePr
         category={row.category}
         autoName={row.autoName}
         autoCategory={row.autoCategory}
-        changed={Boolean(row.tx.changedBy)}
+        changed={row.tx.changedBy === "row" || row.tx.changedBy === "payee"}
       />
     ) : null;
-  const changedNote = (row: Row) => (row.tx.changedBy ? <> · {t("history.changedByYou")}</> : null);
+  // A reversed pair was labelled by Horizon, not by the person: there is nothing of theirs to undo.
+  const changedNote = (row: Row) =>
+    row.tx.changedBy === "pair" ? <> · {t("history.pairedReversal")}</> : row.tx.changedBy ? <> · {t("history.changedByYou")}</> : null;
 
   return (
     <>

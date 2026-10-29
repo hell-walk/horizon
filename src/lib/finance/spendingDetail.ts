@@ -1,4 +1,4 @@
-import { OWN_TRANSFER } from "./corrections";
+import { LEFT_OUT } from "./corrections";
 import { lenderOf } from "./loans";
 import { brandName, isPersonPayment, payeeWords, PEOPLE_GROUP } from "./payees";
 import { spendType } from "./spending";
@@ -71,7 +71,7 @@ export function spendingDetail(transactions: Transaction[], slug: string): Spend
     const amount = Math.abs(Number(t.amount) || 0);
     if (date <= start || !amount || !isDebit(t)) continue;
     const type = spendType(t);
-    if (type === OWN_TRANSFER) continue; // moving money between your own accounts is not spending
+    if (LEFT_OUT.has(type)) continue; // own transfers and reversed payments are not spending
     allSpent += amount;
     if (spendSlug(type) !== slug) continue;
     name = type;

@@ -51,6 +51,7 @@
   "pageOf": "Page {page} of {total}",
   "colChange": "Change",
   "changedByYou": "changed by you",
+  "pairedReversal": "paired with its reversal",
   "editButtonFor": "Change the name or category of {name}",
   "editTitle": "Change this entry",
   "editClose": "Close",

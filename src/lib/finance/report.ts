@@ -5,7 +5,7 @@
 // number is a sum over the entries, nothing is estimated.
 
 import { chargeKind } from "./charges";
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import { payeeName } from "./payees";
 import type { Regular } from "./recurring";
 import { groupBySpendType, spendType, type SpendBucket } from "./spending";
@@ -55,7 +55,7 @@ const nextOf = (month: string) => {
 
 /** One month, summed. Null when there is nothing in it. */
 export function monthlyReport(transactions: Transaction[], regular: Regular[], month: string): Report | null {
-  const rows = transactions.filter((t) => monthOf(t) === month && t.userCategory !== OWN_TRANSFER);
+  const rows = transactions.filter((t) => monthOf(t) === month && !leftOut(t));
   if (rows.length === 0) return null;
 
   let moneyIn = 0;

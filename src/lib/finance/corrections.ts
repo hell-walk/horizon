@@ -24,11 +24,17 @@ export const CATEGORIES = [
   "Card",
   "Income",
   "Between my accounts",
+  "Reversed",
   "Other",
 ] as const;
 
 /** Money moved between the user's own accounts: not spending, so charts leave it out. */
 export const OWN_TRANSFER = "Between my accounts";
+/** A failed payment and the money coming back for it (lib/finance/reversals): never spending, never income. */
+export const REVERSED = "Reversed";
+/** The categories every total leaves out. */
+export const LEFT_OUT: ReadonlySet<string> = new Set([OWN_TRANSFER, REVERSED]);
+export const leftOut = (t: Pick<Transaction, "userCategory">) => Boolean(t.userCategory && LEFT_OUT.has(t.userCategory));
 
 export const MAX_NAME_LENGTH = 60;
 export const MAX_PAYEE_RULES = 150;

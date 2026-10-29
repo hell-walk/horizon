@@ -1,4 +1,4 @@
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import { addMonths, baseKey, regularKeyOf, type Regular } from "./recurring";
 
 // "Will I have enough money?" for one account over the next weeks. Plain and
@@ -99,7 +99,7 @@ export function forecast({
   const regularKeys = new Set(regulars.filter((r) => r.status !== "stopped").map((r) => baseKey(r.key)));
   const everyday = dated
     .filter((t) => dayOf(t.date) >= windowStart && (t.type === "debit" || Number(t.amount) < 0))
-    .filter((t) => t.userCategory !== OWN_TRANSFER && !regularKeys.has(regularKeyOf(t) ?? ""))
+    .filter((t) => !leftOut(t) && !regularKeys.has(regularKeyOf(t) ?? ""))
     .map((t) => Math.abs(Number(t.amount) || 0))
     .filter((a) => a > 0)
     .sort((a, b) => a - b);

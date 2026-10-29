@@ -1,4 +1,4 @@
-import { OWN_TRANSFER, payeeKey } from "./corrections";
+import { leftOut, payeeKey } from "./corrections";
 import { payeeName } from "./payees";
 import { spendType } from "./spending";
 
@@ -77,7 +77,7 @@ export function findInsights(transactions: Transaction[] = [], today = new Date(
     const date = String(t.date ?? "").slice(0, 10);
     const amount = Math.abs(Number(t.amount) || 0);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !amount) continue;
-    if (t.userCategory === OWN_TRANSFER) continue;
+    if (leftOut(t)) continue;
     if (date > lastDate) lastDate = date;
     if (!firstDate || date < firstDate) firstDate = date;
     const key = date.slice(0, 7);

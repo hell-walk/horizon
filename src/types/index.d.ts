@@ -99,7 +99,7 @@ declare type Transaction = {
   /** The category the user chose, one of CATEGORIES in lib/finance/corrections. */
   userCategory?: string;
   /** Whether the change was made for this entry only or for everyone with the same payee. */
-  changedBy?: "row" | "payee";
+  changedBy?: "row" | "payee" | "pair";
 };
 
 declare type Bank = {

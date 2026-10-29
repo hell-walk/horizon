@@ -1,5 +1,5 @@
 import { chargeKind } from "./charges";
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import { payeeName } from "./payees";
 import type { Regular } from "./recurring";
 import { spendType } from "./spending";
@@ -244,7 +244,7 @@ export function findLoans(accounts: AccountInput[]): LoanReport {
 
     for (const t of dated) {
       const date = t.date.slice(0, 10);
-      if (date <= start || t.userCategory === OWN_TRANSFER) continue;
+      if (date <= start || leftOut(t)) continue;
       const text = t.name ?? "";
       const amount = Math.abs(Number(t.amount) || 0);
       if (!amount) continue;

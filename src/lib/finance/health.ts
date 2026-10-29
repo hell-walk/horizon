@@ -11,7 +11,7 @@
 //   cushion      20  how many months of spending the balances would cover
 
 import { chargeKind } from "./charges";
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import type { Regular } from "./recurring";
 import { spendType } from "./spending";
 
@@ -70,7 +70,7 @@ export function healthScore({ transactions, regular, income, balance }: HealthIn
   let invested = 0;
   let chargeCount = 0;
   for (const t of transactions) {
-    if (!keep.has(String(t.date).slice(0, 7)) || t.userCategory === OWN_TRANSFER) continue;
+    if (!keep.has(String(t.date).slice(0, 7)) || leftOut(t)) continue;
     const amount = Math.abs(Number(t.amount) || 0);
     const debit = t.type === "debit" || Number(t.amount) < 0;
     if (!debit) {

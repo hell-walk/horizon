@@ -9,7 +9,7 @@
 // Nothing here is a tax or legal notion of income: it is money arriving in
 // the accounts Horizon can see.
 
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import { isPersonPayment, payeeName } from "./payees";
 
 export type IncomeKind = "salaried" | "student" | "freelancer" | "none";
@@ -55,7 +55,7 @@ function creditsIn(transactions: Transaction[]): Credit[] {
     const isCredit = t.type === "credit" || (t.type !== "debit" && Number(t.amount) > 0);
     const amount = Math.abs(Number(t.amount) || 0);
     if (!isCredit || amount === 0) continue;
-    if (t.userCategory === OWN_TRANSFER) continue;
+    if (leftOut(t)) continue;
     const name = t.name ?? "";
     if (NOT_INCOME.test(name)) continue;
     const date = String(t.date).slice(0, 10);

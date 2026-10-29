@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { parseStringify } from "../utils";
 import { applyCorrections } from "../finance/corrections";
+import { markReversals } from "../finance/reversals";
 import { loadLoggedInUser, ownerIdOf } from "./auth";
 import { loadCorrections } from "./corrections";
 import { findOwnBank, getBanks, saveSetuSessionId } from "./banks";
@@ -162,7 +163,7 @@ async function loadAccountNow(appwriteItemId: string) {
     );
 
     // The user's own names and categories, on every screen that shows this account.
-    return parseStringify({ data: account, transactions: applyCorrections(allTransactions, corrections) });
+    return parseStringify({ data: account, transactions: markReversals(applyCorrections(allTransactions, corrections)) });
   } catch (error) {
     logError("An error occurred while getting the account", error);
   }
@@ -184,7 +185,7 @@ export async function getRecentEntries(appwriteItemId: string, limit = RECENT_EN
     if (!bank || providerOf(bank) !== MANUAL_PROVIDER) return null;
     // Imported statements have no Horizon transfers (those need a US bank via Plaid).
     const [recent, corrections] = await Promise.all([getRecentStatementTransactions(bank, limit), loadCorrections(ownerIdOf(user!))]);
-    return parseStringify({ transactions: applyCorrections(recent.transactions, corrections), total: recent.total });
+    return parseStringify({ transactions: markReversals(applyCorrections(recent.transactions, corrections)), total: recent.total });
   } catch (error) {
     logError("An error occurred while getting the newest entries", error);
     return null;

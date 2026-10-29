@@ -1,4 +1,4 @@
-import { OWN_TRANSFER } from "./corrections";
+import { leftOut } from "./corrections";
 import type { Evidence } from "./insights";
 import { payeeName } from "./payees";
 import { regularKeyOf, type Regular } from "./recurring";
@@ -41,7 +41,7 @@ export function weeklyRecap(transactions: Transaction[] = [], regulars: Regular[
       const regular = out ? regularKeys.get(regularKeyOf(t) ?? "") : undefined;
       return { t, day: dayOf(String(t.date ?? "")), amount: Math.abs(Number(t.amount) || 0), out, regular };
     })
-    .filter((r) => Number.isFinite(r.day) && r.amount > 0 && r.t.userCategory !== OWN_TRANSFER);
+    .filter((r) => Number.isFinite(r.day) && r.amount > 0 && !leftOut(r.t));
   if (rows.length === 0) return null;
 
   const todayDay = Math.floor(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) / DAY);
