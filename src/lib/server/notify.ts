@@ -202,7 +202,12 @@ export async function runMonthlyReports(today = new Date()): Promise<number> {
         const message: Message = {
           title: t("report.emailTitle", { month }),
           // No amounts: an inbox is not a private place (the rule every reminder follows).
-          body: t("report.emailBody", { month }),
+          body: report.partial
+            ? t("report.emailBodyPartial", {
+                month,
+                date: new Intl.DateTimeFormat(LOCALE_TAGS[person.settings.locale], { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${report.through}T00:00:00Z`)),
+              })
+            : t("report.emailBody", { month }),
           url: `/report?month=${report.month}`,
         };
         const result = await deliver(person.id, person.email, { ...person.settings, push: [] }, message, [key]);

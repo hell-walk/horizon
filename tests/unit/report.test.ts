@@ -24,8 +24,13 @@ const rows = [
 const regular = findRegular(rows, new Date("2026-09-10T00:00:00Z"));
 
 describe("monthlyReport: one month, summed", () => {
-  it("lists the full months, newest first", () => {
-    expect(reportMonths(rows)).toEqual(["2026-08", "2026-07", "2026-06"]);
+  it("lists the months that have ended, newest first, without the part month the statements start in", () => {
+    // In September: June to August; the current month waits.
+    expect(reportMonths(rows, new Date("2026-09-10T00:00:00Z"))).toEqual(["2026-08", "2026-07", "2026-06"]);
+    // On 1 October, September has ended: reported even though the statements stop on the 3rd, and marked partial.
+    expect(reportMonths(rows, new Date("2026-10-01T04:00:00Z"))[0]).toBe("2026-09");
+    expect(monthlyReport(rows, regular, "2026-09")).toMatchObject({ month: "2026-09", through: "2026-09-03", partial: true, spent: 500 });
+    expect(monthlyReport(rows, regular, "2026-08")).toMatchObject({ through: "2026-08-30", partial: true }); // August has 31 days
   });
 
   it("adds up August: in, out, kept, where it went, the biggest, EMIs and charges", () => {

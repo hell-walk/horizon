@@ -83,6 +83,15 @@ async function ReportContent({ ownerId, month }: { ownerId: string; month?: stri
         ))}
       </nav>
 
+      {report.partial && (
+        <p className="panel panel-body text-13 text-ink-muted">
+          {t("report.partialNote", {
+            date: dateFormat(locale, { day: "numeric", month: "long" })(report.through),
+            month: dateFormat(locale, { month: "long" })(`${report.month}-01`),
+          })}
+        </p>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-3">
         <Tile label={t("report.tileIn")} value={money(report.moneyIn)} note={t("report.tileInNote")} />
         <Tile label={t("report.tileOut")} value={money(report.spent)} note={t("report.tileOutNote", { count: report.count })} />

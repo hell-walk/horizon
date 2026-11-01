@@ -15,6 +15,9 @@ export type ReportDue = { name: string; amount: number; date: string; kind: Regu
 export type Report = {
   /** YYYY-MM */
   month: string;
+  /** The newest entry in the month (YYYY-MM-DD); before the month's last day the report is partial. */
+  through: string;
+  partial: boolean;
   count: number;
   moneyIn: number;
   spent: number;
@@ -40,10 +43,16 @@ const DUE = 10;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const monthOf = (t: Transaction) => String(t.date).slice(0, 7);
 
-/** The full months the statements cover, newest first: the first and last month are usually part months. */
-export function reportMonths(transactions: Transaction[]): string[] {
-  const months = [...new Set(transactions.map(monthOf).filter((m) => /^\d{4}-\d{2}$/.test(m)))].sort();
-  const full = months.length >= 3 ? months.slice(1, -1) : months;
+/**
+ * The months a report can be made for, newest first: every month that has
+ * ended, except the earliest (statements usually start part-way through it).
+ * The current month waits until it ends; a month the statements stop short in
+ * is still reported, marked partial, rather than skipped for the one before.
+ */
+export function reportMonths(transactions: Transaction[], today = new Date()): string[] {
+  const current = today.toISOString().slice(0, 7);
+  const months = [...new Set(transactions.map(monthOf).filter((m) => /^\d{4}-\d{2}$/.test(m) && m < current))].sort();
+  const full = months.length >= 2 ? months.slice(1) : months;
   return full.reverse();
 }
 
@@ -57,6 +66,10 @@ const nextOf = (month: string) => {
 export function monthlyReport(transactions: Transaction[], regular: Regular[], month: string): Report | null {
   const rows = transactions.filter((t) => monthOf(t) === month && !leftOut(t));
   if (rows.length === 0) return null;
+  // How far into the month the statements reach: short of its last day, the report is partial.
+  const through = rows.map((t) => String(t.date).slice(0, 10)).sort().at(-1)!;
+  const [y, m] = month.split("-").map(Number);
+  const partial = through < `${month}-${String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, "0")}`;
 
   let moneyIn = 0;
   let spent = 0;
@@ -108,6 +121,8 @@ export function monthlyReport(transactions: Transaction[], regular: Regular[], m
 
   return {
     month,
+    through,
+    partial,
     count: rows.length,
     moneyIn: round2(moneyIn),
     spent: round2(spent),

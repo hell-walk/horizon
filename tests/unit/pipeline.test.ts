@@ -77,7 +77,7 @@ describe("the whole pipeline on one known set of statements", () => {
   });
 
   it("reports August to the rupee", () => {
-    expect(reportMonths(rows)).toEqual(["2026-08", "2026-07", "2026-06"]);
+    expect(reportMonths(rows, new Date("2026-09-10T00:00:00Z"))).toEqual(["2026-08", "2026-07", "2026-06"]);
     const r = monthlyReport(rows, regular, "2026-08")!;
     expect(r.moneyIn).toBe(60000);
     expect(r.spent).toBe(30666.7); // 30649 + 17.70; the SIP is kept, not spent

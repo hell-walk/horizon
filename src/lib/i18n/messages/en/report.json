@@ -3,7 +3,7 @@
   "metaDescription": "One month of your money: what came in, what went out, what stayed, where it went, and what is due next.",
   "eyebrow": "Month by month",
   "title": "Monthly report",
-  "subtext": "The latest full month your statements cover, summed up. Pick another month above the numbers.",
+  "subtext": "The latest month your statements cover, summed up. Pick another month above the numbers.",
   "pickMonth": "Pick a month",
   "empty": "No full month to report on yet. Upload statements covering at least one whole month.",
   "tileIn": "Came in",
@@ -33,5 +33,7 @@
   "teaserTitle": "{month} report",
   "teaserOpen": "Open",
   "emailTitle": "Your {month} report",
-  "emailBody": "Your {month} report is ready: what came in, what went out, what stayed with you, where it went and what is due next. Open Horizon to see it."
+  "emailBody": "Your {month} report is ready: what came in, what went out, what stayed with you, where it went and what is due next. Open Horizon to see it.",
+  "emailBodyPartial": "Your {month} report is ready: what came in, what went out, what stayed with you, where it went and what is due next. It covers entries up to {date}; upload the rest of the month to complete it. Open Horizon to see it.",
+  "partialNote": "Your statements reach {date}. The rest of {month} is not in them yet: upload it and this report fills in."
 }
