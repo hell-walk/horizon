@@ -67,6 +67,8 @@ export async function readStatementRowsIsolated(input: { name: string; buffer: B
   const reply = await runInWorker<WorkerReply>(WORKER_FILE, request, isolation, [bytes.buffer as ArrayBuffer]);
   if (reply.ok) return reply.rows as Cell[][];
   if (reply.kind === "password") throw new StatementPasswordError(reply.message, reply.wrongPassword);
+  // The reader itself crashed on this file: the log says which library said what, and the file's kind and size (never its content).
+  if (reply.detail) logError(`statement: reader crashed on a ${input.name.split(".").pop()?.toLowerCase() ?? "?"} file of ${input.buffer.length} bytes`, new Error(reply.detail));
   if (reply.kind === "parse") throw new StatementParseError(reply.message);
   throw new StatementParseError("This file could not be read. It may be damaged or not a bank statement. Download it again from your bank and retry.");
 }

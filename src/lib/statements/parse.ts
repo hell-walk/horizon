@@ -75,8 +75,11 @@ export async function readStatementRows(input: ReadInput): Promise<Cell[][]> {
   } catch (error) {
     if (error instanceof StatementParseError || error instanceof StatementPasswordError) throw error;
     // A damaged file makes the PDF/Excel libraries throw all sorts of things
-    // (TypeErrors, strings); the user gets one clear message instead.
-    throw new StatementParseError("This file could not be read. It may be damaged or not a bank statement. Download it again from your bank and retry.");
+    // (TypeErrors, strings); the user gets one clear message instead, and the
+    // library's own words ride along as the cause for the server log (isolated.ts).
+    const wrapped = new StatementParseError("This file could not be read. It may be damaged or not a bank statement. Download it again from your bank and retry.");
+    (wrapped as Error & { cause?: unknown }).cause = error;
+    throw wrapped;
   }
   checkRows(rows.length);
   return rows;

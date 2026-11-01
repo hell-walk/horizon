@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { readStatementRowsIsolated, runInWorker, WorkerLimitError } from "@/lib/statements/isolated";
 import { readStatementRows, StatementParseError, StatementPasswordError } from "@/lib/statements/parse";
@@ -20,6 +20,31 @@ const script = (name: string, body: string) => {
 
 beforeAll(() => {
   execFileSync(process.execPath, ["scripts/build-parse-worker.mjs"], { cwd: join(__dirname, "../../..") });
+});
+
+describe("a file the reader cannot open", () => {
+  // A PDF cut short (a partial or re-saved download): the person gets one plain message, the server log gets the library's own words.
+  const truncated = Buffer.concat([Buffer.from("%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"), Buffer.alloc(300, 0)]);
+
+  it("keeps the library's error as the cause, out of the person's sight", async () => {
+    const failure = await readStatementRows({ name: "cut.pdf", buffer: truncated }).catch((e: Error & { cause?: { name?: string } }) => e);
+    expect(failure).toBeInstanceOf(StatementParseError);
+    expect(failure.message).toMatch(/could not be read/);
+    expect(failure.cause?.name).toBe("InvalidPDFException");
+  });
+
+  it("through the worker, the server logs what the reader said, never the file", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await expect(readStatementRowsIsolated({ name: "cut.pd.pdf", buffer: truncated })).rejects.toThrow(/could not be read/);
+      const line = log.mock.calls.map((c) => c.join(" ")).find((s) => s.includes("reader crashed"));
+      expect(line).toMatch(/pdf file of 358 bytes/);
+      expect(line).toMatch(/InvalidPDFException/);
+      expect(line).not.toMatch(/%PDF/);
+    } finally {
+      log.mockRestore();
+    }
+  });
 });
 
 describe("the isolation itself", () => {

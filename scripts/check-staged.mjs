@@ -8,7 +8,24 @@ import { execFileSync } from "node:child_process";
 
 import { envSecretValues, FORBIDDEN_FILES, PATTERNS, serviceRoleJwt } from "./secret-patterns.mjs";
 
-const git = (...args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+// Inside a hook, Git for Windows puts its libexec/git-core first on PATH, and the
+// git.exe there cannot be started from node (spawn fails with UNKNOWN) on some
+// installs. So the first git that answers --version is used: PATH's, else the
+// launcher next to the hook's exec path.
+const GIT = (() => {
+  const exec = process.env.GIT_EXEC_PATH ?? "";
+  const candidates = ["git", `${exec}/../../bin/git.exe`, `${exec}/../../../cmd/git.exe`, `${exec}/../../../bin/git.exe`];
+  for (const candidate of candidates) {
+    try {
+      execFileSync(candidate, ["--version"], { stdio: "pipe" });
+      return candidate;
+    } catch {
+      /* the next one */
+    }
+  }
+  return "git";
+})();
+const git = (...args) => execFileSync(GIT, args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
 const staged = git("diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z").split("\0").filter(Boolean);
 const secrets = envSecretValues();
 const problems = [];
