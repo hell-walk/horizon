@@ -123,3 +123,6 @@ Restoring data after a loss: `docs/deploy-vercel.md`, section 9.
   why things are the way they are.
 - `docs/rebuild-plan.md`: a 90-day plan for learning the codebase by
   rebuilding it.
+- In the `Admin-Portal` repository: `docs/SETUP-AND-USE.md` (set-up and use
+  of the admin portal, step by step) and `docs/LEARN-TO-BUILD.md` (a 28-day
+  plan for rebuilding the portal).
