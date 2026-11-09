@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FileUp } from "lucide-react";
 
 import AllocationPanel from "./components/allocationPanel";
 import IncomePanel from "./components/incomePanel";
@@ -24,7 +26,6 @@ import { weeklyRecap } from "@/lib/finance/recap";
 import { findRegular } from "@/lib/finance/recurring";
 import { accountForecast } from "@/lib/server/forecast";
 import { forecastView } from "@/lib/server/income";
-import QuickActions from "./components/quickActions";
 import RecentTransaction from "./components/recentTransaction";
 import RightSideBar from "./components/rightSideBar";
 import { ChartPanelSkeleton, RecentTransactionsSkeleton, RightSideBarSkeleton } from "@/components/ui/skeletons";
@@ -91,9 +92,13 @@ const Home = async ({ searchParams }: SearchParamProps) => {
             title={t(greetingKey())}
             user={loggedIn.firstName || loggedIn.name || t("home.greetingFallbackName")}
             subtext={accountsData.length > 0 ? t("home.subtextAccounts", { count: accountsData.length }) : t("home.subtextEmpty")}
+            // The one thing people come to Home to do; bills, the calendar and goals are in the menu.
+            actions={
+              <Link href="/upload-statement" className="btn-primary btn-sm" data-tour="actions">
+                <FileUp className="size-4" aria-hidden /> {t("home.actionUpload")}
+              </Link>
+            }
           />
-
-          <QuickActions />
 
           {/* One row: the balance as it stands, money in each month, and the latest month's three numbers. */}
           <div className="grid gap-6 lg:grid-cols-3">

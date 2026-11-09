@@ -27,7 +27,7 @@ describe("a file the reader cannot open", () => {
   const truncated = Buffer.concat([Buffer.from("%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"), Buffer.alloc(300, 0)]);
 
   it("keeps the library's error as the cause, out of the person's sight", async () => {
-    const failure = await readStatementRows({ name: "cut.pdf", buffer: truncated }).catch((e: Error & { cause?: { name?: string } }) => e);
+    const failure = (await readStatementRows({ name: "cut.pdf", buffer: truncated }).catch((e: unknown) => e)) as Error & { cause?: { name?: string } };
     expect(failure).toBeInstanceOf(StatementParseError);
     expect(failure.message).toMatch(/could not be read/);
     expect(failure.cause?.name).toBe("InvalidPDFException");

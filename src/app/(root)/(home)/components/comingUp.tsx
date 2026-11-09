@@ -51,11 +51,8 @@ const ComingUp = async ({ ownerId }: { ownerId: string }) => {
             </li>
           ))}
           {soon.length > SHOWN && (
-            <li className="px-4 py-2 text-13 text-ink-muted">
-              <Link href="/bills" className="underline underline-offset-2">
-                {t("bills.homeMore", { count: soon.length - SHOWN })}
-              </Link>
-            </li>
+            // Plain text: the header's "See all" already goes to the bills page.
+            <li className="px-4 py-2 text-13 text-ink-muted">{t("bills.homeMore", { count: soon.length - SHOWN })}</li>
           )}
         </ul>
       )}
